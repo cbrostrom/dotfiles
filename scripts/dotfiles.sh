@@ -127,22 +127,50 @@ create_symlink() {
     if command -v realpath >/dev/null 2>&1 && realpath --help 2>&1 | grep -q "relative-to"; then
         relative_source=$(realpath --relative-to="$target_dir" "$source_abs")
     else
-        # Fallback: calculate relative path manually
-        # Check if target is in home directory or a subdirectory
-        if [[ "$target_dir" == "$HOME" ]]; then
-            # Target is directly in home directory
-            relative_source="dotfiles/$source"
-        else
-            # Target is in a subdirectory, need to go up to home then to dotfiles
-            # Calculate how many levels to go up
-            local target_subdir="${target_dir#$HOME/}"
-            local up_levels=$(echo "$target_subdir" | tr -cd '/' | wc -c)
-            local up_path=""
-            for ((i = 0; i <= up_levels; i++)); do
-                up_path="../$up_path"
-            done
-            relative_source="${up_path}dotfiles/$source"
+        # Fallback: calculate relative path manually using a more robust method
+        # Get the absolute paths
+        local source_abs_norm=$(cd "$SCRIPT_DIR" && pwd)/$source
+        local target_dir_norm=$(cd "$target_dir" && pwd)
+
+        # Find common prefix
+        local common_prefix=""
+        local source_rest="$source_abs_norm"
+        local target_rest="$target_dir_norm"
+
+        # Split paths and find common prefix
+        IFS='/' read -ra source_parts <<<"$source_abs_norm"
+        IFS='/' read -ra target_parts <<<"$target_dir_norm"
+
+        local min_len=${#source_parts[@]}
+        if [[ ${#target_parts[@]} -lt $min_len ]]; then
+            min_len=${#target_parts[@]}
         fi
+
+        local common_len=0
+        for ((i = 0; i < min_len; i++)); do
+            if [[ "${source_parts[$i]}" == "${target_parts[$i]}" ]]; then
+                ((common_len++))
+            else
+                break
+            fi
+        done
+
+        # Build relative path
+        local up_count=$((${#target_parts[@]} - common_len))
+        relative_source=""
+
+        # Add up directories
+        for ((i = 0; i < up_count; i++)); do
+            relative_source="$relative_source../"
+        done
+
+        # Add remaining source path
+        for ((i = common_len; i < ${#source_parts[@]}; i++)); do
+            if [[ $i -gt $common_len ]]; then
+                relative_source="$relative_source/"
+            fi
+            relative_source="$relative_source${source_parts[$i]}"
+        done
     fi
 
     log_info "Creating symlink: $relative_source -> $target"
