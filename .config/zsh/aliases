@@ -1,16 +1,35 @@
 # Web dev aliases
-alias ls='lsd --group-dirs first'
-alias ll='lsd --group-dirs first -l'
-alias la='lsd --group-dirs first -la'
-alias tree='lsd --tree --level=2'
-alias cat='bat'
-alias grep='rg'
-alias find='fd'
+if command -v lsd &>/dev/null; then
+    alias ls='lsd --group-dirs first'
+    alias ll='lsd --group-dirs first -l'
+    alias la='lsd --group-dirs first -la'
+    alias tree='lsd --tree --level=2'
+else
+    # Fallback to standard ls
+    alias ll='ls -la'
+    alias la='ls -la'
+fi
+
+if command -v bat &>/dev/null; then
+    alias cat='bat'
+elif command -v batcat &>/dev/null; then
+    alias cat='batcat'
+fi
+
+if command -v rg &>/dev/null; then
+    alias grep='rg'
+fi
+
+if command -v fd &>/dev/null; then
+    alias find='fd'
+elif command -v fdfind &>/dev/null; then
+    alias find='fdfind'
+fi
 
 # Project shortcuts (customize as needed)
-alias dev='cd ~/Projects && lsd --group-dirs first'
-alias shopify='cd ~/Projects/shopify && lsd --group-dirs first'
-alias next='cd ~/Projects/nextjs && lsd --group-dirs first'
+alias dev='cd ~/Projects && ls'
+alias shopify='cd ~/Projects/shopify && ls'
+alias next='cd ~/Projects/nextjs && ls'
 
 # Package manager shortcuts
 alias ni='npm install'
@@ -33,14 +52,32 @@ alias gl='git pull'
 alias gco='git checkout'
 alias gb='git branch'
 alias gd='git diff'
-alias lg='lazygit'
+if command -v lazygit &>/dev/null; then
+    alias lg='lazygit'
+fi
 
-# Modern tool aliases
-alias ps='procs'
-alias h='htop'
-alias disk='ncdu'
-alias search='rga'
-alias fuzzy='git-fuzzy'
+# Modern tool aliases (with fallbacks)
+if command -v procs &>/dev/null; then
+    alias ps='procs'
+fi
+
+if command -v htop &>/dev/null; then
+    alias h='htop'
+fi
+
+if command -v ncdu &>/dev/null; then
+    alias disk='ncdu'
+fi
+
+if command -v rga &>/dev/null; then
+    alias search='rga'
+elif command -v rg &>/dev/null; then
+    alias search='rg'
+fi
+
+if command -v git-fuzzy &>/dev/null; then
+    alias fuzzy='git-fuzzy'
+fi
 
 # Docker (simplified, no conflicting completions)
 if command -v docker &>/dev/null; then

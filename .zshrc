@@ -2,10 +2,15 @@
 OS_TYPE="$(uname -s)"
 IS_MACOS=false
 IS_LINUX=false
+IS_WSL=false
 if [[ "$OS_TYPE" == "Darwin" ]]; then
     IS_MACOS=true
 elif [[ "$OS_TYPE" == "Linux" ]]; then
     IS_LINUX=true
+    # Check if running in WSL
+    if grep -q Microsoft /proc/version 2>/dev/null; then
+        IS_WSL=true
+    fi
 fi
 
 # Homebrew setup (macOS only) - check multiple possible locations
@@ -37,12 +42,20 @@ fi
 
 # Set the directory we want to store zinit and plugins
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+
+# Install zinit if it doesn't exist
 if [ ! -d "$ZINIT_HOME" ]; then
+    echo "Installing zinit..."
     mkdir -p "$(dirname $ZINIT_HOME)"
     git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 fi
 
-source "${ZINIT_HOME}/zinit.zsh"
+# Source zinit if it exists
+if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
+    source "${ZINIT_HOME}/zinit.zsh"
+else
+    echo "Warning: zinit not found. Some features may not work."
+fi
 
 # Zoxide (better cd) - source if available
 if command -v zoxide >/dev/null 2>&1; then
@@ -73,15 +86,31 @@ if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
     . "$HOME/.asdf/completions/asdf.bash"
 fi
 
-# Source organized configuration files
-source "$HOME/.config/zsh/env"
-source "$HOME/.config/zsh/plugins"
-source "$HOME/.config/zsh/aliases"
+# Source organized configuration files (with error handling)
+if [[ -f "$HOME/.config/zsh/env" ]]; then
+    source "$HOME/.config/zsh/env"
+else
+    echo "Warning: $HOME/.config/zsh/env not found"
+fi
+
+if [[ -f "$HOME/.config/zsh/plugins" ]]; then
+    source "$HOME/.config/zsh/plugins"
+else
+    echo "Warning: $HOME/.config/zsh/plugins not found"
+fi
+
+if [[ -f "$HOME/.config/zsh/aliases" ]]; then
+    source "$HOME/.config/zsh/aliases"
+else
+    echo "Warning: $HOME/.config/zsh/aliases not found"
+fi
 
 # Completions (optimized)
 autoload -Uz compinit
 compinit -C
-zinit cdreplay -q
+if command -v zinit &>/dev/null; then
+    zinit cdreplay -q
+fi
 
 # History (optimized for web dev workflow)
 HISTSIZE=10000
@@ -107,10 +136,12 @@ if command -v fzf &>/dev/null; then
     bindkey '^[c' fzf-cd-widget
 fi
 
-# Completion styling with fzf-tab
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
-zstyle ':completion:*' menu no
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd --group-dirs first --color=always $realpath 2>/dev/null || ls --color $realpath'
-zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'lsd --group-dirs first --color=always $realpath 2>/dev/null || ls --color $realpath'
-zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview 'procs --pid=$word -o cmd --no-headers -w -w'
-zstyle ':fzf-tab:complete:npm:*' fzf-preview 'cat package.json 2>/dev/null | jq .scripts 2>/dev/null || echo "No package.json found"'
+# Completion styling with fzf-tab (only if zinit is available)
+if command -v zinit &>/dev/null; then
+    zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+    zstyle ':completion:*' menu no
+    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd --group-dirs first --color=always $realpath 2>/dev/null || ls --color $realpath'
+    zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'lsd --group-dirs first --color=always $realpath 2>/dev/null || ls --color $realpath'
+    zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview 'procs --pid=$word -o cmd --no-headers -w -w'
+    zstyle ':fzf-tab:complete:npm:*' fzf-preview 'cat package.json 2>/dev/null | jq .scripts 2>/dev/null || echo "No package.json found"'
+fi

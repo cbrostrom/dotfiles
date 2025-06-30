@@ -1,3 +1,78 @@
+# OS detection for cross-platform compatibility
+OS_TYPE="$(uname -s)"
+IS_MACOS=false
+IS_LINUX=false
+IS_WSL=false
+if [[ "$OS_TYPE" == "Darwin" ]]; then
+    IS_MACOS=true
+elif [[ "$OS_TYPE" == "Linux" ]]; then
+    IS_LINUX=true
+    # Check if running in WSL
+    if grep -q Microsoft /proc/version 2>/dev/null; then
+        IS_WSL=true
+    fi
+fi
+
+# Modern tools install/check (macOS: brew, Linux: apt)
+if $IS_MACOS; then
+    # macOS - use Homebrew
+    if command -v brew &>/dev/null; then
+        if ! command -v lsd &>/dev/null; then brew install lsd; fi
+        if ! command -v bat &>/dev/null; then brew install bat; fi
+        if ! command -v rg &>/dev/null; then brew install ripgrep; fi
+        if ! command -v fd &>/dev/null; then brew install fd; fi
+        if ! command -v fzf &>/dev/null; then brew install fzf; fi
+        if ! command -v lazygit &>/dev/null; then brew install lazygit; fi
+        if ! command -v tldr &>/dev/null; then brew install tealdeer; fi
+        if ! command -v atuin &>/dev/null; then brew install atuin; fi
+        if ! command -v direnv &>/dev/null; then brew install direnv; fi
+        if ! command -v asdf &>/dev/null; then brew install asdf; fi
+        if ! command -v starship &>/dev/null; then brew install starship; fi
+        if ! command -v htop &>/dev/null; then brew install htop; fi
+        if ! command -v ncdu &>/dev/null; then brew install ncdu; fi
+        if ! command -v procs &>/dev/null; then brew install procs; fi
+        if ! command -v ripgrep-all &>/dev/null; then brew install ripgrep-all; fi
+        if ! command -v git-delta &>/dev/null; then brew install git-delta; fi
+        if ! command -v git-fuzzy &>/dev/null; then brew install git-fuzzy; fi
+    fi
+elif $IS_LINUX; then
+    # Linux/WSL - use apt with fallbacks
+    if command -v apt &>/dev/null; then
+        # Update package list first
+        sudo apt update -qq
+
+        # Install packages that are available in apt
+        if ! command -v lsd &>/dev/null; then sudo apt install -y lsd; fi
+        if ! command -v batcat &>/dev/null; then sudo apt install -y bat; fi
+        if ! command -v rg &>/dev/null; then sudo apt install -y ripgrep; fi
+        if ! command -v fd &>/dev/null; then sudo apt install -y fd-find; fi
+        if ! command -v fzf &>/dev/null; then sudo apt install -y fzf; fi
+        if ! command -v lazygit &>/dev/null; then sudo apt install -y lazygit; fi
+        if ! command -v tldr &>/dev/null; then sudo apt install -y tldr; fi
+        if ! command -v direnv &>/dev/null; then sudo apt install -y direnv; fi
+        if ! command -v htop &>/dev/null; then sudo apt install -y htop; fi
+        if ! command -v ncdu &>/dev/null; then sudo apt install -y ncdu; fi
+        if ! command -v procs &>/dev/null; then sudo apt install -y procs; fi
+        if ! command -v ripgrep-all &>/dev/null; then sudo apt install -y ripgrep-all; fi
+        if ! command -v git-delta &>/dev/null; then sudo apt install -y git-delta; fi
+    fi
+
+    # Install tools that need manual installation
+    if ! command -v atuin &>/dev/null; then
+        curl -sSf https://atuin.sh/install.sh | bash
+    fi
+
+    if ! command -v asdf &>/dev/null; then
+        if [[ ! -d "$HOME/.asdf" ]]; then
+            git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1
+        fi
+    fi
+
+    if ! command -v starship &>/dev/null; then
+        curl -sS https://starship.rs/install.sh | sh
+    fi
+fi
+
 # Essential plugins only (lazy loaded for performance)
 zinit wait lucid for \
     atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
@@ -30,54 +105,3 @@ zinit wait lucid for \
 zinit wait lucid for \
     atload"zicompinit; zicdreplay" \
     marlonrichert/zsh-autocomplete
-
-# OS detection for cross-platform compatibility
-OS_TYPE="$(uname -s)"
-IS_MACOS=false
-IS_LINUX=false
-if [[ "$OS_TYPE" == "Darwin" ]]; then
-    IS_MACOS=true
-elif [[ "$OS_TYPE" == "Linux" ]]; then
-    IS_LINUX=true
-fi
-
-# Modern tools install/check (macOS: brew, Linux: apt)
-if $IS_MACOS; then
-    if ! command -v lsd &>/dev/null; then brew install lsd; fi
-    if ! command -v bat &>/dev/null; then brew install bat; fi
-    if ! command -v rg &>/dev/null; then brew install ripgrep; fi
-    if ! command -v fd &>/dev/null; then brew install fd; fi
-    if ! command -v fzf &>/dev/null; then brew install fzf; fi
-    if ! command -v lazygit &>/dev/null; then brew install lazygit; fi
-    if ! command -v tldr &>/dev/null; then brew install tealdeer; fi
-    if ! command -v fastfetch &>/dev/null; then brew install fastfetch; fi
-    if ! command -v atuin &>/dev/null; then brew install atuin; fi
-    if ! command -v direnv &>/dev/null; then brew install direnv; fi
-    if ! command -v asdf &>/dev/null; then brew install asdf; fi
-    if ! command -v starship &>/dev/null; then brew install starship; fi
-    if ! command -v htop &>/dev/null; then brew install htop; fi
-    if ! command -v ncdu &>/dev/null; then brew install ncdu; fi
-    if ! command -v procs &>/dev/null; then brew install procs; fi
-    if ! command -v ripgrep-all &>/dev/null; then brew install ripgrep-all; fi
-    if ! command -v git-delta &>/dev/null; then brew install git-delta; fi
-    if ! command -v git-fuzzy &>/dev/null; then brew install git-fuzzy; fi
-elif $IS_LINUX; then
-    if ! command -v lsd &>/dev/null; then sudo apt install -y lsd; fi
-    if ! command -v batcat &>/dev/null; then sudo apt install -y bat; fi
-    if ! command -v rg &>/dev/null; then sudo apt install -y ripgrep; fi
-    if ! command -v fd &>/dev/null; then sudo apt install -y fd-find; fi
-    if ! command -v fzf &>/dev/null; then sudo apt install -y fzf; fi
-    if ! command -v lazygit &>/dev/null; then sudo apt install -y lazygit; fi
-    if ! command -v tldr &>/dev/null; then sudo apt install -y tldr; fi
-    if ! command -v atuin &>/dev/null; then curl -sSf https://atuin.sh/install.sh | bash; fi
-    if ! command -v direnv &>/dev/null; then sudo apt install -y direnv; fi
-    if ! command -v asdf &>/dev/null; then git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1; fi
-    if ! command -v starship &>/dev/null; then curl -sS https://starship.rs/install.sh | sh; fi
-    if ! command -v htop &>/dev/null; then sudo apt install -y htop; fi
-    if ! command -v ncdu &>/dev/null; then sudo apt install -y ncdu; fi
-    if ! command -v procs &>/dev/null; then sudo apt install -y procs; fi
-    if ! command -v ripgrep-all &>/dev/null; then sudo apt install -y ripgrep-all; fi
-    if ! command -v git-delta &>/dev/null; then sudo apt install -y git-delta; fi
-    # git-fuzzy might not be available in all repos
-    # if ! command -v git-fuzzy &>/dev/null; then sudo apt install -y git-fuzzy; fi
-fi
