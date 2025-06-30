@@ -1,0 +1,10 @@
+# Sample lsd config for color and icon customization
+color:
+  when: always
+  theme: default
+  # You can set theme: custom and define your own colors below
+# icon:
+#   when: always
+#   theme: fancy
+#   separator: " "
+# More options: https://lsd-rs.github.io/lsd/usage/configuration.html 
