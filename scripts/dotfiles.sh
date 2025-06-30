@@ -3,7 +3,7 @@
 # Dotfiles Manager
 # Supports macOS and WSL2 Ubuntu
 
-# set -e  # Temporarily disabled to debug WSL issue
+set -e # Re-enabled with better error handling
 
 # Colors for output
 RED='\033[0;31m'
