@@ -109,3 +109,4 @@ fi
 # Dotfiles manager aliases (using relative paths for cross-platform compatibility)
 alias dotfiles='../../dotfiles/scripts/main.sh'
 alias dotfiles-version='../../dotfiles/scripts/version.sh'
+alias install-tools='../../dotfiles/scripts/install-tools.sh'

@@ -354,6 +354,11 @@ install_dotfiles() {
 
     if [[ $errors -eq 0 ]]; then
         log_success "Successfully linked $count dotfiles"
+        echo
+        log_info "Next steps:"
+        log_info "  1. Restart your shell or run: source ~/.zshrc"
+        log_info "  2. Install tools (optional): ./scripts/install-tools.sh"
+        log_info "  3. Run diagnostics: ./scripts/diagnose.sh"
     else
         log_warning "Linked $count dotfiles with $errors errors"
     fi

@@ -275,8 +275,11 @@ A robust, cross-platform dotfiles management system that works seamlessly on mac
 git clone <your-repo-url> dotfiles
 cd dotfiles
 
-# Install dotfiles
+# Install dotfiles (symlinks only - no sudo required)
 ./scripts/dotfiles.sh install
+
+# Install tools (optional - may require sudo)
+./scripts/install-tools.sh
 
 # Or with debug mode for troubleshooting
 ./scripts/dotfiles.sh --debug install
@@ -290,12 +293,17 @@ cd dotfiles
    cd dotfiles
    ```
 
-2. **Run the installer**:
+2. **Install dotfiles** (creates symlinks):
    ```bash
    ./scripts/dotfiles.sh install
    ```
 
-3. **Restart your shell** or run:
+3. **Install tools** (optional, installs modern CLI tools):
+   ```bash
+   ./scripts/install-tools.sh
+   ```
+
+4. **Restart your shell** or run:
    ```bash
    source ~/.zshrc
    ```
