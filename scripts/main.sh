@@ -48,20 +48,21 @@ show_main_menu() {
     echo "2. List dotfiles status"
     echo "3. Uninstall dotfiles"
     echo "4. Initialize configuration"
+    echo "5. Update dotfiles (pull + reinstall)"
     echo ""
     echo -e "${MAGENTA}🏷️  VERSION MANAGEMENT${NC}"
     echo "========================"
-    echo "5. Show current version"
-    echo "6. Bump version"
-    echo "7. Git status"
-    echo "8. Quick update (add + commit + push)"
-    echo "9. Full release workflow"
+    echo "6. Show current version"
+    echo "7. Bump version"
+    echo "8. Git status"
+    echo "9. Quick update (add + commit + push)"
+    echo "10. Full release workflow"
     echo ""
     echo -e "${YELLOW}⚙️  UTILITIES${NC}"
     echo "============="
-    echo "10. Show help"
-    echo "11. Open version manager menu"
-    echo "12. Open dotfiles manager menu"
+    echo "11. Show help"
+    echo "12. Open version manager menu"
+    echo "13. Open dotfiles manager menu"
     echo ""
     echo "0. Exit"
     echo ""
@@ -113,6 +114,37 @@ init_config() {
     "$DOTFILES_SCRIPT" init
 }
 
+update_dotfiles() {
+    log_info "Updating dotfiles from remote..."
+
+    # Check if we have uncommitted changes
+    if ! git diff-index --quiet HEAD --; then
+        log_warning "You have uncommitted changes. Stashing them..."
+        git stash push -m "Auto-stash before update $(date)"
+    fi
+
+    # Pull latest changes
+    log_info "Pulling latest changes from remote..."
+    if git pull origin master; then
+        log_success "Successfully pulled latest changes"
+
+        # Reinstall dotfiles to apply any new configurations
+        log_info "Reinstalling dotfiles with latest changes..."
+        "$DOTFILES_SCRIPT" install
+
+        # Restore stashed changes if any
+        if git stash list | grep -q "Auto-stash before update"; then
+            log_info "Restoring stashed changes..."
+            git stash pop
+        fi
+
+        log_success "Dotfiles updated successfully!"
+    else
+        log_error "Failed to pull latest changes"
+        return 1
+    fi
+}
+
 show_version() {
     log_info "Current version:"
     "$VERSION_SCRIPT" status
@@ -157,6 +189,7 @@ install    - Install/symlink all dotfiles
 list       - Show status of all dotfiles
 uninstall  - Remove all symlinks
 init       - Initialize configuration file
+update     - Pull latest changes and reinstall
 
 ${MAGENTA}🏷️  VERSION MANAGEMENT${NC}
 =======================
@@ -174,6 +207,7 @@ menu       - Open interactive menu
 ${GREEN}Examples:${NC}
   dotfiles install
   dotfiles list
+  dotfiles update
   dotfiles quick
   dotfiles release
 
@@ -218,27 +252,30 @@ main() {
             init_config
             ;;
         5)
-            show_version
+            update_dotfiles
             ;;
         6)
-            bump_version
+            show_version
             ;;
         7)
-            git_status
+            bump_version
             ;;
         8)
-            quick_update
+            git_status
             ;;
         9)
-            full_release
+            quick_update
             ;;
         10)
-            show_help
+            full_release
             ;;
         11)
-            open_version_menu
+            show_help
             ;;
         12)
+            open_version_menu
+            ;;
+        13)
             open_dotfiles_menu
             ;;
         0)
@@ -269,6 +306,9 @@ if [[ $# -gt 0 ]]; then
         ;;
     init)
         init_config
+        ;;
+    update)
+        update_dotfiles
         ;;
     version)
         show_version

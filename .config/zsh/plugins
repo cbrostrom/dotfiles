@@ -23,6 +23,16 @@ zinit wait lucid light-mode for lukechilds/zsh-nvm
 zinit wait lucid for \
     https://github.com/junegunn/fzf/raw/master/shell/{'completion','key-bindings'}.zsh
 
+# OS detection for cross-platform compatibility
+OS_TYPE="$(uname -s)"
+IS_MACOS=false
+IS_LINUX=false
+if [[ "$OS_TYPE" == "Darwin" ]]; then
+    IS_MACOS=true
+elif [[ "$OS_TYPE" == "Linux" ]]; then
+    IS_LINUX=true
+fi
+
 # Modern tools install/check (macOS: brew, Linux: apt)
 if $IS_MACOS; then
     if ! command -v eza &>/dev/null; then brew install eza; fi

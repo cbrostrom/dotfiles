@@ -60,4 +60,8 @@ if [[ "$(uname -s)" == "Linux" ]]; then
     if command -v fdfind &>/dev/null; then
         alias fd='fdfind'
     fi
-fi 
+fi
+
+# Dotfiles manager aliases (using relative paths for cross-platform compatibility)
+alias dotfiles='~/dotfiles/scripts/main.sh'
+alias dotfiles-version='~/dotfiles/scripts/version.sh'
