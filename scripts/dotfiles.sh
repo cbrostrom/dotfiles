@@ -127,45 +127,21 @@ create_symlink() {
     if command -v realpath >/dev/null 2>&1 && realpath --help 2>&1 | grep -q "relative-to"; then
         relative_source=$(realpath --relative-to="$target_dir" "$source_abs")
     else
-        # Manual relative path calculation
-        local source_parts=($(echo "$source_abs" | tr '/' ' '))
-        local target_parts=($(echo "$target_dir" | tr '/' ' '))
-
-        # Find common prefix length
-        local common_len=0
-        local min_len=${#source_parts[@]}
-        if [[ ${#target_parts[@]} -lt $min_len ]]; then
-            min_len=${#target_parts[@]}
-        fi
-
-        for ((i = 0; i < min_len; i++)); do
-            if [[ "${source_parts[$i]}" == "${target_parts[$i]}" ]]; then
-                ((common_len++))
-            else
-                break
-            fi
-        done
-
-        # Build relative path
-        local up_count=$((${#target_parts[@]} - common_len))
-        relative_source=""
-
-        # Add up directories
-        for ((i = 0; i < up_count; i++)); do
-            relative_source="$relative_source../"
-        done
-
-        # Add remaining source path
-        for ((i = common_len; i < ${#source_parts[@]}; i++)); do
-            if [[ $i -gt $common_len ]]; then
-                relative_source="$relative_source/"
-            fi
-            relative_source="$relative_source${source_parts[$i]}"
-        done
-
-        # Handle case where source is in same directory as target
-        if [[ -z "$relative_source" ]]; then
-            relative_source="$(basename "$source_abs")"
+        # Fallback: calculate relative path manually
+        # Check if target is in home directory or a subdirectory
+        if [[ "$target_dir" == "$HOME" ]]; then
+            # Target is directly in home directory
+            relative_source="dotfiles/$source"
+        else
+            # Target is in a subdirectory, need to go up to home then to dotfiles
+            # Calculate how many levels to go up
+            local target_subdir="${target_dir#$HOME/}"
+            local up_levels=$(echo "$target_subdir" | tr -cd '/' | wc -c)
+            local up_path=""
+            for ((i = 0; i <= up_levels; i++)); do
+                up_path="../$up_path"
+            done
+            relative_source="${up_path}dotfiles/$source"
         fi
     fi
 
