@@ -207,6 +207,33 @@ uninstall_dotfiles() {
         return 1
     fi
 
+    # Ask user what level of cleanup they want
+    echo -e "\n${YELLOW}Cleanup Options:${NC}"
+    echo "1. Remove symlinks only (safe)"
+    echo "2. Remove symlinks + restore backups"
+    echo "3. Full cleanup (remove symlinks + backups + installed tools)"
+    echo ""
+    read -p "Select cleanup level (1-3): " cleanup_level
+
+    case $cleanup_level in
+    1)
+        cleanup_symlinks_only
+        ;;
+    2)
+        cleanup_symlinks_and_backups
+        ;;
+    3)
+        cleanup_full
+        ;;
+    *)
+        log_warning "Invalid selection. Using safe mode (symlinks only)."
+        cleanup_symlinks_only
+        ;;
+    esac
+}
+
+cleanup_symlinks_only() {
+    log_info "Removing symlinks only..."
     local count=0
 
     while IFS=: read -r source target description; do
@@ -229,6 +256,107 @@ uninstall_dotfiles() {
     done <"$CONFIG_FILE"
 
     log_success "Removed $count symlinks"
+}
+
+cleanup_symlinks_and_backups() {
+    log_info "Removing symlinks and restoring backups..."
+    local count=0
+    local restored=0
+
+    while IFS=: read -r source target description; do
+        # Skip comments and empty lines
+        [[ "$source" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$source" ]] && continue
+
+        # Trim whitespace
+        target=$(echo "$target" | xargs)
+        target="${target/#\~/$HOME}"
+
+        # Remove symlink
+        if [[ -L "$target" ]]; then
+            if rm "$target"; then
+                log_success "Removed symlink: $target"
+                ((count++))
+            else
+                log_error "Failed to remove symlink: $target"
+                continue
+            fi
+        fi
+
+        # Restore backup if it exists
+        local backup_files=($(ls -1 "${target}.backup."* 2>/dev/null | sort -r))
+        if [[ ${#backup_files[@]} -gt 0 ]]; then
+            local latest_backup="${backup_files[0]}"
+            if mv "$latest_backup" "$target"; then
+                log_success "Restored backup: $latest_backup -> $target"
+                ((restored++))
+            else
+                log_error "Failed to restore backup: $latest_backup"
+            fi
+        fi
+    done <"$CONFIG_FILE"
+
+    log_success "Removed $count symlinks and restored $restored backups"
+}
+
+cleanup_full() {
+    log_warning "This will remove symlinks, backups, and uninstall tools!"
+    read -p "Are you sure you want to proceed? (y/N): " confirm
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        log_info "Full cleanup cancelled"
+        return
+    fi
+
+    # First do symlinks and backups
+    cleanup_symlinks_and_backups
+
+    # Then uninstall tools
+    log_info "Uninstalling installed tools..."
+
+    # Detect OS for tool removal
+    local os=$(detect_os)
+
+    if [[ "$os" == "macos" ]]; then
+        # macOS - use Homebrew
+        if command -v brew &>/dev/null; then
+            log_info "Uninstalling tools via Homebrew..."
+            brew uninstall lsd bat ripgrep fd fzf lazygit tealdeer atuin direnv asdf starship htop ncdu procs ripgrep-all git-delta git-fuzzy 2>/dev/null || true
+        fi
+    elif [[ "$os" == "linux" ]] || [[ "$os" == "wsl" ]]; then
+        # Linux/WSL - use apt
+        log_info "Uninstalling tools via apt..."
+        sudo apt remove -y lsd bat ripgrep fd-find fzf lazygit tldr direnv htop ncdu procs ripgrep-all git-delta 2>/dev/null || true
+        sudo apt autoremove -y 2>/dev/null || true
+    fi
+
+    # Remove manually installed tools
+    log_info "Removing manually installed tools..."
+
+    # Remove atuin (if installed via script)
+    if [[ -d "$HOME/.local/share/atuin" ]]; then
+        rm -rf "$HOME/.local/share/atuin"
+        log_success "Removed atuin"
+    fi
+
+    # Remove asdf (if installed via script)
+    if [[ -d "$HOME/.asdf" ]]; then
+        rm -rf "$HOME/.asdf"
+        log_success "Removed asdf"
+    fi
+
+    # Remove starship (if installed via script)
+    if [[ -f "$HOME/.local/bin/starship" ]]; then
+        rm -f "$HOME/.local/bin/starship"
+        log_success "Removed starship"
+    fi
+
+    # Remove zinit
+    if [[ -d "$HOME/.local/share/zinit" ]]; then
+        rm -rf "$HOME/.local/share/zinit"
+        log_success "Removed zinit"
+    fi
+
+    log_success "Full cleanup completed"
 }
 
 list_dotfiles() {
@@ -278,7 +406,10 @@ Usage: $(basename "$0") [COMMAND] [OPTIONS]
 
 Commands:
     install, i     Install/symlink all dotfiles
-    uninstall, u   Remove all symlinks
+    uninstall, u   Remove symlinks with cleanup options:
+                   - Safe: Remove symlinks only
+                   - Restore: Remove symlinks + restore backups
+                   - Full: Remove symlinks + backups + uninstall tools
     list, l        Show status of all dotfiles
     init           Initialize configuration file
     help, h        Show this help message
@@ -289,11 +420,17 @@ Options:
 Examples:
     $(basename "$0") install
     $(basename "$0") list
+    $(basename "$0") uninstall
     $(basename "$0") --config my-config.conf install
 
 Configuration:
     Edit $CONFIG_FILE to customize which files are linked.
     Format: source_file:target_location:description
+
+Cleanup Levels:
+    1. Safe: Only removes symlinks, preserves backups and tools
+    2. Restore: Removes symlinks and restores original files from backups
+    3. Full: Complete cleanup including tool uninstallation
 
 EOF
 }

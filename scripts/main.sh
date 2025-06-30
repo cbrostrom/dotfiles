@@ -99,14 +99,8 @@ list_dotfiles() {
 }
 
 uninstall_dotfiles() {
-    log_warning "This will remove all dotfiles symlinks!"
-    read -p "Are you sure? (y/N): " confirm
-    if [[ "$confirm" =~ ^[Yy]$ ]]; then
-        log_info "Uninstalling dotfiles..."
-        "$DOTFILES_SCRIPT" uninstall
-    else
-        log_info "Uninstall cancelled"
-    fi
+    log_info "Uninstalling dotfiles..."
+    "$DOTFILES_SCRIPT" uninstall
 }
 
 init_config() {
