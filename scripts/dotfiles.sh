@@ -119,8 +119,9 @@ create_symlink() {
     # Create backup if target exists
     create_backup "$target"
 
-    # Create symlink
-    if ln -sf "$SCRIPT_DIR/$source" "$target"; then
+    # Create symlink using relative path for better cross-platform compatibility
+    local relative_source=$(realpath --relative-to="$target_dir" "$SCRIPT_DIR/$source")
+    if ln -sf "$relative_source" "$target"; then
         log_success "Linked $source -> $target ($description)"
     else
         log_error "Failed to link $source -> $target"
