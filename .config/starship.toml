@@ -1,0 +1,140 @@
+# Starship prompt configuration for web development
+# Modern, fast, and informative prompt
+
+# Get editor info
+[character]
+success_symbol = "[➜](bold green)"
+error_symbol = "[✗](bold red)"
+
+[directory]
+truncation_length = 3
+truncation_symbol = "…/"
+style = "blue bold"
+
+[git_branch]
+symbol = " "
+style = "purple bold"
+truncation_length = 4
+truncation_symbol = ""
+
+[git_status]
+style = "red bold"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+untracked = "?"
+stashed = "≡"
+modified = "!"
+staged = "+"
+renamed = "»"
+deleted = "✘"
+
+[nodejs]
+symbol = " "
+style = "green bold"
+detect_extensions = ["js", "mjs", "cjs", "ts", "jsx", "tsx", "json"]
+
+[package]
+symbol = "📦 "
+style = "red bold"
+
+[rust]
+symbol = " "
+style = "red bold"
+
+[golang]
+symbol = " "
+style = "cyan bold"
+
+[python]
+symbol = " "
+style = "yellow bold"
+
+[php]
+symbol = " "
+style = "blue bold"
+
+[ruby]
+symbol = " "
+style = "red bold"
+
+[java]
+symbol = " "
+style = "red dimmed"
+
+[scala]
+symbol = " "
+style = "red dimmed"
+
+[elixir]
+symbol = " "
+style = "purple bold"
+
+[swift]
+symbol = " "
+style = "yellow bold"
+
+[ocaml]
+symbol = " "
+style = "yellow bold"
+
+[erlang]
+symbol = " "
+style = "red bold"
+
+[memory_usage]
+symbol = " "
+style = "white bold dimmed"
+threshold = 75
+disabled = false
+
+[cmd_duration]
+min_time = 2_000
+style = "yellow"
+
+[aws]
+symbol = " "
+style = "yellow bold"
+disabled = false
+
+[gcloud]
+symbol = " "
+style = "blue bold"
+disabled = false
+
+[kubernetes]
+symbol = " "
+style = "blue bold"
+disabled = false
+
+[docker_context]
+symbol = " "
+style = "blue bold"
+disabled = false
+
+[terraform]
+symbol = " "
+style = "purple bold"
+disabled = false
+
+[time]
+disabled = false
+format = "🕙[ %T ]"
+time_range = "-30s"
+style = "bold white"
+
+# Custom command for showing current project type
+[custom.project_type]
+command = "echo '$(basename $(pwd))'"
+when = "pwd | grep -q '/Projects/'"
+symbol = "📁 "
+style = "cyan bold"
+format = "[${symbol}${output}]($style) "
+
+# Custom command for showing current branch in a more compact way
+[custom.git_branch_compact]
+command = "git branch --show-current 2>/dev/null || echo ''"
+when = "git rev-parse --git-dir > /dev/null 2>&1"
+symbol = " "
+style = "purple bold"
+format = "[${symbol}${output}]($style) "

@@ -49,9 +49,28 @@ if command -v zoxide >/dev/null 2>&1; then
     eval "$(zoxide init --cmd cd zsh)"
 fi
 
-# Load oh-my-posh theme (macOS only, skip on Linux)
-if $IS_MACOS && command -v oh-my-posh &>/dev/null; then
+# Starship prompt (modern, fast) - replace oh-my-posh
+if command -v starship &>/dev/null; then
+    eval "$(starship init zsh)"
+elif $IS_MACOS && command -v oh-my-posh &>/dev/null; then
+    # Fallback to oh-my-posh on macOS
     eval "$(oh-my-posh init zsh --config https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/amro.omp.json)"
+fi
+
+# Atuin for better history search
+if command -v atuin &>/dev/null; then
+    eval "$(atuin init zsh --disable-up-arrow)"
+fi
+
+# Direnv for project-specific env vars
+if command -v direnv &>/dev/null; then
+    eval "$(direnv hook zsh)"
+fi
+
+# ASDF for multi-language version management
+if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
+    . "$HOME/.asdf/asdf.sh"
+    . "$HOME/.asdf/completions/asdf.bash"
 fi
 
 # Source organized configuration files
@@ -78,10 +97,20 @@ zle -N down-line-or-beginning-search
 bindkey "^[[A" up-line-or-beginning-search
 bindkey "^[[B" down-line-or-beginning-search
 
+# FZF keybindings for better fuzzy finding
+if command -v fzf &>/dev/null; then
+    # Ctrl+R for history search
+    bindkey '^R' fzf-history-widget
+    # Ctrl+T for file search
+    bindkey '^T' fzf-file-widget
+    # Alt+C for directory search
+    bindkey '^[c' fzf-cd-widget
+fi
+
 # Completion styling with fzf-tab
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' menu no
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --icons --color=always $realpath 2>/dev/null || ls --color $realpath'
-zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza --icons --color=always $realpath 2>/dev/null || ls --color $realpath'
-zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview 'ps --pid=$word -o cmd --no-headers -w -w'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd --group-dirs first --color=always $realpath 2>/dev/null || ls --color $realpath'
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'lsd --group-dirs first --color=always $realpath 2>/dev/null || ls --color $realpath'
+zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview 'procs --pid=$word -o cmd --no-headers -w -w'
 zstyle ':fzf-tab:complete:npm:*' fzf-preview 'cat package.json 2>/dev/null | jq .scripts 2>/dev/null || echo "No package.json found"'

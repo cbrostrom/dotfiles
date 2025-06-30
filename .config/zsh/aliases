@@ -1,16 +1,16 @@
 # Web dev aliases
-alias ls='eza --icons --group-directories-first'
-alias ll='eza --icons --group-directories-first -l'
-alias la='eza --icons --group-directories-first -la'
-alias tree='eza --tree --icons --level=2'
+alias ls='lsd --group-dirs first'
+alias ll='lsd --group-dirs first -l'
+alias la='lsd --group-dirs first -la'
+alias tree='lsd --tree --level=2'
 alias cat='bat'
 alias grep='rg'
 alias find='fd'
 
 # Project shortcuts (customize as needed)
-alias dev='cd ~/Projects && eza --icons'
-alias shopify='cd ~/Projects/shopify && eza --icons'
-alias next='cd ~/Projects/nextjs && eza --icons'
+alias dev='cd ~/Projects && lsd --group-dirs first'
+alias shopify='cd ~/Projects/shopify && lsd --group-dirs first'
+alias next='cd ~/Projects/nextjs && lsd --group-dirs first'
 
 # Package manager shortcuts
 alias ni='npm install'
@@ -34,6 +34,13 @@ alias gco='git checkout'
 alias gb='git branch'
 alias gd='git diff'
 alias lg='lazygit'
+
+# Modern tool aliases
+alias ps='procs'
+alias h='htop'
+alias disk='ncdu'
+alias search='rga'
+alias fuzzy='git-fuzzy'
 
 # Docker (simplified, no conflicting completions)
 if command -v docker &>/dev/null; then

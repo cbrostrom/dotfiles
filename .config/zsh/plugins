@@ -9,6 +9,9 @@ zinit wait lucid for \
     atload"zicompinit; zicdreplay" \
     Aloxaf/fzf-tab
 
+# Performance optimization with zsh-defer
+zinit wait lucid for romkatv/zsh-defer
+
 # Web dev specific snippets (minimal set)
 zinit snippet OMZL::git.zsh
 zinit snippet OMZP::git
@@ -23,6 +26,11 @@ zinit wait lucid light-mode for lukechilds/zsh-nvm
 zinit wait lucid for \
     https://github.com/junegunn/fzf/raw/master/shell/{'completion','key-bindings'}.zsh
 
+# Modern tools with defer for better performance
+zinit wait lucid for \
+    atload"zicompinit; zicdreplay" \
+    marlonrichert/zsh-autocomplete
+
 # OS detection for cross-platform compatibility
 OS_TYPE="$(uname -s)"
 IS_MACOS=false
@@ -35,7 +43,7 @@ fi
 
 # Modern tools install/check (macOS: brew, Linux: apt)
 if $IS_MACOS; then
-    if ! command -v eza &>/dev/null; then brew install eza; fi
+    if ! command -v lsd &>/dev/null; then brew install lsd; fi
     if ! command -v bat &>/dev/null; then brew install bat; fi
     if ! command -v rg &>/dev/null; then brew install ripgrep; fi
     if ! command -v fd &>/dev/null; then brew install fd; fi
@@ -43,14 +51,33 @@ if $IS_MACOS; then
     if ! command -v lazygit &>/dev/null; then brew install lazygit; fi
     if ! command -v tldr &>/dev/null; then brew install tealdeer; fi
     if ! command -v fastfetch &>/dev/null; then brew install fastfetch; fi
+    if ! command -v atuin &>/dev/null; then brew install atuin; fi
+    if ! command -v direnv &>/dev/null; then brew install direnv; fi
+    if ! command -v asdf &>/dev/null; then brew install asdf; fi
+    if ! command -v starship &>/dev/null; then brew install starship; fi
+    if ! command -v htop &>/dev/null; then brew install htop; fi
+    if ! command -v ncdu &>/dev/null; then brew install ncdu; fi
+    if ! command -v procs &>/dev/null; then brew install procs; fi
+    if ! command -v ripgrep-all &>/dev/null; then brew install ripgrep-all; fi
+    if ! command -v git-delta &>/dev/null; then brew install git-delta; fi
+    if ! command -v git-fuzzy &>/dev/null; then brew install git-fuzzy; fi
 elif $IS_LINUX; then
-    if ! command -v eza &>/dev/null; then sudo apt install -y eza; fi
+    if ! command -v lsd &>/dev/null; then sudo apt install -y lsd; fi
     if ! command -v batcat &>/dev/null; then sudo apt install -y bat; fi
     if ! command -v rg &>/dev/null; then sudo apt install -y ripgrep; fi
     if ! command -v fd &>/dev/null; then sudo apt install -y fd-find; fi
     if ! command -v fzf &>/dev/null; then sudo apt install -y fzf; fi
     if ! command -v lazygit &>/dev/null; then sudo apt install -y lazygit; fi
     if ! command -v tldr &>/dev/null; then sudo apt install -y tldr; fi
-    # fastfetch is not available in all Linux repos, so we'll skip it
-    # if ! command -v fastfetch &>/dev/null; then sudo apt install -y fastfetch; fi
+    if ! command -v atuin &>/dev/null; then curl -sSf https://atuin.sh/install.sh | bash; fi
+    if ! command -v direnv &>/dev/null; then sudo apt install -y direnv; fi
+    if ! command -v asdf &>/dev/null; then git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1; fi
+    if ! command -v starship &>/dev/null; then curl -sS https://starship.rs/install.sh | sh; fi
+    if ! command -v htop &>/dev/null; then sudo apt install -y htop; fi
+    if ! command -v ncdu &>/dev/null; then sudo apt install -y ncdu; fi
+    if ! command -v procs &>/dev/null; then sudo apt install -y procs; fi
+    if ! command -v ripgrep-all &>/dev/null; then sudo apt install -y ripgrep-all; fi
+    if ! command -v git-delta &>/dev/null; then sudo apt install -y git-delta; fi
+    # git-fuzzy might not be available in all repos
+    # if ! command -v git-fuzzy &>/dev/null; then sudo apt install -y git-fuzzy; fi
 fi
