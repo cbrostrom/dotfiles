@@ -1,0 +1,10 @@
+[user]
+	name = Christian Kjærulff Brostrøm
+	email = 2435832+cbrostrom@users.noreply.github.com
+[core]
+	autocrlf = input
+	excludesfile = /Users/Christian.Brostrom/.gitignore_global
+[init]
+	defaultBranch = main
+[alias]
+	dotfiles = !git --git-dir=$HOME/dotfiles/ --work-tree=$HOME

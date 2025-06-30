@@ -1,0 +1,24 @@
+# Essential plugins only (lazy loaded for performance)
+zinit wait lucid for \
+    atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
+    zsh-users/zsh-syntax-highlighting \
+    atload"!_zsh_autosuggest_start" \
+    zsh-users/zsh-autosuggestions \
+    blockf \
+    zsh-users/zsh-completions \
+    atload"zicompinit; zicdreplay" \
+    Aloxaf/fzf-tab
+
+# Web dev specific snippets (minimal set)
+zinit snippet OMZL::git.zsh
+zinit snippet OMZP::git
+zinit snippet OMZP::npm
+
+# NVM for Node.js management (essential for web dev)
+export NVM_COMPLETION=true
+export NVM_SYMLINK_CURRENT="true"
+zinit wait lucid light-mode for lukechilds/zsh-nvm
+
+# fzf for fuzzy finding (shell integration only)
+zinit wait lucid for \
+    https://github.com/junegunn/fzf/raw/master/shell/{'completion','key-bindings'}.zsh
