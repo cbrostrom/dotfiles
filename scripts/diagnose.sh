@@ -12,15 +12,16 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Cross-platform path detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+CONFIG_FILE="$SCRIPT_DIR/dotfiles.conf"
+
 # Logging functions
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-
-# Get script directory
-SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-CONFIG_FILE="$(dirname "$0")/dotfiles.conf"
 
 echo "🔍 Dotfiles Diagnostic Tool"
 echo "=========================="
@@ -118,7 +119,7 @@ log_info "Checking source files..."
 missing_files=0
 while IFS=: read -r source target description; do
     if [[ -n "$source" && ! "$source" =~ ^[[:space:]]*# ]]; then
-        if [[ -f "$SCRIPT_DIR/$source" ]]; then
+        if [[ -f "$DOTFILES_ROOT/$source" ]]; then
             log_success "✓ $source"
         else
             log_error "✗ $source (missing)"
@@ -167,7 +168,7 @@ echo
 
 # Test symlink creation
 log_info "Testing symlink creation capability..."
-test_source="$SCRIPT_DIR/.test_symlink"
+test_source="$DOTFILES_ROOT/.test_symlink"
 test_target="$HOME/.test_symlink"
 
 # Create test file

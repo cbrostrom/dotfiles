@@ -14,9 +14,22 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
-SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-DOTFILES_SCRIPT="$SCRIPT_DIR/scripts/dotfiles.sh"
-VERSION_SCRIPT="$SCRIPT_DIR/scripts/version.sh"
+# Cross-platform path detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+DOTFILES_SCRIPT="$SCRIPT_DIR/dotfiles.sh"
+VERSION_SCRIPT="$SCRIPT_DIR/version.sh"
+
+# Verify scripts exist
+if [[ ! -f "$DOTFILES_SCRIPT" ]]; then
+    echo -e "${RED}[ERROR]${NC} dotfiles.sh not found at: $DOTFILES_SCRIPT"
+    exit 1
+fi
+
+if [[ ! -f "$VERSION_SCRIPT" ]]; then
+    echo -e "${RED}[ERROR]${NC} version.sh not found at: $VERSION_SCRIPT"
+    exit 1
+fi
 
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -110,6 +123,9 @@ init_config() {
 
 update_dotfiles() {
     log_info "Updating dotfiles from remote..."
+
+    # Change to dotfiles root directory
+    cd "$DOTFILES_ROOT"
 
     # Check if we have uncommitted changes
     if ! git diff-index --quiet HEAD --; then

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Dotfiles Manager
-# Supports macOS and WSL2 Ubuntu
+# Dotfiles Manager - Cross-platform dotfiles installation
+# Supports macOS, Linux, and WSL2
 
 set -e # Re-enabled with better error handling
 
@@ -12,9 +12,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configuration file
-CONFIG_FILE="$(dirname "$0")/dotfiles.conf"
-SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+# Cross-platform path detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+CONFIG_FILE="$SCRIPT_DIR/dotfiles.conf"
 DEBUG_MODE=false
 
 # Parse debug flag
@@ -117,7 +118,8 @@ create_symlink() {
     if $DEBUG_MODE; then
         log_info "DEBUG: Creating symlink for $source -> $target"
         log_info "DEBUG: Script directory: $SCRIPT_DIR"
-        log_info "DEBUG: Source absolute: $SCRIPT_DIR/$source"
+        log_info "DEBUG: Dotfiles root: $DOTFILES_ROOT"
+        log_info "DEBUG: Source absolute: $DOTFILES_ROOT/$source"
         log_info "DEBUG: Target: $target"
     fi
 
@@ -140,7 +142,7 @@ create_symlink() {
     create_backup "$target"
 
     # Calculate relative path using Python (most reliable cross-platform method)
-    local source_abs="$SCRIPT_DIR/$source"
+    local source_abs="$DOTFILES_ROOT/$source"
     local relative_source
 
     if $DEBUG_MODE; then
@@ -324,7 +326,7 @@ install_dotfiles() {
 
         log_info "Processing: $source -> $target"
 
-        if [[ -f "$SCRIPT_DIR/$source" ]]; then
+        if [[ -f "$DOTFILES_ROOT/$source" ]]; then
             if $DEBUG_MODE; then
                 log_info "DEBUG: Source file exists, calling create_symlink"
             fi
@@ -341,9 +343,9 @@ install_dotfiles() {
             fi
         else
             if $DEBUG_MODE; then
-                log_info "DEBUG: Source file not found: $SCRIPT_DIR/$source"
+                log_info "DEBUG: Source file not found: $DOTFILES_ROOT/$source"
             fi
-            log_warning "Source file not found: $SCRIPT_DIR/$source"
+            log_warning "Source file not found: $DOTFILES_ROOT/$source"
             ((errors++))
         fi
 
@@ -548,7 +550,7 @@ list_dotfiles() {
 
         local status
         if [[ -L "$target" ]]; then
-            if [[ "$(readlink "$target")" == "$SCRIPT_DIR/$source" ]]; then
+            if [[ "$(readlink "$target")" == "$DOTFILES_ROOT/$source" ]]; then
                 status="${GREEN}LINKED${NC}"
             else
                 status="${YELLOW}WRONG LINK${NC}"
@@ -650,8 +652,8 @@ main() {
         CONFIG_FILE="$custom_config"
     fi
 
-    # Change to script directory
-    cd "$SCRIPT_DIR"
+    # Change to dotfiles root directory
+    cd "$DOTFILES_ROOT"
 
     # Detect OS
     local os=$(detect_os)

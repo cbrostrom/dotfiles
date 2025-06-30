@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Dotfiles Version Manager
-# Handles git operations and semantic versioning
+# Version Management Script
+# Handles versioning, git operations, and releases
 
 set -e
 
@@ -12,8 +12,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-VERSION_FILE="$SCRIPT_DIR/VERSION"
+# Cross-platform path detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+VERSION_FILE="$DOTFILES_ROOT/VERSION"
 
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -212,6 +214,9 @@ main() {
         log_error "Not in a git repository"
         exit 1
     fi
+
+    # Change to dotfiles root directory for git operations
+    cd "$DOTFILES_ROOT"
 
     while true; do
         show_menu

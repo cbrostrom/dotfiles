@@ -234,11 +234,14 @@ MIT License - see LICENSE file for details
 
 # Cross-Platform Dotfiles
 
-A robust, cross-platform dotfiles management system that works seamlessly on macOS and WSL2 Ubuntu.
+A robust, cross-platform dotfiles management system that works seamlessly on macOS, Linux, and WSL2 Ubuntu.
 
 ## 🚀 Features
 
 - **Cross-Platform**: Works on macOS, Linux, and WSL2
+- **Robust Path Detection**: Uses `BASH_SOURCE` for reliable script location
+- **Dynamic Aliases**: Functions that work from any directory
+- **Multiple Installation Locations**: Supports `~/dotfiles` and `~/.dotfiles`
 - **Robust Symlink Creation**: Multiple fallback methods (Python, Node.js, traditional `ln`)
 - **Smart OS Detection**: Automatically detects platform and uses appropriate tools
 - **Debug Mode**: Detailed troubleshooting with `--debug` flag
@@ -413,9 +416,38 @@ ls -la ~/.config/zsh/
 chmod 755 ~/.config/zsh/
 ```
 
-## 🏗️ Architecture
+## ��️ Architecture
 
-### File Structure
+### **Cross-Platform Path Detection**
+
+All scripts use robust path detection that works regardless of:
+- **Installation location**: `~/dotfiles` or `~/.dotfiles`
+- **Current directory**: Commands work from anywhere
+- **Platform**: macOS, Linux, WSL2
+- **Shell**: zsh, bash
+
+```bash
+# Reliable script location detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+```
+
+### **Dynamic Function-Based Commands**
+
+Instead of hardcoded aliases, the system uses functions that:
+- ✅ **Auto-detect** dotfiles location
+- ✅ **Work from any directory**
+- ✅ **Support multiple installation paths**
+- ✅ **Provide clear error messages**
+
+```bash
+# These work from anywhere
+dotfiles install
+dotfiles list
+install-tools
+```
+
+### **File Structure**
 ```
 dotfiles/
 ├── .zshrc                    # Main zsh configuration
@@ -423,7 +455,7 @@ dotfiles/
 ├── .gitignore_global        # Global gitignore
 ├── .config/
 │   ├── zsh/
-│   │   ├── aliases          # Shell aliases
+│   │   ├── aliases          # Shell aliases and functions
 │   │   ├── plugins          # Plugin configuration
 │   │   └── env              # Environment variables
 │   ├── ghostty/config       # Terminal configuration
@@ -432,24 +464,11 @@ dotfiles/
 │   ├── dotfiles.sh          # Main installer script
 │   ├── dotfiles.conf        # Configuration file
 │   ├── diagnose.sh          # Diagnostic tool
-│   └── main.sh              # Unified menu
+│   ├── install-tools.sh     # Tool installation
+│   ├── main.sh              # Unified menu
+│   └── version.sh           # Version management
 └── README.md
 ```
-
-### Symlink Creation
-
-The installer uses multiple methods for reliable symlink creation:
-
-1. **Python3** (primary): `os.symlink()` with `os.path.relpath()`
-2. **Node.js** (fallback): `fs.symlinkSync()` with `path.relative()`
-3. **Traditional** (last resort): `ln -sf` with manual path calculation
-
-### Cross-Platform Compatibility
-
-- **macOS**: Uses Homebrew for package management
-- **Linux/WSL**: Uses APT for package management
-- **Path Handling**: Always uses relative paths for symlinks
-- **OS Detection**: Automatic detection with fallbacks
 
 ## ⚙️ Configuration
 
