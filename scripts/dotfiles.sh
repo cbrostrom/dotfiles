@@ -308,6 +308,11 @@ install_dotfiles() {
         [[ "$source" =~ ^[[:space:]]*# ]] && continue
         [[ -z "$source" ]] && continue
 
+        # Skip lines that start with # even if they contain colons
+        if [[ "$source" == "#"* ]] || [[ "$target" == "#"* ]]; then
+            continue
+        fi
+
         # Trim whitespace
         source=$(echo "$source" | xargs)
         target=$(echo "$target" | xargs)
