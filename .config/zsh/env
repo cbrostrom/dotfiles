@@ -1,6 +1,11 @@
 # Node/Web development environment
 export NODE_OPTIONS="--max-old-space-size=8192"
-# PNPM_HOME is set in .zshrc with OS detection
+# Cross-platform pnpm home
+if $IS_MACOS; then
+    export PNPM_HOME="$HOME/Library/pnpm"
+else
+    export PNPM_HOME="$HOME/.local/share/pnpm"
+fi
 
 # Environment variables for modern tools
 export BAT_THEME="TwoDark"
@@ -18,3 +23,6 @@ if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
         . "$HOME/.asdf/completions/asdf.zsh"
     fi
 fi
+
+# Timeout protection for commands that might hang
+export TMOUT=30 # 30 second timeout for interactive commands

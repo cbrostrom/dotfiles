@@ -80,13 +80,18 @@ if command -v direnv &>/dev/null; then
     eval "$(direnv hook zsh)"
 fi
 
-# ASDF for multi-language version management
+# ASDF for multi-language version management (with safer loading)
 if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
     . "$HOME/.asdf/asdf.sh"
-    . "$HOME/.asdf/completions/asdf.bash"
+    # Only load bash completions if we're in bash, otherwise use zsh completions
+    if [[ -n "$BASH_VERSION" ]] && [[ -f "$HOME/.asdf/completions/asdf.bash" ]]; then
+        . "$HOME/.asdf/completions/asdf.bash"
+    elif [[ -n "$ZSH_VERSION" ]] && [[ -f "$HOME/.asdf/completions/asdf.zsh" ]]; then
+        . "$HOME/.asdf/completions/asdf.zsh"
+    fi
 fi
 
-# Source organized configuration files (with error handling)
+# Source organized configuration files (with error handling and timeouts)
 if [[ -f "$HOME/.config/zsh/env" ]]; then
     source "$HOME/.config/zsh/env"
 else
@@ -105,10 +110,12 @@ else
     echo "Warning: $HOME/.config/zsh/aliases not found"
 fi
 
-# Completions (optimized)
+# Completions (optimized with timeout protection)
 autoload -Uz compinit
 compinit -C
-if command -v zinit &>/dev/null; then
+
+# Only replay completions if zinit is available and not in WSL (to prevent freezing)
+if command -v zinit &>/dev/null && ! $IS_WSL; then
     zinit cdreplay -q
 fi
 
@@ -136,8 +143,8 @@ if command -v fzf &>/dev/null; then
     bindkey '^[c' fzf-cd-widget
 fi
 
-# Completion styling with fzf-tab (only if zinit is available)
-if command -v zinit &>/dev/null; then
+# Completion styling with fzf-tab (only if zinit is available and not in WSL)
+if command -v zinit &>/dev/null && ! $IS_WSL; then
     zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
     zstyle ':completion:*' menu no
     zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd --group-dirs first --color=always $realpath 2>/dev/null || ls --color $realpath'

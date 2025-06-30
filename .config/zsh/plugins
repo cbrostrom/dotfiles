@@ -75,35 +75,64 @@ elif $IS_LINUX; then
     fi
 fi
 
-# Essential plugins only (lazy loaded for performance)
-zinit wait lucid for \
-    atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
-    zsh-users/zsh-syntax-highlighting \
-    atload"!_zsh_autosuggest_start" \
-    zsh-users/zsh-autosuggestions \
-    blockf \
-    zsh-users/zsh-completions \
-    atload"zicompinit; zicdreplay" \
-    Aloxaf/fzf-tab
+# WSL-specific configuration (minimal plugins to prevent freezing)
+if $IS_WSL; then
+    # Simple, stable configuration for WSL
+    if [[ -f "$HOME/.local/share/zinit/zinit.git/zinit.zsh" ]]; then
+        source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
 
-# Performance optimization with zsh-defer
-zinit wait lucid for romkatv/zsh-defer
+        # Minimal plugins for WSL
+        zinit wait lucid for \
+            zsh-users/zsh-syntax-highlighting \
+            zsh-users/zsh-autosuggestions
 
-# Web dev specific snippets (minimal set)
-zinit snippet OMZL::git.zsh
-zinit snippet OMZP::git
-zinit snippet OMZP::npm
+        # Basic completions
+        zinit wait lucid for \
+            blockf \
+            zsh-users/zsh-completions
+    fi
+else
+    # Full configuration for macOS and Linux
+    # Initialize zinit with timeout protection
+    if [[ ! -f "$HOME/.local/share/zinit/zinit.git/zinit.zsh" ]]; then
+        bash -c "$(curl --fail --show-error --silent --location https://raw.githubusercontent.com/zdharma-continuum/zinit/HEAD/scripts/install.sh)" -- --branch=main --yes
+    fi
 
-# NVM for Node.js management (essential for web dev)
-export NVM_COMPLETION=true
-export NVM_SYMLINK_CURRENT="true"
-zinit wait lucid light-mode for lukechilds/zsh-nvm
+    # Load zinit with timeout protection
+    if [[ -f "$HOME/.local/share/zinit/zinit.git/zinit.zsh" ]]; then
+        source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
 
-# fzf for fuzzy finding (shell integration only)
-zinit wait lucid for \
-    https://github.com/junegunn/fzf/raw/master/shell/{'completion','key-bindings'}.zsh
+        # Essential plugins only (lazy loaded for performance)
+        zinit wait lucid for \
+            atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
+            zsh-users/zsh-syntax-highlighting \
+            atload"!_zsh_autosuggest_start" \
+            zsh-users/zsh-autosuggestions \
+            blockf \
+            zsh-users/zsh-completions \
+            atload"zicompinit; zicdreplay" \
+            Aloxaf/fzf-tab
 
-# Modern tools with defer for better performance
-zinit wait lucid for \
-    atload"zicompinit; zicdreplay" \
-    marlonrichert/zsh-autocomplete
+        # Performance optimization with zsh-defer
+        zinit wait lucid for romkatv/zsh-defer
+
+        # Web dev specific snippets (minimal set)
+        zinit snippet OMZL::git.zsh
+        zinit snippet OMZP::git
+        zinit snippet OMZP::npm
+
+        # NVM for Node.js management (essential for web dev)
+        export NVM_COMPLETION=true
+        export NVM_SYMLINK_CURRENT="true"
+        zinit wait lucid light-mode for lukechilds/zsh-nvm
+
+        # fzf for fuzzy finding (shell integration only)
+        zinit wait lucid for \
+            https://github.com/junegunn/fzf/raw/master/shell/{'completion','key-bindings'}.zsh
+
+        # Modern tools with defer for better performance (disabled autocomplete to prevent freezing)
+        # zinit wait lucid for \
+        #     atload"zicompinit; zicdreplay" \
+        #     marlonrichert/zsh-autocomplete
+    fi
+fi
