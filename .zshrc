@@ -152,3 +152,7 @@ if command -v zinit &>/dev/null && ! $IS_WSL; then
     zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview 'procs --pid=$word -o cmd --no-headers -w -w'
     zstyle ':fzf-tab:complete:npm:*' fzf-preview 'cat package.json 2>/dev/null | jq .scripts 2>/dev/null || echo "No package.json found"'
 fi
+
+# Dotfiles manager aliases
+alias dotfiles='../../dotfiles/scripts/main.sh'
+alias dotfiles-version='../../dotfiles/scripts/version.sh'

@@ -318,6 +318,18 @@ cd dotfiles
 ./scripts/dotfiles.sh help
 ```
 
+### Tool Installation
+
+Tools are now checked only once per day to avoid startup delays. To manually install or update tools:
+
+```bash
+# Install/update all tools
+./scripts/install-tools.sh
+
+# Or force re-check tools (removes daily cache)
+rm /tmp/dotfiles_tools_checked_*
+```
+
 ### Debug Mode
 
 For troubleshooting, use debug mode:
