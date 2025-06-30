@@ -62,27 +62,6 @@ zinit snippet OMZL::git.zsh
 zinit snippet OMZP::git
 zinit snippet OMZP::npm
 
-# NVM for Node.js management (essential for web dev)
-export NVM_COMPLETION=true
-export NVM_SYMLINK_CURRENT="true"
-zinit wait lucid light-mode for lukechilds/zsh-nvm
-
-# fzf for fuzzy finding (shell integration only)
-zinit wait lucid for \
-    https://github.com/junegunn/fzf/raw/master/shell/{'completion','key-bindings'}.zsh
-
-# Modern tools install/check (macOS: brew, Linux: apt)
-if $IS_MACOS; then
-    if ! command -v eza &>/dev/null; then brew install eza; fi
-    if ! command -v bat &>/dev/null; then brew install bat; fi
-    if ! command -v rg &>/dev/null; then brew install ripgrep; fi
-    if ! command -v fd &>/dev/null; then brew install fd; fi
-    if ! command -v fzf &>/dev/null; then brew install fzf; fi
-    if ! command -v lazygit &>/dev/null; then brew install lazygit; fi
-    if ! command -v tldr &>/dev/null; then brew install tealdeer; fi
-    if ! command -v fastfetch &>/dev/null; then brew install fastfetch; fi
-elif $IS_LINUX; then
-    if ! command -v eza &>/dev/null; then sudo apt install -y eza; fi
     if ! command -v batcat &>/dev/null; then sudo apt install -y bat; fi
     if ! command -v rg &>/dev/null; then sudo apt install -y ripgrep; fi
     if ! command -v fd &>/dev/null; then sudo apt install -y fd-find; fi
