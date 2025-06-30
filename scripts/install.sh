@@ -79,8 +79,8 @@ install_to_path() {
     fi
 
     # Create alias lines
-    local dotfiles_alias="alias $ALIAS_NAME='$SCRIPT_DIR/$SCRIPT_NAME'"
-    local version_alias="alias $VERSION_ALIAS_NAME='$SCRIPT_DIR/$VERSION_SCRIPT_NAME'"
+    local dotfiles_alias="alias $ALIAS_NAME='../../dotfiles/$SCRIPT_NAME'"
+    local version_alias="alias $VERSION_ALIAS_NAME='../../dotfiles/$VERSION_SCRIPT_NAME'"
 
     # Check if aliases already exist
     local dotfiles_exists=false

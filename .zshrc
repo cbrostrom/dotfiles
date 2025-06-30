@@ -8,9 +8,13 @@ elif [[ "$OS_TYPE" == "Linux" ]]; then
     IS_LINUX=true
 fi
 
-# Homebrew setup (macOS only)
-if $IS_MACOS && [[ -f "/opt/homebrew/bin/brew" ]]; then
-    eval "$('/opt/homebrew/bin/brew' shellenv)"
+# Homebrew setup (macOS only) - check multiple possible locations
+if $IS_MACOS; then
+    if [[ -f "/opt/homebrew/bin/brew" ]]; then
+        eval "$('/opt/homebrew/bin/brew' shellenv)"
+    elif [[ -f "/usr/local/bin/brew" ]]; then
+        eval "$('/usr/local/bin/brew' shellenv)"
+    fi
 fi
 
 # PATH setup with deduplication
@@ -24,7 +28,12 @@ fi
 
 # Node/Web development environment
 export NODE_OPTIONS="--max-old-space-size=8192"
-export PNPM_HOME="$HOME/Library/pnpm"
+# Cross-platform pnpm home
+if $IS_MACOS; then
+    export PNPM_HOME="$HOME/Library/pnpm"
+else
+    export PNPM_HOME="$HOME/.local/share/pnpm"
+fi
 
 # Set the directory we want to store zinit and plugins
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
@@ -34,7 +43,11 @@ if [ ! -d "$ZINIT_HOME" ]; then
 fi
 
 source "${ZINIT_HOME}/zinit.zsh"
-source "$HOME/.config/zsh/z"
+
+# Zoxide (better cd) - source if available
+if command -v zoxide >/dev/null 2>&1; then
+    eval "$(zoxide init --cmd cd zsh)"
+fi
 
 # Load oh-my-posh theme (macOS only, skip on Linux)
 if $IS_MACOS && command -v oh-my-posh &>/dev/null; then
@@ -72,8 +85,3 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --icons --color=always $realpat
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza --icons --color=always $realpath 2>/dev/null || ls --color $realpath'
 zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview 'ps --pid=$word -o cmd --no-headers -w -w'
 zstyle ':fzf-tab:complete:npm:*' fzf-preview 'cat package.json 2>/dev/null | jq .scripts 2>/dev/null || echo "No package.json found"'
-
-# Zoxide (better cd)
-if command -v zoxide >/dev/null 2>&1; then
-    eval "$(zoxide init --cmd cd zsh)"
-fi

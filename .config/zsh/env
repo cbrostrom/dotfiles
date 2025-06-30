@@ -1,6 +1,6 @@
 # Node/Web development environment
 export NODE_OPTIONS="--max-old-space-size=8192"
-export PNPM_HOME="$HOME/Library/pnpm"
+# PNPM_HOME is set in .zshrc with OS detection
 
 # Environment variables for modern tools
 export BAT_THEME="TwoDark"
