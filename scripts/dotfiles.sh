@@ -318,17 +318,37 @@ install_dotfiles() {
         target=$(echo "$target" | xargs)
         description=$(echo "$description" | xargs)
 
+        if $DEBUG_MODE; then
+            log_info "DEBUG: About to process: '$source' -> '$target'"
+        fi
+
         log_info "Processing: $source -> $target"
 
         if [[ -f "$SCRIPT_DIR/$source" ]]; then
+            if $DEBUG_MODE; then
+                log_info "DEBUG: Source file exists, calling create_symlink"
+            fi
             if create_symlink "$source" "$target" "$description"; then
+                if $DEBUG_MODE; then
+                    log_info "DEBUG: create_symlink succeeded for $source"
+                fi
                 ((count++))
             else
+                if $DEBUG_MODE; then
+                    log_info "DEBUG: create_symlink failed for $source"
+                fi
                 ((errors++))
             fi
         else
+            if $DEBUG_MODE; then
+                log_info "DEBUG: Source file not found: $SCRIPT_DIR/$source"
+            fi
             log_warning "Source file not found: $SCRIPT_DIR/$source"
             ((errors++))
+        fi
+
+        if $DEBUG_MODE; then
+            log_info "DEBUG: Finished processing $source, count=$count, errors=$errors"
         fi
     done <"$CONFIG_FILE"
 
