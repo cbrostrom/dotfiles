@@ -17,6 +17,7 @@ fi
 # Run that script manually when you want to install or update tools
 # This prevents sudo prompts on every shell startup
 
+# TEMPORARILY DISABLED: zinit plugins to fix autosuggestions error
 # WSL-specific configuration (minimal plugins to prevent freezing)
 if $IS_WSL; then
     # Simple, stable configuration for WSL
@@ -25,6 +26,7 @@ if $IS_WSL; then
 
         # Minimal plugins for WSL
         zinit wait lucid for zsh-users/zsh-autosuggestions
+        # Always load zsh-syntax-highlighting last
         zinit wait lucid for zsh-users/zsh-syntax-highlighting
 
         # Basic completions
