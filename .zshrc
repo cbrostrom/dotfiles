@@ -97,6 +97,11 @@ else
     echo "Warning: $HOME/.config/zsh/aliases not found"
 fi
 
+# Source functions quietly (no output)
+if [[ -f "$HOME/.config/zsh/functions" ]]; then
+    source "$HOME/.config/zsh/functions" >/dev/null 2>&1
+fi
+
 # Completions (optimized with timeout protection)
 autoload -Uz compinit
 compinit -C
@@ -142,20 +147,6 @@ fi
 
 # Note: Dotfiles management functions are now defined in ~/.config/zsh/aliases
 # and are available as: dotfiles, dotfiles-version, install-tools
-
-# Backup dotfiles functions (in case aliases file isn't sourced)
-dotfiles() {
-    local dotfiles_path=""
-    if [[ -f "$HOME/dotfiles/scripts/main.sh" ]]; then
-        dotfiles_path="$HOME/dotfiles/scripts/main.sh"
-    elif [[ -f "$HOME/.dotfiles/scripts/main.sh" ]]; then
-        dotfiles_path="$HOME/.dotfiles/scripts/main.sh"
-    else
-        echo "Error: dotfiles not found in $HOME/dotfiles or $HOME/.dotfiles"
-        return 1
-    fi
-    "$dotfiles_path" "$@"
-}
 
 dotfiles-version() {
     local version_path=""
