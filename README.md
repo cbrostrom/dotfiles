@@ -152,8 +152,7 @@ gs='git status'
 ga='git add'
 gc='git commit'
 gp='git push'
-gl='git pull'
-lg='lazygit'
+gl='lazygit'
 
 # Package managers
 ni='npm install'
@@ -232,3 +231,252 @@ MIT License - see LICENSE file for details
 - [Starship](https://starship.rs/) - Fast prompt
 - [zsh-defer](https://github.com/romkatv/zsh-defer) - Lazy loading
 - [Modern Unix](https://github.com/ibraheemdev/modern-unix) - Tool inspiration
+
+# Cross-Platform Dotfiles
+
+A robust, cross-platform dotfiles management system that works seamlessly on macOS and WSL2 Ubuntu.
+
+## 🚀 Features
+
+- **Cross-Platform**: Works on macOS, Linux, and WSL2
+- **Robust Symlink Creation**: Multiple fallback methods (Python, Node.js, traditional `ln`)
+- **Smart OS Detection**: Automatically detects platform and uses appropriate tools
+- **Debug Mode**: Detailed troubleshooting with `--debug` flag
+- **Diagnostic Tools**: Built-in diagnostic script to identify issues
+- **Safe Installation**: Creates backups before overwriting existing files
+- **Modern Tools**: Includes zsh-defer, atuin, direnv, asdf, git-delta, and more
+
+## 📦 Included Tools
+
+### Core Tools
+- **zsh-defer**: Lazy loading for faster shell startup
+- **atuin**: Better shell history with search
+- **direnv**: Automatic environment switching
+- **asdf**: Version manager for multiple languages
+- **git-delta**: Better git diffs
+- **git-fuzzy**: Interactive git tools
+- **starship**: Fast, customizable prompt
+- **lsd**: Modern `ls` replacement
+- **zinit**: Fast zsh plugin manager
+
+### Development Tools
+- **gh**: GitHub CLI
+- **bat**: Better `cat` with syntax highlighting
+- **fd**: Fast `find` alternative
+- **ripgrep**: Fast `grep` alternative
+- **fzf**: Fuzzy finder
+
+## 🛠️ Installation
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone <your-repo-url> dotfiles
+cd dotfiles
+
+# Install dotfiles
+./scripts/dotfiles.sh install
+
+# Or with debug mode for troubleshooting
+./scripts/dotfiles.sh --debug install
+```
+
+### Manual Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone <your-repo-url> dotfiles
+   cd dotfiles
+   ```
+
+2. **Run the installer**:
+   ```bash
+   ./scripts/dotfiles.sh install
+   ```
+
+3. **Restart your shell** or run:
+   ```bash
+   source ~/.zshrc
+   ```
+
+## 🔧 Usage
+
+### Basic Commands
+
+```bash
+# Install all dotfiles
+./scripts/dotfiles.sh install
+
+# List current status
+./scripts/dotfiles.sh list
+
+# Uninstall (with options)
+./scripts/dotfiles.sh uninstall
+
+# Get help
+./scripts/dotfiles.sh help
+```
+
+### Debug Mode
+
+For troubleshooting, use debug mode:
+
+```bash
+# Install with detailed logging
+./scripts/dotfiles.sh --debug install
+
+# Run diagnostics
+./scripts/diagnose.sh
+```
+
+### Uninstall Options
+
+```bash
+# Safe uninstall (symlinks only)
+./scripts/dotfiles.sh uninstall
+
+# Restore backups
+./scripts/dotfiles.sh uninstall restore
+
+# Full cleanup (including tools)
+./scripts/dotfiles.sh uninstall full
+```
+
+## 🔍 Troubleshooting
+
+### Diagnostic Tool
+
+Run the built-in diagnostic tool to identify issues:
+
+```bash
+./scripts/diagnose.sh
+```
+
+This will check:
+- ✅ OS detection
+- ✅ Required tools (Python, Node.js, Git)
+- ✅ Package managers (Homebrew, APT)
+- ✅ Configuration file
+- ✅ Source files
+- ✅ Existing symlinks
+- ✅ Symlink creation capability
+- ✅ File permissions
+
+### Common Issues
+
+#### Broken Symlinks
+```bash
+# Check for broken symlinks
+./scripts/diagnose.sh
+
+# Reinstall with debug mode
+./scripts/dotfiles.sh --debug install
+```
+
+#### Missing Files
+```bash
+# Verify source files exist
+ls -la .config/zsh/
+
+# Reinstall from correct directory
+cd /path/to/dotfiles
+./scripts/dotfiles.sh install
+```
+
+#### Permission Issues
+```bash
+# Check permissions
+ls -la ~/.config/zsh/
+
+# Fix permissions if needed
+chmod 755 ~/.config/zsh/
+```
+
+## 🏗️ Architecture
+
+### File Structure
+```
+dotfiles/
+├── .zshrc                    # Main zsh configuration
+├── .gitconfig               # Git configuration
+├── .gitignore_global        # Global gitignore
+├── .config/
+│   ├── zsh/
+│   │   ├── aliases          # Shell aliases
+│   │   ├── plugins          # Plugin configuration
+│   │   └── env              # Environment variables
+│   ├── ghostty/config       # Terminal configuration
+│   └── starship.toml        # Prompt configuration
+├── scripts/
+│   ├── dotfiles.sh          # Main installer script
+│   ├── dotfiles.conf        # Configuration file
+│   ├── diagnose.sh          # Diagnostic tool
+│   └── main.sh              # Unified menu
+└── README.md
+```
+
+### Symlink Creation
+
+The installer uses multiple methods for reliable symlink creation:
+
+1. **Python3** (primary): `os.symlink()` with `os.path.relpath()`
+2. **Node.js** (fallback): `fs.symlinkSync()` with `path.relative()`
+3. **Traditional** (last resort): `ln -sf` with manual path calculation
+
+### Cross-Platform Compatibility
+
+- **macOS**: Uses Homebrew for package management
+- **Linux/WSL**: Uses APT for package management
+- **Path Handling**: Always uses relative paths for symlinks
+- **OS Detection**: Automatic detection with fallbacks
+
+## ⚙️ Configuration
+
+### Adding New Files
+
+Edit `scripts/dotfiles.conf`:
+
+```bash
+# Format: source_file:target_location:description
+.config/nvim/init.lua:~/.config/nvim/init.lua:Neovim configuration
+```
+
+### Customizing Tools
+
+Edit the appropriate configuration file:
+- **Shell**: `.config/zsh/aliases` and `.config/zsh/plugins`
+- **Git**: `.gitconfig`
+- **Terminal**: `.config/ghostty/config`
+- **Prompt**: `.config/starship.toml`
+
+## 🔄 Updates
+
+```bash
+# Update dotfiles
+git pull origin main
+
+# Reinstall to apply changes
+./scripts/dotfiles.sh install
+```
+
+## 📝 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test on both macOS and WSL2
+5. Submit a pull request
+
+## 🐛 Bug Reports
+
+If you encounter issues:
+
+1. Run the diagnostic tool: `./scripts/diagnose.sh`
+2. Try debug mode: `./scripts/dotfiles.sh --debug install`
+3. Check the troubleshooting section above
+4. Open an issue with diagnostic output

@@ -15,6 +15,13 @@ NC='\033[0m' # No Color
 # Configuration file
 CONFIG_FILE="$(dirname "$0")/dotfiles.conf"
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+DEBUG_MODE=false
+
+# Parse debug flag
+if [[ "$1" == "--debug" ]]; then
+    DEBUG_MODE=true
+    shift
+fi
 
 # Default configuration
 DEFAULT_CONFIG="# Dotfiles Configuration
@@ -106,6 +113,14 @@ create_symlink() {
     local target="$2"
     local description="$3"
 
+    # Debug logging
+    if $DEBUG_MODE; then
+        log_info "DEBUG: Creating symlink for $source -> $target"
+        log_info "DEBUG: Script directory: $SCRIPT_DIR"
+        log_info "DEBUG: Source absolute: $SCRIPT_DIR/$source"
+        log_info "DEBUG: Target: $target"
+    fi
+
     # Expand ~ to home directory
     target="${target/#\~/$HOME}"
 
@@ -116,51 +131,162 @@ create_symlink() {
         mkdir -p "$target_dir"
     fi
 
+    if $DEBUG_MODE; then
+        log_info "DEBUG: Target directory: $target_dir"
+        log_info "DEBUG: Target directory exists: $([[ -d "$target_dir" ]] && echo "YES" || echo "NO")"
+    fi
+
     # Create backup if target exists
     create_backup "$target"
 
-    # Calculate relative path from target directory to source file
+    # Calculate relative path using Python (most reliable cross-platform method)
     local source_abs="$SCRIPT_DIR/$source"
     local relative_source
 
-    # Use realpath if available and supports --relative-to
-    if command -v realpath >/dev/null 2>&1 && realpath --help 2>&1 | grep -q "relative-to"; then
-        relative_source=$(realpath --relative-to="$target_dir" "$source_abs")
-    elif command -v python3 >/dev/null 2>&1; then
-        # Use Python for reliable relative path calculation
-        relative_source=$(python3 -c "import os.path; print(os.path.relpath('$source_abs', '$target_dir'))")
+    if $DEBUG_MODE; then
+        log_info "DEBUG: Source absolute path: $source_abs"
+        log_info "DEBUG: Source file exists: $([[ -f "$source_abs" ]] && echo "YES" || echo "NO")"
+    fi
+
+    # Use Python for reliable relative path calculation
+    if command -v python3 >/dev/null 2>&1; then
+        if $DEBUG_MODE; then
+            log_info "DEBUG: Using Python3 for relative path calculation"
+        fi
+        relative_source=$(python3 -c "
+import os.path
+try:
+    print(os.path.relpath('$source_abs', '$target_dir'))
+except:
+    print('dotfiles/$source')
+")
+    elif command -v python >/dev/null 2>&1; then
+        if $DEBUG_MODE; then
+            log_info "DEBUG: Using Python for relative path calculation"
+        fi
+        relative_source=$(python -c "
+import os.path
+try:
+    print(os.path.relpath('$source_abs', '$target_dir'))
+except:
+    print('dotfiles/$source')
+")
+    elif command -v node >/dev/null 2>&1; then
+        if $DEBUG_MODE; then
+            log_info "DEBUG: Using Node.js for relative path calculation"
+        fi
+        relative_source=$(node -e "
+const path = require('path');
+try {
+    console.log(path.relative('$target_dir', '$source_abs'));
+} catch (e) {
+    console.log('dotfiles/$source');
+}
+")
     else
+        if $DEBUG_MODE; then
+            log_info "DEBUG: Using fallback calculation"
+        fi
         # Fallback: simple calculation for common cases
         if [[ "$target_dir" == "$HOME" ]]; then
-            # Target is directly in home directory
             relative_source="dotfiles/$source"
         elif [[ "$target_dir" == "$HOME/.config" ]]; then
-            # Target is in .config directory
             relative_source="../dotfiles/$source"
         elif [[ "$target_dir" == "$HOME/.config/zsh" ]]; then
-            # Target is in .config/zsh directory
             relative_source="../../dotfiles/$source"
         elif [[ "$target_dir" == "$HOME/.config/ghostty" ]]; then
-            # Target is in .config/ghostty directory
             relative_source="../../dotfiles/$source"
         else
-            # Generic fallback: calculate based on path depth
-            local target_depth=$(echo "$target_dir" | tr -cd '/' | wc -c)
-            local up_path=""
-            for ((i = 0; i <= target_depth; i++)); do
-                up_path="../$up_path"
-            done
-            relative_source="${up_path}dotfiles/$source"
+            # Generic fallback
+            relative_source="dotfiles/$source"
         fi
+    fi
+
+    if $DEBUG_MODE; then
+        log_info "DEBUG: Calculated relative path: $relative_source"
     fi
 
     log_info "Creating symlink: $relative_source -> $target"
 
-    if ln -sf "$relative_source" "$target"; then
-        log_success "Linked $source -> $target ($description)"
-    else
-        log_error "Failed to link $source -> $target"
+    # Try multiple methods to create symlink
+    local symlink_created=false
+
+    # Method 1: Python
+    if ! $symlink_created && command -v python3 >/dev/null 2>&1; then
+        if $DEBUG_MODE; then
+            log_info "DEBUG: Trying Python3 symlink creation"
+        fi
+        if python3 -c "
+import os
+try:
+    os.symlink('$relative_source', '$target')
+    print('SUCCESS')
+except Exception as e:
+    print('ERROR: ' + str(e))
+    exit(1)
+" 2>/dev/null; then
+            log_success "Linked $source -> $target ($description) [Python]"
+            symlink_created=true
+        else
+            if $DEBUG_MODE; then
+                log_info "DEBUG: Python3 symlink creation failed"
+            fi
+        fi
+    fi
+
+    # Method 2: Node.js
+    if ! $symlink_created && command -v node >/dev/null 2>&1; then
+        if $DEBUG_MODE; then
+            log_info "DEBUG: Trying Node.js symlink creation"
+        fi
+        if node -e "
+const fs = require('fs');
+try {
+    fs.symlinkSync('$relative_source', '$target');
+    console.log('SUCCESS');
+} catch (e) {
+    console.log('ERROR: ' + e.message);
+    process.exit(1);
+}
+" 2>/dev/null; then
+            log_success "Linked $source -> $target ($description) [Node.js]"
+            symlink_created=true
+        else
+            if $DEBUG_MODE; then
+                log_info "DEBUG: Node.js symlink creation failed"
+            fi
+        fi
+    fi
+
+    # Method 3: Traditional ln (fallback)
+    if ! $symlink_created; then
+        if $DEBUG_MODE; then
+            log_info "DEBUG: Trying traditional ln symlink creation"
+        fi
+        if ln -sf "$relative_source" "$target"; then
+            log_success "Linked $source -> $target ($description) [ln]"
+            symlink_created=true
+        else
+            if $DEBUG_MODE; then
+                log_info "DEBUG: Traditional ln symlink creation failed"
+            fi
+        fi
+    fi
+
+    # If all methods failed
+    if ! $symlink_created; then
+        log_error "Failed to link $source -> $target (all methods failed)"
+        if $DEBUG_MODE; then
+            log_info "DEBUG: All symlink creation methods failed"
+            log_info "DEBUG: Final target: $target"
+            log_info "DEBUG: Final relative source: $relative_source"
+        fi
         return 1
+    fi
+
+    if $DEBUG_MODE; then
+        log_info "DEBUG: Symlink created successfully"
+        log_info "DEBUG: Verifying symlink: $(readlink "$target" 2>/dev/null || echo "FAILED")"
     fi
 }
 
@@ -424,12 +550,13 @@ Commands:
     help, h        Show this help message
 
 Options:
+    --debug        Enable debug mode for troubleshooting
     --config FILE  Use custom configuration file (default: dotfiles.conf)
 
 Examples:
     $(basename "$0") install
+    $(basename "$0") --debug install
     $(basename "$0") list
-    $(basename "$0") uninstall
     $(basename "$0") --config my-config.conf install
 
 Configuration:
@@ -440,6 +567,10 @@ Cleanup Levels:
     1. Safe: Only removes symlinks, preserves backups and tools
     2. Restore: Removes symlinks and restores original files from backups
     3. Full: Complete cleanup including tool uninstallation
+
+Debug Mode:
+    Use --debug to get detailed information about symlink creation
+    and troubleshooting information.
 
 EOF
 }
