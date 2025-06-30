@@ -119,8 +119,58 @@ create_symlink() {
     # Create backup if target exists
     create_backup "$target"
 
-    # Create symlink using relative path for better cross-platform compatibility
-    local relative_source=$(realpath --relative-to="$target_dir" "$SCRIPT_DIR/$source")
+    # Calculate relative path from target directory to source file
+    local source_abs="$SCRIPT_DIR/$source"
+    local relative_source
+
+    # Use realpath if available and supports --relative-to
+    if command -v realpath >/dev/null 2>&1 && realpath --help 2>&1 | grep -q "relative-to"; then
+        relative_source=$(realpath --relative-to="$target_dir" "$source_abs")
+    else
+        # Manual relative path calculation
+        local source_parts=($(echo "$source_abs" | tr '/' ' '))
+        local target_parts=($(echo "$target_dir" | tr '/' ' '))
+
+        # Find common prefix length
+        local common_len=0
+        local min_len=${#source_parts[@]}
+        if [[ ${#target_parts[@]} -lt $min_len ]]; then
+            min_len=${#target_parts[@]}
+        fi
+
+        for ((i = 0; i < min_len; i++)); do
+            if [[ "${source_parts[$i]}" == "${target_parts[$i]}" ]]; then
+                ((common_len++))
+            else
+                break
+            fi
+        done
+
+        # Build relative path
+        local up_count=$((${#target_parts[@]} - common_len))
+        relative_source=""
+
+        # Add up directories
+        for ((i = 0; i < up_count; i++)); do
+            relative_source="$relative_source../"
+        done
+
+        # Add remaining source path
+        for ((i = common_len; i < ${#source_parts[@]}; i++)); do
+            if [[ $i -gt $common_len ]]; then
+                relative_source="$relative_source/"
+            fi
+            relative_source="$relative_source${source_parts[$i]}"
+        done
+
+        # Handle case where source is in same directory as target
+        if [[ -z "$relative_source" ]]; then
+            relative_source="$(basename "$source_abs")"
+        fi
+    fi
+
+    log_info "Creating symlink: $relative_source -> $target"
+
     if ln -sf "$relative_source" "$target"; then
         log_success "Linked $source -> $target ($description)"
     else
@@ -131,6 +181,8 @@ create_symlink() {
 
 install_dotfiles() {
     log_info "Installing dotfiles..."
+    log_info "Script directory: $SCRIPT_DIR"
+    log_info "Config file: $CONFIG_FILE"
 
     if [[ ! -f "$CONFIG_FILE" ]]; then
         log_warning "Configuration file not found. Creating default configuration..."
@@ -149,6 +201,8 @@ install_dotfiles() {
         source=$(echo "$source" | xargs)
         target=$(echo "$target" | xargs)
         description=$(echo "$description" | xargs)
+
+        log_info "Processing: $source -> $target"
 
         if [[ -f "$SCRIPT_DIR/$source" ]]; then
             if create_symlink "$source" "$target" "$description"; then
