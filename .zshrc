@@ -13,6 +13,9 @@ elif [[ "$OS_TYPE" == "Linux" ]]; then
     fi
 fi
 
+# Suppress function display on startup for cleaner output
+setopt NO_FUNCTION_ARGZERO
+
 # Homebrew setup (macOS only) - check multiple possible locations
 if $IS_MACOS; then
     if [[ -f "/opt/homebrew/bin/brew" ]]; then
@@ -179,4 +182,3 @@ install-tools() {
     fi
     "$tools_path" "$@"
 }
-
