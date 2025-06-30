@@ -50,18 +50,77 @@ if $IS_MACOS; then
     if command -v brew &>/dev/null; then
         log_info "Installing tools via Homebrew..."
 
-        # Core tools
-        brew install lsd bat ripgrep fd fzf lazygit tealdeer atuin direnv asdf starship htop ncdu procs ripgrep-all git-delta
+        # Core tools that are available in Homebrew
+        brew install lsd bat ripgrep fd fzf lazygit atuin direnv starship htop ncdu
 
         log_success "Homebrew tools installed successfully"
 
-        # Note about git-fuzzy
-        log_warning "git-fuzzy is not available in Homebrew. Install manually if needed:"
-        log_info "  cargo install git-fuzzy"
+        # Note about unavailable packages
+        log_warning "Some tools are not available in Homebrew and will be installed manually:"
+        log_info "  - tealdeer (install via cargo: cargo install tealdeer)"
+        log_info "  - procs (install via cargo: cargo install procs)"
+        log_info "  - ripgrep-all (install via cargo: cargo install ripgrep-all)"
+        log_info "  - git-delta (install via cargo: cargo install git-delta)"
+        log_info "  - git-fuzzy (install via cargo: cargo install git-fuzzy)"
     else
         log_error "Homebrew not found. Please install Homebrew first."
         exit 1
     fi
+
+    # Install tools that need manual installation
+    log_info "Installing tools that require manual installation..."
+
+    # Tealdeer (tldr alternative)
+    if ! command -v tealdeer &>/dev/null; then
+        log_info "Installing tealdeer..."
+        cargo install tealdeer
+    else
+        log_info "tealdeer already installed"
+    fi
+
+    # Procs
+    if ! command -v procs &>/dev/null; then
+        log_info "Installing procs..."
+        cargo install procs
+    else
+        log_info "procs already installed"
+    fi
+
+    # Ripgrep-all
+    if ! command -v rga &>/dev/null; then
+        log_info "Installing ripgrep-all..."
+        cargo install ripgrep-all
+    else
+        log_info "ripgrep-all already installed"
+    fi
+
+    # Git-delta
+    if ! command -v delta &>/dev/null; then
+        log_info "Installing git-delta..."
+        cargo install git-delta
+    else
+        log_info "git-delta already installed"
+    fi
+
+    # Git-fuzzy
+    if ! command -v git-fuzzy &>/dev/null; then
+        log_info "Installing git-fuzzy..."
+        cargo install git-fuzzy
+    else
+        log_info "git-fuzzy already installed"
+    fi
+
+    # ASDF (check if it needs manual installation)
+    if ! command -v asdf &>/dev/null; then
+        log_info "Installing asdf..."
+        if [[ ! -d "$HOME/.asdf" ]]; then
+            git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1
+        fi
+    else
+        log_info "asdf already installed"
+    fi
+
+    log_success "Manual tools installed successfully"
 elif $IS_LINUX; then
     # Linux/WSL - use apt with fallbacks
     if command -v apt &>/dev/null; then
@@ -71,12 +130,13 @@ elif $IS_LINUX; then
         log_info "Installing tools via APT..."
 
         # Install packages that are available in apt
-        sudo apt install -y lsd bat ripgrep fd-find fzf lazygit tldr direnv htop ncdu
+        sudo apt install -y lsd bat ripgrep fd-find fzf tldr direnv htop ncdu
 
         log_success "APT tools installed successfully"
 
         # Note about unavailable packages
-        log_warning "Some tools are not available in Ubuntu repos:"
+        log_warning "Some tools are not available in Ubuntu repos and will be installed manually:"
+        log_info "  - lazygit (install via go or binary)"
         log_info "  - procs (install via cargo: cargo install procs)"
         log_info "  - ripgrep-all (install via cargo: cargo install ripgrep-all)"
         log_info "  - git-delta (install via cargo: cargo install git-delta)"
@@ -88,22 +148,31 @@ elif $IS_LINUX; then
     # Install tools that need manual installation
     log_info "Installing tools that require manual installation..."
 
+    # LazyGit
+    if ! command -v lazygit &>/dev/null; then
+        log_info "Installing lazygit..."
+        # Try Go installation first, fallback to binary
+        if command -v go &>/dev/null; then
+            log_info "Installing lazygit via Go..."
+            go install github.com/jesseduffield/lazygit@latest
+        else
+            log_info "Installing lazygit via binary download..."
+            LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+            curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+            tar xf lazygit.tar.gz lazygit
+            sudo mv lazygit /usr/local/bin
+            rm lazygit.tar.gz
+        fi
+    else
+        log_info "lazygit already installed"
+    fi
+
     # Atuin
     if ! command -v atuin &>/dev/null; then
         log_info "Installing atuin..."
         curl -sSf https://atuin.sh/install.sh | bash
     else
         log_info "atuin already installed"
-    fi
-
-    # ASDF
-    if ! command -v asdf &>/dev/null; then
-        log_info "Installing asdf..."
-        if [[ ! -d "$HOME/.asdf" ]]; then
-            git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1
-        fi
-    else
-        log_info "asdf already installed"
     fi
 
     # Starship

@@ -69,6 +69,22 @@ else
     log_info "Rust already installed"
 fi
 
+# Step 4.5: Install Go (for lazygit and other tools)
+log_info "Step 4.5: Installing Go..."
+if ! command -v go &>/dev/null; then
+    GO_VERSION="1.21.5"
+    curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o go.tar.gz
+    sudo rm -rf /usr/local/go
+    sudo tar -C /usr/local -xzf go.tar.gz
+    rm go.tar.gz
+    echo 'export PATH=$PATH:/usr/local/go/bin' >>~/.bashrc
+    echo 'export PATH=$PATH:/usr/local/go/bin' >>~/.zshrc
+    export PATH=$PATH:/usr/local/go/bin
+    log_success "Go installed"
+else
+    log_info "Go already installed"
+fi
+
 # Step 5: Install Node.js (if not already installed)
 log_info "Step 5: Installing Node.js..."
 if ! command -v node &>/dev/null; then
