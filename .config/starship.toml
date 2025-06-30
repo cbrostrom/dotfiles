@@ -119,7 +119,7 @@ disabled = false
 
 [time]
 disabled = false
-format = "🕐 [%T]"
+format = "[%T]"
 time_range = "-30s"
 style = "bold white"
 
