@@ -24,9 +24,8 @@ if $IS_WSL; then
         source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
 
         # Minimal plugins for WSL
-        zinit wait lucid for \
-            zsh-users/zsh-syntax-highlighting \
-            zsh-users/zsh-autosuggestions
+        zinit wait lucid for zsh-users/zsh-autosuggestions
+        zinit wait lucid for zsh-users/zsh-syntax-highlighting
 
         # Basic completions
         zinit wait lucid for \
@@ -47,12 +46,14 @@ else
         # Essential plugins only (lazy loaded for performance)
         zinit wait lucid for \
             atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
-            zsh-users/zsh-syntax-highlighting \
             zsh-users/zsh-autosuggestions \
             blockf \
             zsh-users/zsh-completions \
             atload"zicompinit; zicdreplay" \
             Aloxaf/fzf-tab
+
+        # Always load zsh-syntax-highlighting last
+        zinit wait lucid for zsh-users/zsh-syntax-highlighting
 
         # Performance optimization with zsh-defer
         zinit wait lucid for romkatv/zsh-defer
