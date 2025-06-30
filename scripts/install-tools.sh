@@ -51,7 +51,7 @@ if $IS_MACOS; then
         log_info "Installing tools via Homebrew..."
 
         # Core tools that are available in Homebrew
-        brew install lsd bat ripgrep fd fzf lazygit atuin direnv starship htop ncdu
+        brew install lsd bat ripgrep fd fzf lazygit direnv starship htop ncdu
 
         log_success "Homebrew tools installed successfully"
 
@@ -110,16 +110,6 @@ if $IS_MACOS; then
         log_info "git-fuzzy already installed"
     fi
 
-    # ASDF (check if it needs manual installation)
-    if ! command -v asdf &>/dev/null; then
-        log_info "Installing asdf..."
-        if [[ ! -d "$HOME/.asdf" ]]; then
-            git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1
-        fi
-    else
-        log_info "asdf already installed"
-    fi
-
     log_success "Manual tools installed successfully"
 elif $IS_LINUX; then
     # Linux/WSL - use apt with fallbacks
@@ -165,14 +155,6 @@ elif $IS_LINUX; then
         fi
     else
         log_info "lazygit already installed"
-    fi
-
-    # Atuin
-    if ! command -v atuin &>/dev/null; then
-        log_info "Installing atuin..."
-        curl -sSf https://atuin.sh/install.sh | bash
-    else
-        log_info "atuin already installed"
     fi
 
     # Starship

@@ -70,25 +70,9 @@ elif $IS_MACOS && command -v oh-my-posh &>/dev/null; then
     eval "$(oh-my-posh init zsh --config https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/amro.omp.json)"
 fi
 
-# Atuin for better history search
-if command -v atuin &>/dev/null; then
-    eval "$(atuin init zsh --disable-up-arrow)"
-fi
-
 # Direnv for project-specific env vars
 if command -v direnv &>/dev/null; then
     eval "$(direnv hook zsh)"
-fi
-
-# ASDF for multi-language version management (with safer loading)
-if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
-    . "$HOME/.asdf/asdf.sh"
-    # Only load bash completions if we're in bash, otherwise use zsh completions
-    if [[ -n "$BASH_VERSION" ]] && [[ -f "$HOME/.asdf/completions/asdf.bash" ]]; then
-        . "$HOME/.asdf/completions/asdf.bash"
-    elif [[ -n "$ZSH_VERSION" ]] && [[ -f "$HOME/.asdf/completions/asdf.zsh" ]]; then
-        . "$HOME/.asdf/completions/asdf.zsh"
-    fi
 fi
 
 # Source organized configuration files (with error handling and timeouts)
@@ -153,6 +137,45 @@ if command -v zinit &>/dev/null && ! $IS_WSL; then
     zstyle ':fzf-tab:complete:npm:*' fzf-preview 'cat package.json 2>/dev/null | jq .scripts 2>/dev/null || echo "No package.json found"'
 fi
 
-# Dotfiles manager aliases
-alias dotfiles='../../dotfiles/scripts/main.sh'
-alias dotfiles-version='../../dotfiles/scripts/version.sh'
+# Note: Dotfiles management functions are now defined in ~/.config/zsh/aliases
+# and are available as: dotfiles, dotfiles-version, install-tools
+
+# Backup dotfiles functions (in case aliases file isn't sourced)
+dotfiles() {
+    local dotfiles_path=""
+    if [[ -f "$HOME/dotfiles/scripts/main.sh" ]]; then
+        dotfiles_path="$HOME/dotfiles/scripts/main.sh"
+    elif [[ -f "$HOME/.dotfiles/scripts/main.sh" ]]; then
+        dotfiles_path="$HOME/.dotfiles/scripts/main.sh"
+    else
+        echo "Error: dotfiles not found in $HOME/dotfiles or $HOME/.dotfiles"
+        return 1
+    fi
+    "$dotfiles_path" "$@"
+}
+
+dotfiles-version() {
+    local version_path=""
+    if [[ -f "$HOME/dotfiles/scripts/version.sh" ]]; then
+        version_path="$HOME/dotfiles/scripts/version.sh"
+    elif [[ -f "$HOME/.dotfiles/scripts/version.sh" ]]; then
+        version_path="$HOME/.dotfiles/scripts/version.sh"
+    else
+        echo "Error: version.sh not found"
+        return 1
+    fi
+    "$version_path" "$@"
+}
+
+install-tools() {
+    local tools_path=""
+    if [[ -f "$HOME/dotfiles/scripts/install-tools.sh" ]]; then
+        tools_path="$HOME/dotfiles/scripts/install-tools.sh"
+    elif [[ -f "$HOME/.dotfiles/scripts/install-tools.sh" ]]; then
+        tools_path="$HOME/.dotfiles/scripts/install-tools.sh"
+    else
+        echo "Error: install-tools.sh not found"
+        return 1
+    fi
+    "$tools_path" "$@"
+}

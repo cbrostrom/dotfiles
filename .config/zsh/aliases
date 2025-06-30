@@ -146,3 +146,7 @@ install-tools() {
     fi
     "$tools_path" "$@"
 }
+
+# Ensure these functions are available in every shell session
+# This is a fallback in case the aliases file isn't sourced properly
+export -f dotfiles dotfiles-version install-tools 2>/dev/null || true

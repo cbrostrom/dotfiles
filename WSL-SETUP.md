@@ -116,18 +116,21 @@ dotfiles list
 ## 🔧 **Troubleshooting**
 
 ### **If zsh is not found:**
+
 ```bash
 sudo apt install zsh
 chsh -s /bin/zsh
 ```
 
 ### **If git is not configured:**
+
 ```bash
 git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 ```
 
 ### **If dotfiles command doesn't work:**
+
 ```bash
 # Reload aliases
 source ~/.config/zsh/aliases
@@ -137,6 +140,7 @@ exec zsh
 ```
 
 ### **If tools don't install:**
+
 ```bash
 # Check what's available
 ./scripts/diagnose.sh
@@ -148,6 +152,7 @@ exec zsh
 ## 📦 **What Gets Installed**
 
 ### **System Packages:**
+
 - ✅ Git, curl, wget, unzip
 - ✅ Python3, pip3, pipx
 - ✅ Node.js, npm
@@ -155,11 +160,13 @@ exec zsh
 - ✅ Build tools
 
 ### **Development Tools:**
+
 - ✅ Rust (for modern CLI tools)
 - ✅ Python tools
 - ✅ Node.js tools
 
 ### **Dotfiles Tools:**
+
 - ✅ lsd (modern ls)
 - ✅ bat (better cat)
 - ✅ ripgrep (fast grep)
@@ -168,8 +175,6 @@ exec zsh
 - ✅ lazygit (git TUI)
 - ✅ tldr (command help)
 - ✅ direnv (auto env switching)
-- ✅ atuin (better history)
-- ✅ asdf (version manager)
 - ✅ starship (prompt)
 
 ## 🎯 **Verification Checklist**
@@ -183,23 +188,24 @@ After setup, verify these work:
 - [ ] `bat` works (better cat)
 - [ ] `fzf` works (fuzzy finder)
 - [ ] `starship` prompt shows
-- [ ] `atuin` history works
-- [ ] `asdf` version manager works
 
 ## 🚨 **Common Issues**
 
 ### **Permission Denied:**
+
 ```bash
 chmod +x scripts/*.sh
 ```
 
 ### **Path Issues:**
+
 ```bash
 # Check if PATH includes local bin
 echo $PATH | grep -q ~/.local/bin || echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 ```
 
 ### **Git Issues:**
+
 ```bash
 # Configure git if not done
 git config --global user.name "Your Name"
@@ -209,11 +215,11 @@ git config --global user.email "your.email@example.com"
 ## 🎉 **Success!**
 
 Once everything is working, you'll have:
+
 - ✅ Modern shell with zsh
 - ✅ Beautiful prompt with starship
 - ✅ Fast fuzzy finding with fzf
-- ✅ Better history with atuin
 - ✅ Modern CLI tools
 - ✅ Cross-platform dotfiles management
 
-Your WSL environment is now ready for development! 🚀 
+Your WSL environment is now ready for development! 🚀

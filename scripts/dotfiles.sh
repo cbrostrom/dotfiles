@@ -505,15 +505,10 @@ cleanup_full() {
         log_success "Removed atuin"
     fi
 
-    # Remove asdf (if installed via script)
-    if [[ -d "$HOME/.asdf" ]]; then
-        rm -rf "$HOME/.asdf"
-        log_success "Removed asdf"
-    fi
-
     # Remove starship (if installed via script)
-    if [[ -f "$HOME/.local/bin/starship" ]]; then
-        rm -f "$HOME/.local/bin/starship"
+    if command -v starship &>/dev/null; then
+        # Starship installs to /usr/local/bin/starship
+        sudo rm -f /usr/local/bin/starship
         log_success "Removed starship"
     fi
 

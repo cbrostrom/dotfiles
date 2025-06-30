@@ -5,12 +5,14 @@ A cross-platform dotfiles setup optimized for modern web development with perfor
 ## ✨ Features
 
 ### 🎯 **Performance Optimizations**
+
 - **zsh-defer**: Lazy loading for faster shell startup
 - **zinit**: Fast plugin manager with async loading
 - **Starship**: Ultra-fast prompt written in Rust
 - **Optimized completions**: Smart caching and async loading
 
 ### 🛠️ **Modern Tool Stack**
+
 - **lsd**: Modern `ls` replacement with icons and colors
 - **bat**: Better `cat` with syntax highlighting
 - **ripgrep**: Ultra-fast text search
@@ -21,12 +23,14 @@ A cross-platform dotfiles setup optimized for modern web development with perfor
 - **tldr**: Simplified command help
 
 ### 🔍 **Enhanced Search & Navigation**
+
 - **zoxide**: Smarter `cd` with learning
 - **fzf**: Fuzzy finder with keybindings
 - **atuin**: Better shell history search
 - **ripgrep-all**: Search in all file types
 
 ### 🎨 **Development Experience**
+
 - **git-delta**: Beautiful git diffs
 - **git-fuzzy**: Interactive git operations
 - **lazygit**: Terminal UI for git
@@ -34,6 +38,7 @@ A cross-platform dotfiles setup optimized for modern web development with perfor
 - **asdf**: Multi-language version management
 
 ### 🔒 **Security & Monitoring**
+
 - **htop**: System monitoring
 - **ncdu**: Disk usage analysis
 - **procs**: Process monitoring
@@ -76,12 +81,14 @@ dotfiles release    # Full release workflow
 ## 🎯 **Optimizations Implemented**
 
 ### **Performance**
+
 - ✅ **zsh-defer**: Lazy loading for plugins
 - ✅ **zinit**: Fast plugin manager
 - ✅ **Starship**: Rust-based prompt
 - ✅ **Async completions**: Non-blocking completion loading
 
 ### **Modern Tools**
+
 - ✅ **lsd**: Replaced `eza` with more maintained alternative
 - ✅ **bat**: Syntax-highlighted cat
 - ✅ **ripgrep**: Fast text search
@@ -91,6 +98,7 @@ dotfiles release    # Full release workflow
 - ✅ **ncdu**: Disk usage analysis
 
 ### **Development Enhancements**
+
 - ✅ **zoxide**: Smart directory navigation
 - ✅ **atuin**: Better history search
 - ✅ **direnv**: Project-specific env vars
@@ -98,16 +106,19 @@ dotfiles release    # Full release workflow
 - ✅ **fzf keybindings**: Enhanced fuzzy finding
 
 ### **Git Improvements**
+
 - ✅ **git-delta**: Beautiful diffs with side-by-side view
 - ✅ **git-fuzzy**: Interactive git operations
 - ✅ **lazygit**: Terminal UI for git
 
 ### **Shell Improvements**
+
 - ✅ **Starship**: Modern, fast prompt
 - ✅ **zsh-autocomplete**: Better completions
 - ✅ **zsh-syntax-highlighting**: Syntax highlighting
 
 ### **Cross-Platform Tools**
+
 - ✅ **ripgrep-all**: Search in all file types
 - ✅ **fd**: Fast file finding
 - ✅ **procs**: Better process listing
@@ -115,16 +126,19 @@ dotfiles release    # Full release workflow
 ## 🔧 **Configuration Files**
 
 ### **Shell Configuration**
+
 - `.zshrc`: Main shell configuration
 - `.config/zsh/aliases`: Command aliases
 - `.config/zsh/plugins`: Plugin management
 - `.config/zsh/env`: Environment variables
 
 ### **Git Configuration**
+
 - `.gitconfig`: Git settings with delta integration
 - `.gitignore_global`: Global gitignore
 
 ### **Terminal Configuration**
+
 - `.config/ghostty/config`: Ghostty terminal
 - `.config/starship.toml`: Starship prompt
 
@@ -197,11 +211,13 @@ pd='pnpm run dev'
 ## 📦 **Package Management**
 
 ### **macOS (Homebrew)**
+
 ```bash
 brew install lsd bat ripgrep fd fzf lazygit tealdeer atuin direnv asdf starship htop ncdu procs ripgrep-all git-delta git-fuzzy
 ```
 
 ### **Linux/WSL (apt)**
+
 ```bash
 sudo apt install lsd bat ripgrep fd-find fzf lazygit tldr direnv htop ncdu procs ripgrep-all git-delta
 ```
@@ -252,17 +268,17 @@ A robust, cross-platform dotfiles management system that works seamlessly on mac
 ## 📦 Included Tools
 
 ### Core Tools
+
 - **zsh-defer**: Lazy loading for faster shell startup
-- **atuin**: Better shell history with search
-- **direnv**: Automatic environment switching
-- **asdf**: Version manager for multiple languages
-- **git-delta**: Better git diffs
-- **git-fuzzy**: Interactive git tools
+- **direnv**: Auto environment switching
+- **git-delta**: Better git diff viewer
+- **git-fuzzy**: Fuzzy git interface
 - **starship**: Fast, customizable prompt
 - **lsd**: Modern `ls` replacement
 - **zinit**: Fast zsh plugin manager
 
 ### Development Tools
+
 - **gh**: GitHub CLI
 - **bat**: Better `cat` with syntax highlighting
 - **fd**: Fast `find` alternative
@@ -291,17 +307,20 @@ cd dotfiles
 ### Manual Installation
 
 1. **Clone the repository**:
+
    ```bash
    git clone <your-repo-url> dotfiles
    cd dotfiles
    ```
 
 2. **Install dotfiles** (creates symlinks):
+
    ```bash
    ./scripts/dotfiles.sh install
    ```
 
 3. **Install tools** (optional, installs modern CLI tools):
+
    ```bash
    ./scripts/install-tools.sh
    ```
@@ -377,6 +396,7 @@ Run the built-in diagnostic tool to identify issues:
 ```
 
 This will check:
+
 - ✅ OS detection
 - ✅ Required tools (Python, Node.js, Git)
 - ✅ Package managers (Homebrew, APT)
@@ -389,6 +409,7 @@ This will check:
 ### Common Issues
 
 #### Broken Symlinks
+
 ```bash
 # Check for broken symlinks
 ./scripts/diagnose.sh
@@ -398,6 +419,7 @@ This will check:
 ```
 
 #### Missing Files
+
 ```bash
 # Verify source files exist
 ls -la .config/zsh/
@@ -408,6 +430,7 @@ cd /path/to/dotfiles
 ```
 
 #### Permission Issues
+
 ```bash
 # Check permissions
 ls -la ~/.config/zsh/
@@ -416,11 +439,12 @@ ls -la ~/.config/zsh/
 chmod 755 ~/.config/zsh/
 ```
 
-## ��️ Architecture
+## 🎨 Architecture
 
 ### **Cross-Platform Path Detection**
 
 All scripts use robust path detection that works regardless of:
+
 - **Installation location**: `~/dotfiles` or `~/.dotfiles`
 - **Current directory**: Commands work from anywhere
 - **Platform**: macOS, Linux, WSL2
@@ -435,6 +459,7 @@ DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ### **Dynamic Function-Based Commands**
 
 Instead of hardcoded aliases, the system uses functions that:
+
 - ✅ **Auto-detect** dotfiles location
 - ✅ **Work from any directory**
 - ✅ **Support multiple installation paths**
@@ -448,6 +473,7 @@ install-tools
 ```
 
 ### **File Structure**
+
 ```
 dotfiles/
 ├── .zshrc                    # Main zsh configuration
@@ -484,6 +510,7 @@ Edit `scripts/dotfiles.conf`:
 ### Customizing Tools
 
 Edit the appropriate configuration file:
+
 - **Shell**: `.config/zsh/aliases` and `.config/zsh/plugins`
 - **Git**: `.gitconfig`
 - **Terminal**: `.config/ghostty/config`

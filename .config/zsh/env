@@ -1,11 +1,16 @@
+# Cross-platform PATH setup
+export PATH="$HOME/.local/bin:$PATH"
+
 # Node/Web development environment
 export NODE_OPTIONS="--max-old-space-size=8192"
+
 # Cross-platform pnpm home
-if $IS_MACOS; then
+if [[ "$(uname -s)" == "Darwin" ]]; then
     export PNPM_HOME="$HOME/Library/pnpm"
 else
     export PNPM_HOME="$HOME/.local/share/pnpm"
 fi
+export PATH="$PNPM_HOME:$PATH"
 
 # Environment variables for modern tools
 export BAT_THEME="TwoDark"
@@ -14,15 +19,6 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
 # Go environment
 export GOPATH="$HOME/go"
-
-# ASDF version manager
-if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
-    . "$HOME/.asdf/asdf.sh"
-    # Load completions only if they exist and we're in zsh
-    if [[ -n "$ZSH_VERSION" ]] && [[ -f "$HOME/.asdf/completions/asdf.zsh" ]]; then
-        . "$HOME/.asdf/completions/asdf.zsh"
-    fi
-fi
 
 # Timeout protection for commands that might hang
 export TMOUT=30 # 30 second timeout for interactive commands
