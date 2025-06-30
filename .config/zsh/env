@@ -9,3 +9,12 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
 # Go environment
 export GOPATH="$HOME/go"
+
+# ASDF version manager
+if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
+    . "$HOME/.asdf/asdf.sh"
+    # Load completions only if they exist and we're in zsh
+    if [[ -n "$ZSH_VERSION" ]] && [[ -f "$HOME/.asdf/completions/asdf.zsh" ]]; then
+        . "$HOME/.asdf/completions/asdf.zsh"
+    fi
+fi

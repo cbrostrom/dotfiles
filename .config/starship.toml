@@ -119,7 +119,7 @@ disabled = false
 
 [time]
 disabled = false
-format = "[%T]"
+format = "at [$time]($style) "
 time_range = "-30s"
 style = "bold white"
 

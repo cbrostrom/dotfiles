@@ -38,8 +38,10 @@ if $IS_MACOS; then
 elif $IS_LINUX; then
     # Linux/WSL - use apt with fallbacks
     if command -v apt &>/dev/null; then
-        # Update package list first
-        sudo apt update -qq
+        # Update package list first (only if not recently updated)
+        if [[ ! -f /tmp/apt-updated ]] || [[ $(find /tmp/apt-updated -mtime +1 2>/dev/null) ]]; then
+            sudo apt update -qq && touch /tmp/apt-updated
+        fi
 
         # Install packages that are available in apt
         if ! command -v lsd &>/dev/null; then sudo apt install -y lsd; fi
@@ -52,9 +54,9 @@ elif $IS_LINUX; then
         if ! command -v direnv &>/dev/null; then sudo apt install -y direnv; fi
         if ! command -v htop &>/dev/null; then sudo apt install -y htop; fi
         if ! command -v ncdu &>/dev/null; then sudo apt install -y ncdu; fi
-        if ! command -v procs &>/dev/null; then sudo apt install -y procs; fi
-        if ! command -v ripgrep-all &>/dev/null; then sudo apt install -y ripgrep-all; fi
-        if ! command -v git-delta &>/dev/null; then sudo apt install -y git-delta; fi
+
+        # Skip packages that don't exist in Ubuntu repos
+        # procs, ripgrep-all, git-delta are not available in standard repos
     fi
 
     # Install tools that need manual installation
