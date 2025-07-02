@@ -3,8 +3,38 @@ color:
   when: always
   theme: default
   # You can set theme: custom and define your own colors below
-# icon:
-#   when: always
-#   theme: fancy
-#   separator: " "
+icons:
+  # When to use icons.
+  # When "classic" is set, this is set to "never".
+  # Possible values: always, auto, never
+  when: auto
+  # Which icon theme to use.
+  # Possible values: fancy, unicode
+  theme: fancy
+  # Separator between icon and the name
+  # Default to 1 space
+  separator: " "
 # More options: https://lsd-rs.github.io/lsd/usage/configuration.html 
+# == Layout ==
+# Which layout to use. "oneline" might be a bit confusing here and should be
+# called "one-per-line". It might be changed in the future.
+# Possible values: grid, tree, oneline
+layout: grid
+
+# == Sorting ==
+sorting:
+  # Specify what to sort by.
+  # Possible values: extension, name, time, size, version
+  column: name
+  # Whether to reverse the sorting.
+  # Possible values: false, true
+  reverse: false
+  # Whether to group directories together and where.
+  # When "classic" is set, this is set to "none".
+  # Possible values: first, last, none
+  dir-grouping: first
+  
+# == Hyperlink ==
+# Attach hyperlink to filenames
+# Possible values: always, auto, never
+hyperlink: auto

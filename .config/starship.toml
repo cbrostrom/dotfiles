@@ -4,7 +4,7 @@
 # Get editor info
 [character]
 success_symbol = "[➜](bold green)"
-error_symbol = "[✗](bold red)"
+error_symbol = "[](bold red)"
 
 [directory]
 truncation_length = 3
@@ -12,12 +12,13 @@ truncation_symbol = "…/"
 style = "blue bold"
 
 [git_branch]
-symbol = " "
+format = '\[ [${symbol}${branch}]($style) \]'
+symbol = " "
 style = "purple bold"
-truncation_length = 4
-truncation_symbol = ""
+
 
 [git_status]
+format = '([\[ $all_status$ahead_behind \]]($style))'
 style = "red bold"
 ahead = "⇡${count}"
 behind = "⇣${count}"
@@ -30,111 +31,114 @@ renamed = "»"
 deleted = "✘"
 
 [nodejs]
-symbol = " "
+format = '\[ [$symbol($version)]($style) \]'
+symbol = "󰎙 "
 style = "green bold"
 detect_extensions = ["js", "mjs", "cjs", "ts", "jsx", "tsx", "json"]
 
 [package]
-symbol = "📦 "
+format = '\[[$symbol$version]($style)\]'
+symbol = "󰏗 "
 style = "red bold"
 
 [rust]
-symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+symbol = " "
 style = "red bold"
 
 [golang]
-symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+symbol = " "
 style = "cyan bold"
 
 [python]
-symbol = " "
+format = '\[[${symbol}${pyenv_prefix}(${version})(\($virtualenv\))]($style)\]'
+symbol = " "
 style = "yellow bold"
 
 [php]
-symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+symbol = " "
 style = "blue bold"
 
 [ruby]
-symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+symbol = " "
 style = "red bold"
 
 [java]
-symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+symbol = " "
 style = "red dimmed"
 
 [scala]
-symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+symbol = " "
 style = "red dimmed"
 
 [elixir]
-symbol = " "
+format = '\[[$symbol($version \(OTP $otp_version\))]($style)\]'
+symbol = " "
 style = "purple bold"
 
 [swift]
-symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+symbol = " "
 style = "yellow bold"
 
 [ocaml]
-symbol = " "
+format = '\[[$symbol($version)(\($switch_indicator$switch_name\))]($style)\]'
+symbol = " "
 style = "yellow bold"
 
 [erlang]
-symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+symbol = " "
 style = "red bold"
 
 [memory_usage]
-symbol = " "
+format = '\[$symbol[$ram( | $swap)]($style)\]'
 style = "white bold dimmed"
+symbol = "󰍛 "
 threshold = 75
 disabled = false
 
 [cmd_duration]
+format = '\[[⏱ $duration]($style)\]'
 min_time = 2_000
 style = "yellow"
 
 [aws]
-symbol = " "
+format = '\[[$symbol($profile)(\($region\))(\[$duration\])]($style)\]'
+symbol = " "
 style = "yellow bold"
 disabled = false
 
 [gcloud]
-symbol = " "
+format = '\[[$symbol$account(@$domain)(\($region\))]($style)\]'
+symbol = "󱇶 "
 style = "blue bold"
 disabled = false
 
 [kubernetes]
-symbol = " "
+format = '\[[$symbol$context( \($namespace\))]($style)\]'
+symbol = " "
 style = "blue bold"
 disabled = false
 
 [docker_context]
-symbol = " "
+format = '\[[$symbol$context]($style)\]'
+symbol = "󰡨 "
 style = "blue bold"
 disabled = false
 
 [terraform]
-symbol = " "
+format = '\[[$symbol$workspace]($style)\]'
 style = "purple bold"
 disabled = false
 
 [time]
+format = '[$time]($style) '
 disabled = false
-format = "at [$time]($style) "
 time_range = "-30s"
 style = "bold white"
-
-# Custom command for showing current project type
-[custom.project_type]
-command = "echo '$(basename $(pwd))'"
-when = "pwd | grep -q '/Projects/'"
-symbol = "📁 "
-style = "cyan bold"
-format = "[${symbol}${output}]($style) "
-
-# Custom command for showing current branch in a more compact way
-[custom.git_branch_compact]
-command = "git branch --show-current 2>/dev/null || echo ''"
-when = "git rev-parse --git-dir > /dev/null 2>&1"
-symbol = " "
-style = "purple bold"
-format = "[${symbol}${output}]($style) "

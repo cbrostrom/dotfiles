@@ -1,0 +1,79 @@
+# Custom colorscheme for Ghostty
+# Based on the provided color palette
+
+colors:
+  # Default colors
+  primary:
+    background: '0x0c0d0e'
+    foreground: '0xb7b8b9'
+
+  # Normal colors
+  normal:
+    black:   '0x0c0d0e'
+    red:     '0xe31a1c'
+    green:   '0x31a354'
+    yellow:  '0xdca060'
+    blue:    '0x3182bd'
+    magenta: '0x756bb1'
+    cyan:    '0x80b1d3'
+    white:   '0xb7b8b9'
+
+  # Bright colors
+  bright:
+    black:   '0x737475'
+    red:     '0xe31a1c'
+    green:   '0x31a354'
+    yellow:  '0xdca060'
+    blue:    '0x3182bd'
+    magenta: '0x756bb1'
+    cyan:    '0x80b1d3'
+    white:   '0xfcfdfe'
+
+  # Cursor colors
+  cursor:
+    text:   '0x0c0d0e'
+    cursor: '0xb7b8b9'
+
+  # Selection colors
+  selection:
+    text:   '0x0c0d0e'
+    background: '0x737475'
+
+  # Search colors
+  search:
+    matches:
+      foreground: '0x0c0d0e'
+      background: '0xdca060'
+    focused_match:
+      foreground: '0x0c0d0e'
+      background: '0x31a354'
+
+  # Hints
+  hints:
+    start:
+      foreground: '0x0c0d0e'
+      background: '0xdca060'
+    end:
+      foreground: '0x0c0d0e'
+      background: '0x31a354'
+
+  # Line indicator
+  line_indicator:
+    foreground: '0x737475'
+    background: '0x0c0d0e'
+
+  # Footer bar
+  footer_bar:
+    foreground: '0xb7b8b9'
+    background: '0x0c0d0e'
+
+  # Input method editor
+  ime:
+    foreground: '0x0c0d0e'
+    background: '0xdca060'
+
+  # Window decorations
+  window:
+    decorations:
+      background: '0x0c0d0e'
+      color: '0xb7b8b9' 

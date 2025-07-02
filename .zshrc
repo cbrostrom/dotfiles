@@ -29,6 +29,11 @@ export PATH="$HOME/.local/bin:$PATH"
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
 
+# Source envman for additional PATH entries (zoxide, etc.)
+if [[ -f "$HOME/.config/envman/PATH.env" ]]; then
+    source "$HOME/.config/envman/PATH.env"
+fi
+
 # Node/Web development environment
 export NODE_OPTIONS="--max-old-space-size=8192"
 
@@ -95,6 +100,37 @@ if command -v direnv &>/dev/null; then
 fi
 
 # =============================================================================
+# ZOXIDE SETUP (Smart Directory Navigation)
+# =============================================================================
+if command -v zoxide &>/dev/null; then
+    eval "$(zoxide init zsh)"
+
+    # Optimized zoxide configuration
+    export _ZO_FZF_OPTS="--height 40% --layout=reverse --border --preview 'lsd --tree --level=2 {} 2>/dev/null || tree -C {} 2>/dev/null'"
+    export _ZO_ECHO=1
+    export _ZO_EXCLUDE_DIRS="$HOME/.cache:$HOME/.local/share:$HOME/.npm:$HOME/.pnpm-store:$HOME/.cargo/registry"
+
+    # Enhanced zoxide aliases with fzf integration
+    alias zi='zoxide query -i' # Interactive query with fzf
+    alias za='zoxide add'      # Add current directory
+    alias zr='zoxide remove'   # Remove directory from database
+    alias zq='zoxide query'    # Query without jumping
+    alias zl='zoxide query -l' # List all directories
+
+    # Smart directory jumping with fzf
+    alias j='zoxide query -i'
+    alias jj='zoxide query -i'
+
+    # Quick project navigation
+    alias dev='zoxide query -i ~/Projects'
+    alias work='zoxide query -i ~/Work'
+    alias docs='zoxide query -i ~/Documents'
+
+    # Git repository navigation
+    alias repos='zoxide query -i $(find ~/Projects ~/Work -name ".git" -type d 2>/dev/null | sed "s/\/.git//" | sort -u)'
+fi
+
+# =============================================================================
 # COMPLETIONS
 # =============================================================================
 autoload -Uz compinit
@@ -141,8 +177,8 @@ if command -v fzf >/dev/null 2>&1; then
     alias gcm='git checkout $(git branch | fzf)'
     alias gcf='git commit --fixup $(git log --oneline | fzf | awk "{print \$1}")'
     alias gpick='git cherry-pick $(git log --oneline | fzf | awk "{print \$1}")'
-    # Directory jumping
-    alias j='zoxide query -l | fzf --tac | xargs -r cd'
+    # Directory jumping (now handled by zoxide section above)
+    # alias j='zoxide query -l | fzf --tac | xargs -r cd'
     # File search
     alias ff='fzf --preview "bat --style=numbers --color=always --line-range :500 {} 2>/dev/null || cat {} 2>/dev/null"'
     # History search
@@ -317,3 +353,6 @@ else
     fi
 fi
 # --- END FZF-TAB ---
+
+# Generated for envman. Do not edit.
+[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
