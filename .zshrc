@@ -29,11 +29,6 @@ export PATH="$HOME/.local/bin:$PATH"
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
 
-# Source envman for additional PATH entries (zoxide, etc.)
-if [[ -f "$HOME/.config/envman/PATH.env" ]]; then
-    source "$HOME/.config/envman/PATH.env"
-fi
-
 # Node/Web development environment
 export NODE_OPTIONS="--max-old-space-size=8192"
 
@@ -69,8 +64,10 @@ if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
         zsh-users/zsh-completions \
         OMZL::git.zsh \
         OMZP::git \
-        OMZP::npm \
-        lukechilds/zsh-nvm
+        OMZP::npm
+
+    # Load NVM with proper configuration
+    zinit lucid for lukechilds/zsh-nvm
 
     # Load fzf integration
     zinit wait lucid for \
@@ -98,6 +95,35 @@ fi
 if command -v direnv &>/dev/null; then
     eval "$(direnv hook zsh)"
 fi
+
+# =============================================================================
+# NVM CONFIGURATION
+# =============================================================================
+# NVM settings for better performance and behavior
+export NVM_LAZY_LOAD=true
+export NVM_COMPLETION=true
+export NVM_AUTO_USE=true
+
+# NVM aliases for common operations
+alias nvmls='nvm list'
+alias nvmuse='nvm use'
+alias nvminstall='nvm install'
+alias nvmcurrent='nvm current'
+alias nvmalias='nvm alias'
+alias nvmrun='nvm run'
+alias nvmexec='nvm exec'
+
+# Quick Node version switching
+alias node16='nvm use 16'
+alias node18='nvm use 18'
+alias node20='nvm use 20'
+alias node21='nvm use 21'
+alias nodelts='nvm use --lts'
+alias nodestable='nvm use stable'
+
+# NVM project-specific version detection
+# Note: NVM auto-switching is handled by the zsh-nvm plugin
+# with NVM_AUTO_USE=true setting above
 
 # =============================================================================
 # ZOXIDE SETUP (Smart Directory Navigation)
@@ -353,6 +379,3 @@ else
     fi
 fi
 # --- END FZF-TAB ---
-
-# Generated for envman. Do not edit.
-[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"

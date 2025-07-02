@@ -1,8 +1,10 @@
-# Sample lsd config for color and icon customization
+# Warm Nordic lsd config for color and icon customization
 color:
   when: always
   theme: default
-  # You can set theme: custom and define your own colors below
+  # Note: lsd doesn't support custom hex colors in config.yaml
+  # The Warm Nordic theme is applied to Starship prompt only
+  # lsd uses terminal color support for themes
 icons:
   # When to use icons.
   # When "classic" is set, this is set to "never".

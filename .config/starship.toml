@@ -1,144 +1,342 @@
 # Starship prompt configuration for web development
 # Modern, fast, and informative prompt
+#
+# MODULE ORDER (from left to right in prompt):
+# 1. username@hostname (if enabled)
+# 2. directory
+# 3. git_branch + git_status
+# 4. language versions (nodejs, python, rust, etc.)
+# 5. package info
+# 6. system info (memory, cmd_duration)
+# 7. cloud tools (aws, gcloud, k8s, docker)
+# 8. time
+# 9. character (prompt symbol)
 
-# Get editor info
+# Warm Nordic color palette
+# #e25822 user
+# #e76f51 dir
+# #f4a261 git/branch
+# #f6aa1c package/time
+# #e63946 error/status
+# #4c566a version/lang
+# #5e81ac	doc (from dracula color palette)
+# #6272a4	time (from dracula color palette)
+
+# =============================================================================
+# PROMPT CHARACTER (always shown at the end)
+# =============================================================================
+# This is the final symbol in your prompt (like $ or >)
+# success_symbol: shown when last command succeeded
+# error_symbol: shown when last command failed
 [character]
-success_symbol = "[➜](bold green)"
-error_symbol = "[](bold red)"
+success_symbol = "[➜](#e25822 bold)"
+error_symbol = "[✗](#e63946 bold)"
 
+# =============================================================================
+# DIRECTORY (always shown)
+# =============================================================================
+# Shows current working directory
+# truncation_length: how many parent dirs to show (2 = current + first parent)
+# truncation_symbol: what to show when truncating (…/)
 [directory]
-truncation_length = 3
-truncation_symbol = "…/"
-style = "blue bold"
+truncation_length = 2
+truncation_symbol = " …/"
+style = "#e76f51 bold"
 
+# =============================================================================
+# GIT INTEGRATION (shown in git repos)
+# =============================================================================
+# Shows current git branch name
 [git_branch]
 format = '\[ [${symbol}${branch}]($style) \]'
 symbol = " "
-style = "purple bold"
+style = "#f4a261 bold"
 
-
+# Shows git status (modified, staged, untracked files, etc.)
 [git_status]
 format = '([\[ $all_status$ahead_behind \]]($style))'
-style = "red bold"
-ahead = "⇡${count}"
-behind = "⇣${count}"
-diverged = "⇕⇡${ahead_count}⇣${behind_count}"
-untracked = "?"
-stashed = "≡"
-modified = "!"
-staged = "+"
-renamed = "»"
-deleted = "✘"
+style = "#e63946 bold"
+# Status indicators:
+ahead = "⇡${count}"                           # Commits ahead of remote
+behind = "⇣${count}"                          # Commits behind remote
+diverged = "⇕⇡${ahead_count}⇣${behind_count}" # Diverged branches
+untracked = "?"                               # Untracked files
+stashed = "≡"                                 # Stashed changes
+modified = "!"                                # Modified files
+staged = "+"                                  # Staged files
+renamed = "»"                                 # Renamed files
+deleted = "✘"                                 # Deleted files
 
+# =============================================================================
+# LANGUAGE VERSIONS (shown when relevant files detected)
+# =============================================================================
+# Node.js version (detects .js, .mjs, .cjs, .ts, .jsx, .tsx, .json files)
 [nodejs]
 format = '\[ [$symbol($version)]($style) \]'
 symbol = "󰎙 "
-style = "green bold"
+style = "#f4a261 bold"
 detect_extensions = ["js", "mjs", "cjs", "ts", "jsx", "tsx", "json"]
+detect_files = ["package.json", "node_modules", ".nvmrc", ".node-version"]
 
+# Package.json version (shows version from package.json)
 [package]
 format = '\[[$symbol$version]($style)\]'
 symbol = "󰏗 "
-style = "red bold"
+style = "#f6aa1c bold"
 
+# Rust version (detects Cargo.toml, .rs files)
 [rust]
 format = '\[[$symbol($version)]($style)\]'
 symbol = " "
-style = "red bold"
+style = "#4c566a bold"
 
+# Go version (detects go.mod, .go files)
 [golang]
 format = '\[[$symbol($version)]($style)\]'
 symbol = " "
-style = "cyan bold"
+style = "#4c566a bold"
 
+# Python version (detects .py files, shows virtualenv)
 [python]
 format = '\[[${symbol}${pyenv_prefix}(${version})(\($virtualenv\))]($style)\]'
 symbol = " "
-style = "yellow bold"
+style = "#4c566a bold"
 
+# PHP version (detects .php files)
 [php]
 format = '\[[$symbol($version)]($style)\]'
 symbol = " "
 style = "blue bold"
 
+# Ruby version (detects Gemfile, .rb files)
 [ruby]
 format = '\[[$symbol($version)]($style)\]'
 symbol = " "
 style = "red bold"
 
+# Java version (detects pom.xml, .java files)
 [java]
 format = '\[[$symbol($version)]($style)\]'
 symbol = " "
 style = "red dimmed"
 
+# Scala version (detects .scala files)
 [scala]
 format = '\[[$symbol($version)]($style)\]'
 symbol = " "
 style = "red dimmed"
 
+# Elixir version (detects mix.exs, .ex files)
 [elixir]
-format = '\[[$symbol($version \(OTP $otp_version\))]($style)\]'
+format = '\[[$symbol($version) (OTP $otp_version)]($style)\]'
 symbol = " "
 style = "purple bold"
 
-[swift]
-format = '\[[$symbol($version)]($style)\]'
-symbol = " "
-style = "yellow bold"
 
-[ocaml]
-format = '\[[$symbol($version)(\($switch_indicator$switch_name\))]($style)\]'
-symbol = " "
-style = "yellow bold"
-
+# Erlang version (detects .erl files)
 [erlang]
 format = '\[[$symbol($version)]($style)\]'
 symbol = " "
 style = "red bold"
 
+# =============================================================================
+# SYSTEM INFORMATION (performance monitoring)
+# =============================================================================
+# Memory usage (shows RAM and swap usage)
 [memory_usage]
 format = '\[$symbol[$ram( | $swap)]($style)\]'
-style = "white bold dimmed"
+style = "#f4a261 bold dimmed"
 symbol = "󰍛 "
-threshold = 75
+threshold = 75                                 # Only show when usage > 75%
 disabled = false
 
+# Command duration (shows time for slow commands)
 [cmd_duration]
 format = '\[[⏱ $duration]($style)\]'
-min_time = 2_000
-style = "yellow"
+min_time = 2_000                     # Only show for commands taking > 2 seconds
+style = "#f6aa1c bold"
 
+# =============================================================================
+# CLOUD & INFRASTRUCTURE TOOLS
+# =============================================================================
+# AWS profile and region (when AWS CLI is configured)
 [aws]
 format = '\[[$symbol($profile)(\($region\))(\[$duration\])]($style)\]'
-symbol = " "
-style = "yellow bold"
+symbol = " "
+style = "#e25822 bold"
 disabled = false
 
+# Google Cloud account and project
 [gcloud]
 format = '\[[$symbol$account(@$domain)(\($region\))]($style)\]'
 symbol = "󱇶 "
-style = "blue bold"
+style = "#f4a261 bold"
 disabled = false
 
+# Kubernetes context and namespace
 [kubernetes]
 format = '\[[$symbol$context( \($namespace\))]($style)\]'
-symbol = " "
-style = "blue bold"
+symbol = " "
+style = "#e76f51 bold"
 disabled = false
 
+# Docker context
 [docker_context]
 format = '\[[$symbol$context]($style)\]'
 symbol = "󰡨 "
-style = "blue bold"
+style = "#f6aa1c bold"
 disabled = false
 
+# Terraform workspace
 [terraform]
 format = '\[[$symbol$workspace]($style)\]'
-style = "purple bold"
+style = "#e25822 bold"
 disabled = false
 
+# =============================================================================
+# TIME & UTILITY MODULES
+# =============================================================================
+# Current time (always shown)
 [time]
 format = '[$time]($style) '
 disabled = false
-time_range = "-30s"
-style = "bold white"
+time_range = "-30s"         # Show time in prompt
+style = "#6272a4 bold"
+
+# =============================================================================
+# ADDITIONAL USEFUL MODULES (low performance impact)
+# =============================================================================
+
+# Battery level (useful for laptops)
+[battery]
+full_symbol = "🔋"
+charging_symbol = "⚡"
+discharging_symbol = "💀"
+unknown_symbol = "❓"
+empty_symbol = "🪫"
+format = '\[[$symbol$percentage]($style)\]'
+disabled = false
+
+# Conda environment (Python package manager)
+[conda]
+format = '\[[$symbol$environment]($style)\]'
+symbol = "🅒 "
+style = "#4c566a bold"
+ignore_base = false
+
+# Crystal version
+[crystal]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "🔮 "
+style = "#4c566a bold"
+
+# Dart version
+[dart]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "🎯 "
+style = "#4c566a bold"
+
+# Deno version
+[deno]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "🦕 "
+style = "#4c566a bold"
+
+# Haskell version
+[haskell]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "λ "
+style = "#4c566a bold"
+
+# Julia version
+[julia]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "ஃ "
+style = "#4c566a bold"
+
+# Kotlin version
+[kotlin]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "🅺 "
+style = "#4c566a bold"
+
+# Lua version
+[lua]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "🌙 "
+style = "#4c566a bold"
+
+# Nim version
+[nim]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "👑 "
+style = "#4c566a bold"
+
+# Nix-shell environment
+[nix_shell]
+format = '\[[$symbol$state( \($name\))]($style)\]'
+symbol = "❄️ "
+style = "#4c566a bold"
+
+# OCaml version (enhanced)
+[ocaml]
+format = '\[[$symbol($version)(\($switch_indicator$switch_name\))]($style)\]'
+symbol = " "
+style = "yellow bold"
+
+# Perl version
+[perl]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "🐪 "
+style = "#4c566a bold"
+
+# Purescript version
+[purescript]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "<=> "
+style = "#4c566a bold"
+
+# R version
+[rlang]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "📊 "
+style = "#4c566a bold"
+
+# Red version
+[red]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "🔺 "
+style = "#4c566a bold"
+
+# Solidity version
+[solidity]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "🔷 "
+style = "#4c566a bold"
+
+# Swift version (enhanced)
+[swift]
+format = '\[[$symbol($version)]($style)\]'
+symbol = " "
+style = "yellow bold"
+
+# V version
+[vlang]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "V "
+style = "#4c566a bold"
+
+# Zig version
+[zig]
+format = '\[[$symbol($version)]($style)\]'
+symbol = "⚡ "
+style = "#4c566a bold"
+
+# =============================================================================
+# PERFORMANCE TIPS
+# =============================================================================
+# - Disable modules you don't use: set disabled = true
+# - Increase min_time for cmd_duration if you want fewer duration displays
+# - Use detect_extensions to limit when language modules show
+# - Set threshold for memory_usage to reduce noise
+# - Consider disabling cloud modules if you don't use them often

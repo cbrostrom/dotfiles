@@ -120,6 +120,17 @@ dotfiles release    # Full release workflow
 - ✅ **fd**: Fast file finding
 - ✅ **procs**: Better process listing
 
+### **Windows Terminal Support**
+
+- ✅ **Warm Nordic Theme**: Matches Starship prompt colors
+- ✅ **Multiple Color Schemes**: Nordic Dark, Dracula, Solarized Dark
+- ✅ **WSL Integration**: Proper Ubuntu profile with home directory
+- ✅ **SSH Profile Support**: Preserves custom SSH configurations
+- ✅ **JuliaMono Font**: Optimized for Nerd Fonts and icons
+- ✅ **Acrylic Background**: Modern glass effect
+- ✅ **Enhanced Keybindings**: Productivity shortcuts
+- ✅ **Auto-Backup**: Safely preserves existing settings
+
 ## 🔧 **Configuration Files**
 
 ### **Shell Configuration**
@@ -138,6 +149,7 @@ dotfiles release    # Full release workflow
 
 - `.config/ghostty/config`: Ghostty terminal
 - `.config/starship.toml`: Starship prompt with modern formatting
+- `.config/windows-terminal/settings.json`: Windows Terminal with Warm Nordic theme
 
 ## 🎨 **Key Aliases**
 
@@ -181,6 +193,40 @@ pd='pnpm run dev'
 - `Alt+C`: FZF directory search
 - `Ctrl+Up/Down`: Smart history search
 
+## 🖥️ **Windows Terminal Features**
+
+### **Profiles**
+
+- **WSL Ubuntu**: Starts in your WSL home directory
+- **PowerShell Core**: Modern PowerShell with Warm Nordic theme
+- **Windows PowerShell**: Legacy PowerShell support
+- **Command Prompt**: Classic cmd with enhanced styling
+- **SSH Profiles**: Preserves custom SSH configurations
+
+### **Color Schemes**
+
+- **Warm Nordic**: Matches your Starship prompt perfectly
+- **Nordic Dark**: Classic Nordic theme
+- **Dracula**: Popular dark theme
+- **Solarized Dark**: Easy on the eyes
+
+### **Enhanced Settings**
+
+- **JuliaMono Nerd Font Mono**: Optimized for icons and readability
+- **Acrylic Background**: Modern glass effect (85% opacity)
+- **Warm Nordic Cursor**: `#e25822` to match theme
+- **Atlas Engine**: Modern rendering for better performance
+- **Auto-Backup**: Safely preserves existing settings
+
+### **Keybindings**
+
+- `Ctrl+Shift+T`: New tab
+- `Ctrl+Shift+N`: New window
+- `Ctrl+Tab`: Next tab
+- `Alt+Shift+D`: Split pane
+- `Ctrl+,`: Open settings
+- `Ctrl+=/-`: Font size adjustment
+
 ## 🌟 **Starship Prompt Features**
 
 ### **Modern Formatting**
@@ -188,6 +234,16 @@ pd='pnpm run dev'
 - Consistent bracketing with `\[[...]($style)\]` format
 - Clean, organized appearance with proper spacing
 - Version information for all programming languages
+- **Warm Nordic Color Palette**: Custom hex colors for better visual hierarchy
+
+### **Color Scheme**
+
+- `#e25822` - User/character (warm orange)
+- `#e76f51` - Directory (coral)
+- `#f4a261` - Git/branch (peach)
+- `#f6aa1c` - Package/time (golden yellow)
+- `#e63946` - Error/status (red)
+- `#4c566a` - Version/languages (slate gray)
 
 ### **Language Support**
 
@@ -200,6 +256,24 @@ pd='pnpm run dev'
 - **Java**: Shows version with icon
 - **Scala**: Shows version with icon
 - **Elixir**: Shows version and OTP version
+- **Swift**: Shows version with icon
+- **OCaml**: Shows version and switch info
+- **Erlang**: Shows version with icon
+- **Crystal**: Shows version with icon
+- **Dart**: Shows version with icon
+- **Deno**: Shows version with icon
+- **Haskell**: Shows version with icon
+- **Julia**: Shows version with icon
+- **Kotlin**: Shows version with icon
+- **Lua**: Shows version with icon
+- **Nim**: Shows version with icon
+- **Perl**: Shows version with icon
+- **Purescript**: Shows version with icon
+- **R**: Shows version with icon
+- **Red**: Shows version with icon
+- **Solidity**: Shows version with icon
+- **V**: Shows version with icon
+- **Zig**: Shows version with icon
 - **Swift**: Shows version with icon
 - **OCaml**: Shows version and switch info
 - **Erlang**: Shows version with icon

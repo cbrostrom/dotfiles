@@ -79,6 +79,39 @@ create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitig
 create_symlink "$SCRIPT_DIR/.config/lsd" "$HOME/.config/lsd" "lsd config"
 create_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml" "starship config"
 
+# Windows Terminal (if on Windows/WSL)
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "$WSL_DISTRO_NAME" ]]; then
+    # Try multiple possible Windows Terminal paths
+    WINDOWS_TERMINAL_PATHS=(
+        "$APPDATA/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState"
+        "/mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState"
+        "/mnt/c/Users/$USERNAME/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState"
+    )
+
+    WINDOWS_TERMINAL_FOUND=false
+    for WINDOWS_TERMINAL_DIR in "${WINDOWS_TERMINAL_PATHS[@]}"; do
+        if [[ -d "$WINDOWS_TERMINAL_DIR" ]]; then
+            log_info "Found Windows Terminal directory: $WINDOWS_TERMINAL_DIR"
+
+            # Create backup of existing settings if they exist
+            if [[ -f "$WINDOWS_TERMINAL_DIR/settings.json" ]]; then
+                BACKUP_FILE="$WINDOWS_TERMINAL_DIR/settings.json.backup.$(date +%Y%m%d_%H%M%S)"
+                log_info "Creating backup of existing Windows Terminal settings: $BACKUP_FILE"
+                cp "$WINDOWS_TERMINAL_DIR/settings.json" "$BACKUP_FILE"
+            fi
+
+            create_symlink "$SCRIPT_DIR/.config/windows-terminal/settings.json" "$WINDOWS_TERMINAL_DIR/settings.json" "Windows Terminal config"
+            WINDOWS_TERMINAL_FOUND=true
+            break
+        fi
+    done
+
+    if [[ "$WINDOWS_TERMINAL_FOUND" == "false" ]]; then
+        log_warning "Windows Terminal directory not found, skipping Windows Terminal config"
+        log_info "Searched in: ${WINDOWS_TERMINAL_PATHS[*]}"
+    fi
+fi
+
 # Add more config directories as needed
 # create_symlink "$SCRIPT_DIR/.config/nvim" "$HOME/.config/nvim" "nvim config"
 # create_symlink "$SCRIPT_DIR/.config/alacritty" "$HOME/.config/alacritty" "alacritty config"
