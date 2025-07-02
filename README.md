@@ -49,7 +49,7 @@ A cross-platform dotfiles setup optimized for modern web development with perfor
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
+git clone https://github.com/cbrostrom/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 
 # Run the installer
