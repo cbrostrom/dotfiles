@@ -8,7 +8,7 @@ A cross-platform dotfiles setup optimized for modern web development with perfor
 
 - **zsh-defer**: Lazy loading for faster shell startup
 - **zinit**: Fast plugin manager with async loading
-- **Starship**: Ultra-fast prompt written in Rust
+- **Starship**: Ultra-fast prompt written in Rust with modern formatting
 - **Optimized completions**: Smart caching and async loading
 
 ### 🛠️ **Modern Tool Stack**
@@ -53,10 +53,7 @@ git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 
 # Run the installer
-./scripts/install.sh
-
-# Install dotfiles
-dotfiles install
+./dotfiles.sh install
 
 # Restart your shell or source your rc file
 source ~/.zshrc
@@ -84,12 +81,12 @@ dotfiles release    # Full release workflow
 
 - ✅ **zsh-defer**: Lazy loading for plugins
 - ✅ **zinit**: Fast plugin manager
-- ✅ **Starship**: Rust-based prompt
+- ✅ **Starship**: Rust-based prompt with modern formatting
 - ✅ **Async completions**: Non-blocking completion loading
 
 ### **Modern Tools**
 
-- ✅ **lsd**: Replaced `eza` with more maintained alternative
+- ✅ **lsd**: Modern ls replacement with icons
 - ✅ **bat**: Syntax-highlighted cat
 - ✅ **ripgrep**: Fast text search
 - ✅ **fd**: Fast file finder
@@ -113,7 +110,7 @@ dotfiles release    # Full release workflow
 
 ### **Shell Improvements**
 
-- ✅ **Starship**: Modern, fast prompt
+- ✅ **Starship**: Modern, fast prompt with icons and formatting
 - ✅ **zsh-autocomplete**: Better completions
 - ✅ **zsh-syntax-highlighting**: Syntax highlighting
 
@@ -140,7 +137,7 @@ dotfiles release    # Full release workflow
 ### **Terminal Configuration**
 
 - `.config/ghostty/config`: Ghostty terminal
-- `.config/starship.toml`: Starship prompt
+- `.config/starship.toml`: Starship prompt with modern formatting
 
 ## 🎨 **Key Aliases**
 
@@ -186,13 +183,53 @@ pd='pnpm run dev'
 
 ## 🌟 **Starship Prompt Features**
 
-- Git status with detailed indicators
-- Language-specific version info
-- Memory usage monitoring
-- Command duration for slow commands
-- Cloud provider context (AWS, GCP)
-- Docker and Kubernetes context
-- Custom project type detection
+### **Modern Formatting**
+
+- Consistent bracketing with `\[[...]($style)\]` format
+- Clean, organized appearance with proper spacing
+- Version information for all programming languages
+
+### **Language Support**
+
+- **Node.js**: Shows version with 󰎙 icon
+- **Python**: Shows version and virtual environment
+- **Rust**: Shows version with icon
+- **Go**: Shows version with icon
+- **PHP**: Shows version with icon
+- **Ruby**: Shows version with icon
+- **Java**: Shows version with icon
+- **Scala**: Shows version with icon
+- **Elixir**: Shows version and OTP version
+- **Swift**: Shows version with icon
+- **OCaml**: Shows version and switch info
+- **Erlang**: Shows version with icon
+
+### **Development Tools**
+
+- **Package**: Shows package version with 📦 icon
+- **Git**: Shows branch with icon and status indicators
+- **Git Status**: Shows ahead/behind, modified, staged, untracked files
+
+### **Cloud & Infrastructure**
+
+- **AWS**: Shows profile, region, and duration
+- **Google Cloud**: Shows account, domain, and region
+- **Kubernetes**: Shows context and namespace
+- **Docker**: Shows context with 󰡨 icon
+- **Terraform**: Shows workspace with icon
+
+### **System Information**
+
+- **Memory Usage**: Shows RAM and swap usage with 󰍛 icon
+- **Command Duration**: Shows execution time for slow commands
+- **Time**: Shows current time
+
+### **Status Indicators**
+
+- **Git Status**:
+  - `⇡` ahead, `⇣` behind, `⇕` diverged
+  - `?` untracked, `≡` stashed, `!` modified
+  - `+` staged, `»` renamed, `✘` deleted
 
 ## 🔒 **Security Features**
 
@@ -273,7 +310,7 @@ A robust, cross-platform dotfiles management system that works seamlessly on mac
 - **direnv**: Auto environment switching
 - **git-delta**: Better git diff viewer
 - **git-fuzzy**: Fuzzy git interface
-- **starship**: Fast, customizable prompt
+- **starship**: Fast, customizable prompt with modern formatting
 - **lsd**: Modern `ls` replacement
 - **zinit**: Fast zsh plugin manager
 
@@ -295,13 +332,13 @@ git clone <your-repo-url> dotfiles
 cd dotfiles
 
 # Install dotfiles (symlinks only - no sudo required)
-./scripts/dotfiles.sh install
+./dotfiles.sh install
 
 # Install tools (optional - may require sudo)
-./scripts/install-tools.sh
+./install-tools.sh
 
 # Or with debug mode for troubleshooting
-./scripts/dotfiles.sh --debug install
+./dotfiles.sh --debug install
 ```
 
 ### Manual Installation
@@ -316,13 +353,13 @@ cd dotfiles
 2. **Install dotfiles** (creates symlinks):
 
    ```bash
-   ./scripts/dotfiles.sh install
+   ./dotfiles.sh install
    ```
 
 3. **Install tools** (optional, installs modern CLI tools):
 
    ```bash
-   ./scripts/install-tools.sh
+   ./install-tools.sh
    ```
 
 4. **Restart your shell** or run:
@@ -336,16 +373,16 @@ cd dotfiles
 
 ```bash
 # Install all dotfiles
-./scripts/dotfiles.sh install
+./dotfiles.sh install
 
 # List current status
-./scripts/dotfiles.sh list
+./dotfiles.sh list
 
 # Uninstall (with options)
-./scripts/dotfiles.sh uninstall
+./dotfiles.sh uninstall
 
 # Get help
-./scripts/dotfiles.sh help
+./dotfiles.sh help
 ```
 
 ### Tool Installation
@@ -354,7 +391,7 @@ Tools are now checked only once per day to avoid startup delays. To manually ins
 
 ```bash
 # Install/update all tools
-./scripts/install-tools.sh
+./install-tools.sh
 
 # Or force re-check tools (removes daily cache)
 rm /tmp/dotfiles_tools_checked_*
@@ -366,23 +403,23 @@ For troubleshooting, use debug mode:
 
 ```bash
 # Install with detailed logging
-./scripts/dotfiles.sh --debug install
+./dotfiles.sh --debug install
 
 # Run diagnostics
-./scripts/diagnose.sh
+./diagnose.sh
 ```
 
 ### Uninstall Options
 
 ```bash
 # Safe uninstall (symlinks only)
-./scripts/dotfiles.sh uninstall
+./dotfiles.sh uninstall
 
 # Restore backups
-./scripts/dotfiles.sh uninstall restore
+./dotfiles.sh uninstall restore
 
 # Full cleanup (including tools)
-./scripts/dotfiles.sh uninstall full
+./dotfiles.sh uninstall full
 ```
 
 ## 🔍 Troubleshooting
@@ -392,7 +429,7 @@ For troubleshooting, use debug mode:
 Run the built-in diagnostic tool to identify issues:
 
 ```bash
-./scripts/diagnose.sh
+./diagnose.sh
 ```
 
 This will check:
@@ -412,10 +449,10 @@ This will check:
 
 ```bash
 # Check for broken symlinks
-./scripts/diagnose.sh
+./diagnose.sh
 
 # Reinstall with debug mode
-./scripts/dotfiles.sh --debug install
+./dotfiles.sh --debug install
 ```
 
 #### Missing Files
@@ -426,7 +463,7 @@ ls -la .config/zsh/
 
 # Reinstall from correct directory
 cd /path/to/dotfiles
-./scripts/dotfiles.sh install
+./dotfiles.sh install
 ```
 
 #### Permission Issues
@@ -485,7 +522,7 @@ dotfiles/
 │   │   ├── plugins          # Plugin configuration
 │   │   └── env              # Environment variables
 │   ├── ghostty/config       # Terminal configuration
-│   └── starship.toml        # Prompt configuration
+│   └── starship.toml        # Prompt configuration with modern formatting
 ├── scripts/
 │   ├── dotfiles.sh          # Main installer script
 │   ├── dotfiles.conf        # Configuration file
@@ -500,7 +537,7 @@ dotfiles/
 
 ### Adding New Files
 
-Edit `scripts/dotfiles.conf`:
+Edit `dotfiles.conf`:
 
 ```bash
 # Format: source_file:target_location:description
@@ -523,7 +560,7 @@ Edit the appropriate configuration file:
 git pull origin main
 
 # Reinstall to apply changes
-./scripts/dotfiles.sh install
+./dotfiles.sh install
 ```
 
 ## 📝 License
@@ -542,7 +579,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 If you encounter issues:
 
-1. Run the diagnostic tool: `./scripts/diagnose.sh`
-2. Try debug mode: `./scripts/dotfiles.sh --debug install`
+1. Run the diagnostic tool: `./diagnose.sh`
+2. Try debug mode: `./dotfiles.sh --debug install`
 3. Check the troubleshooting section above
 4. Open an issue with diagnostic output
