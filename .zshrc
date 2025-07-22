@@ -71,9 +71,11 @@ if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
     . "$HOME/.asdf/completions/asdf.bash"
 elif command -v asdf >/dev/null 2>&1; then
     # Homebrew installation - asdf is already in PATH
-    log_info "asdf available via Homebrew"
+    # asdf available via Homebrew
+    :
 else
-    log_warning "asdf not found - install via Homebrew or git"
+    # asdf not found - install via Homebrew or git
+    :
 fi
 
 # Load asdf-direnv integration if direnv is available
