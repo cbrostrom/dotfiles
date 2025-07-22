@@ -130,38 +130,37 @@ update_dotfiles() {
 
 # Function to show help
 show_help() {
-    cat <<'EOF'
-Dotfiles Manager v1.0
-
-Usage: dotfiles [COMMAND] [OPTIONS]
-
-Commands:
-  install     - Install dotfiles and dependencies
-  uninstall   - Remove dotfiles and restore backups
-  status      - Show status of all components
-  update      - Update dotfiles from git and reinstall
-  dry-run     - Preview installation without making changes
-  menu        - Show interactive menu (default)
-  help        - Show this help message
-
-Options:
-  --skip-deps     - Only install dotfiles (skip dependencies)
-  --skip-dotfiles - Only install dependencies (skip dotfiles)
-  --keep-backups  - Keep backup files during uninstall
-
-Examples:
-  dotfiles                    # Show interactive menu
-  dotfiles install            # Full installation
-  dotfiles install --skip-deps # Only install dotfiles
-  dotfiles uninstall          # Remove dotfiles
-  dotfiles status             # Check status
-  dotfiles update             # Update from git
-  dotfiles dry-run            # Preview installation
-
-This script provides a modern interface to the dotfiles v1.0 installation system.
-All operations are cross-platform compatible (macOS, Linux, WSL2).
-
-EOF
+    echo "Dotfiles Manager v1.0"
+    echo
+    echo "Usage: dotfiles [COMMAND] [OPTIONS]"
+    echo
+    echo "Commands:"
+    echo "  install     - Install dotfiles and dependencies"
+    echo "  uninstall   - Remove dotfiles and restore backups"
+    echo "  status      - Show status of all components"
+    echo "  update      - Update dotfiles from git and reinstall"
+    echo "  dry-run     - Preview installation without making changes"
+    echo "  reload      - Reload shell configuration"
+    echo "  menu        - Show interactive menu (default)"
+    echo "  help        - Show this help message"
+    echo
+    echo "Options:"
+    echo "  --skip-deps     - Only install dotfiles (skip dependencies)"
+    echo "  --skip-dotfiles - Only install dependencies (skip dotfiles)"
+    echo "  --keep-backups  - Keep backup files during uninstall"
+    echo
+    echo "Examples:"
+    echo "  dotfiles                    # Show interactive menu"
+    echo "  dotfiles install            # Full installation"
+    echo "  dotfiles install --skip-deps # Only install dotfiles"
+    echo "  dotfiles uninstall          # Remove dotfiles"
+    echo "  dotfiles status             # Check status"
+    echo "  dotfiles update             # Update from git"
+    echo "  dotfiles reload             # Reload shell configuration"
+    echo "  dotfiles dry-run            # Preview installation"
+    echo
+    echo "This script provides a modern interface to the dotfiles v1.0 installation system."
+    echo "All operations are cross-platform compatible (macOS, Linux, WSL2)."
 }
 
 # Function to show interactive menu
@@ -172,7 +171,7 @@ show_menu() {
     else
         printf '\033[2J\033[H'
     fi
-    
+
     echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}║                    DOTFILES MANAGER v1.0                     ║${NC}"
     echo -e "${CYAN}╠══════════════════════════════════════════════════════════════╣${NC}"
@@ -184,6 +183,7 @@ show_menu() {
     echo -e "${CYAN}║  ${GREEN}6${NC} │ Update dotfiles (git pull + reinstall)             ║${NC}"
     echo -e "${CYAN}║  ${GREEN}7${NC} │ Preview installation (dry-run)                     ║${NC}"
     echo -e "${CYAN}║  ${GREEN}8${NC} │ Show help                                           ║${NC}"
+    echo -e "${CYAN}║  ${BLUE}9${NC} │ Reload shell configuration                          ║${NC}"
     echo -e "${CYAN}║  ${RED}0${NC} │ Exit                                                 ║${NC}"
     echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
     echo
@@ -193,10 +193,62 @@ show_menu() {
     echo
 }
 
+# Function to check if shell config was modified
+check_shell_config_modified() {
+    # Check if .zshrc was modified recently (within last 5 minutes)
+    if [[ -f "$HOME/.zshrc" ]]; then
+        local file_age=$(( $(date +%s) - $(stat -f %m "$HOME/.zshrc" 2>/dev/null || echo 0) ))
+        if [[ $file_age -lt 300 ]]; then  # 5 minutes = 300 seconds
+            return 0  # Modified recently
+        fi
+    fi
+    return 1  # Not modified recently
+}
+
+# Function to reload shell configuration
+reload_shell_config() {
+    # Only reload if shell config was actually modified
+    if ! check_shell_config_modified; then
+        log_info "No shell configuration changes detected."
+        return 0
+    fi
+    
+    log_info "Reloading shell configuration..."
+    
+    # Check if we're in an interactive shell
+    if [[ -t 0 ]]; then
+        # We're in an interactive shell, suggest reload
+        echo
+        log_success "✅ Shell configuration updated!"
+        log_info "Your dotfiles have been configured successfully."
+        log_info "To apply all changes, you can:"
+        log_info "  1. Run: source ~/.zshrc"
+        log_info "  2. Or restart your terminal session"
+        log_info "  3. Or let us reload it for you now"
+        echo
+        
+        # Ask if user wants to reload now
+        read -p "🔄 Reload shell configuration now? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            log_info "🔄 Reloading shell configuration..."
+            log_info "You should see your new prompt and tools available!"
+            exec zsh
+        else
+            log_info "💡 Remember to run 'source ~/.zshrc' when ready!"
+        fi
+    else
+        # Non-interactive shell, just inform
+        log_success "✅ Shell configuration updated!"
+        log_info "Run 'source ~/.zshrc' to apply changes."
+        log_info "Or restart your terminal session."
+    fi
+}
+
 # Function to handle menu selection
 handle_menu_selection() {
     local choice="$1"
-    
+
     case "$choice" in
         1)
             log_info "Running: Full installation"
@@ -229,8 +281,13 @@ handle_menu_selection() {
         8)
             show_help
             ;;
+        9)
+            log_info "Running: Reload shell configuration"
+            reload_shell_config
+            ;;
         0)
             log_info "Exiting..."
+            reload_shell_config
             exit 0
             ;;
         *)
@@ -244,7 +301,7 @@ handle_menu_selection() {
 run_menu() {
     while true; do
         show_menu
-        read -p "Select option (0-8): " choice
+        read -p "Select option (0-9): " choice
         echo
         
         if handle_menu_selection "$choice"; then
@@ -281,18 +338,33 @@ main() {
     case "$command" in
         install)
             run_install "$args"
+            # Reload shell config after installation
+            if [[ $? -eq 0 ]]; then
+                reload_shell_config
+            fi
             ;;
         uninstall)
             run_uninstall "$args"
+            # Reload shell config after uninstallation
+            if [[ $? -eq 0 ]]; then
+                reload_shell_config
+            fi
             ;;
         status)
             run_status
             ;;
         update)
             update_dotfiles
+            # Reload shell config after update
+            if [[ $? -eq 0 ]]; then
+                reload_shell_config
+            fi
             ;;
         "dry-run")
             run_install "--dry-run"
+            ;;
+        reload)
+            reload_shell_config
             ;;
         menu)
             run_menu
