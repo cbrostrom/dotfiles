@@ -133,11 +133,12 @@ main_status() {
     echo
     log_info "=== Development Tools ==="
     
-    check_tool "node" "Node.js"
-    check_tool "npm" "npm"
-    check_tool "go" "Go"
-    check_tool "cargo" "Rust/Cargo"
-    check_tool "asdf" "asdf version manager"
+                    check_tool "node" "Node.js (via asdf)"
+                check_tool "npm" "npm"
+                check_tool "go" "Go (via asdf)"
+                check_tool "cargo" "Rust/Cargo (via asdf)"
+                check_tool "asdf" "asdf version manager"
+                check_tool "python" "Python (via asdf)"
     
     echo
     log_info "=== Additional Tools ==="
@@ -154,11 +155,35 @@ main_status() {
     echo
     log_info "=== Directories ==="
     
-    check_directory "$HOME/.nvm" "NVM directory"
-    check_directory "$HOME/.cargo" "Rust/Cargo directory"
-    check_directory "$HOME/.asdf" "asdf directory"
-    check_directory "$HOME/.fzf" "fzf directory"
-    check_directory "$HOME/.local/share/zinit" "zinit directory"
+                    # Check asdf directory (only if asdf is installed)
+                if command_exists asdf; then
+                    check_directory "$HOME/.asdf" "asdf directory"
+                else
+                    log_warning "⚠ asdf directory: not checked (asdf not installed)"
+                fi
+                
+                # Check Rust/Cargo directory (only if Rust is installed)
+                if command_exists cargo; then
+                    check_directory "$HOME/.cargo" "Rust/Cargo directory"
+                else
+                    log_warning "⚠ Rust/Cargo directory: not checked (Rust not installed)"
+                fi
+                
+                # Check asdf directory (only if asdf is installed)
+                if command_exists asdf; then
+                    check_directory "$HOME/.asdf" "asdf directory"
+                else
+                    log_warning "⚠ asdf directory: not checked (asdf not installed)"
+                fi
+                
+                # Check fzf directory (only if fzf is installed from source)
+                if [[ -d "$HOME/.fzf" ]]; then
+                    check_directory "$HOME/.fzf" "fzf directory (source install)"
+                else
+                    log_info "ℹ fzf directory: not present (likely installed via package manager)"
+                fi
+                
+                check_directory "$HOME/.local/share/zinit" "zinit directory"
     
     echo
     log_info "=== Shell Configuration ==="

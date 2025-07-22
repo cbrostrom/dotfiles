@@ -39,9 +39,10 @@ dotfiles uninstall
 
 ## 📚 Documentation
 
-- **[Installation Guide](docs/README.md)** - Complete setup and usage instructions
 - **[Migration Guide](docs/MIGRATION.md)** - Migrating from v0.x to v1.0
+- **[ASDF Migration](docs/ASDF-MIGRATION.md)** - Complete asdf and asdf-direnv guide
 - **[Changelog](docs/CHANGELOG.md)** - Version history and changes
+- **[Summary](docs/SUMMARY.md)** - Complete v1.0 system overview
 
 ## 🛠️ What's Included
 
@@ -57,10 +58,11 @@ dotfiles uninstall
 
 ### Development Tools
 
-- **Node.js** via NVM
-- **Go** programming language
-- **Rust** programming language
-- **asdf** version manager
+- **Node.js** via asdf
+- **Python** via asdf
+- **Go** programming language via asdf
+- **Rust** programming language via asdf
+- **asdf** version manager with asdf-direnv
 - **git** with enhanced configuration
 
 ### Platform-Specific Features

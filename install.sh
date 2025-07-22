@@ -156,91 +156,62 @@ setup_zinit() {
     fi
 }
 
-# Function to setup NVM
-setup_nvm() {
-    log_info "Setting up Node Version Manager (NVM)..."
+# Function to setup Node.js via asdf (replaces NVM)
+setup_node() {
+    log_info "Setting up Node.js via asdf..."
     
-    if [[ ! -d "$HOME/.nvm" ]]; then
-        log_info "Installing NVM..."
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-        log_success "NVM installed successfully"
-    else
-        log_success "✓ NVM already installed"
-    fi
-    
-    # Source NVM for current session
-    export NVM_DIR="$HOME/.nvm"
-    [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
-    [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+    # This function is now handled by setup_asdf which installs the nodejs plugin
+    # Node.js will be installed and managed by asdf
+    log_info "Node.js will be managed by asdf nodejs plugin"
+    log_success "Node.js setup complete (via asdf)"
 }
 
-# Function to install Node.js via NVM
+# Function to install Node.js via asdf
 install_node() {
-    log_info "Installing Node.js via NVM..."
+    log_info "Installing Node.js via asdf..."
     
-    # Source NVM
-    export NVM_DIR="$HOME/.nvm"
-    [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+    # Source asdf for current session
+    if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
+        source "$HOME/.asdf/asdf.sh"
+    fi
     
     # Install latest LTS Node.js
     if ! command_exists node; then
         log_info "Installing Node.js LTS..."
-        nvm install --lts
-        nvm use --lts
-        nvm alias default node
+        asdf install nodejs latest:lts
+        asdf global nodejs latest:lts
         log_success "Node.js LTS installed and set as default"
     else
         log_success "✓ Node.js already installed"
     fi
 }
 
-# Function to setup Go
+# Function to setup Go via asdf
 setup_go() {
-    log_info "Setting up Go..."
+    log_info "Setting up Go via asdf..."
     
-    if ! command_exists go; then
-        if $IS_MACOS && command_exists brew; then
-            log_info "Installing Go via Homebrew..."
-            brew install go
-        else
-            log_info "Installing Go from official source..."
-            GO_VERSION="1.21.0"
-            GO_ARCH="linux-amd64"
-            
-            wget -q "https://go.dev/dl/go${GO_VERSION}.${GO_ARCH}.tar.gz" -O /tmp/go.tar.gz
-            sudo rm -rf /usr/local/go
-            sudo tar -C /usr/local -xzf /tmp/go.tar.gz
-            rm /tmp/go.tar.gz
-            
-            # Add to PATH
-            echo 'export PATH="/usr/local/go/bin:$PATH"' >> "$HOME/.bashrc"
-            export PATH="/usr/local/go/bin:$PATH"
-        fi
-        
-        log_success "Go installed successfully"
-    else
-        log_success "✓ Go already installed"
-    fi
-    
-    # Setup GOPATH
-    mkdir -p "$HOME/go/bin"
-    mkdir -p "$HOME/go/src"
-    mkdir -p "$HOME/go/pkg"
+    # This function is now handled by setup_asdf which installs the golang plugin
+    # Go will be installed and managed by asdf
+    log_info "Go will be managed by asdf golang plugin"
+    log_success "Go setup complete (via asdf)"
 }
 
 # Function to install Rust tools
 install_rust_tools() {
     log_info "Installing Rust-based tools..."
     
-    # Install Rust if not present
+    # Install Rust via asdf if not present
     if ! command_exists cargo; then
-        log_info "Installing Rust..."
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-        source "$HOME/.cargo/env"
+        log_info "Installing Rust via asdf..."
+        # Source asdf for current session
+        if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
+            source "$HOME/.asdf/asdf.sh"
+        fi
+        asdf install rust latest
+        asdf global rust latest
         log_success "Rust installed successfully"
     else
         log_success "✓ Rust already installed"
-        source "$HOME/.cargo/env"
     fi
     
     # Install Rust-based tools
@@ -287,30 +258,89 @@ setup_fzf() {
     fi
 }
 
-# Function to setup direnv
+# Function to setup direnv (now handled by asdf-direnv)
 setup_direnv() {
-    log_info "Setting up direnv..."
+    log_info "Setting up direnv via asdf..."
     
-    if ! command_exists direnv; then
-        log_info "Installing direnv..."
-        curl -sfL https://direnv.net/install.sh | bash
-        log_success "direnv installed successfully"
-    else
-        log_success "✓ direnv already installed"
-    fi
+    # This function is now handled by setup_asdf which installs asdf-direnv
+    # direnv will be installed and managed by asdf
+    log_info "direnv will be managed by asdf-direnv plugin"
+    log_success "direnv setup complete (via asdf)"
 }
 
 # Function to setup asdf
 setup_asdf() {
     log_info "Setting up asdf version manager..."
-    
-    if [[ ! -d "$HOME/.asdf" ]]; then
-        log_info "Installing asdf..."
-        git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1
-        log_success "asdf installed successfully"
+
+    # Check if asdf is already installed
+    if command_exists asdf; then
+        log_success "asdf is already installed"
     else
-        log_success "✓ asdf already installed"
+        # Install asdf
+        if [[ ! -d "$HOME/.asdf" ]]; then
+            log_info "Installing asdf..."
+            git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1
+        fi
+
+        # Add asdf to shell configuration
+        local profile_file=""
+        if [[ -f "$HOME/.zshrc" ]]; then
+            profile_file="$HOME/.zshrc"
+        elif [[ -f "$HOME/.bashrc" ]]; then
+            profile_file="$HOME/.bashrc"
+        elif [[ -f "$HOME/.bash_profile" ]]; then
+            profile_file="$HOME/.bash_profile"
+        fi
+
+        if [[ -n "$profile_file" ]]; then
+            # Check if asdf is already sourced
+            if ! grep -q "asdf.sh" "$profile_file"; then
+                log_info "Adding asdf to $profile_file"
+                echo '' >> "$profile_file"
+                echo '# asdf version manager' >> "$profile_file"
+                echo '. "$HOME/.asdf/asdf.sh"' >> "$profile_file"
+                echo '. "$HOME/.asdf/completions/asdf.bash"' >> "$profile_file"
+            fi
+        fi
     fi
+
+    # Source asdf for current session
+    if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
+        source "$HOME/.asdf/asdf.sh"
+    fi
+
+    # Install essential plugins
+    log_info "Installing asdf plugins..."
+    
+    # Node.js plugin
+    if ! asdf plugin list | grep -q "nodejs"; then
+        asdf plugin add nodejs
+    fi
+    
+    # Python plugin
+    if ! asdf plugin list | grep -q "python"; then
+        asdf plugin add python
+    fi
+    
+    # Go plugin
+    if ! asdf plugin list | grep -q "golang"; then
+        asdf plugin add golang
+    fi
+    
+    # Rust plugin
+    if ! asdf plugin list | grep -q "rust"; then
+        asdf plugin add rust
+    fi
+
+    # Install asdf-direnv plugin
+    if ! asdf plugin list | grep -q "direnv"; then
+        log_info "Installing asdf-direnv plugin..."
+        asdf plugin add direnv
+        asdf install direnv latest
+        asdf global direnv latest
+    fi
+
+    log_success "asdf setup complete"
 }
 
 # Function to fix terminal configuration
@@ -581,12 +611,13 @@ dry_run() {
     log_info ""
     log_info "Would setup tools:"
     echo "  - zinit (plugin manager)"
-    echo "  - NVM (Node Version Manager)"
-    echo "  - Go (programming language)"
-    echo "  - Rust (programming language)"
+    echo "  - asdf (version manager with plugins)"
+    echo "  - Node.js (via asdf)"
+    echo "  - Python (via asdf)"
+    echo "  - Go (via asdf)"
+    echo "  - Rust (via asdf)"
+    echo "  - direnv (via asdf-direnv)"
     echo "  - fzf (fuzzy finder)"
-    echo "  - direnv (environment switching)"
-    echo "  - asdf (version manager)"
     echo "  - Rust tools (starship, lsd, bat, ripgrep, etc.)"
     
     log_info ""
@@ -669,14 +700,14 @@ main_installation() {
         log_info ""
         log_info "=== Installing Dependencies ==="
         install_basic_packages
-        setup_zinit
-        setup_nvm
-        install_node
-        setup_go
-        install_rust_tools
-        setup_fzf
-        setup_direnv
-        setup_asdf
+                            setup_zinit
+                    setup_asdf
+                    setup_node
+                    install_node
+                    setup_go
+                    install_rust_tools
+                    setup_fzf
+                    setup_direnv
         fix_terminal_config
         setup_shell_integration
         change_default_shell

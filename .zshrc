@@ -62,6 +62,20 @@ if $IS_MACOS; then
 fi
 
 # =============================================================================
+# ASDF VERSION MANAGER
+# =============================================================================
+# Load asdf if available
+if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
+    . "$HOME/.asdf/asdf.sh"
+    . "$HOME/.asdf/completions/asdf.bash"
+    
+    # Load asdf-direnv integration
+    if command -v direnv >/dev/null 2>&1; then
+        eval "$(asdf exec direnv hook zsh)"
+    fi
+fi
+
+# =============================================================================
 # PLUGIN MANAGEMENT (zinit)
 # =============================================================================
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
@@ -76,8 +90,7 @@ if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
         OMZP::git \
         OMZP::npm
 
-    # Load NVM with proper configuration
-    zinit lucid for lukechilds/zsh-nvm
+    # Note: NVM replaced by asdf for Node.js management
 
     # Load fzf integration
     zinit wait lucid for \
@@ -139,33 +152,41 @@ if command -v direnv &>/dev/null; then
 fi
 
 # =============================================================================
-# NVM CONFIGURATION
+# ASDF CONFIGURATION
 # =============================================================================
-# NVM settings for better performance and behavior
-export NVM_LAZY_LOAD=true
-export NVM_COMPLETION=true
-export NVM_AUTO_USE=true
+# asdf aliases for common operations
+alias asdfls='asdf list'
+alias asdfuse='asdf local'
+alias asdfinstall='asdf install'
+alias asdfcurrent='asdf current'
+alias asdfglobal='asdf global'
+alias asdflocal='asdf local'
 
-# NVM aliases for common operations
-alias nvmls='nvm list'
-alias nvmuse='nvm use'
-alias nvminstall='nvm install'
-alias nvmcurrent='nvm current'
-alias nvmalias='nvm alias'
-alias nvmrun='nvm run'
-alias nvmexec='nvm exec'
+# Quick Node.js version switching aliases (via asdf)
+alias node16='asdf local nodejs 16'
+alias node18='asdf local nodejs 18'
+alias node20='asdf local nodejs 20'
+alias node21='asdf local nodejs 21'
+alias nodelts='asdf local nodejs latest:lts'
+alias nodestable='asdf local nodejs latest'
 
-# Quick Node version switching
-alias node16='nvm use 16'
-alias node18='nvm use 18'
-alias node20='nvm use 20'
-alias node21='nvm use 21'
-alias nodelts='nvm use --lts'
-alias nodestable='nvm use stable'
+# Quick Python version switching aliases (via asdf)
+alias python3.9='asdf local python 3.9'
+alias python3.10='asdf local python 3.10'
+alias python3.11='asdf local python 3.11'
+alias python3.12='asdf local python 3.12'
+alias pythonlatest='asdf local python latest'
 
-# NVM project-specific version detection
-# Note: NVM auto-switching is handled by the zsh-nvm plugin
-# with NVM_AUTO_USE=true setting above
+# Quick Go version switching aliases (via asdf)
+alias go1.20='asdf local golang 1.20'
+alias go1.21='asdf local golang 1.21'
+alias go1.22='asdf local golang 1.22'
+alias golatest='asdf local golang latest'
+
+# Quick Rust version switching aliases (via asdf)
+alias ruststable='asdf local rust stable'
+alias rustnightly='asdf local rust nightly'
+alias rustlatest='asdf local rust latest'
 
 # =============================================================================
 # ZOXIDE SETUP (Smart Directory Navigation)
