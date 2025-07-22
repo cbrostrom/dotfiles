@@ -1,8 +1,28 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 # Uninstall script for dotfiles symlinks
 # Removes symlinks and restores backups
+# Cross-platform compatible: macOS, Linux, WSL2
 
 set -e
+
+# OS Detection
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    IS_MACOS=true
+    IS_LINUX=false
+elif [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "linux"* ]]; then
+    IS_MACOS=false
+    IS_LINUX=true
+    # Check for WSL
+    if grep -q Microsoft /proc/version 2>/dev/null; then
+        IS_WSL=true
+    else
+        IS_WSL=false
+    fi
+else
+    IS_MACOS=false
+    IS_LINUX=false
+    IS_WSL=false
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -17,7 +37,7 @@ log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-# Get script directory
+# Get script directory (cross-platform)
 if [[ -n "$BASH_SOURCE" ]]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
@@ -65,17 +85,18 @@ remove_dir_symlink() {
     fi
 }
 
-# Confirmation prompt
+# Confirmation prompt (cross-platform)
 echo -e "${YELLOW}This will remove all dotfiles symlinks and restore backups.${NC}"
-read -q "REPLY?Are you sure you want to continue? (y/N): "
+read -p "Are you sure you want to continue? (y/N): " -n 1 -r
 echo
-if [[ $REPLY != "y" && $REPLY != "Y" ]]; then
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     log_info "Uninstall cancelled."
     exit 0
 fi
 
 # Main uninstallation
 log_info "Uninstalling dotfiles symlinks..."
+log_info "Detected OS: $(uname -s) $(uname -r)"
 
 # Basic dotfiles
 remove_symlink "$HOME/.zshrc" ".zshrc"
@@ -85,6 +106,7 @@ remove_symlink "$HOME/.gitignore_global" ".gitignore_global"
 # Config directories
 remove_dir_symlink "$HOME/.config/lsd" "lsd config"
 remove_symlink "$HOME/.config/starship.toml" "starship config"
+remove_dir_symlink "$HOME/.config/ghostty" "ghostty config"
 
 # Add more config directories as needed
 # remove_dir_symlink "$HOME/.config/nvim" "nvim config"

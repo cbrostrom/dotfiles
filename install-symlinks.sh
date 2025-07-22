@@ -1,8 +1,28 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 # Install script for dotfiles symlinks
 # Creates symlinks for all dotfiles and config directories
+# Cross-platform compatible: macOS, Linux, WSL2
 
 set -e
+
+# OS Detection
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    IS_MACOS=true
+    IS_LINUX=false
+elif [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "linux"* ]]; then
+    IS_MACOS=false
+    IS_LINUX=true
+    # Check for WSL
+    if grep -q Microsoft /proc/version 2>/dev/null; then
+        IS_WSL=true
+    else
+        IS_WSL=false
+    fi
+else
+    IS_MACOS=false
+    IS_LINUX=false
+    IS_WSL=false
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -17,7 +37,7 @@ log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-# Get script directory
+# Get script directory (cross-platform)
 if [[ -n "$BASH_SOURCE" ]]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
@@ -52,13 +72,20 @@ create_symlink() {
         mv "$target" "$backup"
     fi
 
-    # Create relative symlink
+    # Create relative symlink (cross-platform)
     local rel_source
     if command -v realpath >/dev/null 2>&1; then
         rel_source=$(realpath --relative-to="$(dirname "$target")" "$source" 2>/dev/null || echo "$source")
-    else
+    elif command -v python3 >/dev/null 2>&1; then
         # Fallback using Python for relative path calculation
         rel_source=$(python3 -c "import os.path; print(os.path.relpath('$source', os.path.dirname('$target')))" 2>/dev/null || echo "$source")
+    elif command -v node >/dev/null 2>&1; then
+        # Fallback using Node.js
+        rel_source=$(node -e "const path = require('path'); console.log(path.relative(path.dirname('$target'), '$source'))" 2>/dev/null || echo "$source")
+    else
+        # Final fallback - use absolute path
+        rel_source="$source"
+        log_warning "Using absolute path for symlink (install realpath, python3, or node for relative paths)"
     fi
 
     # Create symlink
@@ -69,6 +96,7 @@ create_symlink() {
 
 # Main installation
 log_info "Installing dotfiles symlinks..."
+log_info "Detected OS: $(uname -s) $(uname -r)"
 
 # Basic dotfiles
 create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
@@ -78,9 +106,10 @@ create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitig
 # Config directories
 create_symlink "$SCRIPT_DIR/.config/lsd" "$HOME/.config/lsd" "lsd config"
 create_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml" "starship config"
+create_symlink "$SCRIPT_DIR/.config/ghostty" "$HOME/.config/ghostty" "ghostty config"
 
 # Windows Terminal (if on Windows/WSL)
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "$WSL_DISTRO_NAME" ]]; then
+if [[ "$IS_WSL" == "true" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
     # Try multiple possible Windows Terminal paths
     WINDOWS_TERMINAL_PATHS=(
         "$APPDATA/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState"

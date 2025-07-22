@@ -52,12 +52,43 @@ A cross-platform dotfiles setup optimized for modern web development with perfor
 git clone https://github.com/cbrostrom/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 
-# Run the installer
+# Run the installer (cross-platform compatible)
+./install-symlinks.sh
+
+# Or use the main dotfiles script
 ./dotfiles.sh install
 
 # Restart your shell or source your rc file
 source ~/.zshrc
 ```
+
+### Cross-Platform Support
+
+The installation scripts now work on:
+
+- ✅ **macOS** (zsh/bash)
+- ✅ **Linux** (Ubuntu, Debian, CentOS, etc.)
+- ✅ **WSL2** (Windows Subsystem for Linux)
+- ✅ **Any shell** (zsh, bash, etc.)
+
+The scripts automatically detect your OS and use appropriate tools and fallbacks.
+
+### Testing Compatibility
+
+Before installing, you can test your system's compatibility:
+
+```bash
+# Run the compatibility test
+./test-cross-platform.sh
+```
+
+This will check:
+
+- ✅ Script executability
+- ✅ Required tools availability
+- ✅ Optional tools for relative paths
+- ✅ Script syntax validation
+- ✅ Basic functionality
 
 ### Usage
 
@@ -135,10 +166,29 @@ dotfiles release    # Full release workflow
 
 ### **Shell Configuration**
 
-- `.zshrc`: Main shell configuration
+- `.zshrc`: Main shell configuration (works with zsh and bash)
 - `.config/zsh/aliases`: Command aliases
 - `.config/zsh/plugins`: Plugin management
 - `.config/zsh/env`: Environment variables
+
+### **Installation Scripts**
+
+- `install-symlinks.sh`: Main cross-platform installer
+- `uninstall-symlinks.sh`: Cross-platform uninstaller
+- `dotfiles.sh`: Interactive dotfiles manager with menu system
+- `symlink-dir.sh`: Recursive directory symlinker
+- `test-cross-platform.sh`: Compatibility test script
+
+### **Menu System Features**
+
+The `dotfiles.sh` script now includes an interactive menu with:
+
+- 🎯 **Easy Navigation**: Numbered options for all operations
+- 🔧 **Quick Actions**: Install, uninstall, status check
+- 📁 **File Management**: Individual .zshrc management
+- 🚀 **Full Scripts**: Direct access to install-symlinks.sh and uninstall-symlinks.sh
+- 🧪 **Testing**: Cross-platform compatibility testing
+- 📖 **Help**: Built-in help system
 
 ### **Git Configuration**
 
@@ -314,10 +364,13 @@ pd='pnpm run dev'
 
 ## 🐧 **Cross-Platform Support**
 
-- ✅ **macOS**: Full support with Homebrew
-- ✅ **WSL2 Ubuntu**: Full support with apt
-- ✅ **Linux**: Full support with apt
+- ✅ **macOS**: Full support with Homebrew (zsh/bash)
+- ✅ **Linux**: Full support with apt (Ubuntu, Debian, CentOS, etc.)
+- ✅ **WSL2**: Full support with apt (Windows Subsystem for Linux)
+- ✅ **Any shell**: Works with zsh, bash, and other shells
 - ✅ **Relative paths**: Works across different home directory structures
+- ✅ **Automatic detection**: OS and tool detection with fallbacks
+- ✅ **Executable scripts**: All scripts are properly chmod'd for execution
 
 ## 📦 **Package Management**
 
@@ -339,6 +392,43 @@ sudo apt install lsd bat ripgrep fd-find fzf lazygit tldr direnv htop ncdu procs
 - **Plugin loading**: Async and non-blocking
 - **Completions**: Cached and fast
 - **Prompt rendering**: < 10ms with Starship
+
+## 🔧 **Troubleshooting**
+
+### Common Issues
+
+#### "cannot execute: required file not found"
+
+```bash
+# Make scripts executable
+chmod +x install-symlinks.sh dotfiles.sh uninstall-symlinks.sh symlink-dir.sh
+
+# Then run the installer
+./install-symlinks.sh
+```
+
+#### "command not found: realpath"
+
+The scripts have fallbacks for systems without `realpath`. They will use Python3, Node.js, or absolute paths as alternatives.
+
+#### Permission Denied
+
+```bash
+# Check file permissions
+ls -la install-symlinks.sh
+
+# Fix if needed
+chmod +x install-symlinks.sh
+```
+
+### Cross-Platform Compatibility
+
+The scripts now use:
+
+- `#!/usr/bin/env bash` instead of `#!/bin/zsh` for maximum compatibility
+- OS detection with fallbacks for different Linux distributions
+- Multiple fallback methods for relative path calculation
+- Cross-platform `read` command syntax
 
 ## 🤝 **Contributing**
 
@@ -408,6 +498,9 @@ cd dotfiles
 # Install dotfiles (symlinks only - no sudo required)
 ./dotfiles.sh install
 
+# Or use the interactive menu
+./dotfiles.sh
+
 # Install tools (optional - may require sudo)
 ./install-tools.sh
 
@@ -428,6 +521,9 @@ cd dotfiles
 
    ```bash
    ./dotfiles.sh install
+
+   # Or use the interactive menu
+   ./dotfiles.sh
    ```
 
 3. **Install tools** (optional, installs modern CLI tools):
@@ -445,15 +541,32 @@ cd dotfiles
 
 ### Basic Commands
 
+#### Interactive Menu (Recommended)
+
+```bash
+# Run the interactive menu
+./dotfiles.sh
+
+# Or explicitly run menu
+./dotfiles.sh menu
+```
+
+#### Command Line
+
 ```bash
 # Install all dotfiles
 ./dotfiles.sh install
 
-# List current status
-./dotfiles.sh list
+# Check current status
+./dotfiles.sh status
 
-# Uninstall (with options)
+# Uninstall dotfiles
 ./dotfiles.sh uninstall
+
+# Manage .zshrc only
+./dotfiles.sh zshrc install
+./dotfiles.sh zshrc uninstall
+./dotfiles.sh zshrc status
 
 # Get help
 ./dotfiles.sh help

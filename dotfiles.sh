@@ -1,15 +1,37 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Simple Dotfiles Symlink Handler
 # Manages symlinks for dotfiles from the repository
+# Cross-platform compatible: macOS, Linux, WSL2
 
 set -e
+
+# OS Detection
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    IS_MACOS=true
+    IS_LINUX=false
+elif [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "linux"* ]]; then
+    IS_MACOS=false
+    IS_LINUX=true
+    # Check for WSL
+    if grep -q Microsoft /proc/version 2>/dev/null; then
+        IS_WSL=true
+    else
+        IS_WSL=false
+    fi
+else
+    IS_MACOS=false
+    IS_LINUX=false
+    IS_WSL=false
+fi
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Logging functions
@@ -104,6 +126,7 @@ Commands:
   uninstall   - Remove symlinks and restore backups
   status      - Show status of all symlinks
   zshrc       - Manage .zshrc symlink only
+  menu        - Show interactive menu
   help        - Show this help message
 
 Extras:
@@ -120,9 +143,143 @@ Examples:
 EOF
 }
 
+# Function to show interactive menu
+show_menu() {
+    clear
+    echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║                    DOTFILES MANAGER                          ║${NC}"
+    echo -e "${CYAN}╠══════════════════════════════════════════════════════════════╣${NC}"
+    echo -e "${CYAN}║  ${GREEN}1${NC} │ Install dotfiles (create symlinks)                    ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}2${NC} │ Uninstall dotfiles (remove symlinks)                  ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}3${NC} │ Check status of all symlinks                          ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}4${NC} │ Manage .zshrc symlink only                            ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}5${NC} │ Run full installer (install-symlinks.sh)              ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}6${NC} │ Run full uninstaller (uninstall-symlinks.sh)          ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}7${NC} │ Test cross-platform compatibility                     ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}8${NC} │ Show help                                             ║${NC}"
+    echo -e "${CYAN}║  ${RED}0${NC} │ Exit                                                   ║${NC}"
+    echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
+    echo
+    echo -e "${YELLOW}Current OS:${NC} $(uname -s) $(uname -r)"
+    echo -e "${YELLOW}Current directory:${NC} $(pwd)"
+    echo
+}
+
+# Function to handle menu selection
+handle_menu_selection() {
+    local choice="$1"
+    
+    case "$choice" in
+        1)
+            log_info "Running: Install dotfiles"
+            install_all
+            ;;
+        2)
+            log_info "Running: Uninstall dotfiles"
+            uninstall_all
+            ;;
+        3)
+            log_info "Running: Check status"
+            status_all
+            ;;
+        4)
+            log_info "Running: Manage .zshrc"
+            manage_zshrc_menu
+            ;;
+        5)
+            log_info "Running: Full installer"
+            if [[ -x "./install-symlinks.sh" ]]; then
+                ./install-symlinks.sh
+            else
+                log_error "install-symlinks.sh not found or not executable"
+            fi
+            ;;
+        6)
+            log_info "Running: Full uninstaller"
+            if [[ -x "./uninstall-symlinks.sh" ]]; then
+                ./uninstall-symlinks.sh
+            else
+                log_error "uninstall-symlinks.sh not found or not executable"
+            fi
+            ;;
+        7)
+            log_info "Running: Cross-platform test"
+            if [[ -x "./test-cross-platform.sh" ]]; then
+                ./test-cross-platform.sh
+            else
+                log_error "test-cross-platform.sh not found or not executable"
+            fi
+            ;;
+        8)
+            show_help
+            ;;
+        0)
+            log_info "Exiting..."
+            exit 0
+            ;;
+        *)
+            log_error "Invalid choice: $choice"
+            return 1
+            ;;
+    esac
+}
+
+# Function to show .zshrc management submenu
+manage_zshrc_menu() {
+    clear
+    echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║                    MANAGE .ZSHRC                             ║${NC}"
+    echo -e "${CYAN}╠══════════════════════════════════════════════════════════════╣${NC}"
+    echo -e "${CYAN}║  ${GREEN}1${NC} │ Install .zshrc symlink                              ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}2${NC} │ Uninstall .zshrc symlink                            ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}3${NC} │ Check .zshrc status                                 ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}0${NC} │ Back to main menu                                   ║${NC}"
+    echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
+    echo
+    
+    read -p "Select option: " zshrc_choice
+    echo
+    
+    case "$zshrc_choice" in
+        1)
+            create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
+            ;;
+        2)
+            remove_symlink "$HOME/.zshrc" ".zshrc"
+            ;;
+        3)
+            check_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
+            ;;
+        0)
+            return 0
+            ;;
+        *)
+            log_error "Invalid choice: $zshrc_choice"
+            ;;
+    esac
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Function to run interactive menu
+run_menu() {
+    while true; do
+        show_menu
+        read -p "Select option (0-8): " choice
+        echo
+        
+        if handle_menu_selection "$choice"; then
+            echo
+            read -p "Press Enter to continue..."
+        fi
+    done
+}
+
 # Function to install all dotfiles
 install_all() {
     log_info "Installing dotfiles symlinks..."
+    log_info "Detected OS: $(uname -s) $(uname -r)"
 
     # .zshrc
     create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
@@ -183,7 +340,7 @@ manage_zshrc() {
 }
 
 # Main script logic
-case "${1:-help}" in
+case "${1:-menu}" in
 install)
     install_all
     ;;
@@ -195,6 +352,9 @@ status)
     ;;
 zshrc)
     manage_zshrc "$2"
+    ;;
+menu)
+    run_menu
     ;;
 help | --help | -h)
     show_help
