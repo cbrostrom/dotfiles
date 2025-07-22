@@ -176,7 +176,8 @@ show_menu() {
     echo -e "${CYAN}║  ${GREEN}5${NC} │ Run full installer (install-symlinks.sh)              ║${NC}"
     echo -e "${CYAN}║  ${GREEN}6${NC} │ Run full uninstaller (uninstall-symlinks.sh)          ║${NC}"
     echo -e "${CYAN}║  ${GREEN}7${NC} │ Test cross-platform compatibility                     ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}8${NC} │ Show help                                             ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}8${NC} │ Setup Debian/Ubuntu server (zsh + dependencies)      ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}9${NC} │ Show help                                             ║${NC}"
     echo -e "${CYAN}║  ${RED}0${NC} │ Exit                                                   ║${NC}"
     echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
     echo
@@ -231,6 +232,14 @@ handle_menu_selection() {
             fi
             ;;
         8)
+            log_info "Running: Debian/Ubuntu server setup"
+            if [[ -x "./setup-debian-zsh.sh" ]]; then
+                ./setup-debian-zsh.sh
+            else
+                log_error "setup-debian-zsh.sh not found or not executable"
+            fi
+            ;;
+        9)
             show_help
             ;;
         0)
@@ -291,7 +300,7 @@ manage_zshrc_menu() {
 run_menu() {
     while true; do
         show_menu
-        read -p "Select option (0-8): " choice
+        read -p "Select option (0-9): " choice
         echo
         
         if handle_menu_selection "$choice"; then

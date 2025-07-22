@@ -90,6 +90,28 @@ This will check:
 - ✅ Script syntax validation
 - ✅ Basic functionality
 
+### Debian/Ubuntu Server Setup
+
+For new Debian/Ubuntu servers, use the comprehensive setup script:
+
+```bash
+# Run the Debian setup script
+./setup-debian-zsh.sh
+
+# Or use the menu
+./dotfiles.sh
+# Then select option 8
+```
+
+This will install:
+
+- ✅ zsh with proper configuration
+- ✅ All required dependencies (Rust, Go, Node.js, etc.)
+- ✅ Plugin managers (zinit, NVM, asdf)
+- ✅ Modern tools (starship, lsd, bat, ripgrep, etc.)
+- ✅ Fix backspace and terminal issues
+- ✅ Set zsh as default shell
+
 ### Usage
 
 ```bash
@@ -178,6 +200,7 @@ dotfiles release    # Full release workflow
 - `dotfiles.sh`: Interactive dotfiles manager with menu system
 - `symlink-dir.sh`: Recursive directory symlinker
 - `test-cross-platform.sh`: Compatibility test script
+- `setup-debian-zsh.sh`: Debian/Ubuntu server setup (zsh + dependencies)
 
 ### **Menu System Features**
 
@@ -188,6 +211,7 @@ The `dotfiles.sh` script now includes an interactive menu with:
 - 📁 **File Management**: Individual .zshrc management
 - 🚀 **Full Scripts**: Direct access to install-symlinks.sh and uninstall-symlinks.sh
 - 🧪 **Testing**: Cross-platform compatibility testing
+- 🖥️ **Server Setup**: Debian/Ubuntu server setup with zsh and dependencies
 - 📖 **Help**: Built-in help system
 
 ### **Git Configuration**
@@ -414,6 +438,15 @@ The scripts have fallbacks for systems without `realpath`. They will use Python3
 #### "'xterm-ghostty': unknown terminal type"
 
 The scripts now handle terminal compatibility issues automatically. If your terminal type isn't recognized, it will fallback to common terminal types like `xterm-256color`.
+
+#### "Backspace works as space in zsh"
+
+This is a common issue on Debian/Ubuntu servers. The `setup-debian-zsh.sh` script fixes this by:
+
+- Installing proper zsh configuration
+- Setting up correct terminal settings
+- Fixing inputrc configuration
+- Installing all required dependencies
 
 #### Permission Denied
 
