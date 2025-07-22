@@ -88,7 +88,39 @@ if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
 
     # Load syntax highlighting last (stable version)
     zinit wait lucid for zsh-users/zsh-syntax-highlighting
+
+    # Load fzf-tab for visual completion
+    zinit light Aloxaf/fzf-tab
 fi
+
+# =============================================================================
+# FZF CONFIGURATION
+# =============================================================================
+# Preview function for fzf-tab
+preview-files() {
+    local file="$1"
+    if [[ -d "$file" ]]; then
+        # Directory preview
+        if command -v lsd >/dev/null 2>&1; then
+            lsd --tree --level=2 "$file" 2>/dev/null || ls -la "$file"
+        else
+            ls -la "$file"
+        fi
+    elif [[ -f "$file" ]]; then
+        # File preview
+        if command -v bat >/dev/null 2>&1; then
+            bat --style=numbers --color=always "$file" 2>/dev/null || cat "$file"
+        else
+            cat "$file"
+        fi
+    fi
+}
+
+# FZF configuration
+export FZF_DEFAULT_OPTS="--height=40% --border --preview-window=right:60% --preview='preview-files {}'"
+export FZF_DEFAULT_COMMAND="fd --type f --hidden --follow --exclude .git --exclude node_modules --exclude .cache"
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND="fd --type d --hidden --follow --exclude .git --exclude node_modules --exclude .cache"
 
 # =============================================================================
 # PROMPT SETUP
@@ -305,15 +337,36 @@ fi
 # =============================================================================
 # DOTFILES ALIAS
 # =============================================================================
-# Alias to run dotfiles manager from anywhere
-if [[ -f "$HOME/dotfiles/dotfiles.sh" ]]; then
-    alias dotfiles="$HOME/dotfiles/dotfiles.sh"
-elif [[ -f "$HOME/.dotfiles/dotfiles.sh" ]]; then
-    alias dotfiles="$HOME/.dotfiles/dotfiles.sh"
-else
-    # Fallback: try to find dotfiles.sh in current directory or common locations
-    alias dotfiles='if [[ -f "./dotfiles.sh" ]]; then ./dotfiles.sh; elif [[ -f "$HOME/dotfiles/dotfiles.sh" ]]; then "$HOME/dotfiles/dotfiles.sh"; elif [[ -f "$HOME/.dotfiles/dotfiles.sh" ]]; then "$HOME/.dotfiles/dotfiles.sh"; else echo "dotfiles.sh not found"; fi'
-fi
+# Function to find and run dotfiles manager from anywhere
+dotfiles() {
+    # Try to find dotfiles.sh in common locations
+    local dotfiles_path=""
+    
+    # Check if we're in a dotfiles directory
+    if [[ -f "./dotfiles.sh" ]]; then
+        dotfiles_path="./dotfiles.sh"
+    # Check common installation paths
+    elif [[ -f "$HOME/dotfiles/dotfiles.sh" ]]; then
+        dotfiles_path="$HOME/dotfiles/dotfiles.sh"
+    elif [[ -f "$HOME/.dotfiles/dotfiles.sh" ]]; then
+        dotfiles_path="$HOME/.dotfiles/dotfiles.sh"
+    # Search in git repositories
+    elif command -v git >/dev/null 2>&1; then
+        # Find git root and check for dotfiles.sh
+        local git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+        if [[ -n "$git_root" ]] && [[ -f "$git_root/dotfiles.sh" ]]; then
+            dotfiles_path="$git_root/dotfiles.sh"
+        fi
+    fi
+    
+    if [[ -n "$dotfiles_path" ]]; then
+        "$dotfiles_path" "$@"
+    else
+        echo "Error: dotfiles.sh not found"
+        echo "Please ensure you're in a dotfiles directory or have dotfiles installed in ~/dotfiles or ~/.dotfiles"
+        return 1
+    fi
+}
 
 # =============================================================================
 # SYSTEM TOOL ALIASES
@@ -399,5 +452,35 @@ else
     if [[ -d "$HOME/.fzf-tab" ]]; then
         source "$HOME/.fzf-tab/fzf-tab.plugin.zsh"
     fi
+fi
+
+# Configure fzf-tab for better visual completion
+if command -v fzf-tab >/dev/null 2>&1 || [[ -n "$FZF_TAB_HOME" ]]; then
+    # Enable fzf-tab
+    enable-fzf-tab
+    
+    # Configure fzf-tab appearance
+    zstyle ':fzf-tab:*' fzf-command fzf
+    zstyle ':fzf-tab:*' fzf-flags --height=40% --border --preview-window=right:60%
+    
+    # Configure completion colors
+    zstyle ':fzf-tab:complete:*:*' fzf-preview 'preview-files $realpath'
+    
+    # Git completion
+    zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview 'git diff $word | delta 2>/dev/null || git diff $word'
+    zstyle ':fzf-tab:complete:git-log:*' fzf-preview 'git log --color=always $word'
+    zstyle ':fzf-tab:complete:git-help:*' fzf-preview 'git help $word | bat -l man 2>/dev/null || git help $word'
+    
+    # Directory completion
+    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd --tree --level=2 $realpath 2>/dev/null || ls -la $realpath'
+    
+    # Process completion
+    zstyle ':fzf-tab:complete:kill:*' fzf-preview 'ps -p $word -o pid,ppid,cmd --no-headers 2>/dev/null || echo "Process: $word"'
+    
+    # Package completion
+    zstyle ':fzf-tab:complete:brew-(install|uninstall|search):*' fzf-preview 'brew info $word 2>/dev/null || echo "Package: $word"'
+    
+    # File completion with preview
+    zstyle ':fzf-tab:complete:*:*' fzf-preview 'preview-files $realpath'
 fi
 # --- END FZF-TAB ---
