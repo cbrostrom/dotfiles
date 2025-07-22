@@ -177,7 +177,8 @@ show_menu() {
     echo -e "${CYAN}║  ${GREEN}6${NC} │ Run full uninstaller (uninstall-symlinks.sh)          ║${NC}"
     echo -e "${CYAN}║  ${GREEN}7${NC} │ Test cross-platform compatibility                     ║${NC}"
     echo -e "${CYAN}║  ${GREEN}8${NC} │ Setup Debian/Ubuntu server (zsh + dependencies)      ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}9${NC} │ Show help                                             ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}9${NC} │ Quick fix Debian terminal issues                     ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}10${NC} │ Show help                                            ║${NC}"
     echo -e "${CYAN}║  ${RED}0${NC} │ Exit                                                   ║${NC}"
     echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
     echo
@@ -240,6 +241,14 @@ handle_menu_selection() {
             fi
             ;;
         9)
+            log_info "Running: Quick Debian terminal fix"
+            if [[ -x "./fix-debian-terminal.sh" ]]; then
+                ./fix-debian-terminal.sh
+            else
+                log_error "fix-debian-terminal.sh not found or not executable"
+            fi
+            ;;
+        10)
             show_help
             ;;
         0)
@@ -300,7 +309,7 @@ manage_zshrc_menu() {
 run_menu() {
     while true; do
         show_menu
-        read -p "Select option (0-9): " choice
+        read -p "Select option (0-10): " choice
         echo
         
         if handle_menu_selection "$choice"; then

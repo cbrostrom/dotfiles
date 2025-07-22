@@ -22,6 +22,20 @@ elif [[ "$OS_TYPE" == "Linux" ]]; then
 fi
 
 # =============================================================================
+# TERMINAL CONFIGURATION
+# =============================================================================
+# Set appropriate terminal type based on OS
+if $IS_MACOS; then
+    # On macOS, allow ghostty or other macOS terminals
+    if [[ -z "$TERM" ]] || [[ "$TERM" == "dumb" ]]; then
+        export TERM="xterm-256color"
+    fi
+else
+    # On Linux/Debian, always use xterm-256color for compatibility
+    export TERM="xterm-256color"
+fi
+
+# =============================================================================
 # PATH SETUP
 # =============================================================================
 # Basic PATH setup

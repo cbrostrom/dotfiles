@@ -266,33 +266,32 @@ fix_zsh_config() {
     mkdir -p "$HOME/.local/share"
     mkdir -p "$HOME/.config"
     
-    # Fix terminal issues
-    if [[ -n "$TERM" ]]; then
-        # Check if terminal type is supported
-        if ! infocmp "$TERM" >/dev/null 2>&1; then
-            # Fallback to common terminal types
-            if infocmp "xterm-256color" >/dev/null 2>&1; then
-                export TERM="xterm-256color"
-            elif infocmp "xterm" >/dev/null 2>&1; then
-                export TERM="xterm"
-            elif infocmp "linux" >/dev/null 2>&1; then
-                export TERM="linux"
-            fi
-        fi
-    fi
+    # Force terminal type to xterm-256color for Linux/Debian
+    log_info "Setting terminal type to xterm-256color..."
+    export TERM="xterm-256color"
     
-    # Fix backspace issue
-    if [[ -f "$HOME/.inputrc" ]]; then
-        log_info "Fixing inputrc for backspace..."
-        echo "set input-meta on" >> "$HOME/.inputrc"
-        echo "set output-meta on" >> "$HOME/.inputrc"
-        echo "set convert-meta off" >> "$HOME/.inputrc"
-        echo "set bell-style none" >> "$HOME/.inputrc"
-        echo "set horizontal-scroll-mode on" >> "$HOME/.inputrc"
-        echo "set meta-flag on" >> "$HOME/.inputrc"
-        echo "set input-meta on" >> "$HOME/.inputrc"
-        echo "set output-meta on" >> "$HOME/.inputrc"
-        echo "set convert-meta off" >> "$HOME/.inputrc"
+    # Fix backspace issue immediately
+    log_info "Creating .inputrc for proper backspace handling..."
+    cat > "$HOME/.inputrc" << 'EOF'
+# Fix backspace and meta key issues
+set input-meta on
+set output-meta on
+set convert-meta off
+set bell-style none
+set horizontal-scroll-mode on
+set meta-flag on
+set input-meta on
+set output-meta on
+set convert-meta off
+# Ensure backspace sends DEL
+set input-meta on
+set output-meta on
+set convert-meta off
+EOF
+    
+    # Apply inputrc immediately
+    if command -v bind >/dev/null 2>&1; then
+        bind -f "$HOME/.inputrc"
     fi
     
     log_success "zsh configuration fixed"
@@ -304,6 +303,12 @@ setup_shell_integration() {
     
     # Add necessary exports to shell profile
     local profile_file="$HOME/.bashrc"
+    
+    # Force terminal type for Linux/Debian
+    if ! grep -q "export TERM.*xterm-256color" "$profile_file"; then
+        echo '# Force terminal type for Linux/Debian compatibility' >> "$profile_file"
+        echo 'export TERM="xterm-256color"' >> "$profile_file"
+    fi
     
     # Add PATH exports
     if ! grep -q "export PATH.*local/bin" "$profile_file"; then
@@ -338,6 +343,12 @@ setup_shell_integration() {
         echo 'export NVM_DIR="$HOME/.nvm"' >> "$profile_file"
         echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> "$profile_file"
         echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> "$profile_file"
+    fi
+    
+    # Add inputrc binding
+    if ! grep -q "bind.*inputrc" "$profile_file"; then
+        echo '# Apply inputrc for proper backspace handling' >> "$profile_file"
+        echo 'bind -f ~/.inputrc 2>/dev/null || true' >> "$profile_file"
     fi
     
     log_success "Shell integration configured"
