@@ -22,6 +22,21 @@ That's it! The installer will:
 - Create symlinks for all dotfiles
 - Set zsh as your default shell
 
+## Using the Menu System
+
+After installation, you can use the interactive menu from anywhere:
+
+```bash
+# Show the menu (requires dotfiles alias)
+dotfiles
+
+# Or run specific commands
+dotfiles install
+dotfiles status
+dotfiles update
+dotfiles uninstall
+```
+
 ## What's Included
 
 ### Core Tools
@@ -50,6 +65,8 @@ That's it! The installer will:
 
 ## Installation Options
 
+### Direct Script Usage
+
 ```bash
 # Full installation (default)
 ./install.sh
@@ -65,6 +82,23 @@ That's it! The installer will:
 
 # Show help
 ./install.sh --help
+```
+
+### Menu System Usage
+
+```bash
+# Interactive menu (recommended)
+dotfiles
+
+# Direct commands via menu system
+dotfiles install
+dotfiles install --skip-deps
+dotfiles install --skip-dotfiles
+dotfiles uninstall
+dotfiles status
+dotfiles update
+dotfiles dry-run
+dotfiles help
 ```
 
 ## Post-Installation

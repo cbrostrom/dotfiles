@@ -303,6 +303,19 @@ if command -v delta &>/dev/null; then
 fi
 
 # =============================================================================
+# DOTFILES ALIAS
+# =============================================================================
+# Alias to run dotfiles manager from anywhere
+if [[ -f "$HOME/dotfiles/dotfiles.sh" ]]; then
+    alias dotfiles="$HOME/dotfiles/dotfiles.sh"
+elif [[ -f "$HOME/.dotfiles/dotfiles.sh" ]]; then
+    alias dotfiles="$HOME/.dotfiles/dotfiles.sh"
+else
+    # Fallback: try to find dotfiles.sh in current directory or common locations
+    alias dotfiles='if [[ -f "./dotfiles.sh" ]]; then ./dotfiles.sh; elif [[ -f "$HOME/dotfiles/dotfiles.sh" ]]; then "$HOME/dotfiles/dotfiles.sh"; elif [[ -f "$HOME/.dotfiles/dotfiles.sh" ]]; then "$HOME/.dotfiles/dotfiles.sh"; else echo "dotfiles.sh not found"; fi'
+fi
+
+# =============================================================================
 # SYSTEM TOOL ALIASES
 # =============================================================================
 # Process and system monitoring

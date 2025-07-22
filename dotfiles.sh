@@ -1,44 +1,10 @@
 #!/usr/bin/env bash
 
-# Simple Dotfiles Symlink Handler
-# Manages symlinks for dotfiles from the repository
+# Dotfiles Manager v1.0
+# Modern menu interface for dotfiles installation and management
 # Cross-platform compatible: macOS, Linux, WSL2
 
 set -e
-
-# Terminal compatibility fix
-if [[ -n "$TERM" ]]; then
-    # Check if terminal type is supported
-    if ! infocmp "$TERM" >/dev/null 2>&1; then
-        # Fallback to common terminal types
-        if infocmp "xterm-256color" >/dev/null 2>&1; then
-            export TERM="xterm-256color"
-        elif infocmp "xterm" >/dev/null 2>&1; then
-            export TERM="xterm"
-        elif infocmp "linux" >/dev/null 2>&1; then
-            export TERM="linux"
-        fi
-    fi
-fi
-
-# OS Detection
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    IS_MACOS=true
-    IS_LINUX=false
-elif [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "linux"* ]]; then
-    IS_MACOS=false
-    IS_LINUX=true
-    # Check for WSL
-    if grep -q Microsoft /proc/version 2>/dev/null; then
-        IS_WSL=true
-    else
-        IS_WSL=false
-    fi
-else
-    IS_MACOS=false
-    IS_LINUX=false
-    IS_WSL=false
-fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -55,105 +21,145 @@ log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-# Get script directory (works with both bash and zsh)
+# Get script directory (cross-platform)
 if [[ -n "$BASH_SOURCE" ]]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 fi
 
-# Function to create symlink
-create_symlink() {
-    local source="$1"
-    local target="$2"
-    local description="$3"
+# OS Detection
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    IS_MACOS=true
+    IS_LINUX=false
+    OS_NAME="macOS"
+elif [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "linux"* ]]; then
+    IS_MACOS=false
+    IS_LINUX=true
+    OS_NAME="Linux"
+    # Check for WSL
+    if grep -q Microsoft /proc/version 2>/dev/null; then
+        IS_WSL=true
+        OS_NAME="WSL2"
+    else
+        IS_WSL=false
+    fi
+else
+    IS_MACOS=false
+    IS_LINUX=false
+    IS_WSL=false
+    OS_NAME="Unknown"
+fi
 
-    if [[ ! -f "$source" ]]; then
-        log_error "Source file not found: $source"
+# Function to check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Function to run install script
+run_install() {
+    local args="$1"
+    if [[ -x "$SCRIPT_DIR/install.sh" ]]; then
+        log_info "Running installer..."
+        "$SCRIPT_DIR/install.sh" $args
+    else
+        log_error "install.sh not found or not executable"
         return 1
     fi
-
-    # Check if target already exists
-    if [[ -L "$target" ]]; then
-        log_info "Removing existing symlink: $target"
-        rm "$target"
-    elif [[ -f "$target" ]]; then
-        log_warning "Backing up existing file: $target -> $target.backup"
-        mv "$target" "$target.backup"
-    fi
-
-    # Create symlink
-    log_info "Creating symlink: $description"
-    ln -sf "$source" "$target"
-    log_success "Created symlink: $target -> $source"
 }
 
-# Function to remove symlink
-remove_symlink() {
-    local target="$1"
-    local description="$2"
-
-    if [[ -L "$target" ]]; then
-        log_info "Removing symlink: $description"
-        rm "$target"
-        log_success "Removed symlink: $target"
-
-        # Restore backup if it exists
-        if [[ -f "$target.backup" ]]; then
-            log_info "Restoring backup: $target.backup -> $target"
-            mv "$target.backup" "$target"
-            log_success "Restored backup: $target"
-        fi
+# Function to run uninstall script
+run_uninstall() {
+    local args="$1"
+    if [[ -x "$SCRIPT_DIR/uninstall.sh" ]]; then
+        log_info "Running uninstaller..."
+        "$SCRIPT_DIR/uninstall.sh" $args
     else
-        log_warning "No symlink found at: $target"
+        log_error "uninstall.sh not found or not executable"
+        return 1
     fi
 }
 
-# Function to check symlink status
-check_symlink() {
-    local source="$1"
-    local target="$2"
-    local description="$3"
-
-    if [[ -L "$target" ]]; then
-        local link_target=$(readlink "$target")
-        if [[ "$link_target" == "$source" ]]; then
-            log_success "✓ $description: $target -> $source"
-        else
-            log_warning "⚠ $description: $target -> $link_target (should be $source)"
-        fi
-    elif [[ -f "$target" ]]; then
-        log_warning "⚠ $description: $target exists but is not a symlink"
+# Function to run status script
+run_status() {
+    if [[ -x "$SCRIPT_DIR/status.sh" ]]; then
+        log_info "Checking status..."
+        "$SCRIPT_DIR/status.sh"
     else
-        log_error "✗ $description: $target does not exist"
+        log_error "status.sh not found or not executable"
+        return 1
     fi
+}
+
+# Function to update dotfiles
+update_dotfiles() {
+    log_info "=== Updating Dotfiles ==="
+    
+    # Check if we're in a git repository
+    if [[ ! -d "$SCRIPT_DIR/.git" ]]; then
+        log_error "Not in a git repository. Cannot update."
+        return 1
+    fi
+    
+    # Fetch latest changes
+    log_info "Fetching latest changes..."
+    cd "$SCRIPT_DIR"
+    git fetch origin
+    
+    # Check if there are updates
+    local current_branch=$(git branch --show-current)
+    local behind_count=$(git rev-list --count HEAD..origin/$current_branch 2>/dev/null || echo "0")
+    
+    if [[ "$behind_count" == "0" ]]; then
+        log_success "Already up to date!"
+        return 0
+    fi
+    
+    log_info "Found $behind_count new commits. Updating..."
+    
+    # Pull latest changes
+    git pull origin $current_branch
+    
+    # Reinstall dotfiles
+    log_info "Reinstalling dotfiles..."
+    run_install "--skip-deps"
+    
+    log_success "Update complete!"
+    log_info "Please restart your terminal or run: source ~/.zshrc"
 }
 
 # Function to show help
 show_help() {
     cat <<'EOF'
-Simple Dotfiles Symlink Handler
+Dotfiles Manager v1.0
 
-Usage: ./dotfiles.sh [COMMAND]
+Usage: dotfiles [COMMAND] [OPTIONS]
 
 Commands:
-  install     - Create symlinks for all dotfiles
-  uninstall   - Remove symlinks and restore backups
-  status      - Show status of all symlinks
-  zshrc       - Manage .zshrc symlink only
-  menu        - Show interactive menu
+  install     - Install dotfiles and dependencies
+  uninstall   - Remove dotfiles and restore backups
+  status      - Show status of all components
+  update      - Update dotfiles from git and reinstall
+  dry-run     - Preview installation without making changes
+  menu        - Show interactive menu (default)
   help        - Show this help message
 
-Extras:
-  - lsd color config: ~/.config/lsd/config.yaml (see https://lsd-rs.github.io/lsd/usage/configuration.html)
-  - fzf advanced integration: see .zshrc for keybindings, git, and preview features
-  - Full install/uninstall: ./install-symlinks.sh and ./uninstall-symlinks.sh for complete setup
+Options:
+  --skip-deps     - Only install dotfiles (skip dependencies)
+  --skip-dotfiles - Only install dependencies (skip dotfiles)
+  --keep-backups  - Keep backup files during uninstall
 
 Examples:
-  ./dotfiles.sh install
-  ./dotfiles.sh status
-  ./dotfiles.sh zshrc install
-  ./dotfiles.sh uninstall
+  dotfiles                    # Show interactive menu
+  dotfiles install            # Full installation
+  dotfiles install --skip-deps # Only install dotfiles
+  dotfiles uninstall          # Remove dotfiles
+  dotfiles status             # Check status
+  dotfiles update             # Update from git
+  dotfiles dry-run            # Preview installation
+
+This script provides a modern interface to the dotfiles v1.0 installation system.
+All operations are cross-platform compatible (macOS, Linux, WSL2).
 
 EOF
 }
@@ -166,25 +172,24 @@ show_menu() {
     else
         printf '\033[2J\033[H'
     fi
+    
     echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                    DOTFILES MANAGER                          ║${NC}"
+    echo -e "${CYAN}║                    DOTFILES MANAGER v1.0                     ║${NC}"
     echo -e "${CYAN}╠══════════════════════════════════════════════════════════════╣${NC}"
-    echo -e "${CYAN}║  ${GREEN}1${NC} │ Install dotfiles (create symlinks)                    ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}2${NC} │ Uninstall dotfiles (remove symlinks)                  ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}3${NC} │ Check status of all symlinks                          ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}4${NC} │ Manage .zshrc symlink only                            ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}5${NC} │ Run full installer (install-symlinks.sh)              ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}6${NC} │ Run full uninstaller (uninstall-symlinks.sh)          ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}7${NC} │ Test cross-platform compatibility                     ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}8${NC} │ Setup Debian/Ubuntu server (zsh + dependencies)      ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}9${NC} │ Quick fix Debian terminal issues                     ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}10${NC} │ Install Starship & Direnv (prompt + env switching)  ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}11${NC} │ Show help                                            ║${NC}"
-    echo -e "${CYAN}║  ${RED}0${NC} │ Exit                                                   ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}1${NC} │ Install dotfiles (full installation)                ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}2${NC} │ Install dotfiles only (skip dependencies)          ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}3${NC} │ Install dependencies only (skip dotfiles)          ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}4${NC} │ Uninstall dotfiles (remove symlinks)               ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}5${NC} │ Check status of all components                     ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}6${NC} │ Update dotfiles (git pull + reinstall)             ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}7${NC} │ Preview installation (dry-run)                     ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}8${NC} │ Show help                                           ║${NC}"
+    echo -e "${CYAN}║  ${RED}0${NC} │ Exit                                                 ║${NC}"
     echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
     echo
-    echo -e "${YELLOW}Current OS:${NC} $(uname -s) $(uname -r)"
-    echo -e "${YELLOW}Current directory:${NC} $(pwd)"
+    echo -e "${YELLOW}Current OS:${NC} $OS_NAME ($(uname -s) $(uname -r))"
+    echo -e "${YELLOW}Script directory:${NC} $SCRIPT_DIR"
+    echo -e "${YELLOW}Current shell:${NC} $SHELL"
     echo
 }
 
@@ -194,70 +199,34 @@ handle_menu_selection() {
     
     case "$choice" in
         1)
-            log_info "Running: Install dotfiles"
-            install_all
+            log_info "Running: Full installation"
+            run_install
             ;;
         2)
-            log_info "Running: Uninstall dotfiles"
-            uninstall_all
+            log_info "Running: Install dotfiles only"
+            run_install "--skip-deps"
             ;;
         3)
-            log_info "Running: Check status"
-            status_all
+            log_info "Running: Install dependencies only"
+            run_install "--skip-dotfiles"
             ;;
         4)
-            log_info "Running: Manage .zshrc"
-            manage_zshrc_menu
+            log_info "Running: Uninstall dotfiles"
+            run_uninstall
             ;;
         5)
-            log_info "Running: Full installer"
-            if [[ -x "./install-symlinks.sh" ]]; then
-                ./install-symlinks.sh
-            else
-                log_error "install-symlinks.sh not found or not executable"
-            fi
+            log_info "Running: Check status"
+            run_status
             ;;
         6)
-            log_info "Running: Full uninstaller"
-            if [[ -x "./uninstall-symlinks.sh" ]]; then
-                ./uninstall-symlinks.sh
-            else
-                log_error "uninstall-symlinks.sh not found or not executable"
-            fi
+            log_info "Running: Update dotfiles"
+            update_dotfiles
             ;;
         7)
-            log_info "Running: Cross-platform test"
-            if [[ -x "./test-cross-platform.sh" ]]; then
-                ./test-cross-platform.sh
-            else
-                log_error "test-cross-platform.sh not found or not executable"
-            fi
+            log_info "Running: Preview installation"
+            run_install "--dry-run"
             ;;
         8)
-            log_info "Running: Debian/Ubuntu server setup"
-            if [[ -x "./setup-debian-zsh.sh" ]]; then
-                ./setup-debian-zsh.sh
-            else
-                log_error "setup-debian-zsh.sh not found or not executable"
-            fi
-            ;;
-        9)
-            log_info "Running: Quick Debian terminal fix"
-            if [[ -x "./fix-debian-terminal.sh" ]]; then
-                ./fix-debian-terminal.sh
-            else
-                log_error "fix-debian-terminal.sh not found or not executable"
-            fi
-            ;;
-        10)
-            log_info "Running: Install Starship & Direnv"
-            if [[ -x "./install-starship-direnv.sh" ]]; then
-                ./install-starship-direnv.sh
-            else
-                log_error "install-starship-direnv.sh not found or not executable"
-            fi
-            ;;
-        11)
             show_help
             ;;
         0)
@@ -271,54 +240,11 @@ handle_menu_selection() {
     esac
 }
 
-# Function to show .zshrc management submenu
-manage_zshrc_menu() {
-    # Cross-platform clear command
-    if command -v clear >/dev/null 2>&1; then
-        clear 2>/dev/null || printf '\033[2J\033[H'
-    else
-        printf '\033[2J\033[H'
-    fi
-    echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                    MANAGE .ZSHRC                             ║${NC}"
-    echo -e "${CYAN}╠══════════════════════════════════════════════════════════════╣${NC}"
-    echo -e "${CYAN}║  ${GREEN}1${NC} │ Install .zshrc symlink                              ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}2${NC} │ Uninstall .zshrc symlink                            ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}3${NC} │ Check .zshrc status                                 ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}0${NC} │ Back to main menu                                   ║${NC}"
-    echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
-    echo
-    
-    read -p "Select option: " zshrc_choice
-    echo
-    
-    case "$zshrc_choice" in
-        1)
-            create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
-            ;;
-        2)
-            remove_symlink "$HOME/.zshrc" ".zshrc"
-            ;;
-        3)
-            check_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
-            ;;
-        0)
-            return 0
-            ;;
-        *)
-            log_error "Invalid choice: $zshrc_choice"
-            ;;
-    esac
-    
-    echo
-    read -p "Press Enter to continue..."
-}
-
 # Function to run interactive menu
 run_menu() {
     while true; do
         show_menu
-        read -p "Select option (0-11): " choice
+        read -p "Select option (0-8): " choice
         echo
         
         if handle_menu_selection "$choice"; then
@@ -328,92 +254,59 @@ run_menu() {
     done
 }
 
-# Function to install all dotfiles
-install_all() {
-    log_info "Installing dotfiles symlinks..."
-    log_info "Detected OS: $(uname -s) $(uname -r)"
-
-    # .zshrc
-    create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
-
-    # Add more dotfiles here as needed
-    # create_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig" ".gitconfig"
-    # create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitignore_global"
-
-    log_success "All dotfiles installed!"
-}
-
-# Function to uninstall all dotfiles
-uninstall_all() {
-    log_info "Uninstalling dotfiles symlinks..."
-
-    # .zshrc
-    remove_symlink "$HOME/.zshrc" ".zshrc"
-
-    # Add more dotfiles here as needed
-    # remove_symlink "$HOME/.gitconfig" ".gitconfig"
-    # remove_symlink "$HOME/.gitignore_global" ".gitignore_global"
-
-    log_success "All dotfiles uninstalled!"
-}
-
-# Function to check status of all dotfiles
-status_all() {
-    log_info "Checking dotfiles status..."
-
-    # .zshrc
-    check_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
-
-    # Add more dotfiles here as needed
-    # check_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig" ".gitconfig"
-    # check_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitignore_global"
-}
-
-# Function to manage .zshrc specifically
-manage_zshrc() {
-    local action="$1"
-
-    case "$action" in
-    install)
-        create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
-        ;;
-    uninstall)
-        remove_symlink "$HOME/.zshrc" ".zshrc"
-        ;;
-    status)
-        check_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
-        ;;
-    *)
-        log_error "Unknown action: $action"
-        log_info "Use: ./dotfiles.sh zshrc [install|uninstall|status]"
-        exit 1
-        ;;
-    esac
+# Function to check git status
+check_git_status() {
+    if [[ -d "$SCRIPT_DIR/.git" ]]; then
+        cd "$SCRIPT_DIR"
+        local current_branch=$(git branch --show-current)
+        local behind_count=$(git rev-list --count HEAD..origin/$current_branch 2>/dev/null || echo "0")
+        
+        if [[ "$behind_count" != "0" ]]; then
+            log_warning "⚠ Updates available: $behind_count commits behind origin/$current_branch"
+            log_info "Run 'dotfiles update' to update"
+        fi
+    fi
 }
 
 # Main script logic
-case "${1:-menu}" in
-install)
-    install_all
-    ;;
-uninstall)
-    uninstall_all
-    ;;
-status)
-    status_all
-    ;;
-zshrc)
-    manage_zshrc "$2"
-    ;;
-menu)
-    run_menu
-    ;;
-help | --help | -h)
-    show_help
-    ;;
-*)
-    log_error "Unknown command: $1"
-    show_help
-    exit 1
-    ;;
-esac
+main() {
+    local command="${1:-menu}"
+    local args="${@:2}"
+    
+    # Check for updates if running menu
+    if [[ "$command" == "menu" ]]; then
+        check_git_status
+    fi
+    
+    case "$command" in
+        install)
+            run_install "$args"
+            ;;
+        uninstall)
+            run_uninstall "$args"
+            ;;
+        status)
+            run_status
+            ;;
+        update)
+            update_dotfiles
+            ;;
+        "dry-run")
+            run_install "--dry-run"
+            ;;
+        menu)
+            run_menu
+            ;;
+        help|--help|-h)
+            show_help
+            ;;
+        *)
+            log_error "Unknown command: $command"
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+# Run main function
+main "$@"
