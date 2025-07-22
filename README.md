@@ -1,835 +1,195 @@
-# 🚀 Optimized Dotfiles for Web Development 2025
+# Dotfiles v1.0
 
-A cross-platform dotfiles setup optimized for modern web development with performance, security, and developer experience in mind.
+A streamlined, cross-platform dotfiles setup for macOS, Linux, and WSL2. Everything you need in one command.
 
-## ✨ Features
-
-### 🎯 **Performance Optimizations**
-
-- **zsh-defer**: Lazy loading for faster shell startup
-- **zinit**: Fast plugin manager with async loading
-- **Starship**: Ultra-fast prompt written in Rust with modern formatting
-- **Optimized completions**: Smart caching and async loading
-
-### 🛠️ **Modern Tool Stack**
-
-- **lsd**: Modern `ls` replacement with icons and colors
-- **bat**: Better `cat` with syntax highlighting
-- **ripgrep**: Ultra-fast text search
-- **fd**: Fast file finder
-- **procs**: Better process listing
-- **htop**: Interactive process viewer
-- **ncdu**: Disk usage analyzer
-- **tldr**: Simplified command help
-
-### 🔍 **Enhanced Search & Navigation**
-
-- **zoxide**: Smarter `cd` with learning
-- **fzf**: Fuzzy finder with keybindings
-- **atuin**: Better shell history search
-- **ripgrep-all**: Search in all file types
-
-### 🎨 **Development Experience**
-
-- **git-delta**: Beautiful git diffs
-- **git-fuzzy**: Interactive git operations
-- **lazygit**: Terminal UI for git
-- **direnv**: Project-specific environment variables
-- **asdf**: Multi-language version management
-
-### 🔒 **Security & Monitoring**
-
-- **htop**: System monitoring
-- **ncdu**: Disk usage analysis
-- **procs**: Process monitoring
-
-## 🚀 Quick Start
-
-### Installation
+## Quick Start
 
 ```bash
 # Clone the repository
-git clone https://github.com/cbrostrom/dotfiles.git ~/dotfiles
+git clone <your-repo-url> ~/dotfiles
 cd ~/dotfiles
 
-# Run the installer (cross-platform compatible)
-./install-symlinks.sh
-
-# Or use the main dotfiles script
-./dotfiles.sh install
-
-# Restart your shell or source your rc file
-source ~/.zshrc
+# Install everything
+./install.sh
 ```
 
-### Cross-Platform Support
-
-The installation scripts now work on:
-
-- ✅ **macOS** (zsh/bash)
-- ✅ **Linux** (Ubuntu, Debian, CentOS, etc.)
-- ✅ **WSL2** (Windows Subsystem for Linux)
-- ✅ **Any shell** (zsh, bash, etc.)
-
-The scripts automatically detect your OS and use appropriate tools and fallbacks.
-
-### Testing Compatibility
-
-Before installing, you can test your system's compatibility:
-
-```bash
-# Run the compatibility test
-./test-cross-platform.sh
-```
-
-This will check:
-
-- ✅ Script executability
-- ✅ Required tools availability
-- ✅ Optional tools for relative paths
-- ✅ Script syntax validation
-- ✅ Basic functionality
-
-### Debian/Ubuntu Server Setup
-
-For new Debian/Ubuntu servers, use the comprehensive setup script:
-
-```bash
-# Run the Debian setup script
-./setup-debian-zsh.sh
-
-# Or use the menu
-./dotfiles.sh
-# Then select option 8
-```
-
-This will install:
-
-- ✅ zsh with proper configuration
-- ✅ All required dependencies (Rust, Go, Node.js, etc.)
-- ✅ Plugin managers (zinit, NVM, asdf)
-- ✅ Modern tools (starship, lsd, bat, ripgrep, etc.)
-- ✅ npm package manager (no pnpm)
-- ✅ Fix backspace and terminal issues
-- ✅ Set zsh as default shell
-
-### Starship & Direnv Installation
-
-For beautiful prompts and environment switching:
-
-```bash
-# Install Starship (prompt) and Direnv (env switching)
-./install-starship-direnv.sh
-
-# Or use the menu
-./dotfiles.sh
-# Then select option 10
-```
-
-This will install:
-
-- ✅ **Starship**: Fast, customizable prompt with modern formatting
-- ✅ **Direnv**: Automatic environment switching for projects
-- ✅ **Cross-platform**: Works on macOS, Linux, and WSL
-- ✅ **Shell integration**: Automatically configures your shell
-- ✅ **Basic config**: Creates a working starship configuration
-
-### Usage
-
-```bash
-# Main dotfiles management
-dotfiles install    # Install all dotfiles
-dotfiles list       # Show status
-dotfiles update     # Pull and reinstall
-dotfiles uninstall  # Remove symlinks
-
-# Version management
-dotfiles version    # Show current version
-dotfiles bump       # Bump version
-dotfiles quick      # Quick update
-dotfiles release    # Full release workflow
-```
-
-## 🎯 **Optimizations Implemented**
-
-### **Performance**
-
-- ✅ **zsh-defer**: Lazy loading for plugins
-- ✅ **zinit**: Fast plugin manager
-- ✅ **Starship**: Rust-based prompt with modern formatting
-- ✅ **Async completions**: Non-blocking completion loading
-
-### **Modern Tools**
-
-- ✅ **lsd**: Modern ls replacement with icons
-- ✅ **bat**: Syntax-highlighted cat
-- ✅ **ripgrep**: Fast text search
-- ✅ **fd**: Fast file finder
-- ✅ **procs**: Better process listing
-- ✅ **htop**: System monitoring
-- ✅ **ncdu**: Disk usage analysis
-
-### **Development Enhancements**
-
-- ✅ **zoxide**: Smart directory navigation
-- ✅ **atuin**: Better history search
-- ✅ **direnv**: Project-specific env vars
-- ✅ **asdf**: Multi-language version management
-- ✅ **fzf keybindings**: Enhanced fuzzy finding
-
-### **Git Improvements**
-
-- ✅ **git-delta**: Beautiful diffs with side-by-side view
-- ✅ **git-fuzzy**: Interactive git operations
-- ✅ **lazygit**: Terminal UI for git
-
-### **Shell Improvements**
-
-- ✅ **Starship**: Modern, fast prompt with icons and formatting
-- ✅ **zsh-autocomplete**: Better completions
-- ✅ **zsh-syntax-highlighting**: Syntax highlighting
-
-### **Cross-Platform Tools**
-
-- ✅ **ripgrep-all**: Search in all file types
-- ✅ **fd**: Fast file finding
-- ✅ **procs**: Better process listing
-
-### **Windows Terminal Support**
-
-- ✅ **Warm Nordic Theme**: Matches Starship prompt colors
-- ✅ **Multiple Color Schemes**: Nordic Dark, Dracula, Solarized Dark
-- ✅ **WSL Integration**: Proper Ubuntu profile with home directory
-- ✅ **SSH Profile Support**: Preserves custom SSH configurations
-- ✅ **JuliaMono Font**: Optimized for Nerd Fonts and icons
-- ✅ **Acrylic Background**: Modern glass effect
-- ✅ **Enhanced Keybindings**: Productivity shortcuts
-- ✅ **Auto-Backup**: Safely preserves existing settings
-
-## 🔧 **Configuration Files**
-
-### **Shell Configuration**
-
-- `.zshrc`: Main shell configuration (works with zsh and bash)
-- `.config/zsh/aliases`: Command aliases
-- `.config/zsh/plugins`: Plugin management
-- `.config/zsh/env`: Environment variables
-
-### **Installation Scripts**
-
-- `install-symlinks.sh`: Main cross-platform installer
-- `uninstall-symlinks.sh`: Cross-platform uninstaller
-- `dotfiles.sh`: Interactive dotfiles manager with menu system
-- `symlink-dir.sh`: Recursive directory symlinker
-- `test-cross-platform.sh`: Compatibility test script
-- `setup-debian-zsh.sh`: Debian/Ubuntu server setup (zsh + dependencies)
-- `install-starship-direnv.sh`: Cross-platform Starship & Direnv installation
-
-### **Menu System Features**
-
-The `dotfiles.sh` script now includes an interactive menu with:
-
-- 🎯 **Easy Navigation**: Numbered options for all operations
-- 🔧 **Quick Actions**: Install, uninstall, status check
-- 📁 **File Management**: Individual .zshrc management
-- 🚀 **Full Scripts**: Direct access to install-symlinks.sh and uninstall-symlinks.sh
-- 🧪 **Testing**: Cross-platform compatibility testing
-- 🖥️ **Server Setup**: Debian/Ubuntu server setup with zsh and dependencies
-- ⭐ **Prompt Setup**: Install Starship & Direnv for beautiful prompts
-- 📖 **Help**: Built-in help system
-
-### **Git Configuration**
-
-- `.gitconfig`: Git settings with delta integration
-- `.gitignore_global`: Global gitignore
-
-### **Terminal Configuration**
-
-- `.config/ghostty/config`: Ghostty terminal
-- `.config/starship.toml`: Starship prompt with modern formatting
-- `.config/windows-terminal/settings.json`: Windows Terminal with Warm Nordic theme
-
-## 🎨 **Key Aliases**
-
-```bash
-# File operations
-ls='lsd --group-dirs first'
-ll='lsd --group-dirs first -l'
-la='lsd --group-dirs first -la'
-tree='lsd --tree --level=2'
-cat='bat'
-grep='rg'
-find='fd'
-
-# Modern tools
-ps='procs'
-h='htop'
-disk='ncdu'
-search='rga'
-fuzzy='git-fuzzy'
-
-# Git shortcuts
-gs='git status'
-ga='git add'
-gc='git commit'
-gp='git push'
-gl='lazygit'
-
-# Package managers
-ni='npm install'
-nr='npm run'
-nd='npm run dev'
-pi='pnpm install'
-pr='pnpm run'
-pd='pnpm run dev'
-```
-
-## 🔑 **Keybindings**
-
-- `Ctrl+R`: FZF history search
-- `Ctrl+T`: FZF file search
-- `Alt+C`: FZF directory search
-- `Ctrl+Up/Down`: Smart history search
-
-## 🖥️ **Windows Terminal Features**
-
-### **Profiles**
-
-- **WSL Ubuntu**: Starts in your WSL home directory
-- **PowerShell Core**: Modern PowerShell with Warm Nordic theme
-- **Windows PowerShell**: Legacy PowerShell support
-- **Command Prompt**: Classic cmd with enhanced styling
-- **SSH Profiles**: Preserves custom SSH configurations
-
-### **Color Schemes**
-
-- **Warm Nordic**: Matches your Starship prompt perfectly
-- **Nordic Dark**: Classic Nordic theme
-- **Dracula**: Popular dark theme
-- **Solarized Dark**: Easy on the eyes
-
-### **Enhanced Settings**
-
-- **JuliaMono Nerd Font Mono**: Optimized for icons and readability
-- **Acrylic Background**: Modern glass effect (85% opacity)
-- **Warm Nordic Cursor**: `#e25822` to match theme
-- **Atlas Engine**: Modern rendering for better performance
-- **Auto-Backup**: Safely preserves existing settings
-
-### **Keybindings**
-
-- `Ctrl+Shift+T`: New tab
-- `Ctrl+Shift+N`: New window
-- `Ctrl+Tab`: Next tab
-- `Alt+Shift+D`: Split pane
-- `Ctrl+,`: Open settings
-- `Ctrl+=/-`: Font size adjustment
-
-## 🌟 **Starship Prompt Features**
-
-### **Modern Formatting**
-
-- Consistent bracketing with `\[[...]($style)\]` format
-- Clean, organized appearance with proper spacing
-- Version information for all programming languages
-- **Warm Nordic Color Palette**: Custom hex colors for better visual hierarchy
-
-### **Color Scheme**
-
-- `#e25822` - User/character (warm orange)
-- `#e76f51` - Directory (coral)
-- `#f4a261` - Git/branch (peach)
-- `#f6aa1c` - Package/time (golden yellow)
-- `#e63946` - Error/status (red)
-- `#4c566a` - Version/languages (slate gray)
-
-### **Language Support**
-
-- **Node.js**: Shows version with 󰎙 icon
-- **Python**: Shows version and virtual environment
-- **Rust**: Shows version with icon
-- **Go**: Shows version with icon
-- **PHP**: Shows version with icon
-- **Ruby**: Shows version with icon
-- **Java**: Shows version with icon
-- **Scala**: Shows version with icon
-- **Elixir**: Shows version and OTP version
-- **Swift**: Shows version with icon
-- **OCaml**: Shows version and switch info
-- **Erlang**: Shows version with icon
-- **Crystal**: Shows version with icon
-- **Dart**: Shows version with icon
-- **Deno**: Shows version with icon
-- **Haskell**: Shows version with icon
-- **Julia**: Shows version with icon
-- **Kotlin**: Shows version with icon
-- **Lua**: Shows version with icon
-- **Nim**: Shows version with icon
-- **Perl**: Shows version with icon
-- **Purescript**: Shows version with icon
-- **R**: Shows version with icon
-- **Red**: Shows version with icon
-- **Solidity**: Shows version with icon
-- **V**: Shows version with icon
-- **Zig**: Shows version with icon
-- **Swift**: Shows version with icon
-- **OCaml**: Shows version and switch info
-- **Erlang**: Shows version with icon
-
-### **Development Tools**
-
-- **Package**: Shows package version with 📦 icon
-- **Git**: Shows branch with icon and status indicators
-- **Git Status**: Shows ahead/behind, modified, staged, untracked files
-
-### **Cloud & Infrastructure**
-
-- **AWS**: Shows profile, region, and duration
-- **Google Cloud**: Shows account, domain, and region
-- **Kubernetes**: Shows context and namespace
-- **Docker**: Shows context with 󰡨 icon
-- **Terraform**: Shows workspace with icon
-
-### **System Information**
-
-- **Memory Usage**: Shows RAM and swap usage with 󰍛 icon
-- **Command Duration**: Shows execution time for slow commands
-- **Time**: Shows current time
-
-### **Status Indicators**
-
-- **Git Status**:
-  - `⇡` ahead, `⇣` behind, `⇕` diverged
-  - `?` untracked, `≡` stashed, `!` modified
-  - `+` staged, `»` renamed, `✘` deleted
-
-## 🔒 **Security Features**
-
-- No secrets in dotfiles (use environment variables)
-- Secure git configuration
-- Cross-platform compatibility
-- Proper file permissions
-
-## 🐧 **Cross-Platform Support**
-
-- ✅ **macOS**: Full support with Homebrew (zsh/bash)
-- ✅ **Linux**: Full support with apt (Ubuntu, Debian, CentOS, etc.)
-- ✅ **WSL2**: Full support with apt (Windows Subsystem for Linux)
-- ✅ **Any shell**: Works with zsh, bash, and other shells
-- ✅ **Relative paths**: Works across different home directory structures
-- ✅ **Automatic detection**: OS and tool detection with fallbacks
-- ✅ **Executable scripts**: All scripts are properly chmod'd for execution
-
-## 📦 **Package Management**
-
-### **macOS (Homebrew)**
-
-```bash
-brew install lsd bat ripgrep fd fzf lazygit tealdeer atuin direnv asdf starship htop ncdu procs ripgrep-all git-delta git-fuzzy
-```
-
-### **Linux/WSL (apt)**
-
-```bash
-sudo apt install lsd bat ripgrep fd-find fzf lazygit tldr direnv htop ncdu procs ripgrep-all git-delta
-```
-
-## 🚀 **Performance Benchmarks**
-
-- **Shell startup**: < 100ms with zsh-defer
-- **Plugin loading**: Async and non-blocking
-- **Completions**: Cached and fast
-- **Prompt rendering**: < 10ms with Starship
-
-## 🔧 **Troubleshooting**
-
-### Common Issues
-
-#### "cannot execute: required file not found"
-
-```bash
-# Make scripts executable
-chmod +x install-symlinks.sh dotfiles.sh uninstall-symlinks.sh symlink-dir.sh
-
-# Then run the installer
-./install-symlinks.sh
-```
-
-#### "command not found: realpath"
-
-The scripts have fallbacks for systems without `realpath`. They will use Python3, Node.js, or absolute paths as alternatives.
-
-#### "'xterm-ghostty': unknown terminal type"
-
-The scripts now handle terminal compatibility issues automatically. If your terminal type isn't recognized, it will fallback to common terminal types like `xterm-256color`.
-
-#### "Backspace works as space in zsh"
-
-This is a common issue on Debian/Ubuntu servers. The `setup-debian-zsh.sh` script fixes this by:
-
-- Installing proper zsh configuration
-- Setting up correct terminal settings
-- Fixing inputrc configuration
-- Installing all required dependencies
-
-#### Permission Denied
-
-```bash
-# Check file permissions
-ls -la install-symlinks.sh
-
-# Fix if needed
-chmod +x install-symlinks.sh
-```
-
-### Cross-Platform Compatibility
-
-The scripts now use:
-
-- `#!/usr/bin/env bash` instead of `#!/bin/zsh` for maximum compatibility
-- OS detection with fallbacks for different Linux distributions
-- Multiple fallback methods for relative path calculation
-- Cross-platform `read` command syntax
-- Terminal compatibility fixes for unknown terminal types
-- Robust `clear` command with fallbacks
-
-## 🤝 **Contributing**
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test on both macOS and WSL
-5. Submit a pull request
-
-## 📄 **License**
-
-MIT License - see LICENSE file for details
-
-## 🙏 **Acknowledgments**
-
-- [zinit](https://github.com/zdharma-continuum/zinit) - Fast plugin manager
-- [Starship](https://starship.rs/) - Fast prompt
-- [zsh-defer](https://github.com/romkatv/zsh-defer) - Lazy loading
-- [Modern Unix](https://github.com/ibraheemdev/modern-unix) - Tool inspiration
-
-# Cross-Platform Dotfiles
-
-A robust, cross-platform dotfiles management system that works seamlessly on macOS, Linux, and WSL2 Ubuntu.
-
-## 🚀 Features
-
-- **Cross-Platform**: Works on macOS, Linux, and WSL2
-- **Robust Path Detection**: Uses `BASH_SOURCE` for reliable script location
-- **Dynamic Aliases**: Functions that work from any directory
-- **Multiple Installation Locations**: Supports `~/dotfiles` and `~/.dotfiles`
-- **Robust Symlink Creation**: Multiple fallback methods (Python, Node.js, traditional `ln`)
-- **Smart OS Detection**: Automatically detects platform and uses appropriate tools
-- **Debug Mode**: Detailed troubleshooting with `--debug` flag
-- **Diagnostic Tools**: Built-in diagnostic script to identify issues
-- **Safe Installation**: Creates backups before overwriting existing files
-- **Modern Tools**: Includes zsh-defer, atuin, direnv, asdf, git-delta, and more
-
-## 📦 Included Tools
+That's it! The installer will:
+
+- Detect your OS automatically
+- Install all dependencies (zsh, git, Node.js, Go, Rust, etc.)
+- Setup development tools (starship, lsd, fzf, direnv, etc.)
+- Configure your shell with plugins
+- Create symlinks for all dotfiles
+- Set zsh as your default shell
+
+## What's Included
 
 ### Core Tools
 
-- **zsh-defer**: Lazy loading for faster shell startup
-- **direnv**: Auto environment switching
-- **git-delta**: Better git diff viewer
-- **git-fuzzy**: Fuzzy git interface
-- **starship**: Fast, customizable prompt with modern formatting
-- **lsd**: Modern `ls` replacement
-- **zinit**: Fast zsh plugin manager
+- **zsh** with zinit plugin manager
+- **starship** prompt (cross-platform)
+- **lsd** (modern ls replacement)
+- **bat** (modern cat replacement)
+- **ripgrep** (fast grep replacement)
+- **fzf** (fuzzy finder)
+- **direnv** (environment switching)
 
 ### Development Tools
 
-- **gh**: GitHub CLI
-- **bat**: Better `cat` with syntax highlighting
-- **fd**: Fast `find` alternative
-- **ripgrep**: Fast `grep` alternative
-- **fzf**: Fuzzy finder
+- **Node.js** via NVM
+- **Go** programming language
+- **Rust** programming language
+- **asdf** version manager
+- **git** with enhanced configuration
 
-## 🛠️ Installation
+### Platform-Specific Features
 
-### Quick Start
+- **macOS**: Ghostty terminal config, Homebrew integration
+- **Linux**: xterm-256color terminal fix, apt/yum/dnf support
+- **WSL2**: Windows Terminal integration, cross-platform compatibility
+
+## Installation Options
 
 ```bash
-# Clone the repository
-git clone <your-repo-url> dotfiles
-cd dotfiles
+# Full installation (default)
+./install.sh
 
-# Install dotfiles (symlinks only - no sudo required)
-./dotfiles.sh install
+# Only install dotfiles (skip dependencies)
+./install.sh --skip-deps
 
-# Or use the interactive menu
-./dotfiles.sh
+# Only install dependencies (skip dotfiles)
+./install.sh --skip-dotfiles
 
-# Install tools (optional - may require sudo)
-./install-tools.sh
+# Preview what would be installed
+./install.sh --dry-run
 
-# Or with debug mode for troubleshooting
-./dotfiles.sh --debug install
+# Show help
+./install.sh --help
 ```
 
-### Manual Installation
+## Post-Installation
 
-1. **Clone the repository**:
+After installation:
 
+1. **Log out and log back in** (or restart your terminal)
+2. Your new zsh setup will be active
+3. Verify installation:
    ```bash
-   git clone <your-repo-url> dotfiles
-   cd dotfiles
+   starship --version
+   lsd --version
+   node --version
+   go version
    ```
 
-2. **Install dotfiles** (creates symlinks):
-
-   ```bash
-   ./dotfiles.sh install
-
-   # Or use the interactive menu
-   ./dotfiles.sh
-   ```
-
-3. **Install tools** (optional, installs modern CLI tools):
-
-   ```bash
-   ./install-tools.sh
-   ```
-
-4. **Restart your shell** or run:
-   ```bash
-   source ~/.zshrc
-   ```
-
-## 🔧 Usage
-
-### Basic Commands
-
-#### Interactive Menu (Recommended)
-
-```bash
-# Run the interactive menu
-./dotfiles.sh
-
-# Or explicitly run menu
-./dotfiles.sh menu
-```
-
-#### Command Line
-
-```bash
-# Install all dotfiles
-./dotfiles.sh install
-
-# Check current status
-./dotfiles.sh status
-
-# Uninstall dotfiles
-./dotfiles.sh uninstall
-
-# Manage .zshrc only
-./dotfiles.sh zshrc install
-./dotfiles.sh zshrc uninstall
-./dotfiles.sh zshrc status
-
-# Get help
-./dotfiles.sh help
-```
-
-### Tool Installation
-
-Tools are now checked only once per day to avoid startup delays. To manually install or update tools:
-
-```bash
-# Install/update all tools
-./install-tools.sh
-
-# Or force re-check tools (removes daily cache)
-rm /tmp/dotfiles_tools_checked_*
-```
-
-### Debug Mode
-
-For troubleshooting, use debug mode:
-
-```bash
-# Install with detailed logging
-./dotfiles.sh --debug install
-
-# Run diagnostics
-./diagnose.sh
-```
-
-### Uninstall Options
-
-```bash
-# Safe uninstall (symlinks only)
-./dotfiles.sh uninstall
-
-# Restore backups
-./dotfiles.sh uninstall restore
-
-# Full cleanup (including tools)
-./dotfiles.sh uninstall full
-```
-
-## 🔍 Troubleshooting
-
-### Diagnostic Tool
-
-Run the built-in diagnostic tool to identify issues:
-
-```bash
-./diagnose.sh
-```
-
-This will check:
-
-- ✅ OS detection
-- ✅ Required tools (Python, Node.js, Git)
-- ✅ Package managers (Homebrew, APT)
-- ✅ Configuration file
-- ✅ Source files
-- ✅ Existing symlinks
-- ✅ Symlink creation capability
-- ✅ File permissions
+## Troubleshooting
 
 ### Common Issues
 
-#### Broken Symlinks
+**Terminal colors not working on Linux:**
+
+- The installer automatically sets `TERM=xterm-256color`
+- If issues persist, run: `export TERM=xterm-256color`
+
+**Backspace not working:**
+
+- The installer creates `~/.inputrc` to fix this
+- If issues persist, run: `bind -f ~/.inputrc`
+
+**Symlinks not working:**
+
+- Check if the source files exist in the dotfiles directory
+- Run `./install.sh --dry-run` to see what would be installed
+
+**Package manager not found:**
+
+- **macOS**: Install Homebrew first: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+- **Linux**: The installer supports apt, yum, and dnf
+
+### Manual Steps (if needed)
+
+If the installer fails, you can run individual components:
 
 ```bash
-# Check for broken symlinks
-./diagnose.sh
+# Install basic packages
+sudo apt-get update && sudo apt-get install -y zsh git curl wget
 
-# Reinstall with debug mode
-./dotfiles.sh --debug install
+# Install Rust tools manually
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+cargo install starship lsd bat ripgrep fzf
+
+# Install NVM
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+# Change default shell
+chsh -s /bin/zsh
 ```
 
-#### Missing Files
+## Configuration Files
+
+The installer creates symlinks for these files:
+
+- `~/.zshrc` - Main shell configuration
+- `~/.gitconfig` - Git configuration
+- `~/.gitignore_global` - Global gitignore
+- `~/.config/starship.toml` - Starship prompt config
+- `~/.config/lsd/` - lsd configuration
+- `~/.config/ghostty/` - Ghostty terminal config (macOS)
+- `~/.config/windows-terminal/` - Windows Terminal config (WSL2)
+
+## Updating
+
+To update your dotfiles:
 
 ```bash
-# Verify source files exist
-ls -la .config/zsh/
-
-# Reinstall from correct directory
-cd /path/to/dotfiles
-./dotfiles.sh install
+cd ~/dotfiles
+git pull
+./install.sh --skip-deps  # Only update dotfiles, skip dependencies
 ```
 
-#### Permission Issues
+## Uninstalling
+
+To remove dotfiles (keeps your data):
 
 ```bash
-# Check permissions
-ls -la ~/.config/zsh/
+cd ~/dotfiles
+# Remove symlinks (keeps backups)
+rm ~/.zshrc ~/.gitconfig ~/.gitignore_global
+rm -rf ~/.config/lsd ~/.config/starship.toml
 
-# Fix permissions if needed
-chmod 755 ~/.config/zsh/
+# Change shell back to bash (optional)
+chsh -s /bin/bash
 ```
 
-## 🎨 Architecture
+## Features
 
-### **Cross-Platform Path Detection**
+### Cross-Platform Compatibility
 
-All scripts use robust path detection that works regardless of:
+- Automatic OS detection
+- Platform-specific package managers
+- Relative symlinks for portability
+- Terminal compatibility fixes
 
-- **Installation location**: `~/dotfiles` or `~/.dotfiles`
-- **Current directory**: Commands work from anywhere
-- **Platform**: macOS, Linux, WSL2
-- **Shell**: zsh, bash
+### Development Environment
 
-```bash
-# Reliable script location detection
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-```
+- Modern shell with plugins
+- Fast fuzzy finding with fzf
+- Enhanced git workflow
+- Project-specific environments with direnv
+- Multiple language support (Node.js, Go, Rust)
 
-### **Dynamic Function-Based Commands**
+### Terminal Experience
 
-Instead of hardcoded aliases, the system uses functions that:
+- Beautiful prompt with starship
+- Syntax highlighting
+- Auto-completion
+- History search
+- Git integration
 
-- ✅ **Auto-detect** dotfiles location
-- ✅ **Work from any directory**
-- ✅ **Support multiple installation paths**
-- ✅ **Provide clear error messages**
+## Contributing
 
-```bash
-# These work from anywhere
-dotfiles install
-dotfiles list
-install-tools
-```
+This is a personal dotfiles setup, but feel free to fork and adapt for your own use.
 
-### **File Structure**
+## License
 
-```
-dotfiles/
-├── .zshrc                    # Main zsh configuration
-├── .gitconfig               # Git configuration
-├── .gitignore_global        # Global gitignore
-├── .config/
-│   ├── zsh/
-│   │   ├── aliases          # Shell aliases and functions
-│   │   ├── plugins          # Plugin configuration
-│   │   └── env              # Environment variables
-│   ├── ghostty/config       # Terminal configuration
-│   └── starship.toml        # Prompt configuration with modern formatting
-├── scripts/
-│   ├── dotfiles.sh          # Main installer script
-│   ├── dotfiles.conf        # Configuration file
-│   ├── diagnose.sh          # Diagnostic tool
-│   ├── install-tools.sh     # Tool installation
-│   ├── main.sh              # Unified menu
-│   └── version.sh           # Version management
-└── README.md
-```
-
-## ⚙️ Configuration
-
-### Adding New Files
-
-Edit `dotfiles.conf`:
-
-```bash
-# Format: source_file:target_location:description
-.config/nvim/init.lua:~/.config/nvim/init.lua:Neovim configuration
-```
-
-### Customizing Tools
-
-Edit the appropriate configuration file:
-
-- **Shell**: `.config/zsh/aliases` and `.config/zsh/plugins`
-- **Git**: `.gitconfig`
-- **Terminal**: `.config/ghostty/config`
-- **Prompt**: `.config/starship.toml`
-
-## 🔄 Updates
-
-```bash
-# Update dotfiles
-git pull origin main
-
-# Reinstall to apply changes
-./dotfiles.sh install
-```
-
-## 📝 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test on both macOS and WSL2
-5. Submit a pull request
-
-## 🐛 Bug Reports
-
-If you encounter issues:
-
-1. Run the diagnostic tool: `./diagnose.sh`
-2. Try debug mode: `./dotfiles.sh --debug install`
-3. Check the troubleshooting section above
-4. Open an issue with diagnostic output
+MIT License - feel free to use and modify as needed.
