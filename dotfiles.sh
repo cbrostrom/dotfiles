@@ -6,6 +6,21 @@
 
 set -e
 
+# Terminal compatibility fix
+if [[ -n "$TERM" ]]; then
+    # Check if terminal type is supported
+    if ! infocmp "$TERM" >/dev/null 2>&1; then
+        # Fallback to common terminal types
+        if infocmp "xterm-256color" >/dev/null 2>&1; then
+            export TERM="xterm-256color"
+        elif infocmp "xterm" >/dev/null 2>&1; then
+            export TERM="xterm"
+        elif infocmp "linux" >/dev/null 2>&1; then
+            export TERM="linux"
+        fi
+    fi
+fi
+
 # OS Detection
 if [[ "$OSTYPE" == "darwin"* ]]; then
     IS_MACOS=true
@@ -145,7 +160,12 @@ EOF
 
 # Function to show interactive menu
 show_menu() {
-    clear
+    # Cross-platform clear command
+    if command -v clear >/dev/null 2>&1; then
+        clear 2>/dev/null || printf '\033[2J\033[H'
+    else
+        printf '\033[2J\033[H'
+    fi
     echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}║                    DOTFILES MANAGER                          ║${NC}"
     echo -e "${CYAN}╠══════════════════════════════════════════════════════════════╣${NC}"
@@ -226,7 +246,12 @@ handle_menu_selection() {
 
 # Function to show .zshrc management submenu
 manage_zshrc_menu() {
-    clear
+    # Cross-platform clear command
+    if command -v clear >/dev/null 2>&1; then
+        clear 2>/dev/null || printf '\033[2J\033[H'
+    else
+        printf '\033[2J\033[H'
+    fi
     echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}║                    MANAGE .ZSHRC                             ║${NC}"
     echo -e "${CYAN}╠══════════════════════════════════════════════════════════════╣${NC}"

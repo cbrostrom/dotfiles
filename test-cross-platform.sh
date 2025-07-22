@@ -119,6 +119,14 @@ else
     log_warning "⚠ install-symlinks.sh may have issues (or just ran normally)"
 fi
 
+# Test terminal compatibility
+log_info "Testing terminal compatibility..."
+if [[ -x "./test-terminal.sh" ]]; then
+    ./test-terminal.sh >/dev/null 2>&1 && log_success "✓ Terminal compatibility test passed" || log_warning "⚠ Terminal compatibility test had issues"
+else
+    log_warning "⚠ test-terminal.sh not found"
+fi
+
 log_success "=== Cross-Platform Test Complete ==="
 log_info "Your system appears to be compatible with the dotfiles installation!"
 log_info "You can now run: ./install-symlinks.sh" 

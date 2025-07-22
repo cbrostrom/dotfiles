@@ -411,6 +411,10 @@ chmod +x install-symlinks.sh dotfiles.sh uninstall-symlinks.sh symlink-dir.sh
 
 The scripts have fallbacks for systems without `realpath`. They will use Python3, Node.js, or absolute paths as alternatives.
 
+#### "'xterm-ghostty': unknown terminal type"
+
+The scripts now handle terminal compatibility issues automatically. If your terminal type isn't recognized, it will fallback to common terminal types like `xterm-256color`.
+
 #### Permission Denied
 
 ```bash
@@ -429,6 +433,8 @@ The scripts now use:
 - OS detection with fallbacks for different Linux distributions
 - Multiple fallback methods for relative path calculation
 - Cross-platform `read` command syntax
+- Terminal compatibility fixes for unknown terminal types
+- Robust `clear` command with fallbacks
 
 ## 🤝 **Contributing**
 
