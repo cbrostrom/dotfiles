@@ -157,7 +157,12 @@ main_status() {
     
                     # Check asdf directory (only if asdf is installed)
                 if command_exists asdf; then
-                    check_directory "$HOME/.asdf" "asdf directory"
+                    # Check if it's a git installation
+                    if [[ -d "$HOME/.asdf" ]]; then
+                        check_directory "$HOME/.asdf" "asdf directory (git installation)"
+                    else
+                        log_info "ℹ asdf directory: not present (installed via Homebrew)"
+                    fi
                 else
                     log_warning "⚠ asdf directory: not checked (asdf not installed)"
                 fi
@@ -167,13 +172,6 @@ main_status() {
                     check_directory "$HOME/.cargo" "Rust/Cargo directory"
                 else
                     log_warning "⚠ Rust/Cargo directory: not checked (Rust not installed)"
-                fi
-                
-                # Check asdf directory (only if asdf is installed)
-                if command_exists asdf; then
-                    check_directory "$HOME/.asdf" "asdf directory"
-                else
-                    log_warning "⚠ asdf directory: not checked (asdf not installed)"
                 fi
                 
                 # Check fzf directory (only if fzf is installed from source)

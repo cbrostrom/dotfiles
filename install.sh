@@ -275,6 +275,11 @@ setup_asdf() {
     # Check if asdf is already installed
     if command_exists asdf; then
         log_success "asdf is already installed"
+        
+        # Check if it's installed via Homebrew
+        if [[ "$(which asdf)" == *"homebrew"* ]]; then
+            log_info "asdf installed via Homebrew - no additional setup needed"
+        fi
     else
         # Install asdf
         if [[ ! -d "$HOME/.asdf" ]]; then
@@ -282,7 +287,7 @@ setup_asdf() {
             git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1
         fi
 
-        # Add asdf to shell configuration
+        # Add asdf to shell configuration (only for git installation)
         local profile_file=""
         if [[ -f "$HOME/.zshrc" ]]; then
             profile_file="$HOME/.zshrc"
@@ -304,9 +309,15 @@ setup_asdf() {
         fi
     fi
 
-    # Source asdf for current session
+    # Source asdf for current session (handle both installation methods)
     if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
         source "$HOME/.asdf/asdf.sh"
+    elif command_exists asdf; then
+        # asdf is available via PATH (Homebrew installation)
+        log_info "asdf available via PATH"
+    else
+        log_error "asdf not found and could not be sourced"
+        return 1
     fi
 
     # Install essential plugins
@@ -314,28 +325,28 @@ setup_asdf() {
     
     # Node.js plugin
     if ! asdf plugin list | grep -q "nodejs"; then
-        asdf plugin add nodejs
+        asdf plugin add nodejs https://github.com/asdf-community/asdf-nodejs.git
     fi
     
     # Python plugin
     if ! asdf plugin list | grep -q "python"; then
-        asdf plugin add python
+        asdf plugin add python https://github.com/asdf-community/asdf-python.git
     fi
     
     # Go plugin
     if ! asdf plugin list | grep -q "golang"; then
-        asdf plugin add golang
+        asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
     fi
     
     # Rust plugin
     if ! asdf plugin list | grep -q "rust"; then
-        asdf plugin add rust
+        asdf plugin add rust https://github.com/asdf-community/asdf-rust.git
     fi
 
     # Install asdf-direnv plugin
     if ! asdf plugin list | grep -q "direnv"; then
         log_info "Installing asdf-direnv plugin..."
-        asdf plugin add direnv
+        asdf plugin add direnv https://github.com/asdf-community/asdf-direnv.git
         asdf install direnv latest
         asdf global direnv latest
     fi
@@ -700,14 +711,14 @@ main_installation() {
         log_info ""
         log_info "=== Installing Dependencies ==="
         install_basic_packages
-                            setup_zinit
-                    setup_asdf
-                    setup_node
-                    install_node
-                    setup_go
-                    install_rust_tools
-                    setup_fzf
-                    setup_direnv
+        setup_zinit
+        setup_asdf
+        setup_node
+        install_node
+        setup_go
+        install_rust_tools
+        setup_fzf
+        setup_direnv
         fix_terminal_config
         setup_shell_integration
         change_default_shell

@@ -64,15 +64,21 @@ fi
 # =============================================================================
 # ASDF VERSION MANAGER
 # =============================================================================
-# Load asdf if available
+# Load asdf if available (handle both git and Homebrew installations)
 if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
+    # Git installation
     . "$HOME/.asdf/asdf.sh"
     . "$HOME/.asdf/completions/asdf.bash"
-    
-    # Load asdf-direnv integration
-    if command -v direnv >/dev/null 2>&1; then
-        eval "$(asdf exec direnv hook zsh)"
-    fi
+elif command -v asdf >/dev/null 2>&1; then
+    # Homebrew installation - asdf is already in PATH
+    log_info "asdf available via Homebrew"
+else
+    log_warning "asdf not found - install via Homebrew or git"
+fi
+
+# Load asdf-direnv integration if direnv is available
+if command -v direnv >/dev/null 2>&1; then
+    eval "$(asdf exec direnv hook zsh)"
 fi
 
 # =============================================================================
