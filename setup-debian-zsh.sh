@@ -129,16 +129,14 @@ install_node() {
     fi
 }
 
-# Function to install pnpm
-setup_pnpm() {
-    log_info "Setting up pnpm..."
+# Function to setup npm (skip pnpm)
+setup_npm() {
+    log_info "Setting up npm..."
     
-    if ! command_exists pnpm; then
-        log_info "Installing pnpm..."
-        npm install -g pnpm
-        log_success "pnpm installed successfully"
+    if command_exists npm; then
+        log_success "✓ npm already available"
     else
-        log_success "✓ pnpm already installed"
+        log_warning "⚠ npm not found, but Node.js should provide it"
     fi
 }
 
@@ -321,10 +319,11 @@ setup_shell_integration() {
         echo 'export PATH="$GOPATH/bin:$PATH"' >> "$profile_file"
     fi
     
-    # Add pnpm exports
-    if ! grep -q "export PNPM_HOME" "$profile_file"; then
-        echo 'export PNPM_HOME="$HOME/.local/share/pnpm"' >> "$profile_file"
-        echo 'export PATH="$PNPM_HOME:$PATH"' >> "$profile_file"
+    # Add npm configuration (skip pnpm)
+    if ! grep -q "npm config" "$profile_file"; then
+        echo '# npm configuration' >> "$profile_file"
+        echo 'npm config set fund false' >> "$profile_file"
+        echo 'npm config set audit false' >> "$profile_file"
     fi
     
     # Add Rust exports
@@ -412,7 +411,7 @@ main_setup() {
     setup_zinit
     setup_nvm
     install_node
-    setup_pnpm
+    setup_npm
     setup_go
     install_rust_tools
     setup_fzf

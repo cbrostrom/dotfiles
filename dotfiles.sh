@@ -178,7 +178,8 @@ show_menu() {
     echo -e "${CYAN}║  ${GREEN}7${NC} │ Test cross-platform compatibility                     ║${NC}"
     echo -e "${CYAN}║  ${GREEN}8${NC} │ Setup Debian/Ubuntu server (zsh + dependencies)      ║${NC}"
     echo -e "${CYAN}║  ${GREEN}9${NC} │ Quick fix Debian terminal issues                     ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}10${NC} │ Show help                                            ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}10${NC} │ Install Starship & Direnv (prompt + env switching)  ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}11${NC} │ Show help                                            ║${NC}"
     echo -e "${CYAN}║  ${RED}0${NC} │ Exit                                                   ║${NC}"
     echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
     echo
@@ -249,6 +250,14 @@ handle_menu_selection() {
             fi
             ;;
         10)
+            log_info "Running: Install Starship & Direnv"
+            if [[ -x "./install-starship-direnv.sh" ]]; then
+                ./install-starship-direnv.sh
+            else
+                log_error "install-starship-direnv.sh not found or not executable"
+            fi
+            ;;
+        11)
             show_help
             ;;
         0)
@@ -309,7 +318,7 @@ manage_zshrc_menu() {
 run_menu() {
     while true; do
         show_menu
-        read -p "Select option (0-10): " choice
+        read -p "Select option (0-11): " choice
         echo
         
         if handle_menu_selection "$choice"; then

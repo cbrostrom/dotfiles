@@ -46,13 +46,9 @@ export PATH="$GOPATH/bin:$PATH"
 # Node/Web development environment
 export NODE_OPTIONS="--max-old-space-size=8192"
 
-# Cross-platform pnpm home
-if $IS_MACOS; then
-    export PNPM_HOME="$HOME/Library/pnpm"
-else
-    export PNPM_HOME="$HOME/.local/share/pnpm"
-fi
-export PATH="$PNPM_HOME:$PATH"
+# npm configuration (no pnpm)
+export NPM_CONFIG_FUND=false
+export NPM_CONFIG_AUDIT=false
 
 # =============================================================================
 # HOMEBREW SETUP (macOS only)
@@ -270,17 +266,16 @@ alias dev='cd ~/Projects && ls'
 alias shopify='cd ~/Projects/shopify && ls'
 alias next='cd ~/Projects/nextjs && ls'
 
-# Package manager shortcuts
+# Package manager shortcuts (npm only)
 alias ni='npm install'
 alias nr='npm run'
 alias ns='npm start'
 alias nb='npm run build'
 alias nd='npm run dev'
-alias pi='pnpm install'
-alias pr='pnpm run'
-alias ps='pnpm start'
-alias pb='pnpm run build'
-alias pd='pnpm run dev'
+alias nci='npm ci'
+alias nup='npm update'
+alias nls='npm list'
+alias nout='npm outdated'
 
 # =============================================================================
 # GIT ALIASES

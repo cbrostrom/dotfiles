@@ -109,8 +109,30 @@ This will install:
 - ✅ All required dependencies (Rust, Go, Node.js, etc.)
 - ✅ Plugin managers (zinit, NVM, asdf)
 - ✅ Modern tools (starship, lsd, bat, ripgrep, etc.)
+- ✅ npm package manager (no pnpm)
 - ✅ Fix backspace and terminal issues
 - ✅ Set zsh as default shell
+
+### Starship & Direnv Installation
+
+For beautiful prompts and environment switching:
+
+```bash
+# Install Starship (prompt) and Direnv (env switching)
+./install-starship-direnv.sh
+
+# Or use the menu
+./dotfiles.sh
+# Then select option 10
+```
+
+This will install:
+
+- ✅ **Starship**: Fast, customizable prompt with modern formatting
+- ✅ **Direnv**: Automatic environment switching for projects
+- ✅ **Cross-platform**: Works on macOS, Linux, and WSL
+- ✅ **Shell integration**: Automatically configures your shell
+- ✅ **Basic config**: Creates a working starship configuration
 
 ### Usage
 
@@ -201,6 +223,7 @@ dotfiles release    # Full release workflow
 - `symlink-dir.sh`: Recursive directory symlinker
 - `test-cross-platform.sh`: Compatibility test script
 - `setup-debian-zsh.sh`: Debian/Ubuntu server setup (zsh + dependencies)
+- `install-starship-direnv.sh`: Cross-platform Starship & Direnv installation
 
 ### **Menu System Features**
 
@@ -212,6 +235,7 @@ The `dotfiles.sh` script now includes an interactive menu with:
 - 🚀 **Full Scripts**: Direct access to install-symlinks.sh and uninstall-symlinks.sh
 - 🧪 **Testing**: Cross-platform compatibility testing
 - 🖥️ **Server Setup**: Debian/Ubuntu server setup with zsh and dependencies
+- ⭐ **Prompt Setup**: Install Starship & Direnv for beautiful prompts
 - 📖 **Help**: Built-in help system
 
 ### **Git Configuration**
