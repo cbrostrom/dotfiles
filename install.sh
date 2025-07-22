@@ -81,21 +81,53 @@ detect_package_manager() {
     fi
 }
 
-# Function to install package
+# Function to install a package if not already installed
 install_package() {
     local package="$1"
     local description="$2"
     
-    if ! command_exists "$package"; then
-        log_info "Installing $description..."
-        
+    # Enhanced check for package installation
+    local is_installed=false
+    
+    if $IS_MACOS; then
+        # Check if package is installed via Homebrew
+        if brew list "$package" >/dev/null 2>&1; then
+            is_installed=true
+        fi
+    else
+        # Linux package managers
         case "$PACKAGE_MANAGER" in
-            "brew"|"/opt/homebrew/bin/brew")
-                $PACKAGE_MANAGER install "$package"
-                ;;
             "apt")
-                sudo apt-get update
-                sudo apt-get install -y "$package"
+                if dpkg -l "$package" >/dev/null 2>&1; then
+                    is_installed=true
+                fi
+                ;;
+            "yum")
+                if rpm -q "$package" >/dev/null 2>&1; then
+                    is_installed=true
+                fi
+                ;;
+            "dnf")
+                if rpm -q "$package" >/dev/null 2>&1; then
+                    is_installed=true
+                fi
+                ;;
+        esac
+    fi
+    
+    if $is_installed; then
+        log_success "✓ $description already installed"
+        return 0
+    fi
+    
+    log_info "Installing $description..."
+    
+    if $IS_MACOS; then
+        brew install "$package"
+    else
+        case "$PACKAGE_MANAGER" in
+            "apt")
+                sudo apt update && sudo apt install -y "$package"
                 ;;
             "yum")
                 sudo yum install -y "$package"
@@ -108,11 +140,9 @@ install_package() {
                 return 1
                 ;;
         esac
-        
-        log_success "Installed $description"
-    else
-        log_success "✓ $description already installed"
     fi
+    
+    log_success "Installed $description"
 }
 
 # Function to install basic packages
@@ -146,14 +176,16 @@ setup_zinit() {
     
     ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
     
-    if [[ ! -d "$ZINIT_HOME" ]]; then
-        log_info "Installing zinit..."
-        mkdir -p "$(dirname "$ZINIT_HOME")"
-        git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
-        log_success "zinit installed successfully"
-    else
-        log_success "✓ zinit already installed"
+    # Check if zinit is already installed and working
+    if [[ -d "$ZINIT_HOME" ]] && [[ -f "$ZINIT_HOME/zinit.zsh" ]]; then
+        log_success "✓ zinit already installed and configured"
+        return 0
     fi
+    
+    log_info "Installing zinit..."
+    mkdir -p "$(dirname "$ZINIT_HOME")"
+    git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+    log_success "zinit installed successfully"
 }
 
 # Function to setup Node.js via asdf (replaces NVM)
@@ -233,29 +265,47 @@ install_rust_tools() {
         "sd"           # sed replacement
     )
     
+    local tools_installed=0
+    local tools_total=${#rust_tools[@]}
+    
     for tool in "${rust_tools[@]}"; do
-        if ! command_exists "$tool"; then
+        if command_exists "$tool"; then
+            log_success "✓ $tool already installed"
+            ((tools_installed++))
+        else
             log_info "Installing $tool..."
             cargo install "$tool"
             log_success "$tool installed"
-        else
-            log_success "✓ $tool already installed"
         fi
     done
+    
+    if [[ $tools_installed -eq $tools_total ]]; then
+        log_success "✓ All Rust tools already installed"
+    else
+        log_success "Rust tools installation complete"
+    fi
 }
 
 # Function to setup fzf
 setup_fzf() {
     log_info "Setting up fzf..."
     
-    if ! command_exists fzf; then
-        log_info "Installing fzf..."
-        git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-        ~/.fzf/install --all
-        log_success "fzf installed successfully"
-    else
-        log_success "✓ fzf already installed"
+    # Check if fzf is already installed and working
+    if command_exists fzf && [[ -f "$HOME/.fzf.zsh" ]]; then
+        log_success "✓ fzf already installed and configured"
+        return 0
     fi
+    
+    # Check if fzf is installed via package manager
+    if command_exists fzf; then
+        log_success "✓ fzf already installed via package manager"
+        return 0
+    fi
+    
+    log_info "Installing fzf..."
+    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+    ~/.fzf/install --all
+    log_success "fzf installed successfully"
 }
 
 # Function to setup direnv (now handled by asdf-direnv)
@@ -272,9 +322,9 @@ setup_direnv() {
 setup_asdf() {
     log_info "Setting up asdf version manager..."
 
-    # Check if asdf is already installed
+    # Check if asdf is already installed and working
     if command_exists asdf; then
-        log_success "asdf is already installed"
+        log_success "✓ asdf already installed"
         
         # Check if it's installed via Homebrew
         if [[ "$(which asdf)" == *"homebrew"* ]]; then
@@ -320,38 +370,69 @@ setup_asdf() {
         return 1
     fi
 
-    # Install essential plugins
-    log_info "Installing asdf plugins..."
+    # Install essential plugins (only if not already installed)
+    log_info "Checking asdf plugins..."
+    
+    local plugins_installed=0
+    local plugins_total=5
     
     # Node.js plugin
-    if ! asdf plugin list | grep -q "nodejs"; then
-        asdf plugin add nodejs https://github.com/asdf-community/asdf-nodejs.git
+    if asdf plugin list | grep -q "nodejs"; then
+        log_success "✓ nodejs plugin already installed"
+        ((plugins_installed++))
+    else
+        log_info "Installing nodejs plugin..."
+        asdf plugin add nodejs
+        log_success "nodejs plugin installed"
     fi
     
     # Python plugin
-    if ! asdf plugin list | grep -q "python"; then
-        asdf plugin add python https://github.com/asdf-community/asdf-python.git
+    if asdf plugin list | grep -q "python"; then
+        log_success "✓ python plugin already installed"
+        ((plugins_installed++))
+    else
+        log_info "Installing python plugin..."
+        asdf plugin add python
+        log_success "python plugin installed"
     fi
     
     # Go plugin
-    if ! asdf plugin list | grep -q "golang"; then
-        asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
+    if asdf plugin list | grep -q "golang"; then
+        log_success "✓ golang plugin already installed"
+        ((plugins_installed++))
+    else
+        log_info "Installing golang plugin..."
+        asdf plugin add golang
+        log_success "golang plugin installed"
     fi
     
     # Rust plugin
-    if ! asdf plugin list | grep -q "rust"; then
-        asdf plugin add rust https://github.com/asdf-community/asdf-rust.git
+    if asdf plugin list | grep -q "rust"; then
+        log_success "✓ rust plugin already installed"
+        ((plugins_installed++))
+    else
+        log_info "Installing rust plugin..."
+        asdf plugin add rust
+        log_success "rust plugin installed"
     fi
 
     # Install asdf-direnv plugin
-    if ! asdf plugin list | grep -q "direnv"; then
+    if asdf plugin list | grep -q "direnv"; then
+        log_success "✓ direnv plugin already installed"
+        ((plugins_installed++))
+    else
         log_info "Installing asdf-direnv plugin..."
-        asdf plugin add direnv https://github.com/asdf-community/asdf-direnv.git
+        asdf plugin add direnv
         asdf install direnv latest
         asdf global direnv latest
+        log_success "direnv plugin installed"
     fi
 
-    log_success "asdf setup complete"
+    if [[ $plugins_installed -eq $plugins_total ]]; then
+        log_success "✓ All asdf plugins already installed"
+    else
+        log_success "asdf plugins setup complete"
+    fi
 }
 
 # Function to fix terminal configuration
@@ -403,55 +484,78 @@ setup_shell_integration() {
     # Determine shell profile file
     local profile_file="$HOME/.bashrc"
     
+    local configs_added=0
+    local configs_total=0
+    
     # Force terminal type for Linux/Debian
     if $IS_LINUX && ! grep -q "export TERM.*xterm-256color" "$profile_file"; then
         echo '# Force terminal type for Linux/Debian compatibility' >> "$profile_file"
         echo 'export TERM="xterm-256color"' >> "$profile_file"
+        ((configs_added++))
     fi
+    ((configs_total++))
     
     # Add PATH exports
     if ! grep -q "export PATH.*local/bin" "$profile_file"; then
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$profile_file"
+        ((configs_added++))
     fi
+    ((configs_total++))
     
     # Add Go exports
     if ! grep -q "export GOPATH" "$profile_file"; then
         echo 'export GOPATH="$HOME/go"' >> "$profile_file"
         echo 'export PATH="$GOPATH/bin:$PATH"' >> "$profile_file"
+        ((configs_added++))
     fi
+    ((configs_total++))
     
     # Add npm configuration (skip pnpm as per user preference)
     if ! grep -q "npm config" "$profile_file"; then
         echo '# npm configuration' >> "$profile_file"
         echo 'npm config set fund false' >> "$profile_file"
         echo 'npm config set audit false' >> "$profile_file"
+        ((configs_added++))
     fi
+    ((configs_total++))
     
     # Add Rust exports
     if ! grep -q "source.*cargo/env" "$profile_file"; then
         echo 'source "$HOME/.cargo/env"' >> "$profile_file"
+        ((configs_added++))
     fi
+    ((configs_total++))
     
     # Add asdf exports
     if ! grep -q "source.*asdf/asdf.sh" "$profile_file"; then
         echo '. "$HOME/.asdf/asdf.sh"' >> "$profile_file"
         echo '. "$HOME/.asdf/completions/asdf.bash"' >> "$profile_file"
+        ((configs_added++))
     fi
+    ((configs_total++))
     
     # Add NVM exports
     if ! grep -q "export NVM_DIR" "$profile_file"; then
         echo 'export NVM_DIR="$HOME/.nvm"' >> "$profile_file"
         echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> "$profile_file"
         echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> "$profile_file"
+        ((configs_added++))
     fi
+    ((configs_total++))
     
     # Add inputrc binding
     if ! grep -q "bind.*inputrc" "$profile_file"; then
         echo '# Apply inputrc for proper backspace handling' >> "$profile_file"
         echo 'bind -f ~/.inputrc 2>/dev/null || true' >> "$profile_file"
+        ((configs_added++))
     fi
+    ((configs_total++))
     
-    log_success "Shell integration configured"
+    if [[ $configs_added -eq 0 ]]; then
+        log_success "✓ Shell integration already configured"
+    else
+        log_success "Shell integration configured ($configs_added new configs added)"
+    fi
 }
 
 # Function to change default shell to zsh
@@ -479,21 +583,41 @@ create_symlink() {
         return 0
     fi
 
+    # Check if symlink already exists and points to the correct location
+    if [[ -L "$target" ]]; then
+        local current_target=$(readlink "$target")
+        local expected_target
+        
+        # Calculate expected target (relative path)
+        if command -v realpath >/dev/null 2>&1; then
+            expected_target=$(realpath --relative-to="$(dirname "$target")" "$source" 2>/dev/null || echo "$source")
+        elif command -v python3 >/dev/null 2>&1; then
+            expected_target=$(python3 -c "import os.path; print(os.path.relpath('$source', os.path.dirname('$target')))" 2>/dev/null || echo "$source")
+        elif command -v node >/dev/null 2>&1; then
+            expected_target=$(node -e "const path = require('path'); console.log(path.relative(path.dirname('$target'), '$source'))" 2>/dev/null || echo "$source")
+        else
+            expected_target="$source"
+        fi
+        
+        # Check if symlink points to the correct location
+        if [[ "$current_target" == "$expected_target" ]]; then
+            log_success "✓ $description already correctly linked"
+            return 0
+        else
+            log_info "Updating existing symlink: $description"
+            rm "$target"
+        fi
+    elif [[ -e "$target" ]]; then
+        local backup="$target.backup.$(date +%Y%m%d_%H%M%S)"
+        log_warning "Backing up existing file: $target -> $backup"
+        mv "$target" "$backup"
+    fi
+
     # Create target directory if it doesn't exist
     local target_dir="$(dirname "$target")"
     if [[ ! -d "$target_dir" ]]; then
         log_info "Creating directory: $target_dir"
         mkdir -p "$target_dir"
-    fi
-
-    # Handle existing target
-    if [[ -L "$target" ]]; then
-        log_info "Removing existing symlink: $target"
-        rm "$target"
-    elif [[ -e "$target" ]]; then
-        local backup="$target.backup.$(date +%Y%m%d_%H%M%S)"
-        log_warning "Backing up existing file: $target -> $backup"
-        mv "$target" "$backup"
     fi
 
     # Create relative symlink (cross-platform)

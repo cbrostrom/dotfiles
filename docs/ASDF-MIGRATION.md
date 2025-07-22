@@ -24,11 +24,13 @@ Your dotfiles have been completely rewritten to use **asdf** as the primary vers
 
 ### **Installed Plugins**
 
-- **nodejs** - Node.js versions (from asdf-community/asdf-nodejs)
-- **python** - Python versions (from asdf-community/asdf-python)
-- **golang** - Go versions (from asdf-community/asdf-golang)
-- **rust** - Rust versions (from asdf-community/asdf-rust)
-- **direnv** - Environment switching (from asdf-community/asdf-direnv)
+The following plugins are automatically installed and configured:
+
+- **nodejs** - Node.js versions
+- **python** - Python versions
+- **golang** - Go versions
+- **rust** - Rust versions
+- **direnv** - Environment switching
 
 ### **asdf-direnv Integration**
 
@@ -183,13 +185,15 @@ eval "$(asdf exec direnv hook zsh)"
 
 ### **Plugin Management**
 
-Plugins are automatically installed during setup from official asdf-community repositories:
+Plugins are automatically installed during setup using standard asdf plugin names:
 
-- **nodejs** - Node.js versions (https://github.com/asdf-community/asdf-nodejs)
-- **python** - Python versions (https://github.com/asdf-community/asdf-python)
-- **golang** - Go versions (https://github.com/asdf-community/asdf-golang)
-- **rust** - Rust versions (https://github.com/asdf-community/asdf-rust)
-- **direnv** - Environment switching (https://github.com/asdf-direnv/asdf-direnv)
+- **nodejs** - Node.js versions
+- **python** - Python versions
+- **golang** - Go versions
+- **rust** - Rust versions
+- **direnv** - Environment switching
+
+These plugins are installed using `asdf plugin add <name>` and are sourced from the official asdf plugin repository.
 
 ## 🚨 **Breaking Changes**
 
