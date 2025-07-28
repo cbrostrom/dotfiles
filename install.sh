@@ -642,9 +642,39 @@ create_symlink() {
     log_success "Created symlink: $target -> $rel_source"
 }
 
+# Function to setup completion directories and files
+setup_completion() {
+    log_info "Setting up completion directories and files..."
+    
+    # Create zsh cache directory
+    mkdir -p "$HOME/.zsh_cache"
+    
+    # Create .zsh directory for git completion
+    mkdir -p "$HOME/.zsh"
+    
+    # Download git completion script if it doesn't exist
+    if [[ ! -f "$HOME/.zsh/git-completion.bash" ]]; then
+        log_info "Downloading git completion script..."
+        if command_exists curl; then
+            curl -o "$HOME/.zsh/git-completion.bash" https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash
+            log_success "Downloaded git completion script"
+        elif command_exists wget; then
+            wget -O "$HOME/.zsh/git-completion.bash" https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash
+            log_success "Downloaded git completion script"
+        else
+            log_warning "curl/wget not available, skipping git completion download"
+        fi
+    else
+        log_info "Git completion script already exists"
+    fi
+}
+
 # Function to install dotfiles symlinks
 install_dotfiles() {
     log_info "Installing dotfiles symlinks..."
+    
+    # Setup completion directories and files
+    setup_completion
     
     # Basic dotfiles
     create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
@@ -754,6 +784,11 @@ dry_run() {
     echo "  - direnv (via asdf-direnv)"
     echo "  - fzf (fuzzy finder)"
     echo "  - Rust tools (starship, lsd, bat, ripgrep, etc.)"
+    
+    log_info ""
+    log_info "Would create directories:"
+    echo "  - ~/.zsh_cache/ (completion cache)"
+    echo "  - ~/.zsh/ (completion scripts)"
     
     log_info ""
     log_info "Would create symlinks:"

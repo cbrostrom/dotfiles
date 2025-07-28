@@ -233,6 +233,46 @@ fi
 autoload -Uz compinit
 compinit
 
+# Case insensitive path completion
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+zstyle ':completion:*' menu select
+
+# Completion optimizations
+zstyle ':completion:*' accept-exact '*(N)'
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path $HOME/.zsh_cache
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' verbose yes
+zstyle ':completion:*' format 'Completing %d'
+zstyle ':completion:*' list-prompt '%SAt %p: Hit TAB for more, or the character to insert%s'
+zstyle ':completion:*' select-prompt '%SScrolling active: current selection at %p%s'
+
+# Smart completion behavior
+zstyle ':completion:*' completer _expand _complete _correct _approximate
+zstyle ':completion:*' expand prefix suffix
+zstyle ':completion:*' approximate 1
+zstyle ':completion:*' max-errors 2
+
+# Directory completion
+zstyle ':completion:*' squeeze-slashes true
+zstyle ':completion:*' ignore-parents parent pwd
+
+# File completion
+zstyle ':completion:*' file-patterns '%p(D-/):directories:%F' '%p(-/):directories:%F' '%p(-):all-files:%F'
+zstyle ':completion:*' file-sort modification reverse
+
+# Process completion
+zstyle ':completion:*:processes' command 'ps -ax'
+zstyle ':completion:*:processes' sort false
+zstyle ':completion:*:processes-names' command 'ps axho command'
+
+# Git completion enhancements (only if git-completion.bash exists)
+if [[ -f "$HOME/.zsh/git-completion.bash" ]]; then
+    zstyle ':completion:*:*:git:*' script $HOME/.zsh/git-completion.bash
+    zstyle ':completion:*:git:*' tag-order local-tags remote-tags
+fi
+
 # =============================================================================
 # HISTORY CONFIGURATION
 # =============================================================================
