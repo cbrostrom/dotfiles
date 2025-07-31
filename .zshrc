@@ -68,7 +68,18 @@ fi
 if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
     # Git installation
     . "$HOME/.asdf/asdf.sh"
-    . "$HOME/.asdf/completions/asdf.bash"
+    # Load zsh completions for asdf (not bash completions)
+    if [[ -f "$HOME/.asdf/completions/asdf.zsh" ]]; then
+        . "$HOME/.asdf/completions/asdf.zsh"
+    elif [[ -f "$HOME/.asdf/completions/asdf.bash" ]]; then
+        # Fallback to bash completions but only if we're in zsh
+        if [[ -n "$ZSH_VERSION" ]]; then
+            # Skip bash completions in zsh to avoid 'complete' command errors
+            :
+        else
+            . "$HOME/.asdf/completions/asdf.bash"
+        fi
+    fi
 elif command -v asdf >/dev/null 2>&1; then
     # Homebrew installation - asdf is already in PATH
     # asdf available via Homebrew
@@ -208,7 +219,7 @@ if command -v zoxide &>/dev/null; then
     export _ZO_EXCLUDE_DIRS="$HOME/.cache:$HOME/.local/share:$HOME/.npm:$HOME/.pnpm-store:$HOME/.cargo/registry"
 
     # Enhanced zoxide aliases with fzf integration
-    alias zi='zoxide query -i' # Interactive query with fzf
+    alias zj='zoxide query -i' # Interactive query with fzf (changed from zi to avoid zinit conflict)
     alias za='zoxide add'      # Add current directory
     alias zr='zoxide remove'   # Remove directory from database
     alias zq='zoxide query'    # Query without jumping
