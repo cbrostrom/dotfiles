@@ -330,16 +330,40 @@ update_dotfiles() {
     log_info "Updating dotfiles from git..."
     cd "$SCRIPT_DIR"
     
+    # Check if we're in a git repository
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        log_error "Not in a git repository"
+        return 1
+    fi
+    
+    # Check for uncommitted changes
     if git status --porcelain | grep -q .; then
         log_warning "You have uncommitted changes. Please commit or stash them first."
         return 1
     fi
     
-    if git pull origin main; then
+    # Get the current branch name
+    local current_branch=$(git branch --show-current 2>/dev/null || git rev-parse --abbrev-ref HEAD)
+    
+    # Get the remote name (usually 'origin')
+    local remote_name=$(git remote | head -n1)
+    if [[ -z "$remote_name" ]]; then
+        log_error "No remote repository configured"
+        log_info "To set up a remote repository:"
+        log_info "  git remote add origin <your-repo-url>"
+        log_info "  git push -u origin $current_branch"
+        return 1
+    fi
+    
+    # Try to pull from the current branch
+    log_info "Pulling from $remote_name/$current_branch..."
+    if git pull "$remote_name" "$current_branch"; then
         log_success "Dotfiles updated successfully!"
         log_info "Run './install.sh --verify' to ensure everything is up to date"
     else
         log_error "Failed to update dotfiles"
+        log_info "You can try manually:"
+        log_info "  git pull $remote_name $current_branch"
         return 1
     fi
 }
