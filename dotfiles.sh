@@ -52,7 +52,7 @@ show_fzf_menu() {
     done
     
     # Show menu with fzf and number shortcuts
-    local selection=$(echo -e "$menu_string" | fzf --height 40% --reverse --border --prompt "Select option: " --header="Press 1-9,0 for quick access or type to search" --header-first --bind='1:select-item(0)' --bind='2:select-item(1)' --bind='3:select-item(2)' --bind='4:select-item(3)' --bind='5:select-item(4)' --bind='6:select-item(5)' --bind='7:select-item(6)' --bind='8:select-item(7)' --bind='9:select-item(8)' --bind='0:select-item(9)' --bind='alt-1:select-item(10)' --bind='alt-2:select-item(11)')
+    local selection=$(echo -e "$menu_string" | fzf --height 40% --reverse --border --prompt "Select option: " --header="Press 1-9,0 for quick access or type to search" --header-first --bind='1:first' --bind='2:first+1' --bind='3:first+2' --bind='4:first+3' --bind='5:first+4' --bind='6:first+5' --bind='7:first+6' --bind='8:first+7' --bind='9:first+8' --bind='0:first+9' --bind='alt-1:first+10' --bind='alt-2:first+11')
     
     # Handle empty selection (user pressed Ctrl+C or escaped)
     if [[ -z "$selection" ]]; then
