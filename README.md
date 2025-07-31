@@ -70,7 +70,6 @@ After installation, you can use the interactive menu from anywhere:
 
 **FZF Features:**
 - Fuzzy search (type to filter)
-- Number shortcuts (press 1-9,0 for quick access)
 - Preview windows
 - Cross-platform compatibility
 

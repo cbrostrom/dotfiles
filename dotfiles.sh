@@ -51,8 +51,8 @@ show_fzf_menu() {
         menu_string+="$item\n"
     done
     
-    # Show menu with fzf and number shortcuts
-    local selection=$(echo -e "$menu_string" | fzf --height 40% --reverse --border --prompt "Select option: " --header="Press 1-9,0 for quick access or type to search" --header-first --bind='1:first' --bind='2:first+1' --bind='3:first+2' --bind='4:first+3' --bind='5:first+4' --bind='6:first+5' --bind='7:first+6' --bind='8:first+7' --bind='9:first+8' --bind='0:first+9' --bind='alt-1:first+10' --bind='alt-2:first+11')
+    # Show menu with fzf (number shortcuts removed for compatibility)
+    local selection=$(echo -e "$menu_string" | fzf --height 40% --reverse --border --prompt "Select option: " --header="Type to search or use arrow keys" --header-first)
     
     # Handle empty selection (user pressed Ctrl+C or escaped)
     if [[ -z "$selection" ]]; then
@@ -459,7 +459,6 @@ Requirements:
 
 Features:
   - Fuzzy search with fzf
-  - Number shortcuts (1-9,0 for quick access)
   - Fallback to whiptail if fzf not available
   - Full text menu items (no splitting issues)
 

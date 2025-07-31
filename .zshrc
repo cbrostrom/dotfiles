@@ -136,8 +136,8 @@ if command -v zoxide &>/dev/null; then
     
     eval "$(zoxide init zsh)"
 
-    # Optimized zoxide configuration with number shortcuts
-    export _ZO_FZF_OPTS="--height 40% --layout=reverse --border --preview 'lsd --tree --level=2 {} 2>/dev/null || tree -C {} 2>/dev/null' --bind='1:first' --bind='2:first+1' --bind='3:first+2' --bind='4:first+3' --bind='5:first+4' --bind='6:first+5' --bind='7:first+6' --bind='8:first+7' --bind='9:first+8' --bind='0:first+9' --bind='alt-1:first+10' --bind='alt-2:first+11' --bind='alt-3:first+12' --bind='alt-4:first+13' --bind='alt-5:first+14' --bind='alt-6:first+15' --bind='alt-7:first+16' --bind='alt-8:first+17' --bind='alt-9:first+18' --bind='alt-0:first+19'"
+    # Optimized zoxide configuration
+    export _ZO_FZF_OPTS="--height 40% --layout=reverse --border --preview 'lsd --tree --level=2 {} 2>/dev/null || tree -C {} 2>/dev/null'"
     export _ZO_ECHO=1
     export _ZO_EXCLUDE_DIRS="$HOME/.cache:$HOME/.local/share:$HOME/.npm:$HOME/.pnpm-store:$HOME/.cargo/registry"
 
@@ -184,8 +184,8 @@ preview-files() {
     fi
 }
 
-# FZF configuration with number shortcuts
-export FZF_DEFAULT_OPTS="--height=40% --border --preview-window=right:60% --preview='preview-files {}' --bind='1:first' --bind='2:first+1' --bind='3:first+2' --bind='4:first+3' --bind='5:first+4' --bind='6:first+5' --bind='7:first+6' --bind='8:first+7' --bind='9:first+8' --bind='0:first+9' --bind='alt-1:first+10' --bind='alt-2:first+11' --bind='alt-3:first+12' --bind='alt-4:first+13' --bind='alt-5:first+14' --bind='alt-6:first+15' --bind='alt-7:first+16' --bind='alt-8:first+17' --bind='alt-9:first+18' --bind='alt-0:first+19'"
+# FZF configuration
+export FZF_DEFAULT_OPTS="--height=40% --border --preview-window=right:60% --preview='preview-files {}'"
 export FZF_DEFAULT_COMMAND="fd --type f --hidden --follow --exclude .git --exclude node_modules --exclude .cache"
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND="fd --type d --hidden --follow --exclude .git --exclude node_modules --exclude .cache"
