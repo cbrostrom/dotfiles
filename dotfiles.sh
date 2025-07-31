@@ -413,24 +413,6 @@ detect_os() {
 
 # Main function
 main() {
-    # Check if fzf is available
-    if ! command_exists fzf; then
-        log_warning "fzf is not installed."
-        echo
-        log_info "Would you like to install fzf automatically? (y/N)"
-        read -p "Press 'y' to auto-install, or any other key to exit: " -n 1 -r
-        echo
-        
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            install_fzf
-        else
-            log_info "Please install fzf manually:"
-            log_info "  Debian/Ubuntu: sudo apt install fzf"
-            log_info "  macOS: brew install fzf"
-            exit 1
-        fi
-    fi
-    
     # Show system info
     show_system_info
     
