@@ -54,6 +54,12 @@ show_smenu_menu() {
     # Show menu with smenu
     local selection=$(echo -e "$menu_string" | smenu -n12 -c -b -g -s /Full)
     
+    # Handle empty selection (user pressed 'q' or escaped)
+    if [[ -z "$selection" ]]; then
+        log_info "No selection made. Exiting..."
+        exit 0
+    fi
+    
     # Handle selection
     case "$selection" in
         "Full installation")
@@ -104,7 +110,7 @@ show_smenu_menu() {
             exit 0
             ;;
         *)
-            log_error "Unknown selection: $selection"
+            log_error "Unknown selection: '$selection'"
             ;;
     esac
 }
@@ -285,15 +291,123 @@ show_system_info() {
     echo
 }
 
+# Function to detect OS
+detect_os() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        OS_NAME="macOS"
+        IS_MACOS=true
+        IS_LINUX=false
+    elif [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "linux"* ]]; then
+        OS_NAME="Linux"
+        IS_MACOS=false
+        IS_LINUX=true
+        # Check for WSL
+        if grep -q Microsoft /proc/version 2>/dev/null; then
+            OS_NAME="WSL2"
+        fi
+    else
+        OS_NAME="Unknown"
+        IS_MACOS=false
+        IS_LINUX=false
+    fi
+}
+
+# Function to install smenu
+install_smenu() {
+    log_info "smenu not found. Installing it automatically..."
+    
+    detect_os
+    
+    if $IS_MACOS; then
+        log_info "Installing smenu via Homebrew..."
+        if command_exists brew; then
+            brew install smenu
+            log_success "smenu installed via Homebrew"
+        else
+            log_error "Homebrew not found. Please install Homebrew first:"
+            log_info "  /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+            exit 1
+        fi
+    elif $IS_LINUX; then
+        log_info "Installing smenu via package manager..."
+        
+        # Try different package managers
+        if command_exists apt; then
+            sudo apt update && sudo apt install -y smenu
+            log_success "smenu installed via apt"
+        elif command_exists yum; then
+            sudo yum install -y smenu
+            log_success "smenu installed via yum"
+        elif command_exists dnf; then
+            sudo dnf install -y smenu
+            log_success "smenu installed via dnf"
+        elif command_exists pacman; then
+            sudo pacman -S smenu
+            log_success "smenu installed via pacman"
+        else
+            log_error "No supported package manager found. Please install smenu manually:"
+            log_info "  Debian/Ubuntu: sudo apt install smenu"
+            log_info "  RHEL/CentOS: sudo yum install smenu"
+            log_info "  Fedora: sudo dnf install smenu"
+            log_info "  Arch: sudo pacman -S smenu"
+            exit 1
+        fi
+    else
+        log_error "Unsupported OS. Please install smenu manually:"
+        log_info "  Debian/Ubuntu: sudo apt install smenu"
+        log_info "  macOS: brew install smenu"
+        exit 1
+    fi
+    
+    # Wait a moment for installation to complete
+    sleep 1
+    
+    # Verify installation by checking multiple possible locations
+    local smenu_found=false
+    
+    # Check common locations
+    for path in "/usr/bin/smenu" "/usr/local/bin/smenu" "/opt/homebrew/bin/smenu" "/usr/local/bin/smenu"; do
+        if [[ -x "$path" ]]; then
+            log_success "✓ smenu found at: $path"
+            smenu_found=true
+            break
+        fi
+    done
+    
+    # Also check if it's in PATH
+    if command_exists smenu; then
+        log_success "✓ smenu is available in PATH"
+        smenu_found=true
+    fi
+    
+    if $smenu_found; then
+        log_success "✓ smenu installation successful!"
+    else
+        log_error "smenu installation may have failed. Please install it manually:"
+        log_info "  Debian/Ubuntu: sudo apt install smenu"
+        log_info "  macOS: brew install smenu"
+        exit 1
+    fi
+}
+
 # Main function
 main() {
     # Check if smenu is available
     if ! command_exists smenu; then
-        log_error "smenu is not installed. Please install it first:"
-        log_info "  sudo apt install smenu"
-        log_info "  or"
-        log_info "  brew install smenu"
-        exit 1
+        log_warning "smenu is not installed."
+        echo
+        log_info "Would you like to install smenu automatically? (y/N)"
+        read -p "Press 'y' to auto-install, or any other key to exit: " -n 1 -r
+        echo
+        
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            install_smenu
+        else
+            log_info "Please install smenu manually:"
+            log_info "  Debian/Ubuntu: sudo apt install smenu"
+            log_info "  macOS: brew install smenu"
+            exit 1
+        fi
     fi
     
     # Show system info
