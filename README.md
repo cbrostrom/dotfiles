@@ -41,6 +41,16 @@ If you encounter zsh prompt issues on Debian/Ubuntu systems:
 ./install.sh --verify
 ```
 
+If you have missing tools after installation:
+
+```bash
+# Install only missing tools
+./install-missing.sh
+
+# Or run the full installer again
+./install.sh --verify
+```
+
 ## 🎯 Using the Menu System
 
 After installation, you can use the interactive menu from anywhere:
@@ -130,6 +140,9 @@ dotfiles uninstall
 
 # Preview what would be installed
 ./install.sh --dry-run
+
+# Install only missing tools (after partial installation)
+./install-missing.sh
 
 # Fix zsh prompt issues specifically
 ./fix-zsh.sh fix

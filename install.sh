@@ -578,18 +578,7 @@ create_symlink() {
     # Check if symlink already exists and points to the correct location
     if [[ -L "$target" ]]; then
         local current_target=$(readlink "$target")
-        local expected_target
-        
-        # Calculate expected target (relative path)
-        if command -v realpath >/dev/null 2>&1; then
-            expected_target=$(realpath --relative-to="$(dirname "$target")" "$source" 2>/dev/null || echo "$source")
-        elif command -v python3 >/dev/null 2>&1; then
-            expected_target=$(python3 -c "import os.path; print(os.path.relpath('$source', os.path.dirname('$target')))" 2>/dev/null || echo "$source")
-        elif command -v node >/dev/null 2>&1; then
-            expected_target=$(node -e "const path = require('path'); console.log(path.relative(path.dirname('$target'), '$source'))" 2>/dev/null || echo "$source")
-        else
-            expected_target="$source"
-        fi
+        local expected_target="$source"
         
         # Check if symlink points to the correct location
         if [[ "$current_target" == "$expected_target" ]]; then
@@ -612,26 +601,10 @@ create_symlink() {
         mkdir -p "$target_dir"
     fi
 
-    # Create relative symlink (cross-platform)
-    local rel_source
-    if command -v realpath >/dev/null 2>&1; then
-        rel_source=$(realpath --relative-to="$(dirname "$target")" "$source" 2>/dev/null || echo "$source")
-    elif command -v python3 >/dev/null 2>&1; then
-        # Fallback using Python for relative path calculation
-        rel_source=$(python3 -c "import os.path; print(os.path.relpath('$source', os.path.dirname('$target')))" 2>/dev/null || echo "$source")
-    elif command -v node >/dev/null 2>&1; then
-        # Fallback using Node.js
-        rel_source=$(node -e "const path = require('path'); console.log(path.relative(path.dirname('$target'), '$source'))" 2>/dev/null || echo "$source")
-    else
-        # Final fallback - use absolute path
-        rel_source="$source"
-        log_warning "Using absolute path for symlink (install realpath, python3, or node for relative paths)"
-    fi
-
-    # Create symlink
+    # Create symlink using absolute path (simpler and more reliable)
     log_info "Creating symlink: $description"
-    ln -sf "$rel_source" "$target"
-    log_success "Created symlink: $target -> $rel_source"
+    ln -sf "$source" "$target"
+    log_success "Created symlink: $target -> $source"
 }
 
 # Function to setup completion directories and files
@@ -813,12 +786,14 @@ dry_run() {
     echo "  - Rust (via asdf)"
     echo "  - direnv (via asdf-direnv)"
     echo "  - fzf (fuzzy finder)"
-    echo "  - Rust tools (starship, lsd, bat, ripgrep, etc.)"
+    echo "  - Additional tools via package manager"
+    echo "  - Rust tools via cargo (starship, lsd, bat, ripgrep, etc.)"
     
     log_info ""
     log_info "Would create directories:"
     echo "  - ~/.zsh_cache/ (completion cache)"
     echo "  - ~/.zsh/ (completion scripts)"
+    echo "  - ~/.config/ (configuration files)"
     
     log_info ""
     log_info "Would create symlinks:"
@@ -840,8 +815,141 @@ dry_run() {
     echo "  - Shell integration"
     echo "  - Default shell (zsh)"
     echo "  - Backspace handling"
+    echo "  - Environment variables"
+    echo "  - PATH configuration"
+    
+    log_info ""
+    log_info "Would install development tools:"
+    echo "  - Node.js LTS"
+    echo "  - Python latest"
+    echo "  - Go latest"
+    echo "  - Rust latest"
+    echo "  - All Rust-based tools (starship, lsd, bat, etc.)"
     
     log_success "Dry run complete - no changes made"
+}
+
+# Function to install Go via asdf
+install_go() {
+    log_info "Installing Go via asdf..."
+    
+    # Source asdf for current session
+    if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
+        source "$HOME/.asdf/asdf.sh"
+    fi
+    
+    # Install latest Go
+    if ! command_exists go; then
+        log_info "Installing Go latest..."
+        asdf install golang latest
+        asdf global golang latest
+        log_success "Go installed and set as default"
+    else
+        log_success "✓ Go already installed"
+    fi
+}
+
+# Function to install Python via asdf
+install_python() {
+    log_info "Installing Python via asdf..."
+    
+    # Source asdf for current session
+    if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
+        source "$HOME/.asdf/asdf.sh"
+    fi
+    
+    # Install latest Python
+    if ! command_exists python3; then
+        log_info "Installing Python latest..."
+        asdf install python latest
+        asdf global python latest
+        log_success "Python installed and set as default"
+    else
+        log_success "✓ Python already installed"
+    fi
+}
+
+# Function to install additional tools via package manager
+install_additional_tools() {
+    log_info "Installing additional tools via package manager..."
+    
+    if $IS_MACOS; then
+        # macOS tools
+        local packages=("fzf" "fd" "ripgrep" "bat" "lsd" "zoxide" "bottom" "procs" "dust" "tealdeer" "git-delta" "lazygit")
+        for package in "${packages[@]}"; do
+            install_package "$package" "$package"
+        done
+    else
+        # Linux tools - try to install via package manager first
+        local packages=("fzf" "fd-find" "ripgrep" "bat" "lsd" "zoxide" "bottom" "procs" "du-dust" "tealdeer" "git-delta" "lazygit")
+        
+        # Update package list first
+        if [[ "$PACKAGE_MANAGER" == "apt" ]]; then
+            log_info "Updating package list for additional tools..."
+            sudo apt update
+        fi
+        
+        for package in "${packages[@]}"; do
+            # Try to install via package manager first
+            if install_package "$package" "$package" 2>/dev/null; then
+                log_success "✓ $package installed via package manager"
+            else
+                log_warning "⚠ $package not available via package manager, will install via cargo later"
+            fi
+        done
+    fi
+}
+
+# Function to install missing tools via cargo
+install_missing_cargo_tools() {
+    log_info "Installing missing tools via cargo..."
+    
+    # Source asdf for current session to get cargo
+    if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
+        source "$HOME/.asdf/asdf.sh"
+    fi
+    
+    # List of tools to check and install
+    local cargo_tools=(
+        "starship"      # Prompt
+        "lsd"          # ls replacement
+        "bat"          # cat replacement
+        "ripgrep"      # grep replacement
+        "fd-find"      # find replacement
+        "procs"        # ps replacement
+        "bottom"       # top replacement
+        "zoxide"       # cd replacement
+        "du-dust"      # du replacement
+        "tealdeer"     # tldr replacement
+        "ripgrep-all"  # search in all files
+        "git-delta"    # git diff enhancement
+        "git-fuzzy"    # git fuzzy finder
+        "lazygit"      # git TUI
+        "sd"           # sed replacement
+    )
+    
+    local tools_installed=0
+    local tools_total=${#cargo_tools[@]}
+    
+    for tool in "${cargo_tools[@]}"; do
+        if command_exists "$tool"; then
+            log_success "✓ $tool already installed"
+            ((tools_installed++))
+        else
+            log_info "Installing $tool via cargo..."
+            if cargo install "$tool" 2>/dev/null; then
+                log_success "$tool installed"
+            else
+                log_warning "Failed to install $tool via cargo"
+            fi
+        fi
+    done
+    
+    if [[ $tools_installed -eq $tools_total ]]; then
+        log_success "✓ All cargo tools already installed"
+    else
+        log_success "Cargo tools installation complete"
+    fi
 }
 
 # Main installation function
@@ -908,9 +1016,22 @@ main_installation() {
         setup_zsh
         setup_zinit
         setup_asdf
+        
+        log_info ""
+        log_info "=== Installing Development Tools ==="
         install_node
+        install_go
+        install_python
         install_rust_tools
+        
+        log_info ""
+        log_info "=== Installing Additional Tools ==="
+        install_additional_tools
+        install_missing_cargo_tools
         setup_fzf
+        
+        log_info ""
+        log_info "=== Configuring Environment ==="
         fix_terminal_config
         setup_shell_integration
     fi
@@ -941,6 +1062,7 @@ main_installation() {
     log_info "- Run 'source ~/.zshrc' to reload configuration"
     log_info "- Check the logs above for any warnings or errors"
     log_info "- Run './status.sh' to check the status of all components"
+    log_info "- Run './fix-zsh.sh status' to check zsh-specific issues"
 }
 
 # Run installation

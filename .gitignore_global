@@ -4,3 +4,39 @@
 **/.DS_Store
 **/._.DS_Store
 **/._.DS_Store
+
+# Secrets and sensitive files
+.config/gh/
+.ssh/
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Backup files
+*.backup.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node modules (if any)
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
