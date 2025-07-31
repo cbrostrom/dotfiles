@@ -1,4 +1,4 @@
-# Dotfiles v1.0
+# Dotfiles v2.0
 
 A streamlined, cross-platform dotfiles setup for macOS, Linux, and WSL2. Everything you need in one command.
 
@@ -11,6 +11,9 @@ cd ~/dotfiles
 
 # Install everything
 ./install.sh
+
+# Or install with verification
+./install.sh --verify
 ```
 
 That's it! The installer will:
@@ -21,6 +24,22 @@ That's it! The installer will:
 - Configure your shell with plugins
 - Create symlinks for all dotfiles
 - Set zsh as your default shell
+- Verify the installation (with `--verify` flag)
+
+## 🔧 Troubleshooting
+
+If you encounter zsh prompt issues on Debian/Ubuntu systems:
+
+```bash
+# Check current status
+./fix-zsh.sh status
+
+# Fix zsh prompt issues
+./fix-zsh.sh fix
+
+# Or run the full installer with verification
+./install.sh --verify
+```
 
 ## 🎯 Using the Menu System
 
@@ -39,10 +58,10 @@ dotfiles uninstall
 
 ## 📚 Documentation
 
-- **[Migration Guide](docs/MIGRATION.md)** - Migrating from v0.x to v1.0
+- **[Migration Guide](docs/MIGRATION.md)** - Migrating from v0.x to v2.0
 - **[ASDF Migration](docs/ASDF-MIGRATION.md)** - Complete asdf and asdf-direnv guide
 - **[Changelog](docs/CHANGELOG.md)** - Version history and changes
-- **[Summary](docs/SUMMARY.md)** - Complete v1.0 system overview
+- **[Summary](docs/SUMMARY.md)** - Complete v2.0 system overview
 
 ## 🛠️ What's Included
 
@@ -79,6 +98,7 @@ dotfiles uninstall
 - Platform-specific package managers
 - Relative symlinks for portability
 - Terminal compatibility fixes
+- Enhanced dependency management
 
 ### Development Environment
 
@@ -98,90 +118,108 @@ dotfiles uninstall
 
 ## 🔧 Installation Options
 
-### Direct Script Usage
-
 ```bash
-# Full installation (default)
-./install.sh
+# Full installation with verification
+./install.sh --verify
 
-# Only install dotfiles (skip dependencies)
-./install.sh --skip-deps
-
-# Only install dependencies (skip dotfiles)
+# Install only dependencies (skip dotfiles)
 ./install.sh --skip-dotfiles
+
+# Install only dotfiles (skip dependencies)
+./install.sh --skip-deps
 
 # Preview what would be installed
 ./install.sh --dry-run
+
+# Fix zsh prompt issues specifically
+./fix-zsh.sh fix
+
+# Check zsh status
+./fix-zsh.sh status
 ```
 
-### Menu System Usage
+## 🆕 What's New in v2.0
 
+### Enhanced Installation
+- **Better dependency management**: More comprehensive package lists for Debian/Ubuntu
+- **Improved zsh setup**: Proper shell detection and configuration
+- **Installation verification**: New `--verify` flag to check setup
+- **Enhanced error handling**: Better detection and reporting of issues
+
+### New Tools
+- **fix-zsh.sh**: Dedicated script for fixing zsh prompt issues
+- **Status checking**: Better verification of installation components
+- **Cross-platform improvements**: Better support for Debian 12 and other Linux distributions
+
+### Bug Fixes
+- Fixed zsh prompt issues on Debian systems
+- Improved symlink creation with relative paths
+- Better package manager detection
+- Enhanced terminal configuration
+
+## 🐛 Common Issues & Solutions
+
+### Zsh Prompt Not Working
 ```bash
-# Interactive menu (recommended)
-dotfiles
+# Check if zsh is properly configured
+./fix-zsh.sh status
 
-# Direct commands via menu system
-dotfiles install
-dotfiles install --skip-deps
-dotfiles uninstall
-dotfiles status
-dotfiles update
-dotfiles dry-run
+# Fix zsh prompt issues
+./fix-zsh.sh fix
+
+# Or reinstall with verification
+./install.sh --verify
 ```
 
-## 🆘 Troubleshooting
+### Missing Dependencies
+```bash
+# Install only dependencies
+./install.sh --skip-dotfiles
 
-**Terminal colors not working on Linux:**
+# Check what's missing
+./status.sh
+```
 
-- The installer automatically sets `TERM=xterm-256color`
-- If issues persist, run: `export TERM=xterm-256color`
+### Permission Issues
+```bash
+# Make scripts executable
+chmod +x *.sh
 
-**Backspace not working:**
-
-- The installer creates `~/.inputrc` to fix this
-- If issues persist, run: `bind -f ~/.inputrc`
-
-**Symlinks not working:**
-
-- Check if the source files exist in the dotfiles directory
-- Run `./install.sh --dry-run` to see what would be installed
-
-**Package manager not found:**
-
-- **macOS**: Install Homebrew first: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-- **Linux**: The installer supports apt, yum, and dnf
+# Check file permissions
+ls -la *.sh
+```
 
 ## 🔄 Updating
 
-To update your dotfiles:
-
 ```bash
-cd ~/dotfiles
-git pull
-./install.sh --skip-deps  # Only update dotfiles, skip dependencies
-# or
-dotfiles update
+# Update dotfiles
+git pull origin main
+
+# Reinstall with verification
+./install.sh --verify
 ```
 
 ## 🗑️ Uninstalling
 
-To remove dotfiles (keeps your data):
-
 ```bash
-cd ~/dotfiles
+# Remove all dotfiles and configurations
 ./uninstall.sh
-# or
-dotfiles uninstall
 ```
+
+## 📋 Requirements
+
+- **macOS**: Homebrew (will be installed if missing)
+- **Linux**: apt, yum, or dnf package manager
+- **WSL2**: Windows Terminal (optional)
 
 ## 🤝 Contributing
 
-This is a personal dotfiles setup, but feel free to fork and adapt for your own use.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test on multiple platforms
+5. Submit a pull request
 
 ## 📄 License
 
-MIT License - feel free to use and modify as needed.
-
----
-
-**For detailed documentation, see the [docs/](docs/) folder.**
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

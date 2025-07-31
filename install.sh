@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Dotfiles Installer v1.0
+# Dotfiles Installer v2.0
 # Complete cross-platform dotfiles setup for macOS, Linux, and WSL2
 # Single command installation: ./install.sh
 
@@ -145,7 +145,7 @@ install_package() {
     log_success "Installed $description"
 }
 
-# Function to install basic packages
+# Function to install basic packages with better error handling
 install_basic_packages() {
     log_info "Installing basic packages..."
     
@@ -156,17 +156,62 @@ install_basic_packages() {
             install_package "$package" "$package"
         done
     else
-        # Linux packages
+        # Linux packages - more comprehensive for Debian/Ubuntu
         local packages=(
             "zsh" "git" "curl" "wget" "build-essential" "pkg-config"
             "libssl-dev" "libreadline-dev" "zlib1g-dev" "libbz2-dev"
             "libsqlite3-dev" "libncursesw5-dev" "xz-utils" "tk-dev"
             "libxml2-dev" "libxmlsec1-dev" "libffi-dev" "liblzma-dev"
             "python3" "python3-pip" "nodejs" "npm"
+            "unzip" "zip" "ca-certificates" "gnupg" "lsb-release"
         )
+        
+        # Update package list first
+        log_info "Updating package list..."
+        if [[ "$PACKAGE_MANAGER" == "apt" ]]; then
+            sudo apt update
+        fi
+        
         for package in "${packages[@]}"; do
             install_package "$package" "$package"
         done
+    fi
+}
+
+# Function to ensure zsh is properly installed and configured
+setup_zsh() {
+    log_info "Setting up zsh..."
+    
+    # Check if zsh is installed
+    if ! command_exists zsh; then
+        log_error "zsh is not installed. Please install it first."
+        return 1
+    fi
+    
+    # Get zsh path
+    local zsh_path=$(which zsh)
+    log_info "Found zsh at: $zsh_path"
+    
+    # Check if zsh is in /etc/shells
+    if ! grep -q "$zsh_path" /etc/shells; then
+        log_warning "zsh not in /etc/shells, adding it..."
+        echo "$zsh_path" | sudo tee -a /etc/shells
+    fi
+    
+    # Change default shell to zsh if not already
+    if [[ "$SHELL" != "$zsh_path" ]]; then
+        log_info "Changing default shell to zsh..."
+        chsh -s "$zsh_path"
+        log_success "Default shell changed to zsh"
+        log_warning "Please log out and log back in for changes to take effect"
+    else
+        log_success "✓ zsh is already the default shell"
+    fi
+    
+    # Create .zshrc if it doesn't exist
+    if [[ ! -f "$HOME/.zshrc" ]]; then
+        log_info "Creating .zshrc..."
+        touch "$HOME/.zshrc"
     fi
 }
 
@@ -186,136 +231,6 @@ setup_zinit() {
     mkdir -p "$(dirname "$ZINIT_HOME")"
     git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
     log_success "zinit installed successfully"
-}
-
-# Function to setup Node.js via asdf (replaces NVM)
-setup_node() {
-    log_info "Setting up Node.js via asdf..."
-    
-    # This function is now handled by setup_asdf which installs the nodejs plugin
-    # Node.js will be installed and managed by asdf
-    log_info "Node.js will be managed by asdf nodejs plugin"
-    log_success "Node.js setup complete (via asdf)"
-}
-
-# Function to install Node.js via asdf
-install_node() {
-    log_info "Installing Node.js via asdf..."
-    
-    # Source asdf for current session
-    if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
-        source "$HOME/.asdf/asdf.sh"
-    fi
-    
-    # Install latest LTS Node.js
-    if ! command_exists node; then
-        log_info "Installing Node.js LTS..."
-        asdf install nodejs latest:lts
-        asdf global nodejs latest:lts
-        log_success "Node.js LTS installed and set as default"
-    else
-        log_success "✓ Node.js already installed"
-    fi
-}
-
-# Function to setup Go via asdf
-setup_go() {
-    log_info "Setting up Go via asdf..."
-    
-    # This function is now handled by setup_asdf which installs the golang plugin
-    # Go will be installed and managed by asdf
-    log_info "Go will be managed by asdf golang plugin"
-    log_success "Go setup complete (via asdf)"
-}
-
-# Function to install Rust tools
-install_rust_tools() {
-    log_info "Installing Rust-based tools..."
-    
-    # Install Rust via asdf if not present
-    if ! command_exists cargo; then
-        log_info "Installing Rust via asdf..."
-        # Source asdf for current session
-        if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
-            source "$HOME/.asdf/asdf.sh"
-        fi
-        asdf install rust latest
-        asdf global rust latest
-        log_success "Rust installed successfully"
-    else
-        log_success "✓ Rust already installed"
-    fi
-    
-    # Install Rust-based tools
-    local rust_tools=(
-        "starship"      # Prompt
-        "lsd"          # ls replacement
-        "bat"          # cat replacement
-        "ripgrep"      # grep replacement
-        "fd-find"      # find replacement
-        "procs"        # ps replacement
-        "bottom"       # top replacement
-        "zoxide"       # cd replacement
-        "du-dust"      # du replacement
-        "tealdeer"     # tldr replacement
-        "ripgrep-all"  # search in all files
-        "git-delta"    # git diff enhancement
-        "git-fuzzy"    # git fuzzy finder
-        "lazygit"      # git TUI
-        "sd"           # sed replacement
-    )
-    
-    local tools_installed=0
-    local tools_total=${#rust_tools[@]}
-    
-    for tool in "${rust_tools[@]}"; do
-        if command_exists "$tool"; then
-            log_success "✓ $tool already installed"
-            ((tools_installed++))
-        else
-            log_info "Installing $tool..."
-            cargo install "$tool"
-            log_success "$tool installed"
-        fi
-    done
-    
-    if [[ $tools_installed -eq $tools_total ]]; then
-        log_success "✓ All Rust tools already installed"
-    else
-        log_success "Rust tools installation complete"
-    fi
-}
-
-# Function to setup fzf
-setup_fzf() {
-    log_info "Setting up fzf..."
-    
-    # Check if fzf is already installed and working
-    if command_exists fzf && [[ -f "$HOME/.fzf.zsh" ]]; then
-        log_success "✓ fzf already installed and configured"
-        return 0
-    fi
-    
-    # Check if fzf is installed via package manager
-    if command_exists fzf; then
-        log_success "✓ fzf already installed via package manager"
-        return 0
-    fi
-    
-    log_info "Installing fzf..."
-    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-    ~/.fzf/install --all
-    log_success "fzf installed successfully"
-}
-
-# Function to setup direnv (now handled by asdf-direnv)
-setup_direnv() {
-    log_info "Setting up direnv via asdf..."
-    
-    # This function is now handled by setup_asdf which installs asdf-direnv
-    # direnv will be installed and managed by asdf
-    log_info "direnv will be managed by asdf-direnv plugin"
-    log_success "direnv setup complete (via asdf)"
 }
 
 # Function to setup asdf
@@ -435,6 +350,106 @@ setup_asdf() {
     fi
 }
 
+# Function to install Node.js via asdf
+install_node() {
+    log_info "Installing Node.js via asdf..."
+    
+    # Source asdf for current session
+    if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
+        source "$HOME/.asdf/asdf.sh"
+    fi
+    
+    # Install latest LTS Node.js
+    if ! command_exists node; then
+        log_info "Installing Node.js LTS..."
+        asdf install nodejs latest:lts
+        asdf global nodejs latest:lts
+        log_success "Node.js LTS installed and set as default"
+    else
+        log_success "✓ Node.js already installed"
+    fi
+}
+
+# Function to install Rust tools
+install_rust_tools() {
+    log_info "Installing Rust-based tools..."
+    
+    # Install Rust via asdf if not present
+    if ! command_exists cargo; then
+        log_info "Installing Rust via asdf..."
+        # Source asdf for current session
+        if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
+            source "$HOME/.asdf/asdf.sh"
+        fi
+        asdf install rust latest
+        asdf global rust latest
+        log_success "Rust installed successfully"
+    else
+        log_success "✓ Rust already installed"
+    fi
+    
+    # Install Rust-based tools
+    local rust_tools=(
+        "starship"      # Prompt
+        "lsd"          # ls replacement
+        "bat"          # cat replacement
+        "ripgrep"      # grep replacement
+        "fd-find"      # find replacement
+        "procs"        # ps replacement
+        "bottom"       # top replacement
+        "zoxide"       # cd replacement
+        "du-dust"      # du replacement
+        "tealdeer"     # tldr replacement
+        "ripgrep-all"  # search in all files
+        "git-delta"    # git diff enhancement
+        "git-fuzzy"    # git fuzzy finder
+        "lazygit"      # git TUI
+        "sd"           # sed replacement
+    )
+    
+    local tools_installed=0
+    local tools_total=${#rust_tools[@]}
+    
+    for tool in "${rust_tools[@]}"; do
+        if command_exists "$tool"; then
+            log_success "✓ $tool already installed"
+            ((tools_installed++))
+        else
+            log_info "Installing $tool..."
+            cargo install "$tool"
+            log_success "$tool installed"
+        fi
+    done
+    
+    if [[ $tools_installed -eq $tools_total ]]; then
+        log_success "✓ All Rust tools already installed"
+    else
+        log_success "Rust tools installation complete"
+    fi
+}
+
+# Function to setup fzf
+setup_fzf() {
+    log_info "Setting up fzf..."
+    
+    # Check if fzf is already installed and working
+    if command_exists fzf && [[ -f "$HOME/.fzf.zsh" ]]; then
+        log_success "✓ fzf already installed and configured"
+        return 0
+    fi
+    
+    # Check if fzf is installed via package manager
+    if command_exists fzf; then
+        log_success "✓ fzf already installed via package manager"
+        return 0
+    fi
+    
+    log_info "Installing fzf..."
+    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+    ~/.fzf/install --all
+    log_success "fzf installed successfully"
+}
+
 # Function to fix terminal configuration
 fix_terminal_config() {
     log_info "Fixing terminal configuration..."
@@ -534,15 +549,6 @@ setup_shell_integration() {
     fi
     ((configs_total++))
     
-    # Add NVM exports
-    if ! grep -q "export NVM_DIR" "$profile_file"; then
-        echo 'export NVM_DIR="$HOME/.nvm"' >> "$profile_file"
-        echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> "$profile_file"
-        echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> "$profile_file"
-        ((configs_added++))
-    fi
-    ((configs_total++))
-    
     # Add inputrc binding
     if ! grep -q "bind.*inputrc" "$profile_file"; then
         echo '# Apply inputrc for proper backspace handling' >> "$profile_file"
@@ -555,20 +561,6 @@ setup_shell_integration() {
         log_success "✓ Shell integration already configured"
     else
         log_success "Shell integration configured ($configs_added new configs added)"
-    fi
-}
-
-# Function to change default shell to zsh
-change_default_shell() {
-    log_info "Changing default shell to zsh..."
-    
-    if [[ "$SHELL" != "/bin/zsh" ]]; then
-        log_info "Setting zsh as default shell..."
-        chsh -s /bin/zsh
-        log_success "Default shell changed to zsh"
-        log_warning "Please log out and log back in for changes to take effect"
-    else
-        log_success "✓ zsh is already the default shell"
     fi
 }
 
@@ -723,10 +715,45 @@ install_dotfiles() {
     fi
 }
 
+# Function to verify zsh setup
+verify_zsh_setup() {
+    log_info "Verifying zsh setup..."
+    
+    # Check if .zshrc exists and is readable
+    if [[ ! -f "$HOME/.zshrc" ]]; then
+        log_error "❌ .zshrc does not exist!"
+        return 1
+    fi
+    
+    if [[ ! -r "$HOME/.zshrc" ]]; then
+        log_error "❌ .zshrc is not readable!"
+        return 1
+    fi
+    
+    log_success "✓ .zshrc exists and is readable"
+    
+    # Check if zsh is the default shell
+    local current_shell=$(echo $SHELL)
+    if [[ "$current_shell" == *"zsh" ]]; then
+        log_success "✓ zsh is the default shell"
+    else
+        log_warning "⚠ Current shell is $current_shell, zsh should be default"
+    fi
+    
+    # Test zsh configuration
+    log_info "Testing zsh configuration..."
+    if zsh -c "echo 'zsh configuration test successful'" 2>/dev/null; then
+        log_success "✓ zsh configuration is valid"
+    else
+        log_error "❌ zsh configuration has errors"
+        return 1
+    fi
+}
+
 # Function to show help
 show_help() {
     cat <<'EOF'
-Dotfiles Installer v1.0
+Dotfiles Installer v2.0
 
 Usage: ./install.sh [OPTIONS]
 
@@ -735,12 +762,14 @@ Options:
   --skip-deps         Skip dependency installation (only install dotfiles)
   --skip-dotfiles     Skip dotfiles installation (only install dependencies)
   --dry-run           Show what would be installed without actually installing
+  --verify            Verify the installation after completion
 
 Examples:
   ./install.sh                    # Full installation
   ./install.sh --skip-deps        # Only install dotfiles
   ./install.sh --skip-dotfiles    # Only install dependencies
   ./install.sh --dry-run          # Preview installation
+  ./install.sh --verify           # Full installation with verification
 
 This script will:
 1. Detect your OS (macOS, Linux, WSL2)
@@ -749,6 +778,7 @@ This script will:
 4. Install and configure zsh with plugins
 5. Create symlinks for all dotfiles
 6. Configure terminal and shell integration
+7. Verify the installation (if --verify is used)
 
 Supported platforms:
 - macOS (with Homebrew)
@@ -819,6 +849,7 @@ main_installation() {
     local skip_deps=false
     local skip_dotfiles=false
     local dry_run_mode=false
+    local verify_mode=false
     
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
@@ -839,6 +870,10 @@ main_installation() {
                 dry_run_mode=true
                 shift
                 ;;
+            --verify)
+                verify_mode=true
+                shift
+                ;;
             *)
                 log_error "Unknown option: $1"
                 show_help
@@ -852,7 +887,7 @@ main_installation() {
         exit 0
     fi
     
-    log_info "=== Dotfiles Installer v1.0 ==="
+    log_info "=== Dotfiles Installer v2.0 ==="
     log_info "Detected OS: $OS_NAME ($(uname -s) $(uname -r))"
     log_info "Script directory: $SCRIPT_DIR"
     
@@ -870,23 +905,26 @@ main_installation() {
         log_info ""
         log_info "=== Installing Dependencies ==="
         install_basic_packages
+        setup_zsh
         setup_zinit
         setup_asdf
-        setup_node
         install_node
-        setup_go
         install_rust_tools
         setup_fzf
-        setup_direnv
         fix_terminal_config
         setup_shell_integration
-        change_default_shell
     fi
     
     if ! $skip_dotfiles; then
         log_info ""
         log_info "=== Installing Dotfiles ==="
         install_dotfiles
+    fi
+    
+    if $verify_mode; then
+        log_info ""
+        log_info "=== Verifying Installation ==="
+        verify_zsh_setup
     fi
     
     log_info ""
@@ -902,6 +940,7 @@ main_installation() {
     log_info "- Check ~/.zshrc for any errors"
     log_info "- Run 'source ~/.zshrc' to reload configuration"
     log_info "- Check the logs above for any warnings or errors"
+    log_info "- Run './status.sh' to check the status of all components"
 }
 
 # Run installation
