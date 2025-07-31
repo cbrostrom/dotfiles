@@ -34,6 +34,7 @@ show_fzf_menu() {
         "Full installation"
         "Install dotfiles only"
         "Install dependencies only"
+        "Full installation + system update"
         "Uninstall dotfiles"
         "Check status"
         "Update dotfiles"
@@ -41,7 +42,6 @@ show_fzf_menu() {
         "Show help"
         "Reload shell configuration"
         "Force update symlinks"
-        "Install missing tools"
         "Exit"
     )
     
@@ -74,6 +74,10 @@ show_fzf_menu() {
             log_info "Running: Install dependencies only"
             run_install "--skip-dotfiles"
             ;;
+        "Full installation + system update")
+            log_info "Running: Full installation + system update"
+            run_install "--update"
+            ;;
         "Uninstall dotfiles")
             log_info "Running: Uninstall dotfiles"
             run_uninstall
@@ -100,10 +104,6 @@ show_fzf_menu() {
         "Force update symlinks")
             log_info "Running: Force update symlinks"
             run_force_update_symlinks
-            ;;
-        "Install missing tools")
-            log_info "Running: Install missing tools"
-            run_install_missing_tools
             ;;
         "Exit")
             log_info "Exiting..."
@@ -183,6 +183,7 @@ show_whiptail_menu() {
         "Full install"
         "Dotfiles only"
         "Deps only"
+        "Full + update"
         "Uninstall"
         "Status"
         "Update"
@@ -190,7 +191,6 @@ show_whiptail_menu() {
         "Help"
         "Reload config"
         "Force symlinks"
-        "Install tools"
         "Exit"
     )
     
@@ -228,6 +228,10 @@ show_whiptail_menu() {
             log_info "Running: Install dependencies only"
             run_install "--skip-dotfiles"
             ;;
+        "Full + update")
+            log_info "Running: Full installation + system update"
+            run_install "--update"
+            ;;
         "Uninstall")
             log_info "Running: Uninstall dotfiles"
             run_uninstall
@@ -254,10 +258,6 @@ show_whiptail_menu() {
         "Force symlinks")
             log_info "Running: Force update symlinks"
             run_force_update_symlinks
-            ;;
-        "Install tools")
-            log_info "Running: Install missing tools"
-            run_install_missing_tools
             ;;
         "Exit")
             log_info "Exiting..."
@@ -416,14 +416,14 @@ Available options:
 1. Full installation - Install everything with verification
 2. Install dotfiles only - Only install dotfiles (skip dependencies)
 3. Install dependencies only - Only install dependencies (skip dotfiles)
-4. Uninstall dotfiles - Remove all dotfiles and configurations
-5. Check status - Show status of all components
-6. Update dotfiles - Pull latest changes from git
-7. Preview installation - Show what would be installed (dry run)
-8. Show help - Show this help message
-9. Reload shell configuration - Reload zsh configuration
-10. Force update symlinks - Force recreation of all symlinks
-11. Install missing tools - Install only missing tools
+4. Full installation + system update - Install everything + update system packages
+5. Uninstall dotfiles - Remove all dotfiles and configurations
+6. Check status - Show status of all components
+7. Update dotfiles - Pull latest changes from git
+8. Preview installation - Show what would be installed (dry run)
+9. Show help - Show this help message
+10. Reload shell configuration - Reload zsh configuration
+11. Force update symlinks - Force recreation of all symlinks
 12. Exit - Exit the menu
 
 Usage:

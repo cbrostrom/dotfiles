@@ -737,13 +737,15 @@ Options:
   --skip-dotfiles     Skip dotfiles installation (only install dependencies)
   --dry-run           Show what would be installed without actually installing
   --verify            Verify the installation after completion
+  --update            Update system packages (apt/brew) after installation
 
 Examples:
   ./install.sh                    # Full installation
+  ./install.sh --verify           # Full installation with verification
+  ./install.sh --update           # Full installation + system update
   ./install.sh --skip-deps        # Only install dotfiles
   ./install.sh --skip-dotfiles    # Only install dependencies
   ./install.sh --dry-run          # Preview installation
-  ./install.sh --verify           # Full installation with verification
 
 This script will:
 1. Detect your OS (macOS, Linux, WSL2)
@@ -752,7 +754,9 @@ This script will:
 4. Install and configure zsh with plugins
 5. Create symlinks for all dotfiles
 6. Configure terminal and shell integration
-7. Verify the installation (if --verify is used)
+7. Check and install missing tools automatically
+8. Update system packages (if --update is used)
+9. Verify the installation (if --verify is used)
 
 Supported platforms:
 - macOS (with Homebrew)
@@ -901,9 +905,45 @@ install_additional_tools() {
     fi
 }
 
-# Function to install missing tools via cargo and other methods
-install_missing_cargo_tools() {
-    log_info "Installing missing tools via cargo and other methods..."
+# Function to update system packages
+update_system_packages() {
+    log_info "Updating system packages..."
+    
+    if $IS_MACOS; then
+        if command_exists brew; then
+            log_info "Updating Homebrew packages..."
+            brew update
+            log_success "Homebrew packages updated"
+        else
+            log_warning "Homebrew not found, skipping system update"
+        fi
+    else
+        # Linux package manager updates
+        if command_exists apt; then
+            log_info "Updating apt packages..."
+            sudo apt update && sudo apt upgrade -y
+            log_success "apt packages updated"
+        elif command_exists yum; then
+            log_info "Updating yum packages..."
+            sudo yum update -y
+            log_success "yum packages updated"
+        elif command_exists dnf; then
+            log_info "Updating dnf packages..."
+            sudo dnf update -y
+            log_success "dnf packages updated"
+        elif command_exists pacman; then
+            log_info "Updating pacman packages..."
+            sudo pacman -Syu --noconfirm
+            log_success "pacman packages updated"
+        else
+            log_warning "No supported package manager found for system update"
+        fi
+    fi
+}
+
+# Function to check and install missing tools (consolidated)
+check_and_install_missing_tools() {
+    log_info "Checking and installing missing tools..."
     
     # Source asdf for current session to get cargo
     if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
@@ -1096,6 +1136,7 @@ main_installation() {
     local skip_dotfiles=false
     local dry_run_mode=false
     local verify_mode=false
+    local update_system=false
     
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
@@ -1118,6 +1159,10 @@ main_installation() {
                 ;;
             --verify)
                 verify_mode=true
+                shift
+                ;;
+            --update)
+                update_system=true
                 shift
                 ;;
             *)
@@ -1165,13 +1210,20 @@ main_installation() {
         log_info ""
         log_info "=== Installing Additional Tools ==="
         install_additional_tools
-        install_missing_cargo_tools
+        check_and_install_missing_tools
         setup_fzf
         
         log_info ""
         log_info "=== Configuring Environment ==="
         fix_terminal_config
         setup_shell_integration
+    fi
+    
+    # Update system packages if requested
+    if $update_system; then
+        log_info ""
+        log_info "=== Updating System Packages ==="
+        update_system_packages
     fi
     
     if ! $skip_dotfiles; then

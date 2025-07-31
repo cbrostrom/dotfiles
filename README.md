@@ -44,10 +44,7 @@ If you encounter zsh prompt issues on Debian/Ubuntu systems:
 If you have missing tools after installation:
 
 ```bash
-# Install only missing tools
-./install-missing.sh
-
-# Or run the full installer again
+# Run the full installer again (automatically checks for missing tools)
 ./install.sh --verify
 ```
 
@@ -75,14 +72,14 @@ The menu provides these options:
 1. **Full installation** - Install everything with verification
 2. **Install dotfiles only** - Only install dotfiles (skip dependencies)
 3. **Install dependencies only** - Only install dependencies (skip dotfiles)
-4. **Uninstall dotfiles** - Remove all dotfiles and configurations
-5. **Check status** - Show status of all components
-6. **Update dotfiles** - Pull latest changes from git
-7. **Preview installation** - Show what would be installed (dry run)
-8. **Show help** - Show help message
-9. **Reload shell configuration** - Reload zsh configuration
-10. **Force update symlinks** - Force recreation of all symlinks
-11. **Install missing tools** - Install only missing tools
+4. **Full installation + system update** - Install everything + update system packages
+5. **Uninstall dotfiles** - Remove all dotfiles and configurations
+6. **Check status** - Show status of all components
+7. **Update dotfiles** - Pull latest changes from git
+8. **Preview installation** - Show what would be installed (dry run)
+9. **Show help** - Show help message
+10. **Reload shell configuration** - Reload zsh configuration
+11. **Force update symlinks** - Force recreation of all symlinks
 12. **Exit** - Exit the menu
 
 ## 📚 Documentation
@@ -176,9 +173,6 @@ The menu provides these options:
 
 # Preview what would be installed
 ./install.sh --dry-run
-
-# Install only missing tools (after partial installation)
-./install-missing.sh
 
 # Interactive menu (uses fzf with whiptail fallback)
 ./dotfiles.sh
