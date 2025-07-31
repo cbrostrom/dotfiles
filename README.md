@@ -68,6 +68,12 @@ After installation, you can use the interactive menu from anywhere:
 - On Debian/Ubuntu: `sudo apt install fzf`
 - On macOS: `brew install fzf`
 
+**FZF Features:**
+- Fuzzy search (type to filter)
+- Number shortcuts (press 1-9,0 for quick access)
+- Preview windows
+- Cross-platform compatibility
+
 The menu provides these options:
 1. **Full installation** - Install everything with verification
 2. **Install dotfiles only** - Only install dotfiles (skip dependencies)

@@ -148,8 +148,8 @@ preview-files() {
     fi
 }
 
-# FZF configuration
-export FZF_DEFAULT_OPTS="--height=40% --border --preview-window=right:60% --preview='preview-files {}'"
+# FZF configuration with number shortcuts
+export FZF_DEFAULT_OPTS="--height=40% --border --preview-window=right:60% --preview='preview-files {}' --bind='1:select-item(0)' --bind='2:select-item(1)' --bind='3:select-item(2)' --bind='4:select-item(3)' --bind='5:select-item(4)' --bind='6:select-item(5)' --bind='7:select-item(6)' --bind='8:select-item(7)' --bind='9:select-item(8)' --bind='0:select-item(9)' --bind='alt-1:select-item(10)' --bind='alt-2:select-item(11)' --bind='alt-3:select-item(12)' --bind='alt-4:select-item(13)' --bind='alt-5:select-item(14)' --bind='alt-6:select-item(15)' --bind='alt-7:select-item(16)' --bind='alt-8:select-item(17)' --bind='alt-9:select-item(18)' --bind='alt-0:select-item(19)'"
 export FZF_DEFAULT_COMMAND="fd --type f --hidden --follow --exclude .git --exclude node_modules --exclude .cache"
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND="fd --type d --hidden --follow --exclude .git --exclude node_modules --exclude .cache"
@@ -213,8 +213,8 @@ alias rustlatest='asdf local rust latest'
 if command -v zoxide &>/dev/null; then
     eval "$(zoxide init zsh)"
 
-    # Optimized zoxide configuration
-    export _ZO_FZF_OPTS="--height 40% --layout=reverse --border --preview 'lsd --tree --level=2 {} 2>/dev/null || tree -C {} 2>/dev/null'"
+    # Optimized zoxide configuration with number shortcuts
+    export _ZO_FZF_OPTS="--height 40% --layout=reverse --border --preview 'lsd --tree --level=2 {} 2>/dev/null || tree -C {} 2>/dev/null' --bind='1:select-item(0)' --bind='2:select-item(1)' --bind='3:select-item(2)' --bind='4:select-item(3)' --bind='5:select-item(4)' --bind='6:select-item(5)' --bind='7:select-item(6)' --bind='8:select-item(7)' --bind='9:select-item(8)' --bind='0:select-item(9)' --bind='alt-1:select-item(10)' --bind='alt-2:select-item(11)' --bind='alt-3:select-item(12)' --bind='alt-4:select-item(13)' --bind='alt-5:select-item(14)' --bind='alt-6:select-item(15)' --bind='alt-7:select-item(16)' --bind='alt-8:select-item(17)' --bind='alt-9:select-item(18)' --bind='alt-0:select-item(19)'"
     export _ZO_ECHO=1
     export _ZO_EXCLUDE_DIRS="$HOME/.cache:$HOME/.local/share:$HOME/.npm:$HOME/.pnpm-store:$HOME/.cargo/registry"
 
