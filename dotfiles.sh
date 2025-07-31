@@ -115,24 +115,86 @@ show_fzf_menu() {
     esac
 }
 
-# Function to show whiptail menu (fallback)
+# Function to install fzf
+install_fzf() {
+    log_info "fzf not found. Installing it automatically..."
+    
+    detect_os
+    
+    if $IS_MACOS; then
+        log_info "Installing fzf via Homebrew..."
+        if command_exists brew; then
+            brew install fzf
+            log_success "fzf installed via Homebrew"
+        else
+            log_error "Homebrew not found. Please install Homebrew first:"
+            log_info "  /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+            exit 1
+        fi
+    elif $IS_LINUX; then
+        log_info "Installing fzf via package manager..."
+        
+        # Try different package managers
+        if command_exists apt; then
+            sudo apt update && sudo apt install -y fzf
+            log_success "fzf installed via apt"
+        elif command_exists yum; then
+            sudo yum install -y fzf
+            log_success "fzf installed via yum"
+        elif command_exists dnf; then
+            sudo dnf install -y fzf
+            log_success "fzf installed via dnf"
+        elif command_exists pacman; then
+            sudo pacman -S fzf
+            log_success "fzf installed via pacman"
+        else
+            log_error "No supported package manager found. Please install fzf manually:"
+            log_info "  Debian/Ubuntu: sudo apt install fzf"
+            log_info "  RHEL/CentOS: sudo yum install fzf"
+            log_info "  Fedora: sudo dnf install fzf"
+            log_info "  Arch: sudo pacman -S fzf"
+            exit 1
+        fi
+    else
+        log_error "Unsupported OS. Please install fzf manually:"
+        log_info "  Debian/Ubuntu: sudo apt install fzf"
+        log_info "  macOS: brew install fzf"
+        exit 1
+    fi
+    
+    # Wait a moment for installation to complete
+    sleep 1
+    
+    # Verify installation
+    if command_exists fzf; then
+        log_success "✓ fzf installed successfully!"
+    else
+        log_error "fzf installation may have failed. Please install it manually:"
+        log_info "  Debian/Ubuntu: sudo apt install fzf"
+        log_info "  macOS: brew install fzf"
+        exit 1
+    fi
+}
+
+# Function to show whiptail menu (improved fallback)
 show_whiptail_menu() {
+    # Use shorter menu items to avoid text splitting in whiptail
     local menu_items=(
-        "Full installation"
-        "Install dotfiles only"
-        "Install dependencies only"
-        "Uninstall dotfiles"
-        "Check status"
-        "Update dotfiles"
-        "Preview installation"
-        "Show help"
-        "Reload shell configuration"
-        "Force update symlinks"
-        "Install missing tools"
+        "Full install"
+        "Dotfiles only"
+        "Deps only"
+        "Uninstall"
+        "Status"
+        "Update"
+        "Preview"
+        "Help"
+        "Reload config"
+        "Force symlinks"
+        "Install tools"
         "Exit"
     )
     
-    # Create menu string for whiptail
+    # Create menu string for whiptail with shorter items
     local menu_string=""
     local counter=1
     for item in "${menu_items[@]}"; do
@@ -140,8 +202,8 @@ show_whiptail_menu() {
         ((counter++))
     done
     
-    # Show menu with whiptail
-    local selection=$(whiptail --title "Dotfiles Manager" --menu "Select an option:" 20 60 12 $menu_string 3>&1 1>&2 2>&3)
+    # Show menu with whiptail - use smaller width to prevent splitting
+    local selection=$(whiptail --title "Dotfiles Manager" --menu "Select an option:" 20 50 12 $menu_string 3>&1 1>&2 2>&3)
     
     # Handle empty selection (user pressed Cancel or escaped)
     if [[ -z "$selection" ]]; then
@@ -154,46 +216,46 @@ show_whiptail_menu() {
     
     # Handle selection
     case "$selected_item" in
-        "Full installation")
+        "Full install")
             log_info "Running: Full installation"
             run_install
             ;;
-        "Install dotfiles only")
+        "Dotfiles only")
             log_info "Running: Install dotfiles only"
             run_install "--skip-deps"
             ;;
-        "Install dependencies only")
+        "Deps only")
             log_info "Running: Install dependencies only"
             run_install "--skip-dotfiles"
             ;;
-        "Uninstall dotfiles")
+        "Uninstall")
             log_info "Running: Uninstall dotfiles"
             run_uninstall
             ;;
-        "Check status")
+        "Status")
             log_info "Running: Check status"
             run_status
             ;;
-        "Update dotfiles")
+        "Update")
             log_info "Running: Update dotfiles"
             update_dotfiles
             ;;
-        "Preview installation")
+        "Preview")
             log_info "Running: Preview installation"
             run_install "--dry-run"
             ;;
-        "Show help")
+        "Help")
             show_help
             ;;
-        "Reload shell configuration")
+        "Reload config")
             log_info "Running: Reload shell configuration"
             reload_shell_config
             ;;
-        "Force update symlinks")
+        "Force symlinks")
             log_info "Running: Force update symlinks"
             run_force_update_symlinks
             ;;
-        "Install missing tools")
+        "Install tools")
             log_info "Running: Install missing tools"
             run_install_missing_tools
             ;;
@@ -416,7 +478,20 @@ main() {
     # Show system info
     show_system_info
     
-    # Try fzf first, then whiptail as fallback
+    # Check if fzf is available, offer to install if not
+    if ! command_exists fzf; then
+        log_warning "fzf is not installed."
+        echo
+        log_info "Would you like to install fzf automatically? (y/N)"
+        read -p "Press 'y' to auto-install, or any other key to continue with fallback: " -n 1 -r
+        echo
+        
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            install_fzf
+        fi
+    fi
+    
+    # Try fzf first (preferred), then whiptail as fallback
     if command_exists fzf; then
         log_info "Using fzf for menu selection"
         show_fzf_menu
