@@ -56,15 +56,33 @@ If you have missing tools after installation:
 After installation, you can use the interactive menu from anywhere:
 
 ```bash
-# Show the menu (requires dotfiles alias)
-dotfiles
+# Show the menu (uses smenu by default)
+./dotfiles.sh
 
-# Or run specific commands
-dotfiles install
-dotfiles status
-dotfiles update
-dotfiles uninstall
+# Or run specific commands directly
+./install.sh --verify
+./status.sh
+./uninstall.sh
 ```
+
+**Requirements for the menu system:**
+- `smenu` package (automatically installed via `install.sh`)
+- On Debian/Ubuntu: `sudo apt install smenu`
+- On macOS: `brew install smenu`
+
+The menu provides these options:
+1. **Full installation** - Install everything with verification
+2. **Install dotfiles only** - Only install dotfiles (skip dependencies)
+3. **Install dependencies only** - Only install dependencies (skip dotfiles)
+4. **Uninstall dotfiles** - Remove all dotfiles and configurations
+5. **Check status** - Show status of all components
+6. **Update dotfiles** - Pull latest changes from git
+7. **Preview installation** - Show what would be installed (dry run)
+8. **Show help** - Show help message
+9. **Reload shell configuration** - Reload zsh configuration
+10. **Force update symlinks** - Force recreation of all symlinks
+11. **Install missing tools** - Install only missing tools
+12. **Exit** - Exit the menu
 
 ## 📚 Documentation
 
@@ -143,6 +161,9 @@ dotfiles uninstall
 
 # Install only missing tools (after partial installation)
 ./install-missing.sh
+
+# Interactive menu (uses smenu)
+./dotfiles.sh
 
 # Fix zsh prompt issues specifically
 ./fix-zsh.sh fix

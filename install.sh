@@ -151,7 +151,7 @@ install_basic_packages() {
     
     if $IS_MACOS; then
         # macOS packages
-        local packages=("git" "curl" "wget" "zsh")
+        local packages=("git" "curl" "wget" "zsh" "smenu")
         for package in "${packages[@]}"; do
             install_package "$package" "$package"
         done
@@ -164,6 +164,7 @@ install_basic_packages() {
             "libxml2-dev" "libxmlsec1-dev" "libffi-dev" "liblzma-dev"
             "python3" "python3-pip" "nodejs" "npm"
             "unzip" "zip" "ca-certificates" "gnupg" "lsb-release"
+            "smenu"
         )
         
         # Update package list first
