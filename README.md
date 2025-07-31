@@ -41,6 +41,16 @@ If you encounter zsh prompt issues on Debian/Ubuntu systems:
 ./install.sh --verify
 ```
 
+If you encounter direnv issues (especially on WSL):
+
+```bash
+# Fix direnv issues
+./fix-direnv.sh
+
+# Or run the full installer with verification
+./install.sh --verify
+```
+
 If you have missing tools after installation:
 
 ```bash

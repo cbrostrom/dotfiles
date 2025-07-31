@@ -343,6 +343,13 @@ setup_asdf() {
         asdf global direnv latest
         log_success "direnv plugin installed"
     fi
+    
+    # Reshim asdf to ensure direnv is available
+    if command_exists asdf; then
+        log_info "Reshimming asdf to ensure all tools are available..."
+        asdf reshim
+        log_success "asdf reshimmed successfully"
+    fi
 
     if [[ $plugins_installed -eq $plugins_total ]]; then
         log_success "✓ All asdf plugins already installed"
@@ -557,6 +564,16 @@ setup_shell_integration() {
         ((configs_added++))
     fi
     ((configs_total++))
+    
+    # Fix direnv issues on WSL
+    if $IS_WSL; then
+        log_info "Fixing direnv for WSL..."
+        if command_exists asdf; then
+            # Reshim to ensure direnv is available
+            asdf reshim direnv
+            log_success "direnv reshimmed for WSL"
+        fi
+    fi
     
     if [[ $configs_added -eq 0 ]]; then
         log_success "✓ Shell integration already configured"
