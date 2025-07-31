@@ -68,6 +68,8 @@ fi
 if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
     # Git installation
     . "$HOME/.asdf/asdf.sh"
+    # Ensure asdf shims are in PATH (prioritize over system tools)
+    export PATH="$HOME/.asdf/shims:$PATH"
     # Load zsh completions for asdf (not bash completions)
     if [[ -f "$HOME/.asdf/completions/asdf.zsh" ]]; then
         . "$HOME/.asdf/completions/asdf.zsh"

@@ -133,6 +133,19 @@ fix_direnv() {
         source "$HOME/.zshrc"
     fi
     
+    # General PATH fix for asdf shims priority
+    log_info "Ensuring asdf shims take priority over system tools..."
+    if ! grep -q "export PATH.*asdf/shims.*PATH" "$HOME/.zshrc"; then
+        log_info "Adding asdf shims PATH priority to .zshrc..."
+        # Find the asdf section and add PATH export
+        sed -i '/# Load asdf if available/,/fi$/ {
+            /\. "$HOME\/\.asdf\/asdf\.sh"/a\
+    # Ensure asdf shims are in PATH (prioritize over system tools)\
+    export PATH="$HOME/.asdf/shims:$PATH"
+        }' "$HOME/.zshrc"
+        log_success "asdf shims PATH priority added to .zshrc"
+    fi
+    
     log_success "direnv fix complete!"
     log_info "If you still have issues, try:"
     log_info "  1. Restart your terminal"
