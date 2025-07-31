@@ -56,7 +56,7 @@ If you have missing tools after installation:
 After installation, you can use the interactive menu from anywhere:
 
 ```bash
-# Show the menu (uses smenu by default)
+# Show the menu (uses fzf by default, whiptail as fallback)
 ./dotfiles.sh
 
 # Or run specific commands directly
@@ -66,9 +66,10 @@ After installation, you can use the interactive menu from anywhere:
 ```
 
 **Requirements for the menu system:**
-- `smenu` package (automatically installed via `install.sh`)
-- On Debian/Ubuntu: `sudo apt install smenu`
-- On macOS: `brew install smenu`
+- `fzf` (automatically installed via `install.sh`, preferred)
+- `whiptail` (fallback, usually pre-installed on most systems)
+- On Debian/Ubuntu: `sudo apt install fzf`
+- On macOS: `brew install fzf`
 
 The menu provides these options:
 1. **Full installation** - Install everything with verification
@@ -100,8 +101,25 @@ The menu provides these options:
 - **lsd** (modern ls replacement)
 - **bat** (modern cat replacement)
 - **ripgrep** (fast grep replacement)
+- **fd-find** (modern find replacement)
 - **fzf** (fuzzy finder with visual completion)
 - **direnv** (environment switching)
+
+### System Tools
+
+- **procs** (modern ps replacement)
+- **bottom** (modern top replacement)
+- **zoxide** (smart cd replacement)
+- **du-dust** (modern du replacement)
+- **tealdeer** (tldr replacement)
+- **sd** (modern sed replacement)
+
+### Git Tools
+
+- **git-delta** (enhanced git diff)
+- **lazygit** (git TUI)
+- **git-fuzzy** (git fuzzy finder)
+- **ripgrep-all** (search in all files)
 
 ### Development Tools
 
@@ -162,7 +180,7 @@ The menu provides these options:
 # Install only missing tools (after partial installation)
 ./install-missing.sh
 
-# Interactive menu (uses smenu)
+# Interactive menu (uses fzf with whiptail fallback)
 ./dotfiles.sh
 
 # Fix zsh prompt issues specifically

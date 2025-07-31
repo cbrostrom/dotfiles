@@ -901,16 +901,16 @@ install_additional_tools() {
     fi
 }
 
-# Function to install missing tools via cargo
+# Function to install missing tools via cargo and other methods
 install_missing_cargo_tools() {
-    log_info "Installing missing tools via cargo..."
+    log_info "Installing missing tools via cargo and other methods..."
     
     # Source asdf for current session to get cargo
     if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
         source "$HOME/.asdf/asdf.sh"
     fi
     
-    # List of tools to check and install
+    # Rust tools that can be installed via cargo
     local cargo_tools=(
         "starship"      # Prompt
         "lsd"          # ls replacement
@@ -922,16 +922,21 @@ install_missing_cargo_tools() {
         "zoxide"       # cd replacement
         "du-dust"      # du replacement
         "tealdeer"     # tldr replacement
-        "ripgrep-all"  # search in all files
         "git-delta"    # git diff enhancement
-        "git-fuzzy"    # git fuzzy finder
-        "lazygit"      # git TUI
         "sd"           # sed replacement
     )
     
-    local tools_installed=0
-    local tools_total=${#cargo_tools[@]}
+    # Non-Rust tools that need different installation methods
+    local non_rust_tools=(
+        "lazygit"      # git TUI
+        "ripgrep-all"  # search in all files (package manager)
+        "git-fuzzy"    # git fuzzy finder (git clone)
+    )
     
+    local tools_installed=0
+    local tools_total=$((${#cargo_tools[@]} + ${#non_rust_tools[@]}))
+    
+    # Install Rust tools via cargo
     for tool in "${cargo_tools[@]}"; do
         if command_exists "$tool"; then
             log_success "✓ $tool already installed"
@@ -946,10 +951,142 @@ install_missing_cargo_tools() {
         fi
     done
     
+    # Install non-Rust tools
+    for tool in "${non_rust_tools[@]}"; do
+        if command_exists "$tool"; then
+            log_success "✓ $tool already installed"
+            ((tools_installed++))
+        else
+            log_info "Installing $tool..."
+            case "$tool" in
+                "lazygit")
+                    install_lazygit
+                    ;;
+                "ripgrep-all")
+                    install_ripgrep_all
+                    ;;
+                "git-fuzzy")
+                    install_git_fuzzy
+                    ;;
+            esac
+        fi
+    done
+    
     if [[ $tools_installed -eq $tools_total ]]; then
-        log_success "✓ All cargo tools already installed"
+        log_success "✓ All tools already installed"
     else
-        log_success "Cargo tools installation complete"
+        log_success "Tools installation complete"
+    fi
+}
+
+# Function to install lazygit
+install_lazygit() {
+    log_info "Installing lazygit..."
+    
+    if $IS_MACOS; then
+        if command_exists brew; then
+            brew install lazygit
+            log_success "lazygit installed via Homebrew"
+        else
+            log_error "Homebrew not found. Please install Homebrew first."
+            return 1
+        fi
+    else
+        # Try package manager first
+        if command_exists apt; then
+            sudo apt update && sudo apt install -y lazygit
+            log_success "lazygit installed via apt"
+        elif command_exists yum; then
+            sudo yum install -y lazygit
+            log_success "lazygit installed via yum"
+        elif command_exists dnf; then
+            sudo dnf install -y lazygit
+            log_success "lazygit installed via dnf"
+        elif command_exists pacman; then
+            sudo pacman -S lazygit
+            log_success "lazygit installed via pacman"
+        else
+            # Fallback to Go install
+            if command_exists go; then
+                go install github.com/jesseduffield/lazygit@latest
+                log_success "lazygit installed via Go"
+            else
+                log_error "No package manager or Go found. Please install lazygit manually."
+                return 1
+            fi
+        fi
+    fi
+}
+
+# Function to install ripgrep-all
+install_ripgrep_all() {
+    log_info "Installing ripgrep-all..."
+    
+    if $IS_MACOS; then
+        if command_exists brew; then
+            brew install ripgrep-all
+            log_success "ripgrep-all installed via Homebrew"
+        else
+            log_error "Homebrew not found. Please install Homebrew first."
+            return 1
+        fi
+    else
+        # Try package manager first
+        if command_exists apt; then
+            sudo apt update && sudo apt install -y ripgrep-all
+            log_success "ripgrep-all installed via apt"
+        elif command_exists yum; then
+            sudo yum install -y ripgrep-all
+            log_success "ripgrep-all installed via yum"
+        elif command_exists dnf; then
+            sudo dnf install -y ripgrep-all
+            log_success "ripgrep-all installed via dnf"
+        elif command_exists pacman; then
+            sudo pacman -S ripgrep-all
+            log_success "ripgrep-all installed via pacman"
+        else
+            # Fallback to cargo install (correct name)
+            if command_exists cargo; then
+                cargo install ripgrep_all
+                log_success "ripgrep-all installed via cargo"
+            else
+                log_error "No package manager or cargo found. Please install ripgrep-all manually."
+                return 1
+            fi
+        fi
+    fi
+}
+
+# Function to install git-fuzzy
+install_git_fuzzy() {
+    log_info "Installing git-fuzzy..."
+    
+    local git_fuzzy_dir="$HOME/.git-fuzzy"
+    
+    # Remove existing installation if it exists
+    if [[ -d "$git_fuzzy_dir" ]]; then
+        log_info "Removing existing git-fuzzy installation..."
+        rm -rf "$git_fuzzy_dir"
+    fi
+    
+    # Clone and install git-fuzzy
+    if git clone https://github.com/bigH/git-fuzzy.git "$git_fuzzy_dir" 2>/dev/null; then
+        cd "$git_fuzzy_dir"
+        if make install 2>/dev/null; then
+            log_success "git-fuzzy installed successfully"
+            
+            # Add to PATH if not already there
+            if ! grep -q "git-fuzzy/bin" "$HOME/.zshrc" 2>/dev/null; then
+                echo 'export PATH="$HOME/.git-fuzzy/bin:$PATH"' >> "$HOME/.zshrc"
+                log_info "Added git-fuzzy to PATH in .zshrc"
+            fi
+        else
+            log_warning "Failed to build git-fuzzy, but repository cloned to $git_fuzzy_dir"
+            log_info "You can manually build it by running: cd $git_fuzzy_dir && make install"
+        fi
+    else
+        log_error "Failed to clone git-fuzzy repository"
+        return 1
     fi
 }
 
