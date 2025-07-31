@@ -28,8 +28,8 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Function to show smenu menu
-show_smenu_menu() {
+# Function to show fzf menu
+show_fzf_menu() {
     local menu_items=(
         "Full installation"
         "Install dotfiles only"
@@ -51,10 +51,10 @@ show_smenu_menu() {
         menu_string+="$item\n"
     done
     
-    # Show menu with smenu
-    local selection=$(echo -e "$menu_string" | smenu -n12 -c -b -g -s /Full)
+    # Show menu with fzf - much better than smenu
+    local selection=$(echo -e "$menu_string" | fzf --height 40% --reverse --border --prompt "Select option: ")
     
-    # Handle empty selection (user pressed 'q' or escaped)
+    # Handle empty selection (user pressed Ctrl+C or escaped)
     if [[ -z "$selection" ]]; then
         log_info "No selection made. Exiting..."
         exit 0
@@ -111,6 +111,98 @@ show_smenu_menu() {
             ;;
         *)
             log_error "Unknown selection: '$selection'"
+            ;;
+    esac
+}
+
+# Function to show whiptail menu (fallback)
+show_whiptail_menu() {
+    local menu_items=(
+        "Full installation"
+        "Install dotfiles only"
+        "Install dependencies only"
+        "Uninstall dotfiles"
+        "Check status"
+        "Update dotfiles"
+        "Preview installation"
+        "Show help"
+        "Reload shell configuration"
+        "Force update symlinks"
+        "Install missing tools"
+        "Exit"
+    )
+    
+    # Create menu string for whiptail
+    local menu_string=""
+    local counter=1
+    for item in "${menu_items[@]}"; do
+        menu_string+="$counter \"$item\" "
+        ((counter++))
+    done
+    
+    # Show menu with whiptail
+    local selection=$(whiptail --title "Dotfiles Manager" --menu "Select an option:" 20 60 12 $menu_string 3>&1 1>&2 2>&3)
+    
+    # Handle empty selection (user pressed Cancel or escaped)
+    if [[ -z "$selection" ]]; then
+        log_info "No selection made. Exiting..."
+        exit 0
+    fi
+    
+    # Convert selection number to menu item
+    local selected_item="${menu_items[$((selection-1))]}"
+    
+    # Handle selection
+    case "$selected_item" in
+        "Full installation")
+            log_info "Running: Full installation"
+            run_install
+            ;;
+        "Install dotfiles only")
+            log_info "Running: Install dotfiles only"
+            run_install "--skip-deps"
+            ;;
+        "Install dependencies only")
+            log_info "Running: Install dependencies only"
+            run_install "--skip-dotfiles"
+            ;;
+        "Uninstall dotfiles")
+            log_info "Running: Uninstall dotfiles"
+            run_uninstall
+            ;;
+        "Check status")
+            log_info "Running: Check status"
+            run_status
+            ;;
+        "Update dotfiles")
+            log_info "Running: Update dotfiles"
+            update_dotfiles
+            ;;
+        "Preview installation")
+            log_info "Running: Preview installation"
+            run_install "--dry-run"
+            ;;
+        "Show help")
+            show_help
+            ;;
+        "Reload shell configuration")
+            log_info "Running: Reload shell configuration"
+            reload_shell_config
+            ;;
+        "Force update symlinks")
+            log_info "Running: Force update symlinks"
+            run_force_update_symlinks
+            ;;
+        "Install missing tools")
+            log_info "Running: Install missing tools"
+            run_install_missing_tools
+            ;;
+        "Exit")
+            log_info "Exiting..."
+            exit 0
+            ;;
+        *)
+            log_error "Unknown selection: '$selected_item'"
             ;;
     esac
 }
@@ -256,7 +348,7 @@ show_help() {
     cat <<'EOF'
 Dotfiles Manager
 
-This script provides an interactive menu for managing your dotfiles using smenu.
+This script provides an interactive menu for managing your dotfiles using fzf (with whiptail fallback).
 
 Available options:
 1. Full installation - Install everything with verification
@@ -276,8 +368,13 @@ Usage:
   ./dotfiles.sh
 
 Requirements:
-  - smenu (installed via package manager)
+  - fzf (preferred) or whiptail (fallback)
   - All dotfiles scripts in the same directory
+
+Features:
+  - Fuzzy search with fzf
+  - Fallback to whiptail if fzf not available
+  - Full text menu items (no splitting issues)
 
 EOF
 }
@@ -312,100 +409,24 @@ detect_os() {
     fi
 }
 
-# Function to install smenu
-install_smenu() {
-    log_info "smenu not found. Installing it automatically..."
-    
-    detect_os
-    
-    if $IS_MACOS; then
-        log_info "Installing smenu via Homebrew..."
-        if command_exists brew; then
-            brew install smenu
-            log_success "smenu installed via Homebrew"
-        else
-            log_error "Homebrew not found. Please install Homebrew first:"
-            log_info "  /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
-            exit 1
-        fi
-    elif $IS_LINUX; then
-        log_info "Installing smenu via package manager..."
-        
-        # Try different package managers
-        if command_exists apt; then
-            sudo apt update && sudo apt install -y smenu
-            log_success "smenu installed via apt"
-        elif command_exists yum; then
-            sudo yum install -y smenu
-            log_success "smenu installed via yum"
-        elif command_exists dnf; then
-            sudo dnf install -y smenu
-            log_success "smenu installed via dnf"
-        elif command_exists pacman; then
-            sudo pacman -S smenu
-            log_success "smenu installed via pacman"
-        else
-            log_error "No supported package manager found. Please install smenu manually:"
-            log_info "  Debian/Ubuntu: sudo apt install smenu"
-            log_info "  RHEL/CentOS: sudo yum install smenu"
-            log_info "  Fedora: sudo dnf install smenu"
-            log_info "  Arch: sudo pacman -S smenu"
-            exit 1
-        fi
-    else
-        log_error "Unsupported OS. Please install smenu manually:"
-        log_info "  Debian/Ubuntu: sudo apt install smenu"
-        log_info "  macOS: brew install smenu"
-        exit 1
-    fi
-    
-    # Wait a moment for installation to complete
-    sleep 1
-    
-    # Verify installation by checking multiple possible locations
-    local smenu_found=false
-    
-    # Check common locations
-    for path in "/usr/bin/smenu" "/usr/local/bin/smenu" "/opt/homebrew/bin/smenu" "/usr/local/bin/smenu"; do
-        if [[ -x "$path" ]]; then
-            log_success "✓ smenu found at: $path"
-            smenu_found=true
-            break
-        fi
-    done
-    
-    # Also check if it's in PATH
-    if command_exists smenu; then
-        log_success "✓ smenu is available in PATH"
-        smenu_found=true
-    fi
-    
-    if $smenu_found; then
-        log_success "✓ smenu installation successful!"
-    else
-        log_error "smenu installation may have failed. Please install it manually:"
-        log_info "  Debian/Ubuntu: sudo apt install smenu"
-        log_info "  macOS: brew install smenu"
-        exit 1
-    fi
-}
+
 
 # Main function
 main() {
-    # Check if smenu is available
-    if ! command_exists smenu; then
-        log_warning "smenu is not installed."
+    # Check if fzf is available
+    if ! command_exists fzf; then
+        log_warning "fzf is not installed."
         echo
-        log_info "Would you like to install smenu automatically? (y/N)"
+        log_info "Would you like to install fzf automatically? (y/N)"
         read -p "Press 'y' to auto-install, or any other key to exit: " -n 1 -r
         echo
         
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            install_smenu
+            install_fzf
         else
-            log_info "Please install smenu manually:"
-            log_info "  Debian/Ubuntu: sudo apt install smenu"
-            log_info "  macOS: brew install smenu"
+            log_info "Please install fzf manually:"
+            log_info "  Debian/Ubuntu: sudo apt install fzf"
+            log_info "  macOS: brew install fzf"
             exit 1
         fi
     fi
@@ -413,8 +434,20 @@ main() {
     # Show system info
     show_system_info
     
-    # Show menu
-    show_smenu_menu
+    # Try fzf first, then whiptail as fallback
+    if command_exists fzf; then
+        log_info "Using fzf for menu selection"
+        show_fzf_menu
+    elif command_exists whiptail; then
+        log_info "Using whiptail for menu selection (fzf not available)"
+        show_whiptail_menu
+    else
+        log_error "Neither fzf nor whiptail is available. Please install one:"
+        log_info "  Debian/Ubuntu: sudo apt install fzf"
+        log_info "  macOS: brew install fzf"
+        log_info "  Or whiptail is usually pre-installed on most systems"
+        exit 1
+    fi
 }
 
 # Run main function
