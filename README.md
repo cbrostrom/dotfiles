@@ -24,6 +24,7 @@ That's it! The installer will:
 - Configure your shell with plugins
 - Create symlinks for all dotfiles
 - Set zsh as your default shell
+- Install fnm for Node.js with .nvmrc support
 - Verify the installation (with `--verify` flag)
 
 ## 🔧 Troubleshooting
@@ -73,17 +74,20 @@ After installation, you can use the interactive menu from anywhere:
 ```
 
 **Requirements for the menu system:**
+
 - `fzf` (automatically installed via `install.sh`, preferred)
 - `whiptail` (fallback, usually pre-installed on most systems)
 - On Debian/Ubuntu: `sudo apt install fzf`
 - On macOS: `brew install fzf`
 
 **FZF Features:**
+
 - Fuzzy search (type to filter)
 - Preview windows
 - Cross-platform compatibility
 
 The menu provides these options:
+
 1. **Full installation** - Install everything with verification
 2. **Install dotfiles only** - Only install dotfiles (skip dependencies)
 3. **Install dependencies only** - Only install dependencies (skip dotfiles)
@@ -202,25 +206,92 @@ The menu provides these options:
 ## 🆕 What's New in v2.0
 
 ### Enhanced Installation
+
 - **Better dependency management**: More comprehensive package lists for Debian/Ubuntu
 - **Improved zsh setup**: Proper shell detection and configuration
 - **Installation verification**: New `--verify` flag to check setup
 - **Enhanced error handling**: Better detection and reporting of issues
 
+### Node.js Management
+
+- **fnm (Fast Node Manager)**: Replaced asdf for Node.js with better .nvmrc support
+- **Automatic version switching**: Automatically switches Node.js versions based on .nvmrc files
+- **Faster performance**: fnm is significantly faster than nvm and asdf for Node.js
+- **Migration support**: Migration script to transition from asdf to fnm
+
 ### New Tools
+
 - **fix-zsh.sh**: Dedicated script for fixing zsh prompt issues
+- **migrate-to-fnm.sh**: Migration script for transitioning to fnm
 - **Status checking**: Better verification of installation components
 - **Cross-platform improvements**: Better support for Debian 12 and other Linux distributions
 
 ### Bug Fixes
+
 - Fixed zsh prompt issues on Debian systems
 - Improved symlink creation with relative paths
 - Better package manager detection
 - Enhanced terminal configuration
 
+## 🟢 Node.js Management with fnm
+
+Your dotfiles now use **fnm** (Fast Node Manager) for Node.js version management, providing better `.nvmrc` support and faster performance.
+
+### Basic Usage
+
+```bash
+# Install latest LTS
+fnm install --lts
+
+# Install specific version
+fnm install 18.17.0
+
+# Use specific version
+fnm use 18.17.0
+
+# Set default version
+fnm default 18.17.0
+
+# List installed versions
+fnm list
+```
+
+**Note**: For compatibility, `nvm` is aliased to `fnm`, so you can use either command:
+
+```bash
+nvm install --lts    # Same as fnm install --lts
+nvm use 18.17.0      # Same as fnm use 18.17.0
+```
+
+### .nvmrc Support
+
+Create a `.nvmrc` file in your project:
+
+```bash
+echo "18.17.0" > .nvmrc
+```
+
+When you enter the directory, fnm automatically switches to the specified version:
+
+```bash
+cd my-project  # Automatically switches to Node.js 18.17.0
+node --version # v18.17.0
+```
+
+### Migration from asdf
+
+If you're migrating from asdf, use the migration script:
+
+```bash
+./migrate-to-fnm.sh
+```
+
+For more details, see [docs/FNM-SETUP.md](docs/FNM-SETUP.md).
+
 ## 🐛 Common Issues & Solutions
 
 ### Zsh Prompt Not Working
+
 ```bash
 # Check if zsh is properly configured
 ./fix-zsh.sh status
@@ -233,6 +304,7 @@ The menu provides these options:
 ```
 
 ### Missing Dependencies
+
 ```bash
 # Install only dependencies
 ./install.sh --skip-dotfiles
@@ -242,6 +314,7 @@ The menu provides these options:
 ```
 
 ### Permission Issues
+
 ```bash
 # Make scripts executable
 chmod +x *.sh

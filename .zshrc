@@ -111,7 +111,7 @@ if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
         OMZP::git \
         OMZP::npm
 
-    # Note: NVM replaced by asdf for Node.js management
+    # Note: Node.js managed by fnm (Fast Node Manager) for better .nvmrc support
 
     # Load fzf integration
     zinit wait lucid for \
@@ -203,6 +203,14 @@ fi
 # =============================================================================
 # ENVIRONMENT TOOLS
 # =============================================================================
+# fnm (Fast Node Manager) for Node.js with .nvmrc support
+if command -v fnm &>/dev/null; then
+    eval "$(fnm env --use-on-cd)"
+    
+    # Alias fnm as nvm for compatibility
+    alias nvm='fnm'
+fi
+
 # Direnv for project-specific env vars
 if command -v direnv &>/dev/null; then
     eval "$(direnv hook zsh)"

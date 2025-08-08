@@ -133,12 +133,13 @@ main_status() {
     echo
     log_info "=== Development Tools ==="
     
-                    check_tool "node" "Node.js (via asdf)"
-                check_tool "npm" "npm"
-                check_tool "go" "Go (via asdf)"
-                check_tool "cargo" "Rust/Cargo (via asdf)"
-                check_tool "asdf" "asdf version manager"
-                check_tool "python" "Python (via asdf)"
+    check_tool "node" "Node.js (via fnm)"
+    check_tool "npm" "npm"
+    check_tool "go" "Go (via asdf)"
+    check_tool "cargo" "Rust/Cargo (via asdf)"
+    check_tool "fnm" "fnm (Fast Node Manager)"
+    check_tool "asdf" "asdf version manager"
+    check_tool "python" "Python (via asdf)"
     
     echo
     log_info "=== Additional Tools ==="
@@ -155,17 +156,28 @@ main_status() {
     echo
     log_info "=== Directories ==="
     
-                    # Check asdf directory (only if asdf is installed)
-                if command_exists asdf; then
-                    # Check if it's a git installation
-                    if [[ -d "$HOME/.asdf" ]]; then
-                        check_directory "$HOME/.asdf" "asdf directory (git installation)"
-                    else
-                        log_info "ℹ asdf directory: not present (installed via Homebrew)"
-                    fi
-                else
-                    log_warning "⚠ asdf directory: not checked (asdf not installed)"
-                fi
+    # Check fnm directory (only if fnm is installed)
+    if command_exists fnm; then
+        if [[ -d "$HOME/.local/share/fnm" ]]; then
+            check_directory "$HOME/.local/share/fnm" "fnm directory"
+        else
+            log_warning "⚠ fnm directory: not found"
+        fi
+    else
+        log_warning "⚠ fnm directory: not checked (fnm not installed)"
+    fi
+    
+    # Check asdf directory (only if asdf is installed)
+    if command_exists asdf; then
+        # Check if it's a git installation
+        if [[ -d "$HOME/.asdf" ]]; then
+            check_directory "$HOME/.asdf" "asdf directory (git installation)"
+        else
+            log_info "ℹ asdf directory: not present (installed via Homebrew)"
+        fi
+    else
+        log_warning "⚠ asdf directory: not checked (asdf not installed)"
+    fi
                 
                 # Check Rust/Cargo directory (only if Rust is installed)
                 if command_exists cargo; then

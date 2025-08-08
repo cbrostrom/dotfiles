@@ -234,9 +234,61 @@ setup_zinit() {
     log_success "zinit installed successfully"
 }
 
-# Function to setup asdf
+# Function to setup fnm (Fast Node Manager)
+setup_fnm() {
+    log_info "Setting up fnm (Fast Node Manager) for Node.js..."
+    
+    # Check if fnm is already installed
+    if command_exists fnm; then
+        log_success "✓ fnm already installed"
+        return 0
+    fi
+    
+    # Install fnm
+    if $IS_MACOS; then
+        if command_exists brew; then
+            log_info "Installing fnm via Homebrew..."
+            brew install fnm
+        else
+            log_error "Homebrew not found. Please install Homebrew first."
+            return 1
+        fi
+    else
+        # Linux installation
+        log_info "Installing fnm via curl..."
+        curl -fsSL https://fnm.vercel.app/install | bash
+    fi
+    
+    # Source fnm for current session
+    export PATH="$HOME/.local/share/fnm:$PATH"
+    eval "$(fnm env --use-on-cd)"
+    
+    log_success "fnm installed successfully"
+}
+
+# Function to install Node.js via fnm
+install_node_fnm() {
+    log_info "Installing Node.js via fnm..."
+    
+    # Source fnm for current session
+    export PATH="$HOME/.local/share/fnm:$PATH"
+    eval "$(fnm env --use-on-cd)"
+    
+    # Install latest LTS Node.js
+    if ! command_exists node; then
+        log_info "Installing Node.js LTS..."
+        fnm install --lts
+        fnm use --lts
+        fnm default --lts
+        log_success "Node.js LTS installed and set as default"
+    else
+        log_success "✓ Node.js already installed"
+    fi
+}
+
+# Function to setup asdf (modified to exclude Node.js)
 setup_asdf() {
-    log_info "Setting up asdf version manager..."
+    log_info "Setting up asdf version manager (excluding Node.js - using fnm instead)..."
 
     # Check if asdf is already installed and working
     if command_exists asdf; then
@@ -286,21 +338,11 @@ setup_asdf() {
         return 1
     fi
 
-    # Install essential plugins (only if not already installed)
+    # Install essential plugins (excluding Node.js - using fnm instead)
     log_info "Checking asdf plugins..."
     
     local plugins_installed=0
-    local plugins_total=5
-    
-    # Node.js plugin
-    if asdf plugin list | grep -q "nodejs"; then
-        log_success "✓ nodejs plugin already installed"
-        ((plugins_installed++))
-    else
-        log_info "Installing nodejs plugin..."
-        asdf plugin add nodejs
-        log_success "nodejs plugin installed"
-    fi
+    local plugins_total=4  # Reduced from 5 since we're not using Node.js plugin
     
     # Python plugin
     if asdf plugin list | grep -q "python"; then
@@ -358,24 +400,11 @@ setup_asdf() {
     fi
 }
 
-# Function to install Node.js via asdf
+# Function to install Node.js via asdf (deprecated - use fnm instead)
 install_node() {
-    log_info "Installing Node.js via asdf..."
-    
-    # Source asdf for current session
-    if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
-        source "$HOME/.asdf/asdf.sh"
-    fi
-    
-    # Install latest LTS Node.js
-    if ! command_exists node; then
-        log_info "Installing Node.js LTS..."
-        asdf install nodejs latest:lts
-        asdf global nodejs latest:lts
-        log_success "Node.js LTS installed and set as default"
-    else
-        log_success "✓ Node.js already installed"
-    fi
+    log_info "Node.js installation now handled by fnm (Fast Node Manager)"
+    log_info "This provides better .nvmrc support and faster performance"
+    return 0
 }
 
 # Function to install Rust tools
@@ -545,6 +574,15 @@ setup_shell_integration() {
     # Add Rust exports
     if ! grep -q "source.*cargo/env" "$profile_file"; then
         echo 'source "$HOME/.cargo/env"' >> "$profile_file"
+        ((configs_added++))
+    fi
+    ((configs_total++))
+    
+    # Add fnm exports (Fast Node Manager)
+    if ! grep -q "fnm env" "$profile_file"; then
+        echo '# fnm (Fast Node Manager) for Node.js' >> "$profile_file"
+        echo 'eval "$(fnm env --use-on-cd)"' >> "$profile_file"
+        echo 'alias nvm="fnm"  # Alias for compatibility' >> "$profile_file"
         ((configs_added++))
     fi
     ((configs_total++))
@@ -801,8 +839,9 @@ dry_run() {
     log_info ""
     log_info "Would setup tools:"
     echo "  - zinit (plugin manager)"
-    echo "  - asdf (version manager with plugins)"
-    echo "  - Node.js (via asdf)"
+    echo "  - fnm (Fast Node Manager for Node.js with .nvmrc support)"
+    echo "  - asdf (version manager for Python, Go, Rust)"
+    echo "  - Node.js (via fnm with .nvmrc support)"
     echo "  - Python (via asdf)"
     echo "  - Go (via asdf)"
     echo "  - Rust (via asdf)"
@@ -1215,11 +1254,12 @@ main_installation() {
         install_basic_packages
         setup_zsh
         setup_zinit
+        setup_fnm
         setup_asdf
         
         log_info ""
         log_info "=== Installing Development Tools ==="
-        install_node
+        install_node_fnm
         install_go
         install_python
         install_rust_tools
