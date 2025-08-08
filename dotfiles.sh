@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Dotfiles Manager with smenu
-# Uses smenu for interactive menu selection
+# Dotfiles Manager with fzf
+# Uses fzf for interactive menu selection
 
 set -e
 
