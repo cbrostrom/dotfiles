@@ -11,8 +11,8 @@ killport() {
         return 1
     fi
 
-    # Split comma-separated ports properly
-    IFS=',' read -ra ports <<< "$1"
+    # Split comma-separated ports (zsh compatible)
+    local ports=(${=1//,/ })
     local killed_count=0
 
     for port in "${ports[@]}"; do
