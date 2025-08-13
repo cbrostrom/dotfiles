@@ -11,11 +11,13 @@ killport() {
         return 1
     fi
 
-    # Split comma-separated ports
-    local ports=(${1//,/ })
+    # Split comma-separated ports properly
+    IFS=',' read -ra ports <<< "$1"
     local killed_count=0
 
     for port in "${ports[@]}"; do
+        # Trim whitespace from port
+        port=$(echo "$port" | xargs)
         # Validate port number
         if ! [[ "$port" =~ ^[0-9]+$ ]] || [[ "$port" -lt 1 ]] || [[ "$port" -gt 65535 ]]; then
             echo "Invalid port: $port (must be 1-65535)"
