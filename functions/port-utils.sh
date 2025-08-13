@@ -56,6 +56,7 @@ killport() {
 
 # Alias for backward compatibility
 alias kill-by-port='killport'
+alias kp='killport'
 
 # Function to list processes using a specific port
 portinfo() {

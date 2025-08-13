@@ -408,6 +408,7 @@ alias nci='npm ci'
 alias nup='npm update'
 alias nls='npm list'
 alias nout='npm outdated'
+alias nupg='npx npm-check-updates'
 
 # =============================================================================
 # GIT ALIASES
