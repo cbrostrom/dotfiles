@@ -471,6 +471,11 @@ dotfiles() {
 # =============================================================================
 # SYSTEM TOOL ALIASES
 # =============================================================================
+# Load utility functions
+if [[ -f "$HOME/dotfiles/functions/port-utils.sh" ]]; then
+    source "$HOME/dotfiles/functions/port-utils.sh"
+fi
+
 # Process and system monitoring
 if command -v procs &>/dev/null; then
     alias ps='procs'
