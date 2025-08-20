@@ -395,8 +395,6 @@ fi
 # =============================================================================
 # Project shortcuts
 alias dev='cd ~/Projects && ls'
-alias shopify='cd ~/Projects/shopify && ls'
-alias next='cd ~/Projects/nextjs && ls'
 
 # Package manager shortcuts (npm only)
 alias ni='npm install'
@@ -590,3 +588,5 @@ if command -v fzf-tab >/dev/null 2>&1 || [[ -n "$FZF_TAB_HOME" ]]; then
     zstyle ':fzf-tab:complete:*:*' fzf-preview 'preview-files $realpath'
 fi
 # --- END FZF-TAB ---
+
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
