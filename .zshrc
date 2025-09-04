@@ -590,7 +590,13 @@ if command -v fzf-tab >/dev/null 2>&1 || [[ -n "$FZF_TAB_HOME" ]]; then
 fi
 # --- END FZF-TAB ---
 
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+if $IS_LINUX; then
+    if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    elif command -v brew >/dev/null 2>&1; then
+        eval "$(brew shellenv)"
+    fi
+fi
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc'; fi
