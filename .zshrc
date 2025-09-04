@@ -205,6 +205,7 @@ fi
 # =============================================================================
 # fnm (Fast Node Manager) for Node.js with .nvmrc support
 if command -v fnm &>/dev/null; then
+    export FNM_COREPACK_ENABLED=1
     eval "$(fnm env --use-on-cd)"
     
     # Alias fnm as nvm for compatibility
@@ -590,3 +591,9 @@ fi
 # --- END FZF-TAB ---
 
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc'; fi
