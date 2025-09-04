@@ -205,7 +205,7 @@ fi
 # =============================================================================
 # fnm (Fast Node Manager) for Node.js with .nvmrc support
 if command -v fnm &>/dev/null; then
-    export FNM_COREPACK_ENABLED=1
+    export FNM_COREPACK_ENABLED=true
     eval "$(fnm env --use-on-cd)"
     
     # Alias fnm as nvm for compatibility
