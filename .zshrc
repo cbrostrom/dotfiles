@@ -397,17 +397,39 @@ fi
 # Project shortcuts
 alias dev='cd ~/Projects && ls'
 
-# Package manager shortcuts (npm only)
-alias ni='npm install'
-alias nr='npm run'
-alias ns='npm start'
-alias nb='npm run build'
-alias nd='npm run dev'
-alias nci='npm ci'
-alias nup='npm update'
-alias nls='npm list'
-alias nout='npm outdated'
-alias nupg='npx npm-check-updates'
+# Package manager shortcuts (pnpm preferred, fallback to npm)
+__preferred_pm() {
+    if command -v pnpm >/dev/null 2>&1; then
+        echo pnpm
+    else
+        echo npm
+    fi
+}
+
+ni() { "$(__preferred_pm)" install "$@"; }
+nr() { "$(__preferred_pm)" run "$@"; }
+ns() { "$(__preferred_pm)" start "$@"; }
+nb() { "$(__preferred_pm)" run build "$@"; }
+nd() { "$(__preferred_pm)" run dev "$@"; }
+nci() {
+    local pm; pm="$(__preferred_pm)"
+    if [[ "$pm" == "pnpm" ]]; then
+        pnpm install --frozen-lockfile "$@"
+    else
+        npm ci "$@"
+    fi
+}
+nup() { "$(__preferred_pm)" update "$@"; }
+nls() { "$(__preferred_pm)" list "$@"; }
+nout() { "$(__preferred_pm)" outdated "$@"; }
+nupg() {
+    local pm; pm="$(__preferred_pm)"
+    if [[ "$pm" == "pnpm" ]]; then
+        pnpm dlx npm-check-updates "$@"
+    else
+        npx npm-check-updates "$@"
+    fi
+}
 
 # =============================================================================
 # GIT ALIASES
