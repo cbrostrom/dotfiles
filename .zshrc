@@ -265,6 +265,11 @@ alias rustlatest='asdf local rust latest'
 autoload -Uz compinit
 compinit
 
+# Local per-machine aliases (not tracked in git)
+if [[ -f "$HOME/.local-aliases" ]]; then
+  . "$HOME/.local-aliases"
+fi
+
 # Case insensitive path completion
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 zstyle ':completion:*' menu select

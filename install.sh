@@ -619,6 +619,22 @@ setup_shell_integration() {
     fi
 }
 
+# Function to create per-machine local aliases file (not in git)
+create_local_aliases() {
+  local alias_file="$HOME/.local-aliases"
+  if [[ ! -f "$alias_file" ]]; then
+    log_info "Creating local aliases file: $alias_file"
+    mkdir -p "$HOME"
+    cat > "$alias_file" <<'EOF'
+# Local per-machine aliases (not tracked in git)
+# Example:
+# alias ll='ls -la'
+EOF
+    chmod 600 "$alias_file"
+    log_success "Created $alias_file"
+  fi
+}
+
 # Function to create symlink with backup
 create_symlink() {
     local source="$1"
@@ -695,6 +711,9 @@ install_dotfiles() {
     
     # Setup completion directories and files
     setup_completion
+    
+    # Ensure local aliases file is created on this machine
+    create_local_aliases
     
     # Basic dotfiles
     create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
