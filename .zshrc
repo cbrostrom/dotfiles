@@ -36,6 +36,14 @@ else
 fi
 
 # =============================================================================
+# SSH AGENT AUTO-START
+# =============================================================================
+# Automatically start ssh-agent and load all SSH keys
+if [[ -f "$HOME/dotfiles/utils/ssh-agent-setup.sh" ]]; then
+    source "$HOME/dotfiles/utils/ssh-agent-setup.sh"
+fi
+
+# =============================================================================
 # PATH SETUP
 # =============================================================================
 # Basic PATH setup
@@ -404,11 +412,7 @@ alias dev='cd ~/Projects && ls'
 
 # Package manager shortcuts (pnpm preferred, fallback to npm)
 __preferred_pm() {
-    if command -v pnpm >/dev/null 2>&1; then
-        echo pnpm
-    else
-        echo npm
-    fi
+     echo npm
 }
 
 ni() { "$(__preferred_pm)" install "$@"; }
