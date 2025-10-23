@@ -70,41 +70,6 @@ if $IS_MACOS; then
 fi
 
 # =============================================================================
-# ASDF VERSION MANAGER
-# =============================================================================
-# Load asdf if available (handle both git and Homebrew installations)
-if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
-    # Git installation
-    . "$HOME/.asdf/asdf.sh"
-    # Ensure asdf shims are in PATH (prioritize over system tools)
-    export PATH="$HOME/.asdf/shims:$PATH"
-    # Load zsh completions for asdf (not bash completions)
-    if [[ -f "$HOME/.asdf/completions/asdf.zsh" ]]; then
-        . "$HOME/.asdf/completions/asdf.zsh"
-    elif [[ -f "$HOME/.asdf/completions/asdf.bash" ]]; then
-        # Fallback to bash completions but only if we're in zsh
-        if [[ -n "$ZSH_VERSION" ]]; then
-            # Skip bash completions in zsh to avoid 'complete' command errors
-            :
-        else
-            . "$HOME/.asdf/completions/asdf.bash"
-        fi
-    fi
-elif command -v asdf >/dev/null 2>&1; then
-    # Homebrew installation - asdf is already in PATH
-    # asdf available via Homebrew
-    :
-else
-    # asdf not found - install via Homebrew or git
-    :
-fi
-
-# Load asdf-direnv integration if direnv is available
-if command -v direnv >/dev/null 2>&1; then
-    eval "$(asdf exec direnv hook zsh)"
-fi
-
-# =============================================================================
 # PLUGIN MANAGEMENT (zinit)
 # =============================================================================
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
@@ -209,63 +174,29 @@ if command -v starship &>/dev/null; then
 fi
 
 # =============================================================================
-# ENVIRONMENT TOOLS
+# FNM (Fast Node Manager) - Primary Node.js Version Manager
 # =============================================================================
-# fnm (Fast Node Manager) for Node.js with .nvmrc support
 if command -v fnm &>/dev/null; then
     export FNM_COREPACK_ENABLED=true
     eval "$(fnm env --use-on-cd)"
     
     # Alias fnm as nvm for compatibility
     alias nvm='fnm'
+    
+    # Quick Node.js version switching aliases
+    alias node16='fnm use 16'
+    alias node18='fnm use 18'
+    alias node20='fnm use 20'
+    alias node22='fnm use 22'
+    alias nodelts='fnm use lts-latest'
+    alias nodelatest='fnm use latest'
+    
+    # fnm management aliases
+    alias fnmls='fnm list'
+    alias fnmi='fnm install'
+    alias fnmuse='fnm use'
+    alias fnmdefault='fnm default'
 fi
-
-# Direnv for project-specific env vars
-if command -v direnv &>/dev/null; then
-    eval "$(direnv hook zsh)"
-fi
-
-# =============================================================================
-# ASDF CONFIGURATION
-# =============================================================================
-# asdf aliases for common operations
-alias asdfls='asdf list'
-alias asdfuse='asdf local'
-alias asdfinstall='asdf install'
-alias asdfcurrent='asdf current'
-alias asdfglobal='asdf global'
-alias asdflocal='asdf local'
-
-# Quick Node.js version switching aliases (via asdf)
-alias node16='asdf local nodejs 16'
-alias node18='asdf local nodejs 18'
-alias node20='asdf local nodejs 20'
-alias node21='asdf local nodejs 21'
-alias nodelts='asdf local nodejs latest:lts'
-alias nodestable='asdf local nodejs latest'
-
-# Quick Python version switching aliases (via asdf)
-alias python3.9='asdf local python 3.9'
-alias python3.10='asdf local python 3.10'
-alias python3.11='asdf local python 3.11'
-alias python3.12='asdf local python 3.12'
-alias pythonlatest='asdf local python latest'
-
-# Quick Go version switching aliases (via asdf)
-alias go1.20='asdf local golang 1.20'
-alias go1.21='asdf local golang 1.21'
-alias go1.22='asdf local golang 1.22'
-alias golatest='asdf local golang latest'
-
-# Quick Rust version switching aliases (via asdf)
-alias ruststable='asdf local rust stable'
-alias rustnightly='asdf local rust nightly'
-alias rustlatest='asdf local rust latest'
-
-# =============================================================================
-# ZOXIDE SETUP (Smart Directory Navigation)
-# =============================================================================
-# Note: zoxide setup moved after zinit to avoid zi alias conflicts
 
 # =============================================================================
 # COMPLETIONS
