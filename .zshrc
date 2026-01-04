@@ -39,7 +39,8 @@ fi
 # SSH AGENT AUTO-START
 # =============================================================================
 # Automatically start ssh-agent and load all SSH keys
-if [[ -f "$HOME/dotfiles/utils/ssh-agent-setup.sh" ]]; then
+# On macOS, use built-in ssh-agent with Keychain integration instead
+if ! $IS_MACOS && [[ -f "$HOME/dotfiles/utils/ssh-agent-setup.sh" ]]; then
     source "$HOME/dotfiles/utils/ssh-agent-setup.sh"
 fi
 
@@ -108,7 +109,7 @@ if command -v zoxide &>/dev/null; then
     if alias zi >/dev/null 2>&1; then
         unalias zi
     fi
-    
+
     eval "$(zoxide init zsh)"
 
     # Optimized zoxide configuration
@@ -179,10 +180,10 @@ fi
 if command -v fnm &>/dev/null; then
     export FNM_COREPACK_ENABLED=true
     eval "$(fnm env --use-on-cd)"
-    
+
     # Alias fnm as nvm for compatibility
     alias nvm='fnm'
-    
+
     # Quick Node.js version switching aliases
     alias node16='fnm use 16'
     alias node18='fnm use 18'
@@ -190,7 +191,7 @@ if command -v fnm &>/dev/null; then
     alias node22='fnm use 22'
     alias nodelts='fnm use lts-latest'
     alias nodelatest='fnm use latest'
-    
+
     # fnm management aliases
     alias fnmls='fnm list'
     alias fnmi='fnm install'
@@ -395,7 +396,7 @@ _find_windows_user_home() {
 _setup_cursor_integration() {
     local cursor_bin=""
     local cursor_found=false
-    
+
     if $IS_WSL; then
         # WSL: Check for Cursor on Windows
         local win_home=$(_find_windows_user_home)
@@ -404,7 +405,7 @@ _setup_cursor_integration() {
             if [[ -x "$cursor_exe" ]]; then
                 cursor_bin="$cursor_exe"
                 cursor_found=true
-                
+
                 # Create wrapper functions for WSL
                 cursor() {
                     local target="."
@@ -413,11 +414,11 @@ _setup_cursor_integration() {
                     fi
                     "$cursor_bin" "$(wslpath -w "$target")" >/dev/null 2>&1 &
                 }
-                
+
                 code() {
                     cursor "$@"
                 }
-                
+
                 # Export for subshells
                 export CURSOR_PATH="$cursor_bin"
             fi
@@ -426,7 +427,7 @@ _setup_cursor_integration() {
         # macOS: Check for Cursor.app
         if [[ -d "/Applications/Cursor.app" ]]; then
             cursor_found=true
-            
+
             cursor() {
                 local target="."
                 if [[ -n "$1" ]]; then
@@ -434,7 +435,7 @@ _setup_cursor_integration() {
                 fi
                 open -a "Cursor" "$target"
             }
-            
+
             code() {
                 cursor "$@"
             }
@@ -467,7 +468,7 @@ _setup_cursor_integration() {
             }
         fi
     fi
-    
+
     # Status message (optional - comment out if you don't want startup messages)
     # if $cursor_found; then
     #     echo "✓ Cursor integration active ($OS_TYPE)"
@@ -488,7 +489,7 @@ unset -f _setup_cursor_integration
 dotfiles() {
     # Try to find dotfiles.sh in common locations
     local dotfiles_path=""
-    
+
     # Check if we're in a dotfiles directory
     if [[ -f "./dotfiles.sh" ]]; then
         dotfiles_path="./dotfiles.sh"
@@ -505,7 +506,7 @@ dotfiles() {
             dotfiles_path="$git_root/dotfiles.sh"
         fi
     fi
-    
+
     if [[ -n "$dotfiles_path" ]]; then
         "$dotfiles_path" "$@"
     else
@@ -610,28 +611,28 @@ fi
 if command -v fzf-tab >/dev/null 2>&1 || [[ -n "$FZF_TAB_HOME" ]]; then
     # Enable fzf-tab
     enable-fzf-tab
-    
+
     # Configure fzf-tab appearance
     zstyle ':fzf-tab:*' fzf-command fzf
     zstyle ':fzf-tab:*' fzf-flags --height=40% --border --preview-window=right:60%
-    
+
     # Configure completion colors
     zstyle ':fzf-tab:complete:*:*' fzf-preview 'preview-files $realpath'
-    
+
     # Git completion
     zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview 'git diff $word | delta 2>/dev/null || git diff $word'
     zstyle ':fzf-tab:complete:git-log:*' fzf-preview 'git log --color=always $word'
     zstyle ':fzf-tab:complete:git-help:*' fzf-preview 'git help $word | bat -l man 2>/dev/null || git help $word'
-    
+
     # Directory completion
     zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd --tree --level=2 $realpath 2>/dev/null || ls -la $realpath'
-    
+
     # Process completion
     zstyle ':fzf-tab:complete:kill:*' fzf-preview 'ps -p $word -o pid,ppid,cmd --no-headers 2>/dev/null || echo "Process: $word"'
-    
+
     # Package completion
     zstyle ':fzf-tab:complete:brew-(install|uninstall|search):*' fzf-preview 'brew info $word 2>/dev/null || echo "Package: $word"'
-    
+
     # File completion with preview
     zstyle ':fzf-tab:complete:*:*' fzf-preview 'preview-files $realpath'
 fi
@@ -650,3 +651,12 @@ if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then . '/opt/home
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc'; fi
+
+# =============================================================================
+# LOCAL SECRETS (Not tracked in git)
+# =============================================================================
+# Store sensitive tokens and API keys in ~/.local-secrets
+# This file is NOT tracked in git - add it to .gitignore
+if [[ -f "$HOME/.local-secrets" ]]; then
+    source "$HOME/.local-secrets"
+fi
