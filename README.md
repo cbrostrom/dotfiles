@@ -1,6 +1,13 @@
-# Dotfiles v2.0
+# Dotfiles v3.0 (Optimized & Modular)
 
 A streamlined, cross-platform dotfiles setup for macOS, Linux, and WSL2. Everything you need in one command.
+
+**New in v3.0:**
+- 🎯 **Modular Configuration**: .zshrc split into 5 focused modules
+- ⚡ **Performance Optimized**: Lazy loading, completion caching, consolidated FZF
+- 🧹 **Simplified**: Removed asdf and Rust builds (using package managers instead)
+- 💾 **Backup System**: New backup.sh for safe updates
+- 🔐 **Better Security**: .local-secrets support built-in
 
 ## 🚀 Quick Start
 
@@ -19,9 +26,9 @@ cd ~/dotfiles
 That's it! The installer will:
 
 - Detect your OS automatically
-- Install all dependencies (zsh, git, Node.js, Go, Rust, etc.)
-- Setup development tools (starship, lsd, fzf, direnv, etc.)
-- Configure your shell with plugins
+- Install all dependencies (zsh, git, Node.js via fnm)
+- Setup modern CLI tools (starship, lsd, bat, ripgrep, fzf, etc.)
+- Configure your shell with optimized plugins
 - Create symlinks for all dotfiles
 - Set zsh as your default shell
 - Install fnm for Node.js with .nvmrc support

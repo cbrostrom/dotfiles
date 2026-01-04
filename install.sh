@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-# Dotfiles Installer v2.0
-# Complete cross-platform dotfiles setup for macOS, Linux, and WSL2
-# Single command installation: ./install.sh
+# Dotfiles Installer v3.0 (Simplified)
+# Cross-platform dotfiles setup for macOS, Linux, and WSL2
+# Removed: asdf, Rust tools (using package managers instead)
+# Kept: fnm for Node.js
 
 set -e
 
@@ -145,7 +146,7 @@ install_package() {
     log_success "Installed $description"
 }
 
-# Function to install basic packages with better error handling
+# Function to install basic packages
 install_basic_packages() {
     log_info "Installing basic packages..."
     
@@ -156,14 +157,11 @@ install_basic_packages() {
             install_package "$package" "$package"
         done
     else
-        # Linux packages - more comprehensive for Debian/Ubuntu
+        # Linux packages
         local packages=(
-            "zsh" "git" "curl" "wget" "build-essential" "pkg-config"
-            "libssl-dev" "libreadline-dev" "zlib1g-dev" "libbz2-dev"
-            "libsqlite3-dev" "libncursesw5-dev" "xz-utils" "tk-dev"
-            "libxml2-dev" "libxmlsec1-dev" "libffi-dev" "liblzma-dev"
+            "zsh" "git" "curl" "wget" "build-essential"
             "python3" "python3-pip" "nodejs" "npm"
-            "unzip" "zip" "ca-certificates" "gnupg" "lsb-release"
+            "unzip" "zip" "ca-certificates"
         )
         
         # Update package list first
@@ -285,182 +283,97 @@ install_node_fnm() {
     fi
 }
 
-# Function to setup asdf (modified to exclude Node.js)
-setup_asdf() {
-    log_info "Setting up asdf version manager (excluding Node.js - using fnm instead)..."
-
-    # Check if asdf is already installed and working
-    if command_exists asdf; then
-        log_success "✓ asdf already installed"
+# Function to install modern tools via package manager
+install_modern_tools() {
+    log_info "Installing modern CLI tools..."
+    
+    if $IS_MACOS; then
+        # macOS tools via Homebrew
+        local packages=(
+            "starship"     # Prompt
+            "lsd"          # ls replacement
+            "bat"          # cat replacement
+            "ripgrep"      # grep replacement
+            "fd"           # find replacement
+            "fzf"          # fuzzy finder
+            "zoxide"       # cd replacement
+            "bottom"       # top replacement
+            "procs"        # ps replacement
+            "du-dust"      # du replacement
+            "tealdeer"     # tldr
+            "git-delta"    # git diff
+            "lazygit"      # git TUI
+            "sd"           # sed replacement
+        )
         
-        # Check if it's installed via Homebrew
-        if [[ "$(which asdf)" == *"homebrew"* ]]; then
-            log_info "asdf installed via Homebrew - no additional setup needed"
+        for package in "${packages[@]}"; do
+            install_package "$package" "$package"
+        done
+    else
+        # Linux tools
+        local packages=(
+            "fzf" "fd-find" "ripgrep" "bat"
+        )
+        
+        # Update package list first
+        if [[ "$PACKAGE_MANAGER" == "apt" ]]; then
+            log_info "Updating package list for modern tools..."
+            sudo apt update
         fi
-    else
-        # Install asdf
-        if [[ ! -d "$HOME/.asdf" ]]; then
-            log_info "Installing asdf..."
-            git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1
-        fi
-
-        # Add asdf to shell configuration (only for git installation)
-        local profile_file=""
-        if [[ -f "$HOME/.zshrc" ]]; then
-            profile_file="$HOME/.zshrc"
-        elif [[ -f "$HOME/.bashrc" ]]; then
-            profile_file="$HOME/.bashrc"
-        elif [[ -f "$HOME/.bash_profile" ]]; then
-            profile_file="$HOME/.bash_profile"
-        fi
-
-        if [[ -n "$profile_file" ]]; then
-            # Check if asdf is already sourced
-            if ! grep -q "asdf.sh" "$profile_file"; then
-                log_info "Adding asdf to $profile_file"
-                echo '' >> "$profile_file"
-                echo '# asdf version manager' >> "$profile_file"
-                echo '. "$HOME/.asdf/asdf.sh"' >> "$profile_file"
-                echo '. "$HOME/.asdf/completions/asdf.bash"' >> "$profile_file"
-            fi
-        fi
-    fi
-
-    # Source asdf for current session (handle both installation methods)
-    if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
-        source "$HOME/.asdf/asdf.sh"
-    elif command_exists asdf; then
-        # asdf is available via PATH (Homebrew installation)
-        log_info "asdf available via PATH"
-    else
-        log_error "asdf not found and could not be sourced"
-        return 1
-    fi
-
-    # Install essential plugins (excluding Node.js - using fnm instead)
-    log_info "Checking asdf plugins..."
-    
-    local plugins_installed=0
-    local plugins_total=4  # Reduced from 5 since we're not using Node.js plugin
-    
-    # Python plugin
-    if asdf plugin list | grep -q "python"; then
-        log_success "✓ python plugin already installed"
-        ((plugins_installed++))
-    else
-        log_info "Installing python plugin..."
-        asdf plugin add python
-        log_success "python plugin installed"
-    fi
-    
-    # Go plugin
-    if asdf plugin list | grep -q "golang"; then
-        log_success "✓ golang plugin already installed"
-        ((plugins_installed++))
-    else
-        log_info "Installing golang plugin..."
-        asdf plugin add golang
-        log_success "golang plugin installed"
-    fi
-    
-    # Rust plugin
-    if asdf plugin list | grep -q "rust"; then
-        log_success "✓ rust plugin already installed"
-        ((plugins_installed++))
-    else
-        log_info "Installing rust plugin..."
-        asdf plugin add rust
-        log_success "rust plugin installed"
-    fi
-
-    # Install asdf-direnv plugin
-    if asdf plugin list | grep -q "direnv"; then
-        log_success "✓ direnv plugin already installed"
-        ((plugins_installed++))
-    else
-        log_info "Installing asdf-direnv plugin..."
-        asdf plugin add direnv
-        asdf install direnv latest
-        asdf global direnv latest
-        log_success "direnv plugin installed"
-    fi
-    
-    # Reshim asdf to ensure direnv is available
-    if command_exists asdf; then
-        log_info "Reshimming asdf to ensure all tools are available..."
-        asdf reshim
-        log_success "asdf reshimmed successfully"
-    fi
-
-    if [[ $plugins_installed -eq $plugins_total ]]; then
-        log_success "✓ All asdf plugins already installed"
-    else
-        log_success "asdf plugins setup complete"
+        
+        for package in "${packages[@]}"; do
+            install_package "$package" "$package" || log_warning "⚠ $package not available via package manager"
+        done
+        
+        # Install tools that need special handling on Linux
+        install_starship_linux
+        install_zoxide_linux
+        install_lsd_linux
     fi
 }
 
-# Function to install Node.js via asdf (deprecated - use fnm instead)
-install_node() {
-    log_info "Node.js installation now handled by fnm (Fast Node Manager)"
-    log_info "This provides better .nvmrc support and faster performance"
-    return 0
-}
-
-# Function to install Rust tools
-install_rust_tools() {
-    log_info "Installing Rust-based tools..."
-    
-    # Install Rust via asdf if not present
-    if ! command_exists cargo; then
-        log_info "Installing Rust via asdf..."
-        # Source asdf for current session
-        if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
-            source "$HOME/.asdf/asdf.sh"
-        fi
-        asdf install rust latest
-        asdf global rust latest
-        log_success "Rust installed successfully"
-    else
-        log_success "✓ Rust already installed"
+# Function to install starship on Linux
+install_starship_linux() {
+    if command_exists starship; then
+        log_success "✓ starship already installed"
+        return 0
     fi
     
-    # Install Rust-based tools
-    local rust_tools=(
-        "starship"      # Prompt
-        "lsd"          # ls replacement
-        "bat"          # cat replacement
-        "ripgrep"      # grep replacement
-        "fd-find"      # find replacement
-        "procs"        # ps replacement
-        "bottom"       # top replacement
-        "zoxide"       # cd replacement
-        "du-dust"      # du replacement
-        "tealdeer"     # tldr replacement
-        "ripgrep-all"  # search in all files
-        "git-delta"    # git diff enhancement
-        "git-fuzzy"    # git fuzzy finder
-        "lazygit"      # git TUI
-        "sd"           # sed replacement
-    )
+    log_info "Installing starship..."
+    curl -sS https://starship.rs/install.sh | sh -s -- --yes
+    log_success "starship installed"
+}
+
+# Function to install zoxide on Linux
+install_zoxide_linux() {
+    if command_exists zoxide; then
+        log_success "✓ zoxide already installed"
+        return 0
+    fi
     
-    local tools_installed=0
-    local tools_total=${#rust_tools[@]}
+    log_info "Installing zoxide..."
+    curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+    log_success "zoxide installed"
+}
+
+# Function to install lsd on Linux
+install_lsd_linux() {
+    if command_exists lsd; then
+        log_success "✓ lsd already installed"
+        return 0
+    fi
     
-    for tool in "${rust_tools[@]}"; do
-        if command_exists "$tool"; then
-            log_success "✓ $tool already installed"
-            ((tools_installed++))
-        else
-            log_info "Installing $tool..."
-            cargo install "$tool"
-            log_success "$tool installed"
-        fi
-    done
+    log_info "Installing lsd from GitHub releases..."
+    local lsd_version="1.0.0"
+    local lsd_url="https://github.com/lsd-rs/lsd/releases/download/v${lsd_version}/lsd_${lsd_version}_amd64.deb"
     
-    if [[ $tools_installed -eq $tools_total ]]; then
-        log_success "✓ All Rust tools already installed"
+    if [[ "$PACKAGE_MANAGER" == "apt" ]]; then
+        wget -O /tmp/lsd.deb "$lsd_url"
+        sudo dpkg -i /tmp/lsd.deb
+        rm /tmp/lsd.deb
+        log_success "lsd installed"
     else
-        log_success "Rust tools installation complete"
+        log_warning "lsd installation requires apt package manager"
     fi
 }
 
@@ -468,15 +381,9 @@ install_rust_tools() {
 setup_fzf() {
     log_info "Setting up fzf..."
     
-    # Check if fzf is already installed and working
-    if command_exists fzf && [[ -f "$HOME/.fzf.zsh" ]]; then
-        log_success "✓ fzf already installed and configured"
-        return 0
-    fi
-    
-    # Check if fzf is installed via package manager
+    # Check if fzf is already installed
     if command_exists fzf; then
-        log_success "✓ fzf already installed via package manager"
+        log_success "✓ fzf already installed"
         return 0
     fi
     
@@ -501,122 +408,7 @@ fix_terminal_config() {
         export TERM="xterm-256color"
     fi
     
-    # Fix backspace issue immediately
-    log_info "Creating .inputrc for proper backspace handling..."
-    cat > "$HOME/.inputrc" << 'EOF'
-# Fix backspace and meta key issues
-set input-meta on
-set output-meta on
-set convert-meta off
-set bell-style none
-set horizontal-scroll-mode on
-set meta-flag on
-set input-meta on
-set output-meta on
-set convert-meta off
-# Ensure backspace sends DEL
-set input-meta on
-set output-meta on
-set convert-meta off
-EOF
-    
-    # Apply inputrc immediately
-    if command -v bind >/dev/null 2>&1; then
-        bind -f "$HOME/.inputrc"
-    fi
-    
     log_success "Terminal configuration fixed"
-}
-
-# Function to setup shell integration
-setup_shell_integration() {
-    log_info "Setting up shell integration..."
-    
-    # Determine shell profile file
-    local profile_file="$HOME/.bashrc"
-    
-    local configs_added=0
-    local configs_total=0
-    
-    # Force terminal type for Linux/Debian
-    if $IS_LINUX && ! grep -q "export TERM.*xterm-256color" "$profile_file"; then
-        echo '# Force terminal type for Linux/Debian compatibility' >> "$profile_file"
-        echo 'export TERM="xterm-256color"' >> "$profile_file"
-        ((configs_added++))
-    fi
-    ((configs_total++))
-    
-    # Add PATH exports
-    if ! grep -q "export PATH.*local/bin" "$profile_file"; then
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$profile_file"
-        ((configs_added++))
-    fi
-    ((configs_total++))
-    
-    # Add Go exports
-    if ! grep -q "export GOPATH" "$profile_file"; then
-        echo 'export GOPATH="$HOME/go"' >> "$profile_file"
-        echo 'export PATH="$GOPATH/bin:$PATH"' >> "$profile_file"
-        ((configs_added++))
-    fi
-    ((configs_total++))
-    
-    # Add npm configuration (skip pnpm as per user preference)
-    if ! grep -q "npm config" "$profile_file"; then
-        echo '# npm configuration' >> "$profile_file"
-        echo 'npm config set fund false' >> "$profile_file"
-        echo 'npm config set audit false' >> "$profile_file"
-        ((configs_added++))
-    fi
-    ((configs_total++))
-    
-    # Add Rust exports
-    if ! grep -q "source.*cargo/env" "$profile_file"; then
-        echo 'source "$HOME/.cargo/env"' >> "$profile_file"
-        ((configs_added++))
-    fi
-    ((configs_total++))
-    
-    # Add fnm exports (Fast Node Manager)
-    if ! grep -q "fnm env" "$profile_file"; then
-        echo '# fnm (Fast Node Manager) for Node.js' >> "$profile_file"
-        echo 'eval "$(fnm env --use-on-cd)"' >> "$profile_file"
-        echo 'alias nvm="fnm"  # Alias for compatibility' >> "$profile_file"
-        ((configs_added++))
-    fi
-    ((configs_total++))
-    
-    # Add asdf exports
-    if ! grep -q "source.*asdf/asdf.sh" "$profile_file"; then
-        echo '. "$HOME/.asdf/asdf.sh"' >> "$profile_file"
-        echo '. "$HOME/.asdf/completions/asdf.bash"' >> "$profile_file"
-        ((configs_added++))
-    fi
-    ((configs_total++))
-    
-    # Add inputrc binding
-    if ! grep -q "bind.*inputrc" "$profile_file"; then
-        echo '# Apply inputrc for proper backspace handling' >> "$profile_file"
-        echo 'bind -f ~/.inputrc 2>/dev/null || true' >> "$profile_file"
-        ((configs_added++))
-    fi
-    ((configs_total++))
-    
-    # Fix direnv issues on WSL
-    if $IS_WSL; then
-        log_info "Fixing direnv for WSL..."
-        if command_exists asdf; then
-            # Reshim to ensure direnv is available
-            asdf reshim direnv
-            log_success "direnv reshimmed for WSL"
-        fi
-    fi
-    
-    if [[ $configs_added -eq 0 ]]; then
-        log_success "✓ Shell integration already configured"
-    else
-        log_success "Shell integration configured ($configs_added new configs added)"
-    fi
 }
 
 # Function to create per-machine local aliases file (not in git)
@@ -672,7 +464,7 @@ create_symlink() {
         mkdir -p "$target_dir"
     fi
 
-    # Create symlink using absolute path (simpler and more reliable)
+    # Create symlink using absolute path
     log_info "Creating symlink: $description"
     ln -sf "$source" "$target"
     log_success "Created symlink: $target -> $source"
@@ -728,38 +520,6 @@ install_dotfiles() {
     if $IS_MACOS; then
         create_symlink "$SCRIPT_DIR/.config/ghostty" "$HOME/.config/ghostty" "ghostty config"
     fi
-
-    # Windows Terminal (if on Windows/WSL)
-    if $IS_WSL; then
-        # Try multiple possible Windows Terminal paths
-        WINDOWS_TERMINAL_PATHS=(
-            "$APPDATA/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState"
-            "/mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState"
-            "/mnt/c/Users/$USERNAME/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState"
-        )
-
-        WINDOWS_TERMINAL_FOUND=false
-        for WINDOWS_TERMINAL_DIR in "${WINDOWS_TERMINAL_PATHS[@]}"; do
-            if [[ -d "$WINDOWS_TERMINAL_DIR" ]]; then
-                log_info "Found Windows Terminal directory: $WINDOWS_TERMINAL_DIR"
-
-                # Create backup of existing settings if they exist
-                if [[ -f "$WINDOWS_TERMINAL_DIR/settings.json" ]]; then
-                    BACKUP_FILE="$WINDOWS_TERMINAL_DIR/settings.json.backup.$(date +%Y%m%d_%H%M%S)"
-                    log_info "Creating backup of existing Windows Terminal settings: $BACKUP_FILE"
-                    cp "$WINDOWS_TERMINAL_DIR/settings.json" "$BACKUP_FILE"
-                fi
-
-                create_symlink "$SCRIPT_DIR/.config/windows-terminal/settings.json" "$WINDOWS_TERMINAL_DIR/settings.json" "Windows Terminal config"
-                WINDOWS_TERMINAL_FOUND=true
-                break
-            fi
-        done
-
-        if [[ "$WINDOWS_TERMINAL_FOUND" == "false" ]]; then
-            log_warning "Windows Terminal directory not found, skipping Windows Terminal config"
-        fi
-    fi
 }
 
 # Function to verify zsh setup
@@ -800,7 +560,7 @@ verify_zsh_setup() {
 # Function to show help
 show_help() {
     cat <<'EOF'
-Dotfiles Installer v2.0
+Dotfiles Installer v3.0 (Simplified)
 
 Usage: ./install.sh [OPTIONS]
 
@@ -823,13 +583,10 @@ Examples:
 This script will:
 1. Detect your OS (macOS, Linux, WSL2)
 2. Install all necessary dependencies
-3. Setup development tools (Node.js, Go, Rust, etc.)
+3. Setup development tools (Node.js via fnm)
 4. Install and configure zsh with plugins
 5. Create symlinks for all dotfiles
-6. Configure terminal and shell integration
-7. Check and install missing tools automatically
-8. Update system packages (if --update is used)
-9. Verify the installation (if --verify is used)
+6. Install modern CLI tools (starship, lsd, bat, etc.)
 
 Supported platforms:
 - macOS (with Homebrew)
@@ -851,28 +608,15 @@ dry_run() {
     if $IS_MACOS; then
         echo "  - git, curl, wget, zsh (via Homebrew)"
     else
-        echo "  - zsh, git, curl, wget, build-essential, python3, nodejs, npm (via apt/yum/dnf)"
+        echo "  - zsh, git, curl, wget, python3, nodejs, npm (via apt/yum/dnf)"
     fi
     
     log_info ""
     log_info "Would setup tools:"
     echo "  - zinit (plugin manager)"
-    echo "  - fnm (Fast Node Manager for Node.js with .nvmrc support)"
-    echo "  - asdf (version manager for Python, Go, Rust)"
-    echo "  - Node.js (via fnm with .nvmrc support)"
-    echo "  - Python (via asdf)"
-    echo "  - Go (via asdf)"
-    echo "  - Rust (via asdf)"
-    echo "  - direnv (via asdf-direnv)"
-    echo "  - fzf (fuzzy finder)"
-    echo "  - Additional tools via package manager"
-    echo "  - Rust tools via cargo (starship, lsd, bat, ripgrep, etc.)"
-    
-    log_info ""
-    log_info "Would create directories:"
-    echo "  - ~/.zsh_cache/ (completion cache)"
-    echo "  - ~/.zsh/ (completion scripts)"
-    echo "  - ~/.config/ (configuration files)"
+    echo "  - fnm (Fast Node Manager for Node.js)"
+    echo "  - Node.js LTS (via fnm)"
+    echo "  - Modern CLI tools (starship, lsd, bat, ripgrep, fzf, etc.)"
     
     log_info ""
     log_info "Would create symlinks:"
@@ -884,99 +628,8 @@ dry_run() {
     if $IS_MACOS; then
         echo "  - ~/.config/ghostty/"
     fi
-    if $IS_WSL; then
-        echo "  - Windows Terminal settings.json"
-    fi
-    
-    log_info ""
-    log_info "Would configure:"
-    echo "  - Terminal type (xterm-256color on Linux)"
-    echo "  - Shell integration"
-    echo "  - Default shell (zsh)"
-    echo "  - Backspace handling"
-    echo "  - Environment variables"
-    echo "  - PATH configuration"
-    
-    log_info ""
-    log_info "Would install development tools:"
-    echo "  - Node.js LTS"
-    echo "  - Python latest"
-    echo "  - Go latest"
-    echo "  - Rust latest"
-    echo "  - All Rust-based tools (starship, lsd, bat, etc.)"
     
     log_success "Dry run complete - no changes made"
-}
-
-# Function to install Go via asdf
-install_go() {
-    log_info "Installing Go via asdf..."
-    
-    # Source asdf for current session
-    if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
-        source "$HOME/.asdf/asdf.sh"
-    fi
-    
-    # Install latest Go
-    if ! command_exists go; then
-        log_info "Installing Go latest..."
-        asdf install golang latest
-        asdf global golang latest
-        log_success "Go installed and set as default"
-    else
-        log_success "✓ Go already installed"
-    fi
-}
-
-# Function to install Python via asdf
-install_python() {
-    log_info "Installing Python via asdf..."
-    
-    # Source asdf for current session
-    if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
-        source "$HOME/.asdf/asdf.sh"
-    fi
-    
-    # Install latest Python
-    if ! command_exists python3; then
-        log_info "Installing Python latest..."
-        asdf install python latest
-        asdf global python latest
-        log_success "Python installed and set as default"
-    else
-        log_success "✓ Python already installed"
-    fi
-}
-
-# Function to install additional tools via package manager
-install_additional_tools() {
-    log_info "Installing additional tools via package manager..."
-    
-    if $IS_MACOS; then
-        # macOS tools
-        local packages=("fzf" "fd" "ripgrep" "bat" "lsd" "zoxide" "bottom" "procs" "dust" "tealdeer" "git-delta" "lazygit")
-        for package in "${packages[@]}"; do
-            install_package "$package" "$package"
-        done
-    else
-        # Linux tools - try to install via package manager first
-        local packages=("fzf" "fd-find" "ripgrep" "bat" "lsd" "zoxide" "bottom" "procs" "du-dust" "tealdeer" "git-delta" "lazygit")
-        
-        # Update package list first
-        if [[ "$PACKAGE_MANAGER" == "apt" ]]; then
-            log_info "Updating package list for additional tools..."
-            sudo apt update
-        fi
-        
-        for package in "${packages[@]}"; do
-            # Try to install via package manager first
-            if install_package "$package" "$package" 2>/dev/null; then
-                log_success "✓ $package installed via package manager"
-            else
-                log_warning "⚠ $package not available via package manager, will install via cargo later"
-            fi
-        done
-    fi
 }
 
 # Function to update system packages
@@ -1005,202 +658,9 @@ update_system_packages() {
             log_info "Updating dnf packages..."
             sudo dnf update -y
             log_success "dnf packages updated"
-        elif command_exists pacman; then
-            log_info "Updating pacman packages..."
-            sudo pacman -Syu --noconfirm
-            log_success "pacman packages updated"
         else
             log_warning "No supported package manager found for system update"
         fi
-    fi
-}
-
-# Function to check and install missing tools (consolidated)
-check_and_install_missing_tools() {
-    log_info "Checking and installing missing tools..."
-    
-    # Source asdf for current session to get cargo
-    if [[ -f "$HOME/.asdf/asdf.sh" ]]; then
-        source "$HOME/.asdf/asdf.sh"
-    fi
-    
-    # Rust tools that can be installed via cargo
-    local cargo_tools=(
-        "starship"      # Prompt
-        "lsd"          # ls replacement
-        "bat"          # cat replacement
-        "ripgrep"      # grep replacement
-        "fd-find"      # find replacement
-        "procs"        # ps replacement
-        "bottom"       # top replacement
-        "zoxide"       # cd replacement
-        "du-dust"      # du replacement
-        "tealdeer"     # tldr replacement
-        "git-delta"    # git diff enhancement
-        "sd"           # sed replacement
-    )
-    
-    # Non-Rust tools that need different installation methods
-    local non_rust_tools=(
-        "lazygit"      # git TUI
-        "ripgrep-all"  # search in all files (package manager)
-        "git-fuzzy"    # git fuzzy finder (git clone)
-    )
-    
-    local tools_installed=0
-    local tools_total=$((${#cargo_tools[@]} + ${#non_rust_tools[@]}))
-    
-    # Install Rust tools via cargo
-    for tool in "${cargo_tools[@]}"; do
-        if command_exists "$tool"; then
-            log_success "✓ $tool already installed"
-            ((tools_installed++))
-        else
-            log_info "Installing $tool via cargo..."
-            if cargo install "$tool" 2>/dev/null; then
-                log_success "$tool installed"
-            else
-                log_warning "Failed to install $tool via cargo"
-            fi
-        fi
-    done
-    
-    # Install non-Rust tools
-    for tool in "${non_rust_tools[@]}"; do
-        if command_exists "$tool"; then
-            log_success "✓ $tool already installed"
-            ((tools_installed++))
-        else
-            log_info "Installing $tool..."
-            case "$tool" in
-                "lazygit")
-                    install_lazygit
-                    ;;
-                "ripgrep-all")
-                    install_ripgrep_all
-                    ;;
-                "git-fuzzy")
-                    install_git_fuzzy
-                    ;;
-            esac
-        fi
-    done
-    
-    if [[ $tools_installed -eq $tools_total ]]; then
-        log_success "✓ All tools already installed"
-    else
-        log_success "Tools installation complete"
-    fi
-}
-
-# Function to install lazygit
-install_lazygit() {
-    log_info "Installing lazygit..."
-    
-    if $IS_MACOS; then
-        if command_exists brew; then
-            brew install lazygit
-            log_success "lazygit installed via Homebrew"
-        else
-            log_error "Homebrew not found. Please install Homebrew first."
-            return 1
-        fi
-    else
-        # Try package manager first
-        if command_exists apt; then
-            sudo apt update && sudo apt install -y lazygit
-            log_success "lazygit installed via apt"
-        elif command_exists yum; then
-            sudo yum install -y lazygit
-            log_success "lazygit installed via yum"
-        elif command_exists dnf; then
-            sudo dnf install -y lazygit
-            log_success "lazygit installed via dnf"
-        elif command_exists pacman; then
-            sudo pacman -S lazygit
-            log_success "lazygit installed via pacman"
-        else
-            # Fallback to Go install
-            if command_exists go; then
-                go install github.com/jesseduffield/lazygit@latest
-                log_success "lazygit installed via Go"
-            else
-                log_error "No package manager or Go found. Please install lazygit manually."
-                return 1
-            fi
-        fi
-    fi
-}
-
-# Function to install ripgrep-all
-install_ripgrep_all() {
-    log_info "Installing ripgrep-all..."
-    
-    if $IS_MACOS; then
-        if command_exists brew; then
-            brew install ripgrep-all
-            log_success "ripgrep-all installed via Homebrew"
-        else
-            log_error "Homebrew not found. Please install Homebrew first."
-            return 1
-        fi
-    else
-        # Try package manager first
-        if command_exists apt; then
-            sudo apt update && sudo apt install -y ripgrep-all
-            log_success "ripgrep-all installed via apt"
-        elif command_exists yum; then
-            sudo yum install -y ripgrep-all
-            log_success "ripgrep-all installed via yum"
-        elif command_exists dnf; then
-            sudo dnf install -y ripgrep-all
-            log_success "ripgrep-all installed via dnf"
-        elif command_exists pacman; then
-            sudo pacman -S ripgrep-all
-            log_success "ripgrep-all installed via pacman"
-        else
-            # Fallback to cargo install (correct name)
-            if command_exists cargo; then
-                cargo install ripgrep_all
-                log_success "ripgrep-all installed via cargo"
-            else
-                log_error "No package manager or cargo found. Please install ripgrep-all manually."
-                return 1
-            fi
-        fi
-    fi
-}
-
-# Function to install git-fuzzy
-install_git_fuzzy() {
-    log_info "Installing git-fuzzy..."
-    
-    local git_fuzzy_dir="$HOME/.git-fuzzy"
-    
-    # Remove existing installation if it exists
-    if [[ -d "$git_fuzzy_dir" ]]; then
-        log_info "Removing existing git-fuzzy installation..."
-        rm -rf "$git_fuzzy_dir"
-    fi
-    
-    # Clone and install git-fuzzy
-    if git clone https://github.com/bigH/git-fuzzy.git "$git_fuzzy_dir" 2>/dev/null; then
-        cd "$git_fuzzy_dir"
-        if make install 2>/dev/null; then
-            log_success "git-fuzzy installed successfully"
-            
-            # Add to PATH if not already there
-            if ! grep -q "git-fuzzy/bin" "$HOME/.zshrc" 2>/dev/null; then
-                echo 'export PATH="$HOME/.git-fuzzy/bin:$PATH"' >> "$HOME/.zshrc"
-                log_info "Added git-fuzzy to PATH in .zshrc"
-            fi
-        else
-            log_warning "Failed to build git-fuzzy, but repository cloned to $git_fuzzy_dir"
-            log_info "You can manually build it by running: cd $git_fuzzy_dir && make install"
-        fi
-    else
-        log_error "Failed to clone git-fuzzy repository"
-        return 1
     fi
 }
 
@@ -1252,7 +712,7 @@ main_installation() {
         exit 0
     fi
     
-    log_info "=== Dotfiles Installer v2.0 ==="
+    log_info "=== Dotfiles Installer v3.0 (Simplified) ==="
     log_info "Detected OS: $OS_NAME ($(uname -s) $(uname -r))"
     log_info "Script directory: $SCRIPT_DIR"
     
@@ -1273,25 +733,16 @@ main_installation() {
         setup_zsh
         setup_zinit
         setup_fnm
-        setup_asdf
         
         log_info ""
         log_info "=== Installing Development Tools ==="
         install_node_fnm
-        install_go
-        install_python
-        install_rust_tools
-        
-        log_info ""
-        log_info "=== Installing Additional Tools ==="
-        install_additional_tools
-        check_and_install_missing_tools
+        install_modern_tools
         setup_fzf
         
         log_info ""
         log_info "=== Configuring Environment ==="
         fix_terminal_config
-        setup_shell_integration
     fi
     
     # Update system packages if requested
@@ -1327,8 +778,7 @@ main_installation() {
     log_info "- Run 'source ~/.zshrc' to reload configuration"
     log_info "- Check the logs above for any warnings or errors"
     log_info "- Run './status.sh' to check the status of all components"
-    log_info "- Run './fix-zsh.sh status' to check zsh-specific issues"
 }
 
 # Run installation
-main_installation "$@" 
+main_installation "$@"

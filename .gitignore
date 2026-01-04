@@ -9,6 +9,9 @@
 
 # Backup files
 *.backup.*
+*.bak
+*.old
+*~
 
 # OS files
 .DS_Store
