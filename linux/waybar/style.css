@@ -1,0 +1,225 @@
+/* =============================================================================
+   Waybar Dark Theme - Optimized for Hyprland
+   Gaming & Web Dev Workstation
+   ============================================================================= */
+
+* {
+    /* Using locally installed JetBrains Mono Nerd Font */
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 13px;
+    font-weight: 500;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+window#waybar {
+    background: rgba(17, 17, 27, 0.85);
+    border-radius: 12px;
+    border: 1px solid rgba(69, 71, 90, 0.6);
+    color: #cdd6f4;
+}
+
+window#waybar.hidden {
+    opacity: 0.2;
+}
+
+tooltip {
+    background: #1e1e2e;
+    border: 1px solid #45475a;
+    border-radius: 8px;
+}
+
+tooltip label {
+    color: #cdd6f4;
+    padding: 4px 8px;
+}
+
+/* =============================================================================
+   Modules Base
+   ============================================================================= */
+
+#workspaces,
+#window,
+#clock,
+#cpu,
+#memory,
+#temperature,
+#network,
+#pulseaudio,
+#tray,
+#custom-power {
+    padding: 0 12px;
+    margin: 4px 2px;
+    border-radius: 8px;
+    background: rgba(30, 30, 46, 0.6);
+    transition: all 0.3s ease;
+}
+
+/* =============================================================================
+   Workspaces
+   ============================================================================= */
+
+#workspaces {
+    background: transparent;
+    padding: 0 4px;
+}
+
+#workspaces button {
+    padding: 0 8px;
+    margin: 4px 2px;
+    color: #6c7086;
+    background: rgba(30, 30, 46, 0.6);
+    border: none;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+#workspaces button:hover {
+    background: rgba(69, 71, 90, 0.8);
+    color: #cdd6f4;
+}
+
+#workspaces button.active {
+    background: linear-gradient(135deg, #89b4fa 0%, #74c7ec 100%);
+    color: #1e1e2e;
+    font-weight: 600;
+}
+
+#workspaces button.urgent {
+    background: #f38ba8;
+    color: #1e1e2e;
+}
+
+/* Workspace icons by number */
+#workspaces button#1 { color: #89b4fa; }  /* Web - Blue */
+#workspaces button#2 { color: #a6e3a1; }  /* Code - Green */
+#workspaces button#3 { color: #f9e2af; }  /* Terminal - Yellow */
+#workspaces button#4 { color: #cba6f7; }  /* Comms - Purple */
+#workspaces button#5 { color: #f38ba8; }  /* Gaming - Pink */
+
+#workspaces button.active#1,
+#workspaces button.active#2,
+#workspaces button.active#3,
+#workspaces button.active#4,
+#workspaces button.active#5 {
+    color: #1e1e2e;
+}
+
+/* =============================================================================
+   Window Title
+   ============================================================================= */
+
+#window {
+    color: #a6adc8;
+    font-weight: 400;
+}
+
+window#waybar.empty #window {
+    background: transparent;
+}
+
+/* =============================================================================
+   Clock
+   ============================================================================= */
+
+#clock {
+    background: linear-gradient(135deg, rgba(137, 180, 250, 0.2) 0%, rgba(116, 199, 236, 0.2) 100%);
+    color: #89b4fa;
+    font-weight: 600;
+    padding: 0 16px;
+}
+
+/* =============================================================================
+   System Monitors
+   ============================================================================= */
+
+#cpu {
+    color: #a6e3a1;
+}
+
+#cpu.warning {
+    color: #f9e2af;
+}
+
+#cpu.critical {
+    background: rgba(243, 139, 168, 0.3);
+    color: #f38ba8;
+}
+
+#memory {
+    color: #cba6f7;
+}
+
+#memory.warning {
+    color: #f9e2af;
+}
+
+#memory.critical {
+    background: rgba(243, 139, 168, 0.3);
+    color: #f38ba8;
+}
+
+#temperature {
+    color: #fab387;
+}
+
+#temperature.critical {
+    background: rgba(243, 139, 168, 0.3);
+    color: #f38ba8;
+}
+
+/* =============================================================================
+   Network
+   ============================================================================= */
+
+#network {
+    color: #94e2d5;
+}
+
+#network.disconnected {
+    color: #6c7086;
+}
+
+/* =============================================================================
+   Audio
+   ============================================================================= */
+
+#pulseaudio {
+    color: #f9e2af;
+}
+
+#pulseaudio.muted {
+    color: #6c7086;
+}
+
+/* =============================================================================
+   Tray
+   ============================================================================= */
+
+#tray {
+    background: transparent;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+    background: rgba(243, 139, 168, 0.3);
+}
+
+/* =============================================================================
+   Power Button
+   ============================================================================= */
+
+#custom-power {
+    color: #f38ba8;
+    padding: 0 14px;
+    margin-right: 4px;
+}
+
+#custom-power:hover {
+    background: rgba(243, 139, 168, 0.3);
+}

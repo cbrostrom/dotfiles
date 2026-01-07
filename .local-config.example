@@ -1,0 +1,53 @@
+# =============================================================================
+# LOCAL MACHINE CONFIGURATION
+# =============================================================================
+# Copy this file to .local-config and customize for your machine
+# This file is used to track which components are installed locally
+# 
+# The .local-config file is git-ignored and machine-specific
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# PLATFORM (auto-detected during installation)
+# -----------------------------------------------------------------------------
+# Options: linux, macos, wsl
+PLATFORM="linux"
+
+# -----------------------------------------------------------------------------
+# DESKTOP ENVIRONMENT (Linux only)
+# -----------------------------------------------------------------------------
+# Options: hyprland, gnome, kde, xfce, i3, none
+# Only relevant for Linux systems
+DESKTOP_ENV="hyprland"
+
+# -----------------------------------------------------------------------------
+# INSTALLED OPTIONAL COMPONENTS (comma-separated)
+# -----------------------------------------------------------------------------
+# Available optionals:
+#   Linux:   hyprland, waybar, interception, alacritty, kitty
+#   macOS:   ghostty, aerospace, yabai
+#   Common:  cursor, vscode
+#
+# Example: "hyprland,waybar,interception,cursor"
+INSTALLED_OPTIONALS="hyprland,waybar,interception"
+
+# -----------------------------------------------------------------------------
+# MACHINE IDENTIFIER (optional)
+# -----------------------------------------------------------------------------
+# Used for logging and debugging purposes
+MACHINE_NAME="my-workstation"
+
+# -----------------------------------------------------------------------------
+# HARDWARE SPECS (optional, for reference)
+# -----------------------------------------------------------------------------
+# Document your hardware for AI assistants and troubleshooting
+# CPU=""
+# RAM=""
+# GPU=""
+# STORAGE=""
+
+# -----------------------------------------------------------------------------
+# NOTES
+# -----------------------------------------------------------------------------
+# Add any machine-specific notes here
+# NOTES=""

@@ -8,6 +8,31 @@ A streamlined, cross-platform dotfiles setup for macOS, Linux, and WSL2. Everyth
 - 🧹 **Simplified**: Removed asdf and Rust builds (using package managers instead)
 - 💾 **Backup System**: New backup.sh for safe updates
 - 🔐 **Better Security**: .local-secrets support built-in
+- 🖥️ **Platform-Specific**: Separate configs for Linux (Hyprland) and macOS
+- 📝 **Local Config Tracking**: .local-config tracks installed components per machine
+
+## 📁 Structure
+
+```
+~/dotfiles/
+├── zsh/                  # Cross-platform shell config (modular)
+├── .config/              # Cross-platform configs only
+│   ├── starship.toml
+│   └── lsd/
+│
+├── linux/                # Linux-specific (Hyprland, Waybar)
+│   ├── hyprland/
+│   ├── waybar/
+│   ├── interception/
+│   └── install-hyprland.sh
+│
+├── macos/                # macOS-specific (Ghostty, etc.)
+│   └── ghostty/
+│
+├── .local-config         # Machine-specific settings (git-ignored)
+├── install.sh            # Main cross-platform installer
+└── ...
+```
 
 ## 🚀 Quick Start
 
@@ -32,7 +57,47 @@ That's it! The installer will:
 - Create symlinks for all dotfiles
 - Set zsh as your default shell
 - Install fnm for Node.js with .nvmrc support
+- Create .local-config to track installed components
 - Verify the installation (with `--verify` flag)
+
+## 🖥️ Platform-Specific Setup
+
+### Linux (Hyprland)
+
+For a complete Hyprland window manager setup:
+
+```bash
+cd ~/dotfiles/linux
+./install-hyprland.sh
+```
+
+This installs:
+- Hyprland window manager
+- Waybar status bar
+- Interception tools (Caps Lock → Esc/Super dual-function)
+- All necessary dependencies
+
+See [linux/README.md](linux/README.md) for details.
+
+### macOS
+
+Ghostty and other macOS-specific configs are in `macos/` and automatically symlinked during installation.
+
+## 📝 Local Configuration
+
+Your machine-specific settings are tracked in `.local-config`:
+
+```bash
+# View your current setup
+cat ~/dotfiles/.local-config
+```
+
+This file tracks:
+- Platform (linux/macos/wsl)
+- Desktop environment (hyprland/gnome/kde)
+- Installed optional components
+- Machine identifier
+- Hardware specs (for AI assistants)
 
 ## 🔧 Troubleshooting
 

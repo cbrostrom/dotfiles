@@ -38,3 +38,4 @@ node_modules/
 .env.local
 .env.*.local
 .local-aliases
+.local-config

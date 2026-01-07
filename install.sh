@@ -57,6 +57,69 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# =============================================================================
+# LOCAL CONFIG MANAGEMENT
+# =============================================================================
+
+# Initialize .local-config if it doesn't exist
+init_local_config() {
+    local config_file="$SCRIPT_DIR/.local-config"
+    local example_file="$SCRIPT_DIR/.local-config.example"
+    
+    if [[ ! -f "$config_file" ]]; then
+        if [[ -f "$example_file" ]]; then
+            log_info "Creating .local-config from example..."
+            cp "$example_file" "$config_file"
+            
+            # Auto-detect platform
+            if $IS_MACOS; then
+                sed -i '' 's/PLATFORM=".*"/PLATFORM="macos"/' "$config_file"
+            elif $IS_WSL; then
+                sed -i 's/PLATFORM=".*"/PLATFORM="wsl"/' "$config_file"
+            elif $IS_LINUX; then
+                sed -i 's/PLATFORM=".*"/PLATFORM="linux"/' "$config_file"
+            fi
+            
+            # Set machine name
+            local machine_name=$(hostname)
+            sed -i "s/MACHINE_NAME=\".*\"/MACHINE_NAME=\"$machine_name\"/" "$config_file" 2>/dev/null || \
+            sed -i '' "s/MACHINE_NAME=\".*\"/MACHINE_NAME=\"$machine_name\"/" "$config_file"
+            
+            log_success ".local-config created"
+        else
+            log_warning ".local-config.example not found, skipping local config"
+        fi
+    else
+        log_info ".local-config already exists"
+    fi
+}
+
+# Load .local-config
+load_local_config() {
+    local config_file="$SCRIPT_DIR/.local-config"
+    
+    if [[ -f "$config_file" ]]; then
+        source "$config_file"
+        log_info "Loaded .local-config"
+        log_info "  Platform: ${PLATFORM:-unknown}"
+        log_info "  Desktop: ${DESKTOP_ENV:-none}"
+        log_info "  Optionals: ${INSTALLED_OPTIONALS:-none}"
+    else
+        log_warning ".local-config not found"
+    fi
+}
+
+# Check if optional component is installed
+is_component_installed() {
+    local component="$1"
+    [[ "$INSTALLED_OPTIONALS" == *"$component"* ]]
+}
+
+# Function to check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
 # Function to detect package manager
 detect_package_manager() {
     if $IS_MACOS; then
@@ -715,6 +778,10 @@ main_installation() {
     log_info "=== Dotfiles Installer v3.0 (Simplified) ==="
     log_info "Detected OS: $OS_NAME ($(uname -s) $(uname -r))"
     log_info "Script directory: $SCRIPT_DIR"
+    
+    # Initialize and load local config
+    init_local_config
+    load_local_config
     
     # Check if running as root
     if [[ $EUID -eq 0 ]]; then
