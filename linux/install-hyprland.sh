@@ -143,23 +143,26 @@ setup_hyprland_config() {
     
     mkdir -p ~/.config/hypr
     
-    # Symlink Hyprland configs
+    # Symlink Hyprland configs (force overwrite if exists)
     ln -sf "$SCRIPT_DIR/hyprland/hyprland.conf" ~/.config/hypr/hyprland.conf
     ln -sf "$SCRIPT_DIR/hyprland/hyprpaper.conf" ~/.config/hypr/hyprpaper.conf
     
-    log_success "Hyprland configuration linked"
+    log_success "Hyprland configuration symlinked"
 }
 
 setup_waybar_config() {
     log_info "Setting up Waybar configuration..."
     
-    mkdir -p ~/.config/waybar
+    # Remove existing waybar config if it exists
+    if [[ -e ~/.config/waybar ]] && [[ ! -L ~/.config/waybar ]]; then
+        log_warning "Removing existing waybar directory (not a symlink)"
+        rm -rf ~/.config/waybar
+    fi
     
-    # Symlink Waybar configs
-    ln -sf "$SCRIPT_DIR/waybar/config.jsonc" ~/.config/waybar/config.jsonc
-    ln -sf "$SCRIPT_DIR/waybar/style.css" ~/.config/waybar/style.css
+    # Symlink entire waybar directory
+    ln -sf "$SCRIPT_DIR/waybar" ~/.config/waybar
     
-    log_success "Waybar configuration linked"
+    log_success "Waybar configuration symlinked"
 }
 
 setup_interception_config() {
@@ -233,7 +236,7 @@ main() {
     log_info "  3. Log in"
     echo ""
     log_info "Keybinds:"
-    log_info "  SUPER+R      - Launcher (Vicinae)"
+    log_info "  SUPER+R / ALT+SPACE - Launcher (Vicinae)"
     log_info "  SUPER+B      - Browser (Edge)"
     log_info "  SUPER+E      - Code (Cursor)"
     log_info "  SUPER+Q      - Terminal (Kitty)"

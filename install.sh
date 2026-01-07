@@ -133,7 +133,9 @@ detect_package_manager() {
         fi
     else
         # Linux package managers
-        if command_exists apt; then
+        if command_exists pacman; then
+            PACKAGE_MANAGER="pacman"
+        elif command_exists apt; then
             PACKAGE_MANAGER="apt"
         elif command_exists yum; then
             PACKAGE_MANAGER="yum"
@@ -161,6 +163,11 @@ install_package() {
     else
         # Linux package managers
         case "$PACKAGE_MANAGER" in
+            "pacman")
+                if pacman -Q "$package" >/dev/null 2>&1; then
+                    is_installed=true
+                fi
+                ;;
             "apt")
                 if dpkg -l "$package" >/dev/null 2>&1; then
                     is_installed=true
@@ -190,6 +197,9 @@ install_package() {
         brew install "$package"
     else
         case "$PACKAGE_MANAGER" in
+            "pacman")
+                sudo pacman -S --needed --noconfirm "$package"
+                ;;
             "apt")
                 sudo apt update && sudo apt install -y "$package"
                 ;;
@@ -221,11 +231,17 @@ install_basic_packages() {
         done
     else
         # Linux packages
-        local packages=(
-            "zsh" "git" "curl" "wget" "build-essential"
-            "python3" "python3-pip" "nodejs" "npm"
-            "unzip" "zip" "ca-certificates"
-        )
+        local packages=()
+        
+        # Base packages (cross-distro)
+        packages+=("zsh" "git" "curl" "wget" "unzip" "zip" "ca-certificates")
+        
+        # Build tools (distro-specific)
+        if [[ "$PACKAGE_MANAGER" == "pacman" ]]; then
+            packages+=("base-devel")
+        else
+            packages+=("build-essential" "python3" "python3-pip" "nodejs" "npm")
+        fi
         
         # Update package list first
         log_info "Updating package list..."

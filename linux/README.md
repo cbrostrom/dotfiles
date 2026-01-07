@@ -47,9 +47,10 @@ If you prefer to install components separately:
 sudo pacman -S hyprland hyprpaper waybar polkit-kde-agent
 yay -S interception-tools interception-dual-function-keys vicinae
 
-# Then symlink configs
-ln -sf ~/dotfiles/linux/hyprland/* ~/.config/hypr/
-ln -sf ~/dotfiles/linux/waybar/* ~/.config/waybar/
+# Symlink configs
+ln -sf ~/dotfiles/linux/hyprland/hyprland.conf ~/.config/hypr/hyprland.conf
+ln -sf ~/dotfiles/linux/hyprland/hyprpaper.conf ~/.config/hypr/hyprpaper.conf
+ln -sf ~/dotfiles/linux/waybar ~/.config/waybar
 
 # Setup interception
 sudo cp ~/dotfiles/linux/interception/dual-function-keys.yaml /etc/interception/
@@ -67,7 +68,7 @@ Vicinae is a Raycast-like launcher for Hyprland with:
 - **System commands**: Logout, shutdown, restart
 - **Fast and responsive**: Written in Rust
 
-Press `SUPER+R` to open Vicinae.
+Press `SUPER+R` or `ALT+SPACE` to open Vicinae.
 
 ### Workspace Layout
 
@@ -89,7 +90,7 @@ Press `SUPER+R` to open Vicinae.
 | `SUPER+SHIFT+S` | Slack (WS4) |
 | `SUPER+T` | Teams (WS4) |
 | `SUPER+G` | Steam (WS5) |
-| `SUPER+R` | Launcher (Vicinae) |
+| `SUPER+R` or `ALT+SPACE` | Launcher (Vicinae) |
 | `SUPER+F` | File Manager (Dolphin) |
 | `SUPER+C` | Close Window |
 | `SUPER+V` | Toggle Floating |

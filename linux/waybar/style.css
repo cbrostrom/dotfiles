@@ -4,9 +4,9 @@
    ============================================================================= */
 
 * {
-    /* Using locally installed JetBrains Mono Nerd Font */
-    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
-    font-size: 13px;
+    /* Using locally installed JetBrains Mono Nerd Font with proper fallbacks */
+    font-family: "JetBrainsMono Nerd Font Mono", "JetBrainsMono NFM", "JetBrainsMono Nerd Font", "Symbols Nerd Font", monospace;
+    font-size: 14px;
     font-weight: 500;
     min-height: 0;
     margin: 0;
