@@ -3,95 +3,98 @@
 # =============================================================================
 # A modern replacement for ps written in Rust
 # Docs: https://github.com/dalance/procs
+#
+# ps bruges til at se kørende processer (som 'top' men som snapshot)
+# procs er en moderne replacement med farver og bedre output
 
-[columns]
-# Define which columns to display and in what order
-# Available columns: PID, User, State, CPU, MEM, VmSize, VmRSS, TcpPort, UdpPort, 
-#                   ReadBytes, WriteBytes, Command, CmdLine, StartTime, CpuTime, 
-#                   UsageCpu, UsageMem, ContextSw, ContextSwVoluntary, 
-#                   ContextSwNonvoluntary, Nice, Priority, Threads, Gid, Group, Ppid
+[[columns]]
+kind = "Pid"
+style = "BrightBlue"
+numeric_search = true
+align = "Right"
 
-# Default view
-default = [
-  { kind = "Pid", style = "BrightBlue", numeric_search = true, align = "Right" },
-  { kind = "User", style = "BrightYellow", max_width = 12 },
-  { kind = "State", style = "BrightGreen", max_width = 1 },
-  { kind = "Nice", style = "BrightMagenta", numeric_search = true, align = "Right" },
-  { kind = "Cpu", style = "BrightGreen", numeric_search = true, align = "Right" },
-  { kind = "Memory", style = "BrightRed", numeric_search = true, align = "Right" },
-  { kind = "VmSize", style = "BrightCyan", numeric_search = true, align = "Right" },
-  { kind = "VmRss", style = "BrightCyan", numeric_search = true, align = "Right" },
-  { kind = "TcpPort", style = "BrightMagenta", numeric_search = true, align = "Right", max_width = 20 },
-  { kind = "UdpPort", style = "BrightMagenta", numeric_search = true, align = "Right", max_width = 20 },
-  { kind = "StartTime", style = "BrightWhite" },
-  { kind = "Command", style = "BrightWhite", max_width = 0 },
-]
+[[columns]]
+kind = "User"
+style = "BrightYellow"
+max_width = 12
 
-# Detailed view (use with: procs --config detailed)
-detailed = [
-  { kind = "Pid", style = "BrightBlue", numeric_search = true, align = "Right" },
-  { kind = "Ppid", style = "BrightBlue", numeric_search = true, align = "Right" },
-  { kind = "User", style = "BrightYellow", max_width = 12 },
-  { kind = "State", style = "BrightGreen", max_width = 1 },
-  { kind = "Nice", style = "BrightMagenta", numeric_search = true, align = "Right" },
-  { kind = "Priority", style = "BrightMagenta", numeric_search = true, align = "Right" },
-  { kind = "Threads", style = "BrightCyan", numeric_search = true, align = "Right" },
-  { kind = "Cpu", style = "BrightGreen", numeric_search = true, align = "Right" },
-  { kind = "Memory", style = "BrightRed", numeric_search = true, align = "Right" },
-  { kind = "VmSize", style = "BrightCyan", numeric_search = true, align = "Right" },
-  { kind = "VmRss", style = "BrightCyan", numeric_search = true, align = "Right" },
-  { kind = "ReadBytes", style = "BrightYellow", numeric_search = true, align = "Right" },
-  { kind = "WriteBytes", style = "BrightYellow", numeric_search = true, align = "Right" },
-  { kind = "TcpPort", style = "BrightMagenta", numeric_search = true, align = "Right", max_width = 20 },
-  { kind = "UdpPort", style = "BrightMagenta", numeric_search = true, align = "Right", max_width = 20 },
-  { kind = "StartTime", style = "BrightWhite" },
-  { kind = "CpuTime", style = "BrightGreen" },
-  { kind = "CmdLine", style = "BrightWhite", max_width = 0 },
-]
+[[columns]]
+kind = "State"
+style = "BrightGreen"
+max_width = 1
+
+[[columns]]
+kind = "UsageCpu"
+style = "BrightGreen"
+numeric_search = true
+align = "Right"
+
+[[columns]]
+kind = "UsageMem"
+style = "BrightRed"
+numeric_search = true
+align = "Right"
+
+[[columns]]
+kind = "VmSize"
+style = "BrightCyan"
+numeric_search = true
+align = "Right"
+
+[[columns]]
+kind = "TcpPort"
+style = "BrightMagenta"
+numeric_search = true
+align = "Right"
+max_width = 20
+
+[[columns]]
+kind = "StartTime"
+style = "BrightWhite"
+
+[[columns]]
+kind = "Command"
+style = "BrightWhite"
+max_width = 0
 
 [style]
-# Color theme - matches Warm Nordic / Dracula theme
 header = "BrightWhite"
-unit = "BrightBlack"
+unit = "BrightWhite"
 tree = "BrightBlack"
 
 [style.by_percentage]
-# Color coding based on CPU/Memory usage percentages
-# 0-25% = Green, 25-50% = Yellow, 50-75% = Magenta, 75-100% = Red
 color_000 = "BrightGreen"
 color_025 = "BrightYellow"
 color_050 = "BrightMagenta"
 color_075 = "BrightRed"
+color_100 = "BrightRed"
 
 [style.by_state]
-# Process state colors
-Running = "BrightGreen"
-Sleeping = "BrightCyan"
-Waiting = "BrightYellow"
-Zombie = "BrightRed"
-Stopped = "BrightMagenta"
-Tracing = "BrightBlue"
-Dead = "BrightBlack"
-Wakekill = "BrightMagenta"
-Waking = "BrightMagenta"
-Parked = "BrightBlue"
-Idle = "BrightBlack"
+color_d = "BrightRed"      # Dead
+color_r = "BrightGreen"    # Running
+color_s = "BrightCyan"     # Sleeping
+color_t = "BrightYellow"   # Stopped
+color_z = "BrightRed"      # Zombie
+color_x = "BrightMagenta"  # Dead
+color_k = "BrightYellow"   # Wakekill
+color_w = "BrightYellow"   # Waking
+color_p = "BrightBlue"     # Parked
+color_i = "BrightBlack"    # Idle
 
 [style.by_unit]
-# Unit colors for memory sizes
-Kilo = "BrightBlue"
-Mega = "BrightCyan"
-Giga = "BrightMagenta"
-Tera = "BrightRed"
+color_k = "BrightBlue"     # Kilo
+color_m = "BrightCyan"     # Mega
+color_g = "BrightMagenta"  # Giga
+color_t = "BrightRed"      # Tera
+color_p = "BrightRed"      # Peta
+color_x = "BrightRed"      # Exa
 
 [search]
-# Search behavior
 numeric_search = "Exact"
 nonnumeric_search = "Partial"
 logic = "And"
 
 [display]
-# Display options
 show_self = false
 show_thread = false
 show_thread_in_tree = true
@@ -101,15 +104,12 @@ cut_to_pipe = false
 color_mode = "Auto"
 
 [sort]
-# Default sort column and order
-column = 4  # CPU column
+column = 3  # UsageCpu column (0-indexed)
 order = "Descending"
 
 [docker]
-# Docker integration
 path = "unix:///var/run/docker.sock"
 
 [pager]
-# Pager configuration
 mode = "Auto"
 command = "less"
