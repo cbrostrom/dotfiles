@@ -104,7 +104,6 @@ remove_symlink "$HOME/.gitconfig" ".gitconfig"
 remove_symlink "$HOME/.gitignore_global" ".gitignore_global"
 
 # Config directories
-remove_dir_symlink "$HOME/.config/lsd" "lsd config"
 remove_symlink "$HOME/.config/starship.toml" "starship config"
 remove_dir_symlink "$HOME/.config/ghostty" "ghostty config"
 

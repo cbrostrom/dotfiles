@@ -62,20 +62,24 @@ That's it! The installer will:
 
 ## 🖥️ Platform-Specific Setup
 
-### Linux (Hyprland)
+### Linux (GNOME)
 
-For a complete Hyprland window manager setup:
+Linux-specific configurations are automatically set up during installation.
+
+For GNOME-specific setup (optional):
 
 ```bash
-cd ~/dotfiles/linux
-./install-hyprland.sh
+cd ~/dotfiles/linux/gnome
+./install-gnome-tools.sh
 ```
 
 This installs:
-- Hyprland window manager
-- Waybar status bar
-- Interception tools (Caps Lock → Esc/Super dual-function)
-- All necessary dependencies
+- GNOME Tweaks and extensions
+- dconf settings backup/restore scripts
+- GNOME Shell customization tools
+- Recommended extensions list
+
+The installer automatically detects your desktop environment and offers GNOME-specific setup if you're running GNOME.
 
 See [linux/README.md](linux/README.md) for details.
 

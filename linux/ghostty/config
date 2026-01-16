@@ -1,0 +1,60 @@
+# =============================================================================
+# Ghostty Terminal Configuration (Linux)
+# =============================================================================
+# Ghostty is a fast, feature-rich terminal emulator
+# Docs: https://ghostty.org/docs/config
+# =============================================================================
+
+# Font Configuration
+# -----------------------------------------------------------------------------
+# font-family = JetBrains Mono
+# font-size = 12
+
+# Theme and Colors
+# -----------------------------------------------------------------------------
+# theme = catppuccin-mocha
+# background-opacity = 0.95
+
+# Window Settings
+# -----------------------------------------------------------------------------
+# window-padding-x = 8
+# window-padding-y = 8
+# window-decoration = true
+
+# Shell Integration
+# -----------------------------------------------------------------------------
+# Use zsh instead of default shell (fish)
+command = /usr/bin/zsh
+
+# Enable shell integration for better terminal experience
+shell-integration = detect
+shell-integration-features = cursor,sudo,title
+
+# Performance
+# -----------------------------------------------------------------------------
+# clipboard-trim-trailing-spaces = true
+
+# Clipboard Configuration
+# -----------------------------------------------------------------------------
+# Auto-copy to clipboard when text is selected
+copy-on-select = clipboard
+
+# Keybindings
+# -----------------------------------------------------------------------------
+# Custom copy/paste: Use Ctrl+C/V instead of Ctrl+Shift+C/V
+# Ctrl+C will copy when text is selected, send SIGINT when nothing is selected
+keybind = ctrl+c=copy_to_clipboard
+keybind = ctrl+shift+c=text:\x03
+keybind = ctrl+v=paste_from_clipboard
+
+# Standard keybindings
+# keybind = ctrl+shift+t=new_tab
+# keybind = ctrl+shift+w=close_surface
+
+# =============================================================================
+# Customization Notes
+# =============================================================================
+# Uncomment and modify the options above to customize your terminal
+# Run `ghostty +show-config --default --docs` to see all available options
+# Reload config: Ctrl+Shift+, (Linux)
+# =============================================================================

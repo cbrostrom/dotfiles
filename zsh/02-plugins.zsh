@@ -37,8 +37,8 @@ preview-files() {
     local file="$1"
     if [[ -d "$file" ]]; then
         # Directory preview
-        if command -v lsd >/dev/null 2>&1; then
-            lsd --tree --level=2 "$file" 2>/dev/null || ls -la "$file"
+        if command -v eza >/dev/null 2>&1; then
+            eza --tree --icons --level=2 "$file" 2>/dev/null || ls -la "$file"
         else
             ls -la "$file"
         fi
@@ -98,7 +98,7 @@ if command -v fzf-tab >/dev/null 2>&1 || [[ -n "$FZF_TAB_HOME" ]]; then
     zstyle ':fzf-tab:complete:git-help:*' fzf-preview 'git help $word | bat -l man 2>/dev/null || git help $word'
     
     # Directory completion
-    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd --tree --level=2 $realpath 2>/dev/null || ls -la $realpath'
+    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --tree --icons --level=2 $realpath 2>/dev/null || ls -la $realpath'
     
     # Process completion
     zstyle ':fzf-tab:complete:kill:*' fzf-preview 'ps -p $word -o pid,ppid,cmd --no-headers 2>/dev/null || echo "Process: $word"'
@@ -122,7 +122,7 @@ if command -v zoxide &>/dev/null; then
     eval "$(zoxide init zsh)"
 
     # Optimized zoxide configuration
-    export _ZO_FZF_OPTS="--height 40% --layout=reverse --border --preview 'lsd --tree --level=2 {} 2>/dev/null || tree -C {} 2>/dev/null'"
+    export _ZO_FZF_OPTS="--height 40% --layout=reverse --border --preview 'eza --tree --icons --level=2 {} 2>/dev/null || tree -C {} 2>/dev/null'"
     export _ZO_ECHO=1
     export _ZO_EXCLUDE_DIRS="$HOME/.cache:$HOME/.local/share:$HOME/.npm:$HOME/.pnpm-store:$HOME/.cargo/registry"
 
@@ -141,9 +141,30 @@ if command -v zoxide &>/dev/null; then
     alias dev='zoxide query -i ~/Projects'
     alias work='zoxide query -i ~/Work'
     alias docs='zoxide query -i ~/Documents'
+    alias dl='zoxide query -i ~/Downloads'
+    alias conf='zoxide query -i ~/.config'
+    
+    # Smart project aliases - jump to frequent directories
+    alias projects='cd ~/Projects && ls'
+    alias dotfiles='cd ~/.config/dotfiles && ls'
+    
+    # Quick jump to common project types
+    alias webapp='zoxide query -i | rg -i "web|app|site|front"'
+    alias backend='zoxide query -i | rg -i "api|back|server"'
 
-    # Git repository navigation
-    alias repos='zoxide query -i $(find ~/Projects ~/Work -name ".git" -type d 2>/dev/null | sed "s/\/.git//" | sort -u)'
+    # Git repository navigation with fzf
+    if command -v fzf &>/dev/null; then
+        # Find and jump to any git repository
+        grepo() {
+            local repo=$(find ~/Projects ~/Work ~/.config -name ".git" -type d 2>/dev/null | sed 's/\/.git//' | fzf --preview 'eza --tree --level=2 --icons {} 2>/dev/null || ls -la {}')
+            if [ -n "$repo" ]; then
+                cd "$repo" && zoxide add "$repo"
+            fi
+        }
+        
+        # Jump to recently used git repos
+        alias repos='grepo'
+    fi
 fi
 
 # =============================================================================

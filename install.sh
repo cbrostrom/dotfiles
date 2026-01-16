@@ -370,7 +370,7 @@ install_modern_tools() {
         # macOS tools via Homebrew
         local packages=(
             "starship"     # Prompt
-            "lsd"          # ls replacement
+            "eza"          # ls replacement (modern, better than lsd)
             "bat"          # cat replacement
             "ripgrep"      # grep replacement
             "fd"           # find replacement
@@ -407,7 +407,7 @@ install_modern_tools() {
         # Install tools that need special handling on Linux
         install_starship_linux
         install_zoxide_linux
-        install_lsd_linux
+        install_eza_linux
     fi
 }
 
@@ -435,25 +435,28 @@ install_zoxide_linux() {
     log_success "zoxide installed"
 }
 
-# Function to install lsd on Linux
-install_lsd_linux() {
-    if command_exists lsd; then
-        log_success "✓ lsd already installed"
+# Function to install eza on Linux
+install_eza_linux() {
+    if command_exists eza; then
+        log_success "✓ eza already installed"
         return 0
     fi
     
-    log_info "Installing lsd from GitHub releases..."
-    local lsd_version="1.0.0"
-    local lsd_url="https://github.com/lsd-rs/lsd/releases/download/v${lsd_version}/lsd_${lsd_version}_amd64.deb"
+    log_info "Installing eza..."
     
+    # Try package manager first (most distros have it now)
     if [[ "$PACKAGE_MANAGER" == "apt" ]]; then
-        wget -O /tmp/lsd.deb "$lsd_url"
-        sudo dpkg -i /tmp/lsd.deb
-        rm /tmp/lsd.deb
-        log_success "lsd installed"
-    else
-        log_warning "lsd installation requires apt package manager"
+        # Debian/Ubuntu - eza is in repos for newer versions
+        if sudo apt install -y eza 2>/dev/null; then
+            log_success "eza installed via apt"
+            return 0
+        fi
     fi
+    
+    # Fallback: suggest manual installation via cargo or package manager
+    log_warning "eza not available via package manager"
+    log_info "Install manually with: cargo install eza"
+    log_info "Or on Arch-based: paru -S eza"
 }
 
 # Function to setup fzf
@@ -592,12 +595,25 @@ install_dotfiles() {
     create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitignore_global"
 
     # Config directories
-    create_symlink "$SCRIPT_DIR/.config/lsd" "$HOME/.config/lsd" "lsd config"
     create_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml" "starship config"
+    
+    # Modern CLI tool configs (cross-platform)
+    create_symlink "$SCRIPT_DIR/.config/lazygit" "$HOME/.config/lazygit" "lazygit config"
+    create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
+    create_symlink "$SCRIPT_DIR/.config/procs" "$HOME/.config/procs" "procs config"
     
     # Platform-specific configs
     if $IS_MACOS; then
         create_symlink "$SCRIPT_DIR/.config/ghostty" "$HOME/.config/ghostty" "ghostty config"
+    elif $IS_LINUX; then
+        # Run Linux-specific installer
+        if [[ -f "$SCRIPT_DIR/linux/install-linux.sh" ]]; then
+            log_info ""
+            log_info "=== Linux-Specific Configuration ==="
+            "$SCRIPT_DIR/linux/install-linux.sh"
+        else
+            log_warning "Linux installer not found, skipping Linux-specific setup"
+        fi
     fi
 }
 
@@ -702,7 +718,6 @@ dry_run() {
     echo "  - ~/.zshrc"
     echo "  - ~/.gitconfig"
     echo "  - ~/.gitignore_global"
-    echo "  - ~/.config/lsd/"
     echo "  - ~/.config/starship.toml"
     if $IS_MACOS; then
         echo "  - ~/.config/ghostty/"

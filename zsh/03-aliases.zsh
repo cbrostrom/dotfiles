@@ -27,16 +27,20 @@ elif command -v fdfind &>/dev/null; then
     alias find='fdfind'
 fi
 
-# lsd (better ls) aliases
-if command -v lsd >/dev/null 2>&1; then
-    alias ls='lsd'
-    alias ll='lsd -l'
-    alias la='lsd -la'
-    alias lt='lsd --tree'
-    alias lsg='lsd --group-dirs=first'
-    alias lsdot='lsd -a | grep "^\."'
-    alias lsl='lsd -l --color=always'
-    alias lsh='lsd -lh'
+# eza (better ls) aliases - modern ls replacement with git integration
+if command -v eza >/dev/null 2>&1; then
+    alias ls='eza --icons --group-directories-first'
+    alias ll='eza -l --icons --group-directories-first --git'
+    alias la='eza -la --icons --group-directories-first --git'
+    alias lt='eza --tree --icons --level=2'
+    alias tree='eza --tree --icons'
+    alias lsg='eza --group-directories-first'
+    alias lsdot='eza -a | grep "^\."'
+    alias lsl='eza -l --icons --color=always --git'
+    alias lsh='eza -lh --icons --git'
+    alias lsa='eza -lah --icons --git'
+    alias lsmod='eza -l --icons --sort=modified --reverse'
+    alias lssize='eza -l --icons --sort=size --reverse'
 fi
 
 # =============================================================================
@@ -60,22 +64,80 @@ alias nupg='npx npm-check-updates'
 # =============================================================================
 # GIT ALIASES
 # =============================================================================
+# Basic git commands
 alias gs='git status'
 alias ga='git add'
+alias gaa='git add --all'
 alias gc='git commit'
+alias gcm='git commit -m'
+alias gca='git commit --amend'
+alias gcan='git commit --amend --no-edit'
 alias gp='git push'
+alias gpf='git push --force-with-lease'
 alias gl='git pull'
+alias gf='git fetch'
+alias gfa='git fetch --all'
+
+# Branch management
 alias gco='git checkout'
+alias gcb='git checkout -b'
 alias gb='git branch'
+alias gba='git branch -a'
+alias gbd='git branch -d'
+alias gbD='git branch -D'
+alias gm='git merge'
+alias grb='git rebase'
+alias grbi='git rebase -i'
+alias grbc='git rebase --continue'
+alias grba='git rebase --abort'
+
+# Diff and log
 alias gd='git diff'
+alias gdc='git diff --cached'
+alias gdw='git diff --word-diff'
+alias glog='git log --oneline --decorate --graph'
+alias gloga='git log --oneline --decorate --graph --all'
+alias glogp='git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset"'
+
+# Stash management
+alias gst='git stash'
+alias gstp='git stash pop'
+alias gstl='git stash list'
+alias gstd='git stash drop'
+alias gsta='git stash apply'
+
+# Reset and clean
+alias grh='git reset HEAD'
+alias grhh='git reset --hard HEAD'
+alias gclean='git clean -fd'
+
+# Remote management
+alias gr='git remote'
+alias grv='git remote -v'
+alias gra='git remote add'
+alias grrm='git remote remove'
+
+# Show and blame
+alias gshow='git show'
+alias gblame='git blame'
+
+# Tags
+alias gt='git tag'
+alias gtl='git tag -l'
+
+# Worktree
+alias gwt='git worktree'
+alias gwta='git worktree add'
+alias gwtl='git worktree list'
+alias gwtr='git worktree remove'
 
 # FZF-enhanced git aliases
 if command -v fzf &>/dev/null; then
     alias gcof='git checkout $(git branch | fzf)'
-    alias gcb='git checkout -b $(echo | fzf)'
     alias gcm='git checkout $(git branch | fzf)'
     alias gcf='git commit --fixup $(git log --oneline | fzf | awk "{print \$1}")'
     alias gpick='git cherry-pick $(git log --oneline | fzf | awk "{print \$1}")'
+    alias gdf='git diff $(git branch | fzf)'
 fi
 
 # Modern git tools
@@ -103,8 +165,10 @@ if command -v htop &>/dev/null; then
     alias h='htop'
 fi
 
-if command -v bottom &>/dev/null; then
-    alias top='bottom'
+# bottom binary is called 'btm' on most systems
+if command -v btm &>/dev/null; then
+    alias top='btm'
+    alias bottom='btm'
 fi
 
 # Disk usage

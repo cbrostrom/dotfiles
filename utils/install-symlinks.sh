@@ -38,10 +38,11 @@ log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Get script directory (cross-platform)
+# Script is in utils/, so we need parent directory for dotfiles root
 if [[ -n "$BASH_SOURCE" ]]; then
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 else
-    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 fi
 
 # Function to create symlink with backup
@@ -104,9 +105,11 @@ create_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig" ".gitconfig"
 create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitignore_global"
 
 # Config directories
-create_symlink "$SCRIPT_DIR/.config/lsd" "$HOME/.config/lsd" "lsd config"
 create_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml" "starship config"
 create_symlink "$SCRIPT_DIR/.config/ghostty" "$HOME/.config/ghostty" "ghostty config"
+create_symlink "$SCRIPT_DIR/.config/lazygit" "$HOME/.config/lazygit" "lazygit config"
+create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
+create_symlink "$SCRIPT_DIR/.config/procs" "$HOME/.config/procs" "procs config"
 
 # Windows Terminal (if on Windows/WSL)
 if [[ "$IS_WSL" == "true" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then

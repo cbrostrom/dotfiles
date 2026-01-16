@@ -42,7 +42,6 @@ create_backup() {
         "$HOME/.local-aliases"
         "$HOME/.local-secrets"
         "$HOME/.config/starship.toml"
-        "$HOME/.config/lsd"
         "$HOME/.config/ghostty"
     )
     

@@ -16,20 +16,20 @@ PLATFORM="linux"
 # -----------------------------------------------------------------------------
 # DESKTOP ENVIRONMENT (Linux only)
 # -----------------------------------------------------------------------------
-# Options: hyprland, gnome, kde, xfce, i3, none
+# Options: gnome, kde, xfce, i3, sway, none
 # Only relevant for Linux systems
-DESKTOP_ENV="hyprland"
+DESKTOP_ENV="gnome"
 
 # -----------------------------------------------------------------------------
 # INSTALLED OPTIONAL COMPONENTS (comma-separated)
 # -----------------------------------------------------------------------------
 # Available optionals:
-#   Linux:   hyprland, waybar, interception, alacritty, kitty
+#   Linux:   gnome-tools, ghostty, alacritty, kitty
 #   macOS:   ghostty, aerospace, yabai
 #   Common:  cursor, vscode
 #
-# Example: "hyprland,waybar,interception,cursor"
-INSTALLED_OPTIONALS="hyprland,waybar,interception"
+# Example: "gnome-tools,ghostty,cursor"
+INSTALLED_OPTIONALS="gnome-tools,ghostty"
 
 # -----------------------------------------------------------------------------
 # MACHINE IDENTIFIER (optional)

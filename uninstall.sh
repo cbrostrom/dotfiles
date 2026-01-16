@@ -74,7 +74,6 @@ dry_run() {
     echo "  - ~/.zshrc"
     echo "  - ~/.gitconfig"
     echo "  - ~/.gitignore_global"
-    echo "  - ~/.config/lsd/"
     echo "  - ~/.config/starship.toml"
     echo "  - ~/.config/ghostty/" # if macOS
     echo "  - Windows Terminal settings.json" # if WSL
@@ -135,7 +134,6 @@ main_uninstallation() {
     remove_symlink "$HOME/.gitignore_global" ".gitignore_global"
 
     # Config directories
-    remove_symlink "$HOME/.config/lsd" "lsd config"
     remove_symlink "$HOME/.config/starship.toml" "starship config"
     
     # Platform-specific configs
@@ -162,7 +160,6 @@ main_uninstallation() {
     
     # Clean up empty directories
     log_info "Cleaning up empty directories..."
-    rmdir "$HOME/.config/lsd" 2>/dev/null || true
     rmdir "$HOME/.config/ghostty" 2>/dev/null || true
     
     log_info ""

@@ -1,0 +1,62 @@
+# =============================================================================
+# Recommended GNOME Extensions
+# =============================================================================
+# Install extensions from: https://extensions.gnome.org/
+# Or use: gnome-extensions install <extension-uuid>
+# =============================================================================
+
+# Essential Extensions
+# -----------------------------------------------------------------------------
+appindicatorsupport@rgcjonas.gmail.com          # AppIndicator and KStatusNotifierItem Support
+dash-to-dock@micxgx.gmail.com                   # Dash to Dock (taskbar)
+clipboard-indicator@tudmotu.com                 # Clipboard Indicator
+user-theme@gnome-shell-extensions.gcampax.github.com  # User Themes
+
+# Productivity
+# -----------------------------------------------------------------------------
+workspace-indicator@gnome-shell-extensions.gcampax.github.com  # Workspace Indicator
+windowsNavigator@gnome-shell-extensions.gcampax.github.com     # Window Navigator
+places-menu@gnome-shell-extensions.gcampax.github.com          # Places Status Indicator
+
+# System Monitoring
+# -----------------------------------------------------------------------------
+system-monitor@paradoxxx.zero.gmail.com         # System Monitor
+vitals@corecoding.com                           # Vitals (CPU, Memory, Temp)
+
+# Window Management
+# -----------------------------------------------------------------------------
+gTile@vibou                                     # gTile (window tiling)
+pop-shell@system76.com                          # Pop Shell (tiling window manager)
+
+# Appearance
+# -----------------------------------------------------------------------------
+blur-my-shell@aunetx                            # Blur My Shell
+just-perfection-desktop@just-perfection         # Just Perfection (customize GNOME)
+
+# Optional/Utility
+# -----------------------------------------------------------------------------
+caffeine@patapon.info                           # Caffeine (prevent sleep)
+sound-output-device-chooser@kgshank.net         # Sound Input & Output Device Chooser
+gsconnect@andyholmes.github.io                  # GSConnect (KDE Connect for GNOME)
+
+# =============================================================================
+# Installation Instructions
+# =============================================================================
+#
+# Method 1: GNOME Extensions Website
+#   1. Visit https://extensions.gnome.org/
+#   2. Search for extension by name
+#   3. Click "Install" (requires browser extension)
+#
+# Method 2: Command Line (if available)
+#   gnome-extensions install <extension-uuid>
+#
+# Method 3: Package Manager (Arch/CachyOS)
+#   yay -S gnome-shell-extension-<name>
+#
+# Enable/Disable Extensions:
+#   gnome-extensions enable <extension-uuid>
+#   gnome-extensions disable <extension-uuid>
+#   gnome-extensions list
+#
+# =============================================================================

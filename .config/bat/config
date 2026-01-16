@@ -1,0 +1,40 @@
+# =============================================================================
+# Bat Configuration
+# =============================================================================
+# A cat replacement with syntax highlighting and Git integration
+# Docs: https://github.com/sharkdp/bat
+
+# Theme
+--theme="Dracula"
+
+# Show line numbers
+--style="numbers,changes,header,grid"
+
+# Use italic text on the terminal
+--italic-text=always
+
+# Set the tab width to 4 spaces
+--tabs=4
+
+# Show non-printable characters like space, tab, etc.
+# --show-all
+
+# Add mouse scrolling support in less (default pager)
+--paging=auto
+
+# Use custom pager with specific options
+# Uncomment if you want to customize pager behavior
+# --pager="less -FR"
+
+# Map file extensions to specific languages
+# Example: Use JavaScript syntax for .js files
+--map-syntax "*.ino:C++"
+--map-syntax ".ignore:Git Ignore"
+--map-syntax ".gitignore:Git Ignore"
+--map-syntax "*.conf:INI"
+--map-syntax "*.config:INI"
+--map-syntax "*.toml:TOML"
+--map-syntax "*.yml:YAML"
+--map-syntax "*.yaml:YAML"
+--map-syntax "Dockerfile*:Dockerfile"
+--map-syntax "*.env:Bash"

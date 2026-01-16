@@ -1,212 +1,258 @@
 # Linux-Specific Configurations
 
-This directory contains Linux-specific configurations and scripts, with a focus on Hyprland window manager setup.
+This directory contains Linux-specific configurations for GNOME desktop environment and terminal emulators.
 
 ## 📁 Structure
 
 ```
 linux/
-├── hyprland/              # Hyprland window manager
-│   ├── hyprland.conf      # Main Hyprland configuration
-│   └── hyprpaper.conf     # Wallpaper daemon config
+├── gnome/                     # GNOME desktop environment (optional)
+│   ├── dconf-backup.sh        # Backup GNOME settings
+│   ├── dconf-restore.sh       # Restore GNOME settings
+│   ├── dconf-settings.ini     # Backed up settings
+│   ├── extensions-list.txt    # Recommended extensions
+│   └── install-gnome-tools.sh # Install GNOME tools
 │
-├── waybar/                # Status bar
-│   ├── config.jsonc       # Waybar modules and layout
-│   └── style.css          # Waybar styling (Catppuccin dark theme)
+├── ghostty/                   # Ghostty terminal emulator
+│   └── config                 # Ghostty configuration
 │
-├── interception/          # Keyboard remapping
-│   ├── dual-function-keys.yaml  # Caps Lock dual-function config
-│   └── udevmon.yaml             # Interception daemon config
-│
-└── install-hyprland.sh    # Installation script
+├── install-linux.sh           # Main Linux installer
+└── README.md                  # This file
 ```
 
 ## 🚀 Quick Start
 
-### Full Hyprland Setup
+### Automatic Installation
+
+The Linux-specific setup is automatically triggered when you run the main installer:
 
 ```bash
-cd ~/dotfiles/linux
-./install-hyprland.sh
+cd ~/dotfiles
+./install.sh
 ```
 
-This will:
-- Install Hyprland and dependencies
-- Install Waybar (status bar)
-- Install Vicinae (Raycast-like launcher)
-- Configure keyboard remapping (Caps Lock → Esc/Super)
-- Create symlinks to configs
-- Update `.local-config`
+The installer will:
+- Detect your desktop environment
+- Configure Ghostty terminal (if installed)
+- Offer GNOME-specific setup (if running GNOME)
 
 ### Manual Installation
 
-If you prefer to install components separately:
+If you prefer to run the Linux installer separately:
 
 ```bash
-# Arch/CachyOS
-sudo pacman -S hyprland hyprpaper waybar polkit-kde-agent
-yay -S interception-tools interception-dual-function-keys vicinae
-
-# Symlink configs
-ln -sf ~/dotfiles/linux/hyprland/hyprland.conf ~/.config/hypr/hyprland.conf
-ln -sf ~/dotfiles/linux/hyprland/hyprpaper.conf ~/.config/hypr/hyprpaper.conf
-ln -sf ~/dotfiles/linux/waybar ~/.config/waybar
-
-# Setup interception
-sudo cp ~/dotfiles/linux/interception/dual-function-keys.yaml /etc/interception/
-sudo cp ~/dotfiles/linux/interception/udevmon.yaml /etc/interception/udevmon.d/caps-to-esc-super.yaml
-sudo systemctl enable --now udevmon
+cd ~/dotfiles/linux
+./install-linux.sh
 ```
 
-## 🎨 Hyprland Configuration
+## 🖥️ GNOME Desktop Environment
 
-### Vicinae Launcher
+### GNOME Setup (Optional)
 
-Vicinae is a Raycast-like launcher for Hyprland with:
-- **App launching**: Quick access to all applications
-- **Calculator**: Built-in calculator
-- **System commands**: Logout, shutdown, restart
-- **Fast and responsive**: Written in Rust
+GNOME-specific configuration is **opt-in** and only relevant if you're using GNOME desktop.
 
-Press `SUPER+R` or `ALT+SPACE` to open Vicinae.
+The installer will automatically detect GNOME and ask if you want to install GNOME-specific tools.
 
-### Workspace Layout
+#### Manual GNOME Setup
 
-| Workspace | Purpose | Apps |
-|-----------|---------|------|
-| WS1 | Web | Microsoft Edge |
-| WS2 | Code | Cursor IDE |
-| WS3 | Terminal | Kitty, Alacritty, Ghostty |
-| WS4 | Comms | Slack, Teams, Mail, Calendar |
-| WS5 | Gaming | Steam |
-
-### Keybindings
-
-| Key | Action |
-|-----|--------|
-| `SUPER+B` | Browser (WS1) |
-| `SUPER+E` | Cursor IDE (WS2) |
-| `SUPER+Q` | Terminal (WS3) |
-| `SUPER+SHIFT+S` | Slack (WS4) |
-| `SUPER+T` | Teams (WS4) |
-| `SUPER+G` | Steam (WS5) |
-| `SUPER+R` or `ALT+SPACE` | Launcher (Vicinae) |
-| `SUPER+F` | File Manager (Dolphin) |
-| `SUPER+C` | Close Window |
-| `SUPER+V` | Toggle Floating |
-| `SUPER+1-5` | Switch Workspace |
-| `CAPS LOCK` | **Tap:** Escape, **Hold:** Super key |
-
-## 🎯 Waybar Features
-
-- **Workspaces**: Icon-based with color coding
-  - 🌐 WS1 (Web) - Blue
-  - 💻 WS2 (Code) - Green
-  - 📟 WS3 (Terminal) - Yellow
-  - 💬 WS4 (Comms) - Purple
-  - 🎮 WS5 (Gaming) - Pink
-
-- **System Monitors**: CPU, Memory, Temperature
-- **Network**: WiFi/Ethernet status
-- **Audio**: Volume control (scroll to adjust)
-- **Clock**: Click to toggle date format
-- **System Tray**: Running apps
-- **Power Menu**: Logout/shutdown (wlogout)
-
-### Theme
-
-Waybar uses a **Catppuccin-inspired dark theme** with:
-- Translucent backgrounds
-- Rounded corners
-- Color-coded elements
-- Nerd Font icons
-
-## ⌨️ Caps Lock Dual-Function
-
-The interception setup provides:
-
-- **Short press** → **Escape** (perfect for Vim/modal editing)
-- **Hold + key** → **Super + key** (window manager commands)
-
-### Examples
-
-```
-Tap Caps Lock          → Esc
-Hold Caps + E          → SUPER+E (open Cursor)
-Hold Caps + Q          → SUPER+Q (open Terminal)
-Hold Caps + 1          → SUPER+1 (switch to WS1)
+```bash
+cd ~/dotfiles/linux/gnome
+./install-gnome-tools.sh
 ```
 
-This means you can use Caps Lock as your main modifier key, reducing hand movement!
+This installs:
+- **GNOME Tweaks** - Advanced GNOME settings
+- **GNOME Shell Extensions** - Extension support
+- **dconf-editor** - GUI editor for dconf settings
+- **GNOME Browser Connector** - Install extensions from browser
+
+### Backup GNOME Settings
+
+Backup your current GNOME configuration:
+
+```bash
+cd ~/dotfiles/linux/gnome
+./dconf-backup.sh
+```
+
+This backs up:
+- Desktop interface settings (theme, fonts, dark mode)
+- Window manager settings
+- GNOME Shell configuration
+- Custom keybindings
+- Terminal settings
+- Enabled extensions list
+
+Output files:
+- `dconf-settings.ini` - All GNOME settings
+- `extensions-enabled.txt` - List of enabled extensions
+
+### Restore GNOME Settings
+
+Restore your GNOME configuration on a new machine:
+
+```bash
+cd ~/dotfiles/linux/gnome
+./dconf-restore.sh
+```
+
+**Note:** This will overwrite your current settings. Make a backup first if needed.
+
+After restore:
+- **X11**: Press `Alt+F2`, type `r`, press Enter to restart GNOME Shell
+- **Wayland**: Log out and log back in
+
+### Recommended GNOME Extensions
+
+See `gnome/extensions-list.txt` for a curated list of recommended extensions.
+
+Popular extensions include:
+- **Dash to Dock** - macOS-like dock
+- **AppIndicator Support** - System tray icons
+- **Clipboard Indicator** - Clipboard history
+- **User Themes** - Custom shell themes
+- **Vitals** - System monitoring
+
+Install extensions from: https://extensions.gnome.org/
+
+## 📟 Ghostty Terminal
+
+### Configuration
+
+Ghostty configuration is automatically symlinked during installation:
+
+```
+~/.config/ghostty/config -> ~/dotfiles/linux/ghostty/config
+```
+
+### Customization
+
+Edit `linux/ghostty/config` to customize:
+- Font family and size
+- Color theme
+- Window padding
+- Keybindings
+- Shell integration
+
+See all options: `ghostty +show-config --default --docs`
+
+Reload config: `Ctrl+Shift+,` (Linux)
+
+### Installation
+
+If Ghostty is not installed:
+
+```bash
+# Arch/CachyOS (AUR)
+yay -S ghostty
+
+# Or download from: https://ghostty.org/
+```
+
+## 🎨 Desktop Environment Detection
+
+The installer automatically detects your desktop environment:
+
+- **GNOME** - Offers GNOME-specific setup
+- **KDE Plasma** - Basic setup (no specific configs yet)
+- **XFCE** - Basic setup (no specific configs yet)
+- **Other** - Basic setup only
+
+Your desktop environment is saved in `.local-config`:
+
+```bash
+cat ~/dotfiles/.local-config
+# DESKTOP_ENV="gnome"
+```
 
 ## 🔧 Customization
 
-### Change Wallpaper
+### Add Your Own Configs
 
-Edit `hyprland/hyprpaper.conf`:
+To add more Linux-specific configs:
 
-```conf
-preload = /path/to/your/wallpaper.png
-wallpaper = ,/path/to/your/wallpaper.png
+1. Create a new directory in `linux/` (e.g., `linux/kde/`)
+2. Add your configuration files
+3. Update `linux/install-linux.sh` to symlink them
+4. Update this README
+
+### Platform-Specific Settings
+
+Use `.local-config` to track machine-specific settings:
+
+```bash
+# View current config
+cat ~/dotfiles/.local-config
+
+# Example content:
+PLATFORM="linux"
+DESKTOP_ENV="gnome"
+INSTALLED_OPTIONALS="gnome-tools,ghostty"
+MACHINE_NAME="my-workstation"
 ```
-
-Available CachyOS wallpapers: `/usr/share/wallpapers/cachyos-wallpapers/`
-
-### Modify Workspace Layout
-
-Edit `hyprland/hyprland.conf` in the "WORKSPACE APP RULES" section:
-
-```conf
-windowrulev2 = workspace 1 silent,class:^(yourapp)$
-```
-
-### Customize Waybar
-
-- **Layout**: Edit `waybar/config.jsonc`
-- **Styling**: Edit `waybar/style.css`
-- **Icons**: Uses Nerd Font glyphs (search: https://www.nerdfonts.com/cheat-sheet)
-
-Restart waybar: `killall waybar && waybar &`
 
 ## 🐛 Troubleshooting
 
-### Waybar icons not showing
+### GNOME Settings Not Applying
 
 ```bash
-# Install Nerd Fonts
-sudo pacman -S ttf-jetbrains-mono-nerd ttf-font-awesome
+# Check if dconf is installed
+which dconf
 
-# Reload waybar
-killall waybar && waybar &
+# Install if missing (Arch/CachyOS)
+sudo pacman -S dconf
+
+# Restart GNOME Shell
+# X11: Alt+F2, type 'r', press Enter
+# Wayland: Log out and log back in
 ```
 
-### Caps Lock remapping not working
+### Ghostty Config Not Loading
 
 ```bash
-# Check service status
-sudo systemctl status udevmon
+# Check if symlink exists
+ls -la ~/.config/ghostty/config
 
-# Restart service
-sudo systemctl restart udevmon
+# Manually create symlink
+ln -sf ~/dotfiles/linux/ghostty/config ~/.config/ghostty/config
 
-# View logs
-journalctl -u udevmon -f
+# Verify Ghostty is installed
+which ghostty
+ghostty --version
 ```
 
-### Apps not opening on correct workspace
+### Desktop Environment Not Detected
 
-Window rules only apply to **new windows**. Close and reopen the app.
-
-For persistent issues, check the app's class:
 ```bash
-hyprctl clients | grep -A 5 "your-app-name"
-```
+# Check current desktop
+echo $XDG_CURRENT_DESKTOP
+echo $DESKTOP_SESSION
 
-Then update the rule in `hyprland.conf`.
+# Manually set in .local-config
+echo 'DESKTOP_ENV="gnome"' >> ~/dotfiles/.local-config
+```
 
 ## 📚 Resources
 
-- [Hyprland Wiki](https://wiki.hyprland.org/)
-- [Waybar Documentation](https://github.com/Alexays/Waybar/wiki)
-- [Interception Tools](https://gitlab.com/interception/linux/tools)
-- [Nerd Fonts Cheat Sheet](https://www.nerdfonts.com/cheat-sheet)
+- [GNOME Documentation](https://help.gnome.org/)
+- [GNOME Extensions](https://extensions.gnome.org/)
+- [Ghostty Documentation](https://ghostty.org/docs)
+- [dconf Manual](https://wiki.gnome.org/Projects/dconf)
+- [Arch Wiki - GNOME](https://wiki.archlinux.org/title/GNOME)
+
+## 🤝 Contributing
+
+To add support for other desktop environments (KDE, XFCE, etc.):
+
+1. Create a new directory: `linux/<desktop>/`
+2. Add installation script: `install-<desktop>-tools.sh`
+3. Update `linux/install-linux.sh` to detect and handle the new DE
+4. Update this README with documentation
+
+## 📝 Notes
+
+- GNOME setup is **optional** and only runs if you confirm
+- Ghostty config is cross-platform (also works on macOS)
+- All scripts are non-destructive and ask for confirmation
+- Backup scripts preserve your existing settings
+- `.local-config` tracks what's installed on each machine

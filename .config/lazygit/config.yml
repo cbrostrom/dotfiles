@@ -1,0 +1,215 @@
+# =============================================================================
+# Lazygit Configuration
+# =============================================================================
+# Beautiful TUI for git operations with Warm Nordic theme
+# Docs: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md
+
+gui:
+  # Window dimensions
+  scrollHeight: 2
+  scrollPastBottom: true
+  scrollOffMargin: 2
+  
+  # Mouse support
+  mouseEvents: true
+  skipUnstageLineWarning: false
+  skipStashWarning: false
+  skipNoStagedFilesWarning: false
+  skipRewordInEditorWarning: false
+  
+  # Commit length
+  commitLength:
+    show: true
+  
+  # Branch colors
+  theme:
+    activeBorderColor:
+      - '#f4a261' # Warm Nordic orange
+      - bold
+    inactiveBorderColor:
+      - '#4c566a' # Warm Nordic gray
+    optionsTextColor:
+      - '#5e81ac' # Warm Nordic blue
+    selectedLineBgColor:
+      - '#3b4252' # Dark background
+    selectedRangeBgColor:
+      - '#3b4252'
+    cherryPickedCommitBgColor:
+      - '#88c0d0' # Light blue
+    cherryPickedCommitFgColor:
+      - '#5e81ac' # Blue
+    unstagedChangesColor:
+      - '#e63946' # Red
+    defaultFgColor:
+      - '#eceff4' # Light text
+
+  # Show branch heads
+  showBranchCommitHash: true
+  showFileTree: true
+  showRandomTip: true
+  showCommandLog: true
+  showBottomLine: true
+  showIcons: true
+  
+  # Borders
+  border: 'rounded'
+  
+  # Spinner
+  spinner:
+    frames:
+      - '|'
+      - '/'
+      - '-'
+      - '\'
+    rate: 100
+
+git:
+  # Paging
+  paging:
+    colorArg: always
+    pager: delta --dark --paging=never
+    useConfig: false
+  
+  # Commit settings
+  commit:
+    signOff: false
+    autoWrapCommitMessage: true
+    autoWrapWidth: 72
+  
+  # Merging
+  merging:
+    manualCommit: false
+    args: ''
+  
+  # Branch settings
+  mainBranches:
+    - master
+    - main
+  
+  # Auto fetch
+  autoFetch: true
+  autoRefresh: true
+  fetchAll: true
+  
+  # Branch order
+  branchLogCmd: 'git log {{branchName}} --oneline --decorate --graph --color=always'
+  
+  # Skip hooks
+  skipHookPrefix: WIP
+  
+  # Diff context size
+  diffContextSize: 3
+
+# Update checking
+update:
+  method: never
+
+# Refresh settings
+refresher:
+  refreshInterval: 10
+  fetchInterval: 60
+
+# Custom commands
+customCommands:
+  - key: 'C'
+    context: 'files'
+    command: 'git commit -m "{{.Form.CommitMessage}}"'
+    description: 'Quick commit'
+    prompts:
+      - type: 'input'
+        title: 'Commit Message'
+        key: 'CommitMessage'
+        initialValue: ''
+  
+  - key: 'P'
+    context: 'global'
+    command: 'git push -u origin {{.CheckedOutBranch.Name}}'
+    description: 'Push current branch (set upstream)'
+    loadingText: 'Pushing...'
+  
+  - key: '<c-r>'
+    context: 'files'
+    command: 'git reset HEAD {{.SelectedFile.Name}}'
+    description: 'Unstage file'
+
+# Keybindings
+keybinding:
+  universal:
+    quit: 'q'
+    quit-alt1: '<c-c>'
+    return: '<esc>'
+    quitWithoutChangingDirectory: 'Q'
+    togglePanel: '<tab>'
+    prevItem: '<up>'
+    nextItem: '<down>'
+    prevItem-alt: 'k'
+    nextItem-alt: 'j'
+    prevPage: ','
+    nextPage: '.'
+    scrollLeft: 'H'
+    scrollRight: 'L'
+    gotoTop: '<'
+    gotoBottom: '>'
+    toggleRangeSelect: 'v'
+    rangeSelectDown: '<s-down>'
+    rangeSelectUp: '<s-up>'
+    prevBlock: '<left>'
+    nextBlock: '<right>'
+    prevBlock-alt: 'h'
+    nextBlock-alt: 'l'
+    nextMatch: 'n'
+    prevMatch: 'N'
+    startSearch: '/'
+    optionMenu: 'x'
+    optionMenu-alt1: '?'
+    select: '<space>'
+    goInto: '<enter>'
+    confirm: '<enter>'
+    remove: 'd'
+    new: 'n'
+    edit: 'e'
+    openFile: 'o'
+    scrollUpMain: '<pgup>'
+    scrollDownMain: '<pgdown>'
+    scrollUpMain-alt1: 'K'
+    scrollDownMain-alt1: 'J'
+    scrollUpMain-alt2: '<c-u>'
+    scrollDownMain-alt2: '<c-d>'
+    executeCustomCommand: ':'
+    createRebaseOptionsMenu: 'm'
+    pushFiles: 'P'
+    pullFiles: 'p'
+    refresh: 'R'
+    createPatchOptionsMenu: '<c-p>'
+    nextTab: ']'
+    prevTab: '['
+    nextScreenMode: '+'
+    prevScreenMode: '_'
+    undo: 'z'
+    redo: '<c-z>'
+    filteringMenu: '<c-s>'
+    diffingMenu: 'W'
+    diffingMenu-alt: '<c-e>'
+    copyToClipboard: '<c-o>'
+    openRecentRepos: '<c-r>'
+    submitEditorText: '<enter>'
+    extrasMenu: '@'
+    toggleWhitespaceInDiffView: '<c-w>'
+    increaseContextInDiffView: '}'
+    decreaseContextInDiffView: '{'
+
+# OS settings
+os:
+  editPreset: ''
+  edit: ''
+  editAtLine: ''
+  editAtLineAndWait: ''
+  open: ''
+  openLink: ''
+
+# Disable update prompts
+disableStartupPopups: false
+
+# Notification settings
+notARepository: 'prompt'
+promptToReturnFromSubprocess: true

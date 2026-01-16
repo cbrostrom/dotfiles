@@ -94,7 +94,6 @@ main_status() {
     check_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitignore_global"
 
     # Config directories
-    check_symlink "$SCRIPT_DIR/.config/lsd" "$HOME/.config/lsd" "lsd config"
     check_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml" "starship config"
     
     # Platform-specific configs
@@ -124,7 +123,7 @@ main_status() {
     check_tool "zsh" "zsh shell"
     check_tool "git" "git"
     check_tool "starship" "starship prompt"
-    check_tool "lsd" "lsd (modern ls)"
+    check_tool "eza" "eza (modern ls)"
     check_tool "bat" "bat (modern cat)"
     check_tool "ripgrep" "ripgrep (rg)"
     check_tool "fzf" "fzf (fuzzy finder)"
