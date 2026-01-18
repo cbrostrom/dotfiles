@@ -39,3 +39,6 @@ node_modules/
 .env.*.local
 .local-aliases
 .local-config
+
+# Gaming logs
+gaming/config/launch.log

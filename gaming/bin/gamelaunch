@@ -1,0 +1,159 @@
+#!/bin/bash
+#
+# Game Launch Wrapper
+# Simple launcher script for Steam games with gamemode + mangohud support
+#
+# Usage in Steam Launch Options:
+#   gamelaunch %command%
+#   gamelaunch --preset diablo4 %command%
+#   gamelaunch --gamemode --mangohud %command%
+#
+
+SCRIPT_DIR="$HOME/.config/game-launcher"
+PRESETS_FILE="$SCRIPT_DIR/presets.conf"
+
+# Default settings
+USE_GAMEMODE=false
+USE_MANGOHUD=false
+MANGOHUD_CONFIG=""
+CUSTOM_ENV=""
+PRESET=""
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --preset)
+            PRESET="$2"
+            shift 2
+            ;;
+        --gamemode)
+            USE_GAMEMODE=true
+            shift
+            ;;
+        --mangohud)
+            USE_MANGOHUD=true
+            shift
+            ;;
+        --mangohud-config)
+            MANGOHUD_CONFIG="$2"
+            shift 2
+            ;;
+        --env)
+            CUSTOM_ENV="$2"
+            shift 2
+            ;;
+        --help)
+            cat << EOF
+Game Launch Wrapper - Simple launcher for Steam games
+
+Usage:
+  gamelaunch [OPTIONS] %command%
+
+Options:
+  --preset NAME           Load preset configuration
+  --gamemode              Enable gamemode
+  --mangohud              Enable MangoHud
+  --mangohud-config OPTS  Custom MangoHud config options
+  --env "VAR=value"       Set custom environment variables
+  --help                  Show this help message
+
+Examples:
+  # Basic usage with gamemode + mangohud
+  gamelaunch --gamemode --mangohud %command%
+
+  # Use preset
+  gamelaunch --preset diablo4 %command%
+
+  # Custom MangoHud config
+  gamelaunch --gamemode --mangohud --mangohud-config "fps_limit=60" %command%
+
+  # Custom environment variable
+  gamelaunch --env "DXVK_HUD=fps" %command%
+
+Presets are stored in: $PRESETS_FILE
+EOF
+            exit 0
+            ;;
+        *)
+            # Remaining arguments are the game command
+            break
+            ;;
+    esac
+done
+
+# Load preset if specified
+if [[ -n "$PRESET" && -f "$PRESETS_FILE" ]]; then
+    # Source the preset
+    PRESET_FOUND=false
+    PRESET_EVER_FOUND=false
+    while IFS= read -r line; do
+        # Skip comments and empty lines
+        [[ "$line" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$line" ]] && continue
+        
+        # Check for preset section
+        if [[ "$line" =~ ^\[(.+)\]$ ]]; then
+            CURRENT_SECTION="${BASH_REMATCH[1]}"
+            if [[ "$CURRENT_SECTION" == "$PRESET" ]]; then
+                PRESET_FOUND=true
+                PRESET_EVER_FOUND=true
+            else
+                PRESET_FOUND=false
+            fi
+        elif [[ "$PRESET_FOUND" == true ]]; then
+            # Parse preset settings
+            if [[ "$line" =~ ^gamemode=(.+)$ ]]; then
+                [[ "${BASH_REMATCH[1]}" == "true" ]] && USE_GAMEMODE=true
+            elif [[ "$line" =~ ^mangohud=(.+)$ ]]; then
+                [[ "${BASH_REMATCH[1]}" == "true" ]] && USE_MANGOHUD=true
+            elif [[ "$line" =~ ^mangohud_config=(.+)$ ]]; then
+                MANGOHUD_CONFIG="${BASH_REMATCH[1]}"
+            elif [[ "$line" =~ ^env=(.+)$ ]]; then
+                CUSTOM_ENV="${BASH_REMATCH[1]}"
+            fi
+        fi
+    done < "$PRESETS_FILE"
+    
+    if [[ "$PRESET_EVER_FOUND" == false ]]; then
+        echo "Warning: Preset '$PRESET' not found in $PRESETS_FILE"
+    fi
+fi
+
+# Build launch command
+LAUNCH_CMD=""
+
+# Add custom environment variables
+if [[ -n "$CUSTOM_ENV" ]]; then
+    LAUNCH_CMD="env $CUSTOM_ENV "
+fi
+
+# Add gamemode
+if [[ "$USE_GAMEMODE" == true ]]; then
+    if command -v gamemoderun >/dev/null 2>&1; then
+        LAUNCH_CMD="${LAUNCH_CMD}gamemoderun "
+    else
+        echo "Warning: gamemoderun not found, skipping gamemode"
+    fi
+fi
+
+# Add mangohud
+if [[ "$USE_MANGOHUD" == true ]]; then
+    if command -v mangohud >/dev/null 2>&1; then
+        if [[ -n "$MANGOHUD_CONFIG" ]]; then
+            LAUNCH_CMD="${LAUNCH_CMD}env MANGOHUD_CONFIG='$MANGOHUD_CONFIG' mangohud "
+        else
+            LAUNCH_CMD="${LAUNCH_CMD}mangohud "
+        fi
+    else
+        echo "Warning: mangohud not found, skipping mangohud"
+    fi
+fi
+
+# Add the actual game command
+LAUNCH_CMD="${LAUNCH_CMD}$*"
+
+# Log the command (optional - comment out if you don't want logging)
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Launching: $LAUNCH_CMD" >> "$SCRIPT_DIR/launch.log"
+
+# Execute the game
+exec bash -c "$LAUNCH_CMD"

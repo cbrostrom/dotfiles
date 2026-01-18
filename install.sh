@@ -439,13 +439,43 @@ install_zoxide_linux() {
 install_eza_linux() {
     if command_exists eza; then
         log_success "✓ eza already installed"
+        # Mark as explicitly installed to prevent auto-removal
+        if command_exists paru; then
+            paru -D --asexplicit eza 2>/dev/null || true
+        elif command_exists pacman; then
+            sudo pacman -D --asexplicit eza 2>/dev/null || true
+        fi
         return 0
     fi
     
     log_info "Installing eza..."
     
     # Try package manager first (most distros have it now)
-    if [[ "$PACKAGE_MANAGER" == "apt" ]]; then
+    if command_exists paru; then
+        # Arch/CachyOS - use paru
+        log_info "Installing eza via paru..."
+        paru -S --needed --noconfirm eza
+        # Mark as explicitly installed
+        paru -D --asexplicit eza
+        log_success "eza installed via paru"
+        return 0
+    elif command_exists yay; then
+        # Arch - use yay
+        log_info "Installing eza via yay..."
+        yay -S --needed --noconfirm eza
+        # Mark as explicitly installed
+        yay -D --asexplicit eza
+        log_success "eza installed via yay"
+        return 0
+    elif command_exists pacman; then
+        # Arch - use pacman directly
+        log_info "Installing eza via pacman..."
+        sudo pacman -S --needed --noconfirm eza
+        # Mark as explicitly installed
+        sudo pacman -D --asexplicit eza
+        log_success "eza installed via pacman"
+        return 0
+    elif [[ "$PACKAGE_MANAGER" == "apt" ]]; then
         # Debian/Ubuntu - eza is in repos for newer versions
         if sudo apt install -y eza 2>/dev/null; then
             log_success "eza installed via apt"
@@ -491,6 +521,42 @@ fix_terminal_config() {
     fi
     
     log_success "Terminal configuration fixed"
+}
+
+# Function to setup gaming scripts
+setup_gaming() {
+    log_info "Setting up gaming scripts..."
+    
+    # Create necessary directories
+    mkdir -p "$HOME/bin"
+    mkdir -p "$HOME/.config/game-launcher"
+    
+    # Check for gaming tools (optional, just warn if missing)
+    if ! command_exists gamemoderun; then
+        log_warning "gamemode not found - install with: sudo pacman -S gamemode lib32-gamemode"
+    fi
+    
+    if ! command_exists mangohud; then
+        log_warning "mangohud not found - install with: sudo pacman -S mangohud"
+    fi
+    
+    # Create symlinks for gaming scripts
+    if [[ -d "$SCRIPT_DIR/gaming" ]]; then
+        create_symlink "$SCRIPT_DIR/gaming/bin/gamelaunch" "$HOME/bin/gamelaunch" "gamelaunch script"
+        create_symlink "$SCRIPT_DIR/gaming/config/presets.conf" "$HOME/.config/game-launcher/presets.conf" "gaming presets"
+        create_symlink "$SCRIPT_DIR/gaming/README.md" "$HOME/.config/game-launcher/README.md" "gaming README"
+        
+        # Ensure script is executable
+        if [[ -f "$SCRIPT_DIR/gaming/bin/gamelaunch" ]]; then
+            chmod +x "$SCRIPT_DIR/gaming/bin/gamelaunch"
+        fi
+        
+        log_success "Gaming scripts installed"
+        log_info "  Use in Steam: gamelaunch --preset diablo4 %command%"
+        log_info "  Config: ~/.config/game-launcher/presets.conf"
+    else
+        log_info "Gaming scripts directory not found, skipping"
+    fi
 }
 
 # Function to create per-machine local aliases file (not in git)
@@ -615,6 +681,9 @@ install_dotfiles() {
             log_warning "Linux installer not found, skipping Linux-specific setup"
         fi
     fi
+    
+    # Setup gaming scripts (cross-platform)
+    setup_gaming
 }
 
 # Function to verify zsh setup

@@ -18,15 +18,32 @@
 # This works whether .zshrc is sourced directly or via symlink
 if [[ -L "${(%):-%N}" ]]; then
     # .zshrc is a symlink, get the actual file location
-    DOTFILES_DIR="$(cd "$(dirname "$(readlink "${(%):-%N}")")" && pwd)"
+    local symlink_target="$(readlink "${(%):-%N}")"
+    # Handle both absolute and relative symlinks
+    if [[ "$symlink_target" = /* ]]; then
+        # Absolute path
+        DOTFILES_DIR="$(dirname "$symlink_target")"
+    else
+        # Relative path - resolve from home directory
+        DOTFILES_DIR="$(cd "$HOME" && cd "$(dirname "$symlink_target")" && pwd)"
+    fi
 else
-    # .zshrc is a regular file in the dotfiles directory
-    DOTFILES_DIR="$(cd "$(dirname "${(%):-%N}")" && pwd)"
+    # .zshrc is a regular file, use its directory
+    DOTFILES_DIR="$(dirname "${(%):-%N}")"
 fi
 
-# If we're in the home directory, assume dotfiles is in ~/dotfiles
+# Ensure DOTFILES_DIR is absolute
+if [[ "$DOTFILES_DIR" != /* ]]; then
+    DOTFILES_DIR="$HOME/$DOTFILES_DIR"
+fi
+
+# If we ended up in home directory, try common locations
 if [[ "$DOTFILES_DIR" == "$HOME" ]]; then
-    DOTFILES_DIR="$HOME/dotfiles"
+    if [[ -d "$HOME/.config/dotfiles" ]]; then
+        DOTFILES_DIR="$HOME/.config/dotfiles"
+    elif [[ -d "$HOME/dotfiles" ]]; then
+        DOTFILES_DIR="$HOME/dotfiles"
+    fi
 fi
 
 ZSH_MODULES_DIR="$DOTFILES_DIR/zsh"

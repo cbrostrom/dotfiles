@@ -66,7 +66,8 @@ if command -v fzf &>/dev/null; then
     
     # Keybindings
     bindkey '^R' fzf-history-widget
-    bindkey '^T' fzf-file-widget
+    # bindkey '^T' fzf-file-widget  # Disabled: Conflicts with Ghostty new tab
+    bindkey '^F' fzf-file-widget    # Use Ctrl+F instead for file search
     bindkey '^[c' fzf-cd-widget
     
     # Git integration
@@ -146,7 +147,6 @@ if command -v zoxide &>/dev/null; then
     
     # Smart project aliases - jump to frequent directories
     alias projects='cd ~/Projects && ls'
-    alias dotfiles='cd ~/.config/dotfiles && ls'
     
     # Quick jump to common project types
     alias webapp='zoxide query -i | rg -i "web|app|site|front"'

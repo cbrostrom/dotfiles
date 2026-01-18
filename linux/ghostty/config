@@ -23,7 +23,7 @@
 
 # Shell Integration
 # -----------------------------------------------------------------------------
-# Use zsh instead of default shell (fish)
+# Use zsh as default shell
 command = /usr/bin/zsh
 
 # Enable shell integration for better terminal experience
