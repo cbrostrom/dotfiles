@@ -721,6 +721,113 @@ verify_zsh_setup() {
     fi
 }
 
+# Function to show interactive menu
+show_interactive_menu() {
+    clear
+    cat <<'EOF'
+╔════════════════════════════════════════════════════════════════════╗
+║           Dotfiles Installer v3.0 - Interactive Setup             ║
+╚════════════════════════════════════════════════════════════════════╝
+
+EOF
+    log_info "Detected OS: $OS_NAME ($(uname -s))"
+    log_info "Package Manager: $PACKAGE_MANAGER"
+    echo ""
+    
+    cat <<'EOF'
+Select installation option:
+
+  1) Full Setup (Recommended)
+     └─ Install everything: dependencies, tools, dotfiles, and gaming
+
+  2) Minimal Setup
+     └─ Basic dotfiles + essential tools only
+
+  3) Custom Components
+     └─ Choose specific components to install
+
+  4) Gaming Only
+     └─ Install gaming launcher and presets
+
+  5) Platform-Specific Only (Ghostty, etc.)
+     └─ Install platform-specific configs
+
+  6) Development Tools Only
+     └─ Install Node.js, modern CLI tools
+
+  7) Dry Run
+     └─ Preview what would be installed
+
+  0) Exit
+
+EOF
+    echo -n "Enter your choice [0-7]: "
+    read -r choice
+    echo ""
+    
+    case $choice in
+        1) install_mode="full" ;;
+        2) install_mode="minimal" ;;
+        3) install_mode="custom" ;;
+        4) install_mode="gaming" ;;
+        5) install_mode="platform" ;;
+        6) install_mode="devtools" ;;
+        7) dry_run; exit 0 ;;
+        0) log_info "Exiting..."; exit 0 ;;
+        *) log_error "Invalid choice"; show_interactive_menu ;;
+    esac
+}
+
+# Function to show custom components menu
+show_custom_menu() {
+    clear
+    cat <<'EOF'
+╔════════════════════════════════════════════════════════════════════╗
+║                    Custom Component Selection                      ║
+╚════════════════════════════════════════════════════════════════════╝
+
+Select components to install (space-separated numbers, e.g., "1 3 5"):
+
+  1) Dependencies (zsh, git, curl, etc.)
+  2) Development Tools (Node.js, fnm, modern CLI tools)
+  3) Basic Dotfiles (zshrc, gitconfig, starship)
+  4) Gaming Launcher & Presets
+  5) Platform-Specific Configs (Ghostty, etc.)
+  6) Modern CLI Tools (bat, eza, ripgrep, etc.)
+
+  0) Back to main menu
+
+EOF
+    echo -n "Enter your choices: "
+    read -r custom_choices
+    echo ""
+    
+    if [[ "$custom_choices" == "0" ]]; then
+        show_interactive_menu
+        return
+    fi
+    
+    # Parse custom choices
+    INSTALL_DEPS=false
+    INSTALL_DEVTOOLS=false
+    INSTALL_DOTFILES=false
+    INSTALL_GAMING=false
+    INSTALL_PLATFORM=false
+    INSTALL_MODERN_TOOLS=false
+    
+    for choice in $custom_choices; do
+        case $choice in
+            1) INSTALL_DEPS=true ;;
+            2) INSTALL_DEVTOOLS=true ;;
+            3) INSTALL_DOTFILES=true ;;
+            4) INSTALL_GAMING=true ;;
+            5) INSTALL_PLATFORM=true ;;
+            6) INSTALL_MODERN_TOOLS=true ;;
+            *) log_warning "Invalid choice: $choice" ;;
+        esac
+    done
+}
+
 # Function to show help
 show_help() {
     cat <<'EOF'
@@ -730,31 +837,34 @@ Usage: ./install.sh [OPTIONS]
 
 Options:
   --help, -h          Show this help message
-  --skip-deps         Skip dependency installation (only install dotfiles)
-  --skip-dotfiles     Skip dotfiles installation (only install dependencies)
-  --dry-run           Show what would be installed without actually installing
+  --interactive, -i   Interactive menu mode (default)
+  --full              Full installation (all components)
+  --minimal           Minimal installation (basic dotfiles only)
+  --gaming            Gaming setup only
+  --skip-deps         Skip dependency installation
+  --skip-dotfiles     Skip dotfiles installation
+  --dry-run           Show what would be installed
   --verify            Verify the installation after completion
-  --update            Update system packages (apt/brew) after installation
+  --update            Update system packages
 
 Examples:
-  ./install.sh                    # Full installation
-  ./install.sh --verify           # Full installation with verification
-  ./install.sh --update           # Full installation + system update
-  ./install.sh --skip-deps        # Only install dotfiles
-  ./install.sh --skip-dotfiles    # Only install dependencies
+  ./install.sh                    # Interactive menu
+  ./install.sh --full             # Full installation
+  ./install.sh --gaming           # Gaming setup only
+  ./install.sh --minimal          # Minimal setup
   ./install.sh --dry-run          # Preview installation
 
 This script will:
 1. Detect your OS (macOS, Linux, WSL2)
-2. Install all necessary dependencies
+2. Install selected components
 3. Setup development tools (Node.js via fnm)
 4. Install and configure zsh with plugins
-5. Create symlinks for all dotfiles
-6. Install modern CLI tools (starship, lsd, bat, etc.)
+5. Create symlinks for dotfiles
+6. Setup gaming launcher (if selected)
 
 Supported platforms:
 - macOS (with Homebrew)
-- Linux (Ubuntu/Debian, CentOS/RHEL)
+- Linux (Ubuntu/Debian, Arch, CentOS/RHEL)
 - WSL2 (Windows Subsystem for Linux)
 
 EOF
@@ -834,6 +944,8 @@ main_installation() {
     local dry_run_mode=false
     local verify_mode=false
     local update_system=false
+    local install_mode=""
+    local interactive_mode=true
     
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
@@ -841,6 +953,25 @@ main_installation() {
             --help|-h)
                 show_help
                 exit 0
+                ;;
+            --interactive|-i)
+                interactive_mode=true
+                shift
+                ;;
+            --full)
+                install_mode="full"
+                interactive_mode=false
+                shift
+                ;;
+            --minimal)
+                install_mode="minimal"
+                interactive_mode=false
+                shift
+                ;;
+            --gaming)
+                install_mode="gaming"
+                interactive_mode=false
+                shift
                 ;;
             --skip-deps)
                 skip_deps=true
@@ -851,8 +982,8 @@ main_installation() {
                 shift
                 ;;
             --dry-run)
-                dry_run_mode=true
-                shift
+                dry_run
+                exit 0
                 ;;
             --verify)
                 verify_mode=true
@@ -870,15 +1001,6 @@ main_installation() {
         esac
     done
     
-    if $dry_run_mode; then
-        dry_run
-        exit 0
-    fi
-    
-    log_info "=== Dotfiles Installer v3.0 (Simplified) ==="
-    log_info "Detected OS: $OS_NAME ($(uname -s) $(uname -r))"
-    log_info "Script directory: $SCRIPT_DIR"
-    
     # Initialize and load local config
     init_local_config
     load_local_config
@@ -891,39 +1013,85 @@ main_installation() {
     
     # Detect package manager
     detect_package_manager
+    
+    # Show interactive menu if no mode specified
+    if [[ -z "$install_mode" ]] && $interactive_mode; then
+        show_interactive_menu
+    fi
+    
+    # Handle custom component selection
+    if [[ "$install_mode" == "custom" ]]; then
+        show_custom_menu
+    fi
+    
+    # Banner
+    log_info "=== Dotfiles Installer v3.0 ==="
+    log_info "Detected OS: $OS_NAME ($(uname -s) $(uname -r))"
+    log_info "Script directory: $SCRIPT_DIR"
     log_info "Package manager: $PACKAGE_MANAGER"
+    echo ""
     
-    if ! $skip_deps; then
-        log_info ""
-        log_info "=== Installing Dependencies ==="
-        install_basic_packages
-        setup_zsh
-        setup_zinit
-        setup_fnm
-        
-        log_info ""
-        log_info "=== Installing Development Tools ==="
-        install_node_fnm
-        install_modern_tools
-        setup_fzf
-        
-        log_info ""
-        log_info "=== Configuring Environment ==="
-        fix_terminal_config
-    fi
-    
-    # Update system packages if requested
-    if $update_system; then
-        log_info ""
-        log_info "=== Updating System Packages ==="
-        update_system_packages
-    fi
-    
-    if ! $skip_dotfiles; then
-        log_info ""
-        log_info "=== Installing Dotfiles ==="
-        install_dotfiles
-    fi
+    # Execute based on mode
+    case $install_mode in
+        full)
+            log_info "=== Running Full Setup ==="
+            install_full_setup
+            ;;
+        minimal)
+            log_info "=== Running Minimal Setup ==="
+            install_minimal_setup
+            ;;
+        custom)
+            log_info "=== Running Custom Setup ==="
+            install_custom_setup
+            ;;
+        gaming)
+            log_info "=== Running Gaming Setup ==="
+            install_gaming_only
+            ;;
+        platform)
+            log_info "=== Running Platform-Specific Setup ==="
+            install_platform_specific
+            ;;
+        devtools)
+            log_info "=== Running Development Tools Setup ==="
+            install_devtools_only
+            ;;
+        *)
+            # Fallback to old behavior for backward compatibility
+            if ! $skip_deps; then
+                log_info ""
+                log_info "=== Installing Dependencies ==="
+                install_basic_packages
+                setup_zsh
+                setup_zinit
+                setup_fnm
+                
+                log_info ""
+                log_info "=== Installing Development Tools ==="
+                install_node_fnm
+                install_modern_tools
+                setup_fzf
+                
+                log_info ""
+                log_info "=== Configuring Environment ==="
+                fix_terminal_config
+            fi
+            
+            # Update system packages if requested
+            if $update_system; then
+                log_info ""
+                log_info "=== Updating System Packages ==="
+                update_system_packages
+            fi
+            
+            if ! $skip_dotfiles; then
+                log_info ""
+                log_info "=== Installing Dotfiles ==="
+                install_dotfiles
+            fi
+            ;;
+    esac
     
     if $verify_mode; then
         log_info ""
@@ -931,20 +1099,166 @@ main_installation() {
         verify_zsh_setup
     fi
     
+    show_completion_message
+}
+
+# Installation mode functions
+install_full_setup() {
+    log_info "Installing all components..."
+    
+    log_info ""
+    log_info "=== Installing Dependencies ==="
+    install_basic_packages
+    setup_zsh
+    setup_zinit
+    setup_fnm
+    
+    log_info ""
+    log_info "=== Installing Development Tools ==="
+    install_node_fnm
+    install_modern_tools
+    setup_fzf
+    
+    log_info ""
+    log_info "=== Configuring Environment ==="
+    fix_terminal_config
+    
+    log_info ""
+    log_info "=== Installing Dotfiles ==="
+    install_dotfiles
+}
+
+install_minimal_setup() {
+    log_info "Installing minimal components..."
+    
+    log_info ""
+    log_info "=== Installing Basic Packages ==="
+    install_basic_packages
+    setup_zsh
+    
+    log_info ""
+    log_info "=== Installing Basic Dotfiles ==="
+    # Basic dotfiles only
+    create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
+    create_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig" ".gitconfig"
+    create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitignore_global"
+    create_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml" "starship config"
+}
+
+install_custom_setup() {
+    if $INSTALL_DEPS; then
+        log_info ""
+        log_info "=== Installing Dependencies ==="
+        install_basic_packages
+        setup_zsh
+        setup_zinit
+    fi
+    
+    if $INSTALL_DEVTOOLS; then
+        log_info ""
+        log_info "=== Installing Development Tools ==="
+        setup_fnm
+        install_node_fnm
+    fi
+    
+    if $INSTALL_MODERN_TOOLS; then
+        log_info ""
+        log_info "=== Installing Modern CLI Tools ==="
+        install_modern_tools
+        setup_fzf
+    fi
+    
+    if $INSTALL_DOTFILES; then
+        log_info ""
+        log_info "=== Installing Dotfiles ==="
+        create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
+        create_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig" ".gitconfig"
+        create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitignore_global"
+        create_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml" "starship config"
+        create_symlink "$SCRIPT_DIR/.config/lazygit" "$HOME/.config/lazygit" "lazygit config"
+        create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
+        create_symlink "$SCRIPT_DIR/.config/procs" "$HOME/.config/procs" "procs config"
+    fi
+    
+    if $INSTALL_GAMING; then
+        log_info ""
+        log_info "=== Installing Gaming Setup ==="
+        setup_gaming
+    fi
+    
+    if $INSTALL_PLATFORM; then
+        log_info ""
+        log_info "=== Installing Platform-Specific Configs ==="
+        if $IS_MACOS; then
+            create_symlink "$SCRIPT_DIR/.config/ghostty" "$HOME/.config/ghostty" "ghostty config"
+        elif $IS_LINUX; then
+            if [[ -f "$SCRIPT_DIR/linux/install-linux.sh" ]]; then
+                "$SCRIPT_DIR/linux/install-linux.sh"
+            fi
+        fi
+    fi
+}
+
+install_gaming_only() {
+    log_info "Installing gaming launcher and presets..."
+    setup_gaming
+    log_success "Gaming setup complete!"
+    log_info ""
+    log_info "Usage:"
+    log_info "  gamelaunch --preset diablo4 %command%"
+    log_info "  gamelaunch --help"
+    log_info ""
+    log_info "Documentation: ~/.config/dotfiles/gaming/GAMES.md"
+}
+
+install_platform_specific() {
+    if $IS_MACOS; then
+        log_info "Installing macOS-specific configs..."
+        create_symlink "$SCRIPT_DIR/.config/ghostty" "$HOME/.config/ghostty" "ghostty config"
+    elif $IS_LINUX; then
+        log_info "Installing Linux-specific configs..."
+        if [[ -f "$SCRIPT_DIR/linux/install-linux.sh" ]]; then
+            "$SCRIPT_DIR/linux/install-linux.sh"
+        else
+            log_warning "Linux installer not found"
+        fi
+    fi
+}
+
+install_devtools_only() {
+    log_info "Installing development tools..."
+    
+    log_info ""
+    log_info "=== Installing Node.js ==="
+    setup_fnm
+    install_node_fnm
+    
+    log_info ""
+    log_info "=== Installing Modern CLI Tools ==="
+    install_modern_tools
+    setup_fzf
+}
+
+show_completion_message() {
     log_info ""
     log_success "=== Installation Complete! ==="
     log_info ""
     log_info "Next steps:"
     log_info "1. Log out and log back in (or restart your terminal)"
-    log_info "2. Your new zsh setup will be active"
-    log_info "3. Run 'starship --version' to verify the prompt is working"
-    log_info "4. Run 'lsd --version' to verify the ls replacement is working"
+    log_info "2. Your new setup will be active"
+    
+    if [[ "$install_mode" == "gaming" ]] || $INSTALL_GAMING; then
+        log_info "3. Try: gamelaunch --help"
+        log_info "4. Read docs: cat ~/.config/dotfiles/gaming/QUICKSTART.md"
+    else
+        log_info "3. Run 'starship --version' to verify the prompt"
+    fi
+    
     log_info ""
     log_info "If you encounter any issues:"
     log_info "- Check ~/.zshrc for any errors"
     log_info "- Run 'source ~/.zshrc' to reload configuration"
-    log_info "- Check the logs above for any warnings or errors"
-    log_info "- Run './status.sh' to check the status of all components"
+    log_info "- Run './status.sh' to check component status"
 }
 
 # Run installation
