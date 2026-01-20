@@ -224,8 +224,8 @@ The menu provides these options:
 
 ### Platform-Specific Features
 
-- **macOS**: Ghostty terminal config, Homebrew integration
-- **Linux**: xterm-256color terminal fix, apt/yum/dnf support
+- **macOS**: Ghostty terminal config, Homebrew integration, Cursor settings sync
+- **Linux**: xterm-256color terminal fix, apt/yum/dnf support, Cursor settings sync
 - **WSL2**: Windows Terminal integration
 
 ## 🎨 Features
@@ -277,6 +277,9 @@ The menu provides these options:
 
 # Check zsh status
 ./fix-zsh.sh status
+
+# Setup Cursor settings sync (included in install.sh)
+./setup-cursor-sync.sh
 ```
 
 ## 🆕 What's New in v2.0
@@ -429,6 +432,58 @@ git pull origin main
 3. Make your changes
 4. Test on multiple platforms
 5. Submit a pull request
+
+## 💻 Cursor Settings Sync
+
+Your Cursor IDE settings (settings.json, keybindings.json, snippets) are automatically synced via dotfiles using symlinks.
+
+### How It Works
+
+The setup creates symlinks from Cursor's User directory to your dotfiles:
+
+```
+~/Library/Application Support/Cursor/User/settings.json → ~/dotfiles/.config/cursor/settings.json
+~/Library/Application Support/Cursor/User/keybindings.json → ~/dotfiles/.config/cursor/keybindings.json
+~/Library/Application Support/Cursor/User/snippets/ → ~/dotfiles/.config/cursor/snippets/
+```
+
+**Benefits:**
+- ✅ Any changes in Cursor are automatically reflected in dotfiles
+- ✅ Commit and push to sync across machines
+- ✅ No extensions needed - native symlinks
+- ✅ Works on macOS and Linux
+
+### Setup on New Machine
+
+The Cursor sync is automatically included in `./install.sh`, but you can also run it separately:
+
+```bash
+# Setup Cursor settings sync
+./setup-cursor-sync.sh
+```
+
+### Backup Your Settings
+
+Before making changes, create a backup:
+
+```bash
+# Create timestamped backup
+./backup-cursor-settings.sh
+
+# Backups are saved to ~/.cursor-backups/
+```
+
+### Manual Restore
+
+If you need to restore from a backup:
+
+```bash
+# List available backups
+ls -la ~/.cursor-backups/
+
+# Restore from specific backup
+cp -r ~/.cursor-backups/backup_TIMESTAMP/* "$HOME/Library/Application Support/Cursor/User/"
+```
 
 ## 📄 License
 

@@ -686,6 +686,22 @@ install_dotfiles() {
     setup_gaming
 }
 
+# Function to setup Cursor settings sync
+setup_cursor_sync() {
+    log_info "Setting up Cursor settings sync..."
+    
+    # Check if setup-cursor-sync.sh exists
+    if [[ ! -f "$SCRIPT_DIR/setup-cursor-sync.sh" ]]; then
+        log_warning "setup-cursor-sync.sh not found, skipping Cursor sync"
+        return 0
+    fi
+    
+    # Run the Cursor sync setup script
+    bash "$SCRIPT_DIR/setup-cursor-sync.sh"
+    
+    log_success "Cursor settings sync setup complete"
+}
+
 # Function to verify zsh setup
 verify_zsh_setup() {
     log_info "Verifying zsh setup..."
@@ -1089,6 +1105,10 @@ main_installation() {
                 log_info ""
                 log_info "=== Installing Dotfiles ==="
                 install_dotfiles
+                
+                log_info ""
+                log_info "=== Setting up Cursor Settings Sync ==="
+                setup_cursor_sync
             fi
             ;;
     esac
@@ -1126,6 +1146,10 @@ install_full_setup() {
     log_info ""
     log_info "=== Installing Dotfiles ==="
     install_dotfiles
+    
+    log_info ""
+    log_info "=== Setting up Cursor Settings Sync ==="
+    setup_cursor_sync
 }
 
 install_minimal_setup() {
@@ -1178,6 +1202,10 @@ install_custom_setup() {
         create_symlink "$SCRIPT_DIR/.config/lazygit" "$HOME/.config/lazygit" "lazygit config"
         create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
         create_symlink "$SCRIPT_DIR/.config/procs" "$HOME/.config/procs" "procs config"
+        
+        log_info ""
+        log_info "=== Setting up Cursor Settings Sync ==="
+        setup_cursor_sync
     fi
     
     if $INSTALL_GAMING; then
