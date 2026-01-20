@@ -2,7 +2,7 @@
 
 All notable changes to this dotfiles project will be documented in this file.
 
-## [3.1.0] - 2025-01-20
+## [3.1.0] - 2026-01-20
 
 ### ✨ New Features
 
@@ -11,12 +11,14 @@ All notable changes to this dotfiles project will be documented in this file.
 - **Fast Syntax Highlighting**: Replaced `zsh-syntax-highlighting` with `fast-syntax-highlighting` for better performance
 - **Completion Caching**: Added 24-hour completion cache to improve startup time
 - **Git Worktree Helpers**: New functions `gwtnew` and `gwtgo` for easy worktree management with FZF integration
+- **Fixed Widget Warnings**: Resolved ZSH widget loading order issues with FZF integration
 
 #### Expanded Aliases
 - **Security Monitoring**: Added aliases for SSH, Fail2ban, UFW, and network monitoring
 - **Tailscale Management**: Quick aliases for Tailscale status and control
 - **Streaming (Apollo/Sunshine)**: Dedicated aliases for game streaming service management
 - **Docker Cleanup**: Enhanced Docker aliases with cleanup and pruning commands
+- **GSConnect/KDE Connect**: Added aliases for managing phone-computer integration
 
 #### Improved Starship Prompt
 - **Better Git Status**: Enhanced visual indicators with emojis (🏳 conflicts, 🤷 untracked, 📦 stashed, 📝 modified, 🗑 deleted)
@@ -44,6 +46,8 @@ All notable changes to this dotfiles project will be documented in this file.
 - **Sudoers Config**: Passwordless sudo for wheel group (`/etc/sudoers.d/99-wheel-nopasswd`)
 - **Polkit Rules**: Minimized authentication prompts for wheel group members
 - **SSH Hardening**: Custom port, Fail2ban integration, LAN/Tailscale whitelist
+- **RDP Setup**: GNOME Remote Desktop with mirror-primary mode and Allow Locked Remote Desktop extension
+- **GSConnect**: KDE Connect integration with firewall rules for LAN and Tailscale
 
 ## [3.0.0] - 2025-01-04
 

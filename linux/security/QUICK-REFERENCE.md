@@ -227,6 +227,8 @@ chmod +x /tmp/security-audit.sh
 | SSH | 22 | 2222, 2200, 10022 |
 | RDP | 3389 | 3390, 13389 |
 | VNC | 5900 | 5901, 15900 |
+| KDE Connect | 1714-1764 (TCP/UDP) | - |
+| Apollo/Sunshine | 47989-47990, 47998-48010 | - |
 | HTTP | 80 | 8080, 8000 |
 | HTTPS | 443 | 8443, 4443 |
 
@@ -259,6 +261,10 @@ alias fwreload='sudo ufw reload'
 
 alias ports='sudo ss -tlnp'
 alias connections='sudo ss -tnp'
+
+# GSConnect/KDE Connect
+alias gsconnect='gnome-extensions prefs gsconnect@andyholmes.github.io'
+alias gsconnect-restart='gnome-extensions disable gsconnect@andyholmes.github.io && sleep 1 && gnome-extensions enable gsconnect@andyholmes.github.io'
 ```
 
 ## Documentation

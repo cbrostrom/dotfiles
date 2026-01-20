@@ -269,6 +269,15 @@ if [[ "$(uname -s)" == "Linux" ]]; then
 fi
 
 # =============================================================================
+# GSCONNECT/KDE CONNECT ALIASES
+# =============================================================================
+if [[ "$(uname -s)" == "Linux" ]]; then
+    alias gsconnect='gnome-extensions prefs gsconnect@andyholmes.github.io'
+    alias gsconnect-restart='gnome-extensions disable gsconnect@andyholmes.github.io && sleep 1 && gnome-extensions enable gsconnect@andyholmes.github.io'
+    alias gsconnect-status='gnome-extensions info gsconnect@andyholmes.github.io | grep -E "State|Enabled"'
+fi
+
+# =============================================================================
 # PLATFORM-SPECIFIC ALIASES
 # =============================================================================
 # Linux-specific aliases
