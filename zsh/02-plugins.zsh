@@ -27,7 +27,7 @@ if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
     # Load fzf-tab for visual completion
     zinit light Aloxaf/fzf-tab
     
-    # Fast syntax highlighting - load AFTER FZF to avoid widget warnings
+    # Fast syntax highlighting - load with wait to ensure all widgets are registered first
     zinit ice wait lucid atload'zicompinit; zicdreplay'
     zinit light zdharma-continuum/fast-syntax-highlighting
 fi
@@ -74,8 +74,8 @@ export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git --exclude
 
 # FZF keybindings and completion
 if command -v fzf &>/dev/null; then
-    # Load fzf integration
-    zinit wait lucid for \
+    # Load fzf integration immediately (no wait) to register widgets before syntax highlighting
+    zinit lucid for \
         https://github.com/junegunn/fzf/raw/master/shell/{'completion','key-bindings'}.zsh
     
     # Keybindings
