@@ -159,6 +159,38 @@ log_info ""
 log_info "Changes in Cursor will be reflected in dotfiles automatically"
 log_info "Commit and push changes to sync across machines"
 log_info ""
+
+# Ask if user wants to install extensions now
+if [[ -f "$DOTFILES_CURSOR_DIR/extensions.json" ]]; then
+    EXTENSION_COUNT=$(jq '. | length' "$DOTFILES_CURSOR_DIR/extensions.json" 2>/dev/null || echo "0")
+    
+    if [[ "$EXTENSION_COUNT" -gt 0 ]]; then
+        log_info "Found $EXTENSION_COUNT extensions in extensions.json"
+        echo ""
+        echo -n "Do you want to install all extensions now? [y/N]: "
+        read -r response
+        
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            log_info ""
+            log_info "Installing extensions..."
+            if [[ -f "$SCRIPT_DIR/install-cursor-extensions.sh" ]]; then
+                bash "$SCRIPT_DIR/install-cursor-extensions.sh"
+            else
+                log_error "install-cursor-extensions.sh not found"
+                log_info "Run manually: ./install-cursor-extensions.sh"
+            fi
+        else
+            log_info "Skipping extension installation"
+            log_info "To install extensions later, run: ./install-cursor-extensions.sh"
+        fi
+    fi
+fi
+
+log_info ""
 log_info "To verify symlinks:"
 log_info "  ls -la \"$CURSOR_USER_DIR\" | grep -E '(settings|keybindings|snippets)'"
 log_info "  ls -la \"$CURSOR_EXTENSIONS_DIR\" | grep extensions.json"
+log_info ""
+log_info "To update extensions list after installing new extensions:"
+log_info "  ./update-cursor-extensions.sh"
+

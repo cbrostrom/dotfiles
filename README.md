@@ -435,7 +435,7 @@ git pull origin main
 
 ## 💻 Cursor Settings Sync
 
-Your Cursor IDE settings (settings.json, keybindings.json, snippets) are automatically synced via dotfiles using symlinks.
+Your Cursor IDE settings (settings.json, keybindings.json, snippets, extensions) are automatically synced via dotfiles using symlinks.
 
 ### How It Works
 
@@ -445,6 +445,7 @@ The setup creates symlinks from Cursor's User directory to your dotfiles:
 ~/Library/Application Support/Cursor/User/settings.json → ~/dotfiles/.config/cursor/settings.json
 ~/Library/Application Support/Cursor/User/keybindings.json → ~/dotfiles/.config/cursor/keybindings.json
 ~/Library/Application Support/Cursor/User/snippets/ → ~/dotfiles/.config/cursor/snippets/
+~/.cursor/extensions/extensions.json → ~/dotfiles/.config/cursor/extensions.json
 ```
 
 **Benefits:**
@@ -452,6 +453,7 @@ The setup creates symlinks from Cursor's User directory to your dotfiles:
 - ✅ Commit and push to sync across machines
 - ✅ No extensions needed - native symlinks
 - ✅ Works on macOS and Linux
+- ✅ Custom homemade extension sync system
 
 ### Setup on New Machine
 
@@ -460,7 +462,46 @@ The Cursor sync is automatically included in `./install.sh`, but you can also ru
 ```bash
 # Setup Cursor settings sync
 ./setup-cursor-sync.sh
+
+# This will:
+# - Create symlinks for settings, keybindings, snippets
+# - Link extensions.json
+# - Offer to install all extensions from the list
 ```
+
+### Extension Management
+
+#### Install All Extensions
+
+```bash
+# Install all extensions from extensions.json
+./install-cursor-extensions.sh
+
+# This will:
+# - Read the extension list from extensions.json
+# - Install missing extensions automatically
+# - Skip already installed extensions
+# - Show installation progress and summary
+```
+
+#### Update Extensions List
+
+```bash
+# Update extensions.json with currently installed extensions
+./update-cursor-extensions.sh
+
+# This will:
+# - Scan your installed extensions
+# - Update extensions.json
+# - Create backup of old list
+# - Show what was added/removed
+```
+
+**Workflow:**
+1. Install new extension in Cursor
+2. Run `./update-cursor-extensions.sh` to update the list
+3. Commit and push: `git add .config/cursor/extensions.json && git commit -m "chore: update Cursor extensions"`
+4. On another machine: `git pull && ./install-cursor-extensions.sh`
 
 ### Backup Your Settings
 
@@ -484,6 +525,17 @@ ls -la ~/.cursor-backups/
 # Restore from specific backup
 cp -r ~/.cursor-backups/backup_TIMESTAMP/* "$HOME/Library/Application Support/Cursor/User/"
 ```
+
+### What Gets Synced
+
+| Item | Synced | Notes |
+|------|--------|-------|
+| settings.json | ✅ Auto | Via symlink |
+| keybindings.json | ✅ Auto | Via symlink |
+| snippets/ | ✅ Auto | Via symlink |
+| extensions.json | ✅ Auto | List only, via symlink |
+| Extension files | ❌ Manual | Use `install-cursor-extensions.sh` |
+| Extension data | ❌ No | Local cache/state |
 
 ## 📄 License
 

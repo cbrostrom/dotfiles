@@ -1492,8 +1492,37 @@ install_cursor_only() {
     log_info "  - snippets/"
     log_info "  - extensions.json (list of installed extensions)"
     log_info ""
+    
+    # Offer to install extensions
+    if [[ -f "$SCRIPT_DIR/.config/cursor/extensions.json" ]]; then
+        EXTENSION_COUNT=$(jq '. | length' "$SCRIPT_DIR/.config/cursor/extensions.json" 2>/dev/null || echo "0")
+        
+        if [[ "$EXTENSION_COUNT" -gt 0 ]]; then
+            log_info "Found $EXTENSION_COUNT extensions in extensions.json"
+            echo ""
+            echo -n "Do you want to install all extensions now? [y/N]: "
+            read -r response
+            
+            if [[ "$response" =~ ^[Yy]$ ]]; then
+                log_info ""
+                log_info "Installing extensions..."
+                if [[ -f "$SCRIPT_DIR/install-cursor-extensions.sh" ]]; then
+                    bash "$SCRIPT_DIR/install-cursor-extensions.sh"
+                else
+                    log_error "install-cursor-extensions.sh not found"
+                fi
+            else
+                log_info "Skipping extension installation"
+                log_info "To install extensions later, run: ./install-cursor-extensions.sh"
+            fi
+        fi
+    fi
+    
+    log_info ""
     log_info "Changes in Cursor will be reflected in your dotfiles."
     log_info "Commit and push to sync across machines."
+    log_info ""
+    log_info "To update extensions list: ./update-cursor-extensions.sh"
 }
 
 install_update_setup() {
