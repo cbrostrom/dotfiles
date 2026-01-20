@@ -737,6 +737,79 @@ verify_zsh_setup() {
     fi
 }
 
+# Function to check installation status
+check_install_status() {
+    echo -e "${BLUE}Current Status:${NC}"
+    
+    # Check zsh
+    if command_exists zsh && [[ "$SHELL" == *"zsh"* ]]; then
+        echo -e "  ${GREEN}✓${NC} zsh (default shell)"
+    elif command_exists zsh; then
+        echo -e "  ${YELLOW}◐${NC} zsh (installed, not default)"
+    else
+        echo -e "  ${RED}✗${NC} zsh"
+    fi
+    
+    # Check fnm/Node.js
+    if command_exists fnm && command_exists node; then
+        local node_version=$(node --version 2>/dev/null)
+        echo -e "  ${GREEN}✓${NC} Node.js ($node_version via fnm)"
+    elif command_exists node; then
+        echo -e "  ${YELLOW}◐${NC} Node.js (not via fnm)"
+    else
+        echo -e "  ${RED}✗${NC} Node.js"
+    fi
+    
+    # Check modern tools
+    local tools_installed=0
+    local tools_total=5
+    command_exists starship && ((tools_installed++))
+    command_exists eza && ((tools_installed++))
+    command_exists bat && ((tools_installed++))
+    command_exists ripgrep && ((tools_installed++))
+    command_exists fzf && ((tools_installed++))
+    
+    if [[ $tools_installed -eq $tools_total ]]; then
+        echo -e "  ${GREEN}✓${NC} Modern CLI tools ($tools_installed/$tools_total)"
+    elif [[ $tools_installed -gt 0 ]]; then
+        echo -e "  ${YELLOW}◐${NC} Modern CLI tools ($tools_installed/$tools_total)"
+    else
+        echo -e "  ${RED}✗${NC} Modern CLI tools (0/$tools_total)"
+    fi
+    
+    # Check Cursor sync
+    local cursor_synced=false
+    if $IS_MACOS; then
+        [[ -L "$HOME/Library/Application Support/Cursor/User/settings.json" ]] && cursor_synced=true
+    else
+        [[ -L "$HOME/.config/Cursor/User/settings.json" ]] && cursor_synced=true
+    fi
+    
+    if $cursor_synced; then
+        echo -e "  ${GREEN}✓${NC} Cursor settings synced"
+    else
+        echo -e "  ${RED}✗${NC} Cursor settings not synced"
+    fi
+    
+    # Check dotfiles
+    if [[ -L "$HOME/.zshrc" ]] && [[ -L "$HOME/.gitconfig" ]]; then
+        echo -e "  ${GREEN}✓${NC} Dotfiles linked"
+    elif [[ -f "$HOME/.zshrc" ]]; then
+        echo -e "  ${YELLOW}◐${NC} Dotfiles exist (not linked)"
+    else
+        echo -e "  ${RED}✗${NC} Dotfiles not installed"
+    fi
+    
+    # Check gaming
+    if [[ -f "$HOME/bin/gamelaunch" ]]; then
+        echo -e "  ${GREEN}✓${NC} Gaming launcher"
+    else
+        echo -e "  ${RED}✗${NC} Gaming launcher"
+    fi
+    
+    echo ""
+}
+
 # Function to show interactive menu
 show_interactive_menu() {
     clear
@@ -750,96 +823,213 @@ EOF
     log_info "Package Manager: $PACKAGE_MANAGER"
     echo ""
     
+    # Show installation status
+    check_install_status
+    
     cat <<'EOF'
-Select installation option:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 COMPLETE SETUPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  1) Full Setup (Recommended)
-     └─ Install everything: dependencies, tools, dotfiles, and gaming
+  1) Full Setup (Recommended) [~10-15 min]
+     └─ Everything: deps, tools, dotfiles, gaming, Cursor
 
-  2) Minimal Setup
+  2) Minimal Setup [~3-5 min]
      └─ Basic dotfiles + essential tools only
 
-  3) Custom Components
-     └─ Choose specific components to install
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 QUICK INSTALLS (Single Component)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  4) Gaming Only
-     └─ Install gaming launcher and presets
+  3) Cursor Settings Sync [~30 sec]
+     └─ Link Cursor settings/keybindings to dotfiles
 
-  5) Platform-Specific Only (Ghostty, etc.)
-     └─ Install platform-specific configs
+  4) Gaming Launcher [~1 min]
+     └─ Install gaming scripts and presets
 
-  6) Development Tools Only
-     └─ Install Node.js, modern CLI tools
+  5) Development Tools [~5-8 min]
+     └─ Node.js (fnm), modern CLI tools
 
-  7) Dry Run
-     └─ Preview what would be installed
+  6) Platform Configs [~2-3 min]
+     └─ Ghostty, GNOME, distro-specific
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚙️  ADVANCED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  7) Custom Components
+     └─ Pick and choose what to install
+
+  8) Update Existing Setup
+     └─ Re-run symlinks, update tools, refresh configs
+
+  9) Dry Run
+     └─ Preview installation without changes
 
   0) Exit
 
 EOF
-    echo -n "Enter your choice [0-7]: "
+    echo -n "Enter your choice [0-9]: "
     read -r choice
     echo ""
     
     case $choice in
         1) install_mode="full" ;;
         2) install_mode="minimal" ;;
-        3) install_mode="custom" ;;
+        3) install_mode="cursor" ;;
         4) install_mode="gaming" ;;
-        5) install_mode="platform" ;;
-        6) install_mode="devtools" ;;
-        7) dry_run; exit 0 ;;
+        5) install_mode="devtools" ;;
+        6) install_mode="platform" ;;
+        7) install_mode="custom" ;;
+        8) install_mode="update" ;;
+        9) dry_run; exit 0 ;;
         0) log_info "Exiting..."; exit 0 ;;
         *) log_error "Invalid choice"; show_interactive_menu ;;
     esac
 }
 
-# Function to show custom components menu
+# Function to show custom components menu with interactive selection
 show_custom_menu() {
-    clear
-    cat <<'EOF'
+    # Component states (0 = unchecked, 1 = checked)
+    local -a selected=(0 0 0 0 0 0 0)
+    local current=0
+    local key
+    
+    while true; do
+        clear
+        cat <<'EOF'
 ╔════════════════════════════════════════════════════════════════════╗
 ║                    Custom Component Selection                      ║
 ╚════════════════════════════════════════════════════════════════════╝
 
-Select components to install (space-separated numbers, e.g., "1 3 5"):
-
-  1) Dependencies (zsh, git, curl, etc.)
-  2) Development Tools (Node.js, fnm, modern CLI tools)
-  3) Basic Dotfiles (zshrc, gitconfig, starship)
-  4) Gaming Launcher & Presets
-  5) Platform-Specific Configs (Ghostty, etc.)
-  6) Modern CLI Tools (bat, eza, ripgrep, etc.)
-
-  0) Back to main menu
+Use ↑/↓ arrows to navigate, SPACE to toggle, ENTER to confirm, q to cancel
 
 EOF
-    echo -n "Enter your choices: "
-    read -r custom_choices
-    echo ""
-    
-    if [[ "$custom_choices" == "0" ]]; then
-        show_interactive_menu
-        return
-    fi
-    
-    # Parse custom choices
-    INSTALL_DEPS=false
-    INSTALL_DEVTOOLS=false
-    INSTALL_DOTFILES=false
-    INSTALL_GAMING=false
-    INSTALL_PLATFORM=false
-    INSTALL_MODERN_TOOLS=false
-    
-    for choice in $custom_choices; do
-        case $choice in
-            1) INSTALL_DEPS=true ;;
-            2) INSTALL_DEVTOOLS=true ;;
-            3) INSTALL_DOTFILES=true ;;
-            4) INSTALL_GAMING=true ;;
-            5) INSTALL_PLATFORM=true ;;
-            6) INSTALL_MODERN_TOOLS=true ;;
-            *) log_warning "Invalid choice: $choice" ;;
+        
+        # Component list
+        local -a components=(
+            "Dependencies [~2-3 min]|zsh, git, curl, build tools"
+            "Development Tools [~5-8 min]|Node.js via fnm, package managers"
+            "Modern CLI Tools [~3-5 min]|starship, eza, bat, ripgrep, fzf, zoxide"
+            "Basic Dotfiles [~1 min]|zshrc, gitconfig, starship config"
+            "Cursor Settings Sync [~30 sec]|Link Cursor settings to dotfiles"
+            "Gaming Launcher [~1 min]|Gaming scripts and presets"
+            "Platform Configs [~2-3 min]|Ghostty, GNOME, distro-specific"
+        )
+        
+        # Display components
+        for i in "${!components[@]}"; do
+            IFS='|' read -r title desc <<< "${components[$i]}"
+            
+            # Highlight current selection
+            if [[ $i -eq $current ]]; then
+                echo -ne "${CYAN}> "
+            else
+                echo -n "  "
+            fi
+            
+            # Show checkbox
+            if [[ ${selected[$i]} -eq 1 ]]; then
+                echo -ne "${GREEN}[✓]${NC} "
+            else
+                echo -ne "[ ] "
+            fi
+            
+            # Show component info
+            echo -e "${NC}$((i+1))) $title"
+            echo "     └─ $desc"
+            echo ""
+        done
+        
+        echo ""
+        echo -e "${BLUE}Selected components: ${NC}"
+        local has_selection=false
+        for i in "${!components[@]}"; do
+            if [[ ${selected[$i]} -eq 1 ]]; then
+                IFS='|' read -r title desc <<< "${components[$i]}"
+                echo "  • $title"
+                has_selection=true
+            fi
+        done
+        
+        if ! $has_selection; then
+            echo "  (none)"
+        fi
+        
+        echo ""
+        echo "Press ENTER to install selected components, or 'q' to cancel"
+        
+        # Read single key
+        read -rsn1 key
+        
+        case "$key" in
+            $'\x1b')  # ESC sequence (arrow keys)
+                read -rsn2 key  # Read the rest of the escape sequence
+                case "$key" in
+                    '[A')  # Up arrow
+                        ((current--))
+                        [[ $current -lt 0 ]] && current=$((${#components[@]} - 1))
+                        ;;
+                    '[B')  # Down arrow
+                        ((current++))
+                        [[ $current -ge ${#components[@]} ]] && current=0
+                        ;;
+                esac
+                ;;
+            ' ')  # Space - toggle selection
+                if [[ ${selected[$current]} -eq 0 ]]; then
+                    selected[$current]=1
+                else
+                    selected[$current]=0
+                fi
+                ;;
+            '')  # Enter - confirm
+                # Check if any component is selected
+                local any_selected=false
+                for s in "${selected[@]}"; do
+                    [[ $s -eq 1 ]] && any_selected=true && break
+                done
+                
+                if ! $any_selected; then
+                    log_warning "No components selected"
+                    sleep 2
+                    show_interactive_menu
+                    return
+                fi
+                
+                # Set install flags based on selections
+                INSTALL_DEPS=${selected[0]}
+                INSTALL_DEVTOOLS=${selected[1]}
+                INSTALL_MODERN_TOOLS=${selected[2]}
+                INSTALL_DOTFILES=${selected[3]}
+                INSTALL_CURSOR=${selected[4]}
+                INSTALL_GAMING=${selected[5]}
+                INSTALL_PLATFORM=${selected[6]}
+                
+                # Convert to boolean
+                [[ $INSTALL_DEPS -eq 1 ]] && INSTALL_DEPS=true || INSTALL_DEPS=false
+                [[ $INSTALL_DEVTOOLS -eq 1 ]] && INSTALL_DEVTOOLS=true || INSTALL_DEVTOOLS=false
+                [[ $INSTALL_MODERN_TOOLS -eq 1 ]] && INSTALL_MODERN_TOOLS=true || INSTALL_MODERN_TOOLS=false
+                [[ $INSTALL_DOTFILES -eq 1 ]] && INSTALL_DOTFILES=true || INSTALL_DOTFILES=false
+                [[ $INSTALL_CURSOR -eq 1 ]] && INSTALL_CURSOR=true || INSTALL_CURSOR=false
+                [[ $INSTALL_GAMING -eq 1 ]] && INSTALL_GAMING=true || INSTALL_GAMING=false
+                [[ $INSTALL_PLATFORM -eq 1 ]] && INSTALL_PLATFORM=true || INSTALL_PLATFORM=false
+                
+                clear
+                return
+                ;;
+            'q'|'Q')  # Quit
+                show_interactive_menu
+                return
+                ;;
+            [1-7])  # Number keys - toggle directly
+                local idx=$((key - 1))
+                if [[ ${selected[$idx]} -eq 0 ]]; then
+                    selected[$idx]=1
+                else
+                    selected[$idx]=0
+                fi
+                ;;
         esac
     done
 }
@@ -857,6 +1047,8 @@ Options:
   --full              Full installation (all components)
   --minimal           Minimal installation (basic dotfiles only)
   --gaming            Gaming setup only
+  --cursor            Cursor settings sync only
+  --update            Update existing setup (refresh symlinks)
   --skip-deps         Skip dependency installation
   --skip-dotfiles     Skip dotfiles installation
   --dry-run           Show what would be installed
@@ -867,6 +1059,8 @@ Examples:
   ./install.sh                    # Interactive menu
   ./install.sh --full             # Full installation
   ./install.sh --gaming           # Gaming setup only
+  ./install.sh --cursor           # Cursor settings sync only
+  ./install.sh --update           # Update existing setup
   ./install.sh --minimal          # Minimal setup
   ./install.sh --dry-run          # Preview installation
 
@@ -989,6 +1183,16 @@ main_installation() {
                 interactive_mode=false
                 shift
                 ;;
+            --cursor)
+                install_mode="cursor"
+                interactive_mode=false
+                shift
+                ;;
+            --update)
+                install_mode="update"
+                interactive_mode=false
+                shift
+                ;;
             --skip-deps)
                 skip_deps=true
                 shift
@@ -1072,6 +1276,14 @@ main_installation() {
         devtools)
             log_info "=== Running Development Tools Setup ==="
             install_devtools_only
+            ;;
+        cursor)
+            log_info "=== Running Cursor Settings Sync ==="
+            install_cursor_only
+            ;;
+        update)
+            log_info "=== Running Update ==="
+            install_update_setup
             ;;
         *)
             # Fallback to old behavior for backward compatibility
@@ -1202,7 +1414,9 @@ install_custom_setup() {
         create_symlink "$SCRIPT_DIR/.config/lazygit" "$HOME/.config/lazygit" "lazygit config"
         create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
         create_symlink "$SCRIPT_DIR/.config/procs" "$HOME/.config/procs" "procs config"
-        
+    fi
+    
+    if $INSTALL_CURSOR; then
         log_info ""
         log_info "=== Setting up Cursor Settings Sync ==="
         setup_cursor_sync
@@ -1265,6 +1479,58 @@ install_devtools_only() {
     log_info "=== Installing Modern CLI Tools ==="
     install_modern_tools
     setup_fzf
+}
+
+install_cursor_only() {
+    log_info "Setting up Cursor settings sync..."
+    setup_cursor_sync
+    log_success "Cursor settings sync complete!"
+    log_info ""
+    log_info "Your Cursor settings are now linked to dotfiles:"
+    log_info "  - settings.json"
+    log_info "  - keybindings.json"
+    log_info "  - snippets/"
+    log_info ""
+    log_info "Changes in Cursor will be reflected in your dotfiles."
+    log_info "Commit and push to sync across machines."
+}
+
+install_update_setup() {
+    log_info "Updating existing setup..."
+    log_info "This will refresh symlinks and update configurations."
+    echo ""
+    
+    # Re-run dotfiles installation (updates symlinks)
+    log_info ""
+    log_info "=== Updating Dotfiles Symlinks ==="
+    install_dotfiles
+    
+    # Update Cursor sync if it exists
+    if $IS_MACOS; then
+        if [[ -d "$HOME/Library/Application Support/Cursor" ]]; then
+            log_info ""
+            log_info "=== Updating Cursor Settings Sync ==="
+            setup_cursor_sync
+        fi
+    else
+        if [[ -d "$HOME/.config/Cursor" ]]; then
+            log_info ""
+            log_info "=== Updating Cursor Settings Sync ==="
+            setup_cursor_sync
+        fi
+    fi
+    
+    # Update gaming scripts if they exist
+    if [[ -f "$HOME/bin/gamelaunch" ]]; then
+        log_info ""
+        log_info "=== Updating Gaming Scripts ==="
+        setup_gaming
+    fi
+    
+    log_success "Update complete!"
+    log_info ""
+    log_info "All symlinks have been refreshed."
+    log_info "Run 'source ~/.zshrc' to reload your shell configuration."
 }
 
 show_completion_message() {
