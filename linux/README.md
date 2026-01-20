@@ -16,6 +16,15 @@ linux/
 ├── ghostty/                   # Ghostty terminal emulator
 │   └── config                 # Ghostty configuration
 │
+├── paru/                      # Paru AUR helper
+│   ├── paru.conf              # Paru configuration
+│   └── README.md              # Paru documentation
+│
+├── security/                  # Security hardening
+│   ├── SSH-SECURITY.md        # SSH security guide
+│   ├── README.md              # Security documentation
+│   └── .gitignore             # Ignore sensitive files
+│
 ├── install-linux.sh           # Main Linux installer
 └── README.md                  # This file
 ```

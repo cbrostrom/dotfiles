@@ -1,0 +1,116 @@
+#!/bin/bash
+# Diablo 4 Shader Management Helper
+
+echo "=== Diablo 4 Shader Management ==="
+echo ""
+
+D4_COMPAT_DIR="$HOME/.steam/steam/steamapps/compatdata/2344520"
+if [[ ! -d "$D4_COMPAT_DIR" ]]; then
+    D4_COMPAT_DIR="$HOME/.local/share/Steam/steamapps/compatdata/2344520"
+fi
+
+SHADER_CACHE="$HOME/.local/share/Steam/steamapps/shadercache/2344520"
+MESA_CACHE="$HOME/.cache/mesa_shader_cache"
+DXVK_CACHE="$D4_COMPAT_DIR/pfx/drive_c/users/steamuser/AppData/Local/DXVK_state_cache"
+VKD3D_CACHE="$D4_COMPAT_DIR/pfx/drive_c/users/steamuser/AppData/Local/vkd3d"
+
+echo "Shader cache locations:"
+echo ""
+
+# Steam shader pre-compile cache
+if [[ -d "$SHADER_CACHE" ]]; then
+    SIZE=$(du -sh "$SHADER_CACHE" 2>/dev/null | cut -f1)
+    echo "✓ Steam Shader Cache: $SIZE"
+    echo "  Location: $SHADER_CACHE"
+    FILES=$(find "$SHADER_CACHE" -type f 2>/dev/null | wc -l)
+    echo "  Files: $FILES"
+else
+    echo "✗ Steam Shader Cache: Not found"
+fi
+echo ""
+
+# Mesa shader cache
+if [[ -d "$MESA_CACHE" ]]; then
+    SIZE=$(du -sh "$MESA_CACHE" 2>/dev/null | cut -f1)
+    echo "✓ Mesa Shader Cache: $SIZE"
+    echo "  Location: $MESA_CACHE"
+else
+    echo "✗ Mesa Shader Cache: Not found"
+fi
+echo ""
+
+# DXVK state cache
+if [[ -d "$DXVK_CACHE" ]]; then
+    SIZE=$(du -sh "$DXVK_CACHE" 2>/dev/null | cut -f1)
+    echo "✓ DXVK State Cache: $SIZE"
+    echo "  Location: $DXVK_CACHE"
+    FILES=$(find "$DXVK_CACHE" -type f 2>/dev/null | wc -l)
+    echo "  Files: $FILES"
+else
+    echo "✗ DXVK State Cache: Not found"
+fi
+echo ""
+
+# VKD3D cache
+if [[ -d "$VKD3D_CACHE" ]]; then
+    SIZE=$(du -sh "$VKD3D_CACHE" 2>/dev/null | cut -f1)
+    echo "✓ VKD3D Cache: $SIZE"
+    echo "  Location: $VKD3D_CACHE"
+else
+    echo "✗ VKD3D Cache: Not found"
+fi
+echo ""
+
+echo "=== Actions ==="
+echo ""
+echo "1. Clear ALL shader caches (clean start)"
+echo "2. Clear Steam pre-compile cache only"
+echo "3. Clear DXVK state cache only"
+echo "4. Keep all caches (cancel)"
+echo ""
+read -p "Choose action [1-4]: " choice
+
+case $choice in
+    1)
+        echo ""
+        echo "Clearing ALL shader caches..."
+        rm -rf "$SHADER_CACHE"
+        rm -rf "$MESA_CACHE"
+        rm -rf "$DXVK_CACHE"
+        rm -rf "$VKD3D_CACHE"
+        echo "✓ All caches cleared!"
+        echo ""
+        echo "Next steps:"
+        echo "1. Use: gamelaunch --preset diablo4-noshaders %command%"
+        echo "2. Or: gamelaunch --preset diablo4 %command%"
+        echo "3. First launch will rebuild shaders (expect stutters)"
+        ;;
+    2)
+        echo ""
+        echo "Clearing Steam shader pre-compile cache..."
+        rm -rf "$SHADER_CACHE"
+        echo "✓ Steam shader cache cleared!"
+        echo ""
+        echo "Use: gamelaunch --preset diablo4-noshaders %command%"
+        ;;
+    3)
+        echo ""
+        echo "Clearing DXVK state cache..."
+        rm -rf "$DXVK_CACHE"
+        echo "✓ DXVK cache cleared!"
+        echo ""
+        echo "Use: gamelaunch --preset diablo4 %command%"
+        ;;
+    4)
+        echo "Keeping all caches."
+        ;;
+    *)
+        echo "Invalid choice."
+        ;;
+esac
+
+echo ""
+echo "=== Tips ==="
+echo "• To skip Vulkan pre-compile: gamelaunch --preset diablo4-noshaders %command%"
+echo "• To disable shader cache: DXVK_STATE_CACHE=0 is already in presets"
+echo "• Check logs: diablo4-debug"

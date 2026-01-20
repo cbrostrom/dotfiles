@@ -46,10 +46,20 @@ fi
 # =============================================================================
 # PATH SETUP
 # =============================================================================
-# Basic PATH setup
-export PATH="$HOME/.local/bin:$PATH"
+# Basic PATH setup - include ~/bin and ~/.local/bin
+export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
+
+# =============================================================================
+# EDITOR CONFIGURATION
+# =============================================================================
+# Set micro as default editor for all commands (including sudo)
+if command -v micro >/dev/null 2>&1; then
+    export EDITOR="micro"
+    export VISUAL="micro"
+    export SUDO_EDITOR="micro"
+fi
 
 # Node/Web development environment
 export NODE_OPTIONS="--max-old-space-size=8192"

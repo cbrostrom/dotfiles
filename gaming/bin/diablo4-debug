@@ -1,0 +1,80 @@
+#!/bin/bash
+# Diablo 4 Debug Helper Script
+# Shows real-time logs and debugging info
+
+echo "=== Diablo 4 Debug Helper ==="
+echo ""
+
+# Find Diablo 4 installation
+D4_GAME_DIR="/mnt/games/main/SteamLibrary/steamapps/common/Diablo IV"
+D4_COMPAT_DIR="$HOME/.steam/steam/steamapps/compatdata/2344520"
+
+if [[ ! -d "$D4_COMPAT_DIR" ]]; then
+    D4_COMPAT_DIR="$HOME/.local/share/Steam/steamapps/compatdata/2344520"
+fi
+
+echo "Game Directory: $D4_GAME_DIR"
+echo "Compatdata: $D4_COMPAT_DIR"
+echo ""
+
+# Check if DXVK config exists
+if [[ -f "$D4_GAME_DIR/dxvk.conf" ]]; then
+    echo "✓ DXVK Config found:"
+    cat "$D4_GAME_DIR/dxvk.conf" | grep -E "maxDeviceMemory|maxSharedMemory|maxChunkSize"
+else
+    echo "✗ DXVK Config NOT found"
+fi
+echo ""
+
+# Show recent game logs
+echo "=== Recent Diablo 4 Logs ==="
+if [[ -f "$D4_GAME_DIR/FenrisDebug.txt" ]]; then
+    echo "Last 20 lines of FenrisDebug.txt:"
+    tail -20 "$D4_GAME_DIR/FenrisDebug.txt"
+else
+    echo "No FenrisDebug.txt found"
+fi
+echo ""
+
+# Show Proton logs
+PROTON_LOG="$D4_COMPAT_DIR/proton_log.txt"
+if [[ -f "$PROTON_LOG" ]]; then
+    echo "=== Proton Log (last 30 lines) ==="
+    tail -30 "$PROTON_LOG"
+else
+    echo "No Proton log found at: $PROTON_LOG"
+    echo "Enable with: PROTON_LOG=1 in launch options"
+fi
+echo ""
+
+# Show DXVK state cache
+DXVK_CACHE="$D4_COMPAT_DIR/pfx/drive_c/users/steamuser/AppData/Local/DXVK_state_cache"
+if [[ -d "$DXVK_CACHE" ]]; then
+    echo "=== DXVK State Cache ==="
+    du -sh "$DXVK_CACHE"
+    ls -lh "$DXVK_CACHE"
+fi
+echo ""
+
+# Check for crash logs
+echo "=== Crash Logs ==="
+ls -lth "$D4_GAME_DIR"/_FenrisDebug-*.txt 2>/dev/null | head -5
+echo ""
+
+# Show GPU info
+echo "=== GPU Status ==="
+nvidia-smi --query-gpu=name,memory.used,memory.total,temperature.gpu --format=csv,noheader 2>/dev/null || echo "nvidia-smi not available"
+echo ""
+
+# Show gamelaunch log
+echo "=== Recent gamelaunch Activity ==="
+if [[ -f "$HOME/.config/game-launcher/launch.log" ]]; then
+    tail -5 "$HOME/.config/game-launcher/launch.log"
+fi
+echo ""
+
+echo "=== Tips ==="
+echo "1. Use: gamelaunch --preset diablo4-debug %command%"
+echo "2. Check logs after crash: tail -50 '$D4_GAME_DIR/FenrisDebug.txt'"
+echo "3. Monitor in real-time: tail -f '$PROTON_LOG'"
+echo "4. Check VRAM usage: watch -n 1 nvidia-smi"

@@ -9,7 +9,14 @@
 #   gamelaunch --gamemode --mangohud %command%
 #
 
+# Debug: Log that script was called
 SCRIPT_DIR="$HOME/.config/game-launcher"
+mkdir -p "$SCRIPT_DIR"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] === SCRIPT CALLED ===" >> "$SCRIPT_DIR/launch.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Script path: $0" >> "$SCRIPT_DIR/launch.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Args count: $#" >> "$SCRIPT_DIR/launch.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] All args: $@" >> "$SCRIPT_DIR/launch.log"
+
 PRESETS_FILE="$SCRIPT_DIR/presets.conf"
 
 # Default settings
@@ -121,39 +128,81 @@ fi
 
 # Build launch command
 LAUNCH_CMD=""
+ENV_VARS=""
 
-# Add custom environment variables
+# Collect environment variables
 if [[ -n "$CUSTOM_ENV" ]]; then
-    LAUNCH_CMD="env $CUSTOM_ENV "
+    ENV_VARS="$CUSTOM_ENV"
 fi
 
-# Add gamemode
-if [[ "$USE_GAMEMODE" == true ]]; then
-    if command -v gamemoderun >/dev/null 2>&1; then
-        LAUNCH_CMD="${LAUNCH_CMD}gamemoderun "
+# Add MangoHud config if needed
+if [[ "$USE_MANGOHUD" == true && -n "$MANGOHUD_CONFIG" ]]; then
+    if [[ -n "$ENV_VARS" ]]; then
+        ENV_VARS="$ENV_VARS MANGOHUD_CONFIG='$MANGOHUD_CONFIG'"
     else
-        echo "Warning: gamemoderun not found, skipping gamemode"
+        ENV_VARS="MANGOHUD_CONFIG='$MANGOHUD_CONFIG'"
     fi
 fi
 
-# Add mangohud
+# Add all environment variables at once
+if [[ -n "$ENV_VARS" ]]; then
+    LAUNCH_CMD="env $ENV_VARS "
+fi
+
+# Add gamemode wrapper
+if [[ "$USE_GAMEMODE" == true ]]; then
+    if command -v gamemoderun >/dev/null 2>&1; then
+        LAUNCH_CMD="${LAUNCH_CMD}/usr/bin/gamemoderun "
+    else
+        echo "Warning: gamemoderun not found, skipping gamemode" >&2
+    fi
+fi
+
+# Add mangohud wrapper
 if [[ "$USE_MANGOHUD" == true ]]; then
     if command -v mangohud >/dev/null 2>&1; then
-        if [[ -n "$MANGOHUD_CONFIG" ]]; then
-            LAUNCH_CMD="${LAUNCH_CMD}env MANGOHUD_CONFIG='$MANGOHUD_CONFIG' mangohud "
-        else
-            LAUNCH_CMD="${LAUNCH_CMD}mangohud "
-        fi
+        LAUNCH_CMD="${LAUNCH_CMD}/usr/bin/mangohud "
     else
-        echo "Warning: mangohud not found, skipping mangohud"
+        echo "Warning: mangohud not found, skipping mangohud" >&2
     fi
 fi
 
 # Add the actual game command
 LAUNCH_CMD="${LAUNCH_CMD}$*"
 
-# Log the command (optional - comment out if you don't want logging)
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Launching: $LAUNCH_CMD" >> "$SCRIPT_DIR/launch.log"
+# Debug logging
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] === DEBUG ===" >> "$SCRIPT_DIR/launch.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Args count: $#" >> "$SCRIPT_DIR/launch.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] All args: $*" >> "$SCRIPT_DIR/launch.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Preset: $PRESET" >> "$SCRIPT_DIR/launch.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] ENV_VARS: $ENV_VARS" >> "$SCRIPT_DIR/launch.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] USE_GAMEMODE: $USE_GAMEMODE" >> "$SCRIPT_DIR/launch.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] USE_MANGOHUD: $USE_MANGOHUD" >> "$SCRIPT_DIR/launch.log"
 
-# Execute the game
-exec bash -c "$LAUNCH_CMD"
+# Export environment variables individually
+if [[ -n "$CUSTOM_ENV" ]]; then
+    # Parse space-separated KEY=VALUE pairs
+    eval "export $CUSTOM_ENV"
+fi
+
+# Export MangoHud config if needed
+if [[ "$USE_MANGOHUD" == true && -n "$MANGOHUD_CONFIG" ]]; then
+    export MANGOHUD_CONFIG="$MANGOHUD_CONFIG"
+fi
+
+# Build execution chain
+if [[ "$USE_GAMEMODE" == true ]] && command -v gamemoderun >/dev/null 2>&1; then
+    if [[ "$USE_MANGOHUD" == true ]] && command -v mangohud >/dev/null 2>&1; then
+        # Both gamemode and mangohud
+        exec /usr/bin/gamemoderun /usr/bin/mangohud "$@"
+    else
+        # Only gamemode
+        exec /usr/bin/gamemoderun "$@"
+    fi
+elif [[ "$USE_MANGOHUD" == true ]] && command -v mangohud >/dev/null 2>&1; then
+    # Only mangohud
+    exec /usr/bin/mangohud "$@"
+else
+    # No wrappers
+    exec "$@"
+fi

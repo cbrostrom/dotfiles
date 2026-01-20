@@ -74,7 +74,7 @@ else
     echo "Falling back to basic configuration"
     
     # Minimal fallback configuration
-    export PATH="$HOME/.local/bin:$PATH"
+    export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
     
     # Load starship if available
     if command -v starship &>/dev/null; then

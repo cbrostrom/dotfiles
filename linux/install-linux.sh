@@ -75,6 +75,46 @@ fi
 echo ""
 
 # =============================================================================
+# Paru AUR Helper Configuration
+# =============================================================================
+echo "========================================="
+echo "Paru Configuration"
+echo "========================================="
+echo ""
+
+if command -v paru &> /dev/null; then
+    echo "✓ Paru is installed"
+    
+    # Create paru config directory if it doesn't exist
+    mkdir -p "$CONFIG_DIR/paru"
+    
+    # Check if config already exists
+    if [ -f "$CONFIG_DIR/paru/paru.conf" ]; then
+        echo "⚠️  Paru config already exists"
+        read -p "Backup and replace with dotfiles version? (y/n): " replace_paru
+        if [ "$replace_paru" = "y" ]; then
+            cp "$CONFIG_DIR/paru/paru.conf" "$CONFIG_DIR/paru/paru.conf.backup.$(date +%Y%m%d_%H%M%S)"
+            echo "  → Backed up existing config"
+            ln -sf "$SCRIPT_DIR/paru/paru.conf" "$CONFIG_DIR/paru/paru.conf"
+            echo "  ✓ Symlinked Paru config"
+        else
+            echo "  → Keeping existing config"
+        fi
+    else
+        ln -sf "$SCRIPT_DIR/paru/paru.conf" "$CONFIG_DIR/paru/paru.conf"
+        echo "✓ Symlinked Paru config"
+    fi
+else
+    echo "⚠️  Paru is not installed"
+    echo "   Install with: sudo pacman -S paru"
+    echo "   Or build from AUR"
+    echo ""
+    echo "→ Skipping Paru configuration"
+fi
+
+echo ""
+
+# =============================================================================
 # GNOME-Specific Configuration (Optional)
 # =============================================================================
 if [[ "$DESKTOP_ENV" == *"GNOME"* ]] || [[ "$DESKTOP_ENV" == *"gnome"* ]]; then
@@ -166,6 +206,11 @@ if command -v ghostty &> /dev/null; then
     echo "  - Ghostty: ✓ Configured"
 else
     echo "  - Ghostty: ⚠️  Not installed"
+fi
+if command -v paru &> /dev/null; then
+    echo "  - Paru: ✓ Configured"
+else
+    echo "  - Paru: ⚠️  Not installed"
 fi
 echo ""
 echo "💡 Next steps:"

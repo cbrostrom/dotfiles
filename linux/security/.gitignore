@@ -1,0 +1,15 @@
+# Ignore any files with actual sensitive configuration
+*-actual.conf
+*-actual.md
+*.local
+*.secret
+
+# Ignore backup files
+*.backup
+*.bak
+*.old
+
+# Ignore temporary files
+*.tmp
+*.swp
+*~
