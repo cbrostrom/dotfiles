@@ -110,7 +110,7 @@ show_fzf_menu() {
         "1  │ Full Setup              │ Everything: deps, tools, dotfiles [~10-15min]"
         "2  │ Minimal Setup           │ Basic dotfiles + essential tools [~3-5min]"
         "3  │ Custom Components       │ Pick and choose what to install"
-        "4  │ Cursor Settings Sync    │ Link Cursor settings to dotfiles [~30sec]"
+        "4  │ Cursor Settings Sync    │ Link settings, keybindings, snippets, extensions [~30sec]"
         "5  │ Gaming Launcher         │ Install gaming scripts [~1min]"
         "6  │ Development Tools       │ Node.js, modern CLI tools [~5-8min]"
         "7  │ Platform Configs        │ Ghostty, GNOME, distro-specific [~2-3min]"

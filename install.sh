@@ -1490,6 +1490,7 @@ install_cursor_only() {
     log_info "  - settings.json"
     log_info "  - keybindings.json"
     log_info "  - snippets/"
+    log_info "  - extensions.json (list of installed extensions)"
     log_info ""
     log_info "Changes in Cursor will be reflected in your dotfiles."
     log_info "Commit and push to sync across machines."

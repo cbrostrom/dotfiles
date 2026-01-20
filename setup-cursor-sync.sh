@@ -30,9 +30,11 @@ fi
 if [[ "$OSTYPE" == "darwin"* ]]; then
     IS_MACOS=true
     CURSOR_USER_DIR="$HOME/Library/Application Support/Cursor/User"
+    CURSOR_EXTENSIONS_DIR="$HOME/.cursor/extensions"
 elif [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "linux"* ]]; then
     IS_MACOS=false
     CURSOR_USER_DIR="$HOME/.config/Cursor/User"
+    CURSOR_EXTENSIONS_DIR="$HOME/.cursor/extensions"
 else
     log_error "Unsupported OS: $OSTYPE"
     exit 1
@@ -43,6 +45,7 @@ DOTFILES_CURSOR_DIR="$SCRIPT_DIR/.config/cursor"
 
 log_info "=== Cursor Settings Sync Setup ==="
 log_info "Cursor User directory: $CURSOR_USER_DIR"
+log_info "Cursor Extensions directory: $CURSOR_EXTENSIONS_DIR"
 log_info "Dotfiles Cursor directory: $DOTFILES_CURSOR_DIR"
 
 # Check if Cursor User directory exists
@@ -122,13 +125,40 @@ create_symlink \
     "$CURSOR_USER_DIR/snippets" \
     "snippets/"
 
+# Sync extensions.json if extensions directory exists
+if [[ -d "$CURSOR_EXTENSIONS_DIR" ]]; then
+    log_info ""
+    log_info "Setting up extensions sync..."
+    
+    # Create extensions.json in dotfiles if it doesn't exist
+    if [[ ! -f "$DOTFILES_CURSOR_DIR/extensions.json" ]] && [[ -f "$CURSOR_EXTENSIONS_DIR/extensions.json" ]]; then
+        log_info "Copying current extensions.json to dotfiles..."
+        cp "$CURSOR_EXTENSIONS_DIR/extensions.json" "$DOTFILES_CURSOR_DIR/extensions.json"
+    fi
+    
+    create_symlink \
+        "$DOTFILES_CURSOR_DIR/extensions.json" \
+        "$CURSOR_EXTENSIONS_DIR/extensions.json" \
+        "extensions.json"
+else
+    log_warning "Extensions directory not found, skipping extensions sync"
+fi
+
 log_info ""
 log_success "=== Cursor Settings Sync Setup Complete! ==="
 log_info ""
 log_info "Your Cursor settings are now synced via dotfiles:"
-log_info "  - Any changes in Cursor will be reflected in dotfiles"
-log_info "  - Commit and push changes to sync across machines"
-log_info "  - Run this script on new machines to setup symlinks"
+log_info "  - settings.json"
+log_info "  - keybindings.json"
+log_info "  - snippets/"
+log_info "  - extensions.json (list of installed extensions)"
+log_info ""
+log_info "Note: Extension files are NOT synced, only the list (extensions.json)"
+log_info "You'll need to reinstall extensions on new machines, but the list is preserved"
+log_info ""
+log_info "Changes in Cursor will be reflected in dotfiles automatically"
+log_info "Commit and push changes to sync across machines"
 log_info ""
 log_info "To verify symlinks:"
 log_info "  ls -la \"$CURSOR_USER_DIR\" | grep -E '(settings|keybindings|snippets)'"
+log_info "  ls -la \"$CURSOR_EXTENSIONS_DIR\" | grep extensions.json"
