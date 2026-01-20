@@ -13,8 +13,7 @@ if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
 
     # Load critical plugins first (no wait) for immediate availability
     zinit light-mode for \
-        zsh-users/zsh-autosuggestions \
-        zsh-users/zsh-syntax-highlighting
+        zsh-users/zsh-autosuggestions
 
     # Load completions and other plugins with lazy loading
     zinit wait lucid for \
@@ -27,6 +26,21 @@ if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
 
     # Load fzf-tab for visual completion
     zinit light Aloxaf/fzf-tab
+    
+    # Fast syntax highlighting - load AFTER FZF to avoid widget warnings
+    zinit ice wait lucid atload'zicompinit; zicdreplay'
+    zinit light zdharma-continuum/fast-syntax-highlighting
+fi
+
+# =============================================================================
+# COMPLETION OPTIMIZATION
+# =============================================================================
+# Cache completions for 24 hours to improve startup time
+autoload -Uz compinit
+if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qNmh+24) ]]; then
+    compinit
+else
+    compinit -C
 fi
 
 # =============================================================================
@@ -224,14 +238,6 @@ if [[ -f "$HOME/.zsh/git-completion.bash" ]]; then
     zstyle ':completion:*:*:git:*' script $HOME/.zsh/git-completion.bash
     zstyle ':completion:*:git:*' tag-order local-tags remote-tags
 fi
-
-# =============================================================================
-# HISTORY CONFIGURATION
-# =============================================================================
-HISTSIZE=10000
-HISTFILE=~/.zsh_history
-SAVEHIST=$HISTSIZE
-setopt appendhistory sharehistory hist_ignore_space hist_ignore_all_dups
 
 # =============================================================================
 # KEYBINDINGS

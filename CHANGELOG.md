@@ -2,6 +2,49 @@
 
 All notable changes to this dotfiles project will be documented in this file.
 
+## [3.1.0] - 2025-01-20
+
+### ✨ New Features
+
+#### Enhanced ZSH Configuration
+- **Better History Management**: Added comprehensive history settings with timestamps, deduplication, and sharing across sessions
+- **Fast Syntax Highlighting**: Replaced `zsh-syntax-highlighting` with `fast-syntax-highlighting` for better performance
+- **Completion Caching**: Added 24-hour completion cache to improve startup time
+- **Git Worktree Helpers**: New functions `gwtnew` and `gwtgo` for easy worktree management with FZF integration
+
+#### Expanded Aliases
+- **Security Monitoring**: Added aliases for SSH, Fail2ban, UFW, and network monitoring
+- **Tailscale Management**: Quick aliases for Tailscale status and control
+- **Streaming (Apollo/Sunshine)**: Dedicated aliases for game streaming service management
+- **Docker Cleanup**: Enhanced Docker aliases with cleanup and pruning commands
+
+#### Improved Starship Prompt
+- **Better Git Status**: Enhanced visual indicators with emojis (🏳 conflicts, 🤷 untracked, 📦 stashed, 📝 modified, 🗑 deleted)
+- **Clearer Status Display**: More intuitive git status representation
+
+#### Directory Structure
+- **Automatic Setup**: Install script now creates standard directories (`~/Projects`, `~/Work`, `~/bin`, `~/.local/bin`)
+- **Better Organization**: Consistent directory structure across installations
+
+#### Micro Editor Integration
+- **Plugin Installation**: Automatic installation of useful micro plugins (filemanager, manipulator, bounce, quoter)
+- **Enhanced Editing**: Better out-of-the-box experience with micro
+
+#### Backup Improvements
+- **Automatic Rotation**: Backup script now auto-cleans old backups, keeping only 10 most recent
+- **Less Maintenance**: No need to manually clean old backups
+
+### 📚 Documentation
+- **Security Documentation**: Comprehensive SSH, Fail2ban, and firewall setup guides in `linux/security/`
+- **AI Recreation**: All security configs documented for easy recreation on new systems
+- **Quick Reference**: Added quick command reference for common security operations
+
+### 🔧 Configuration Files
+- **Paru Config**: Added to dotfiles with optimized settings (SkipReview, BottomUp, SudoLoop, CleanAfter)
+- **Sudoers Config**: Passwordless sudo for wheel group (`/etc/sudoers.d/99-wheel-nopasswd`)
+- **Polkit Rules**: Minimized authentication prompts for wheel group members
+- **SSH Hardening**: Custom port, Fail2ban integration, LAN/Tailscale whitelist
+
 ## [3.0.0] - 2025-01-04
 
 ### 🎯 Major Changes

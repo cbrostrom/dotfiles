@@ -196,6 +196,45 @@ else
 fi
 
 echo ""
+
+# =============================================================================
+# Directory Structure Setup
+# =============================================================================
+echo "========================================="
+echo "Directory Structure"
+echo "========================================="
+echo ""
+
+echo "Creating standard directories..."
+mkdir -p "$HOME/Projects"
+mkdir -p "$HOME/Work"
+mkdir -p "$HOME/bin"
+mkdir -p "$HOME/.local/bin"
+mkdir -p "$HOME/.cache"
+
+echo "✓ Directories created"
+echo ""
+
+# =============================================================================
+# Micro Editor Plugins
+# =============================================================================
+if command -v micro &> /dev/null; then
+    echo "========================================="
+    echo "Micro Editor Plugins"
+    echo "========================================="
+    echo ""
+    
+    echo "Installing useful micro plugins..."
+    micro -plugin install filemanager 2>/dev/null || echo "  → filemanager already installed or failed"
+    micro -plugin install manipulator 2>/dev/null || echo "  → manipulator already installed or failed"
+    micro -plugin install bounce 2>/dev/null || echo "  → bounce already installed or failed"
+    micro -plugin install quoter 2>/dev/null || echo "  → quoter already installed or failed"
+    
+    echo "✓ Micro plugins configured"
+    echo ""
+fi
+
+echo ""
 echo "========================================="
 echo "✅ Linux Installation Complete!"
 echo "========================================="
@@ -212,6 +251,12 @@ if command -v paru &> /dev/null; then
 else
     echo "  - Paru: ⚠️  Not installed"
 fi
+if command -v micro &> /dev/null; then
+    echo "  - Micro: ✓ Configured with plugins"
+else
+    echo "  - Micro: ⚠️  Not installed"
+fi
+echo "  - Directories: ✓ Created (~/Projects, ~/Work, ~/bin)"
 echo ""
 echo "💡 Next steps:"
 echo "  1. Restart your terminal to apply changes"

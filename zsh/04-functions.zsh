@@ -170,4 +170,55 @@ weather() {
     curl "wttr.in/${location}"
 }
 
+# =============================================================================
+# GIT WORKTREE HELPERS
+# =============================================================================
+# Create new worktree with branch
+gwtnew() {
+    if [[ -z "$1" ]]; then
+        echo "Usage: gwtnew <branch-name>"
+        echo "Creates a new worktree in parallel directory with new branch"
+        return 1
+    fi
+    
+    local branch_name="$1"
+    local current_dir=$(basename $(pwd))
+    local worktree_path="../${current_dir}-${branch_name}"
+    
+    echo "Creating worktree: $worktree_path"
+    git worktree add "$worktree_path" -b "$branch_name"
+    
+    if [[ $? -eq 0 ]]; then
+        echo "✅ Worktree created successfully"
+        echo "📁 Location: $worktree_path"
+        echo "🌿 Branch: $branch_name"
+        echo ""
+        echo "To switch: cd $worktree_path"
+    fi
+}
+
+# Navigate to worktree with FZF
+gwtgo() {
+    if ! command -v fzf &>/dev/null; then
+        echo "Error: fzf is required for this function"
+        return 1
+    fi
+    
+    local worktrees=$(git worktree list 2>/dev/null)
+    if [[ -z "$worktrees" ]]; then
+        echo "No git worktrees found"
+        return 1
+    fi
+    
+    local selection=$(echo "$worktrees" | fzf --height 40% --reverse --border \
+        --preview 'echo {} | awk "{print \$1}" | xargs ls -la' \
+        --preview-window=right:50%)
+    
+    if [[ -n "$selection" ]]; then
+        local worktree_path=$(echo "$selection" | awk '{print $1}')
+        echo "Switching to: $worktree_path"
+        cd "$worktree_path"
+    fi
+}
+
 

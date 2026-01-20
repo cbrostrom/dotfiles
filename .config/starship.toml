@@ -37,19 +37,21 @@ symbol = " "
 style = "#f4a261 bold"
 
 [git_status]
-# Alle statusindikatorer med counts og spacing - én stor bracket
-format = '\[ [$ahead_behind$staged$modified$untracked$renamed$deleted$stashed]($style)\] '
+# Enhanced git status with better visual indicators
+format = '\[ [$ahead_behind$conflicted$staged$modified$untracked$renamed$deleted$stashed]($style)\] '
+style = "#f4a261 bold"
 
-# Symbols med trailing space (space efter hver inkl. sidste)
+# Symbols with counts and better emojis
+conflicted = "🏳$count "
 ahead = "⇡$count "
 behind = "⇣$count "
-diverged = "⇡$ahead_count⇣$behind_count "
-staged = "+$count "
-modified = "!$count "
-untracked = "?$count "
-renamed = "»$count "
-deleted = "✘$count "
-stashed = "≡$count "
+diverged = "⇕⇡$ahead_count⇣$behind_count "
+untracked = "🤷$count "
+stashed = "📦$count "
+modified = "📝$count "
+staged = "++$count "
+renamed = "👅$count "
+deleted = "🗑$count "
 
 # =============================================================================
 # LANGUAGE VERSIONS

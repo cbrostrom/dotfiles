@@ -34,6 +34,19 @@ create_backup() {
     # Create backup directory
     mkdir -p "$BACKUP_DIR"
     
+    # Automatic cleanup: Keep only 10 most recent backups
+    if [[ -d "$HOME/.dotfiles-backups" ]]; then
+        local backup_count=$(ls -1d "$HOME/.dotfiles-backups"/*/ 2>/dev/null | wc -l)
+        if [[ $backup_count -gt 10 ]]; then
+            log_info "Auto-cleaning old backups (keeping 10 most recent)..."
+            local backup_dirs=($(ls -dt "$HOME/.dotfiles-backups"/*/ 2>/dev/null))
+            for ((i=10; i<${#backup_dirs[@]}; i++)); do
+                log_info "Removing old backup: $(basename "${backup_dirs[$i]}")"
+                rm -rf "${backup_dirs[$i]}"
+            done
+        fi
+    fi
+    
     # List of files to backup
     local files_to_backup=(
         "$HOME/.zshrc"

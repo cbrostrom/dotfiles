@@ -16,21 +16,15 @@
 
 # Determine the dotfiles directory
 # This works whether .zshrc is sourced directly or via symlink
-if [[ -L "${(%):-%N}" ]]; then
-    # .zshrc is a symlink, get the actual file location
-    local symlink_target="$(readlink "${(%):-%N}")"
-    # Handle both absolute and relative symlinks
-    if [[ "$symlink_target" = /* ]]; then
-        # Absolute path
-        DOTFILES_DIR="$(dirname "$symlink_target")"
-    else
-        # Relative path - resolve from home directory
-        DOTFILES_DIR="$(cd "$HOME" && cd "$(dirname "$symlink_target")" && pwd)"
-    fi
-else
-    # .zshrc is a regular file, use its directory
-    DOTFILES_DIR="$(dirname "${(%):-%N}")"
+ZSHRC_PATH="${(%):-%N}"
+
+# If ~/.zshrc is a symlink, resolve it
+if [[ -L "$HOME/.zshrc" ]]; then
+    ZSHRC_PATH="$(readlink -f "$HOME/.zshrc")"
 fi
+
+# Get the directory containing .zshrc
+DOTFILES_DIR="$(dirname "$ZSHRC_PATH")"
 
 # Ensure DOTFILES_DIR is absolute
 if [[ "$DOTFILES_DIR" != /* ]]; then

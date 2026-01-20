@@ -201,10 +201,17 @@ fi
 # DOCKER ALIASES
 # =============================================================================
 if command -v docker &>/dev/null; then
+    # Docker Compose
     alias dc='docker-compose'
     alias dcu='docker-compose up'
     alias dcd='docker-compose down'
     alias dcb='docker-compose build'
+    
+    # Docker Cleanup
+    alias dprune='docker system prune -af --volumes'
+    alias dclean='docker container prune -f && docker image prune -af'
+    alias dstop='docker stop $(docker ps -aq)'
+    alias drm='docker rm $(docker ps -aq)'
 fi
 
 # =============================================================================
@@ -214,6 +221,51 @@ if command -v shopify &>/dev/null; then
     alias sdev='shopify app dev'
     alias sgen='shopify app generate'
     alias sdeploy='shopify app deploy'
+fi
+
+# =============================================================================
+# SECURITY MONITORING ALIASES
+# =============================================================================
+if [[ "$(uname -s)" == "Linux" ]]; then
+    # SSH monitoring
+    alias sshstatus='sudo systemctl status sshd'
+    alias sshrestart='sudo systemctl restart sshd'
+    alias sshlog='sudo journalctl -u sshd -f'
+    
+    # Fail2ban monitoring
+    alias f2bstatus='sudo fail2ban-client status'
+    alias f2bssh='sudo fail2ban-client status sshd'
+    alias f2bunban='sudo fail2ban-client set sshd unbanip'
+    
+    # Firewall monitoring
+    alias fwstatus='sudo ufw status numbered'
+    alias fwreload='sudo ufw reload'
+    
+    # Network monitoring
+    alias ports='sudo ss -tlnp'
+    alias listening='sudo ss -tlnp | grep LISTEN'
+    alias connections='sudo ss -tnp'
+fi
+
+# =============================================================================
+# TAILSCALE ALIASES
+# =============================================================================
+if command -v tailscale &>/dev/null; then
+    alias tsstatus='tailscale status'
+    alias tsup='tailscale up'
+    alias tsdown='tailscale down'
+    alias tsip='tailscale ip -4'
+    alias tsping='tailscale ping'
+fi
+
+# =============================================================================
+# STREAMING (APOLLO/SUNSHINE) ALIASES
+# =============================================================================
+if [[ "$(uname -s)" == "Linux" ]]; then
+    alias apollostatus='systemctl --user status apollo'
+    alias apollorestart='systemctl --user restart apollo'
+    alias apollolog='journalctl --user -u apollo -f'
+    alias apolloconfig='micro ~/.config/sunshine/sunshine.conf'
 fi
 
 # =============================================================================
