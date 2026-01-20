@@ -33,15 +33,9 @@ if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
 fi
 
 # =============================================================================
-# COMPLETION OPTIMIZATION
+# COMPLETION OPTIMIZATION (Moved to end to avoid duplicate)
 # =============================================================================
-# Cache completions for 24 hours to improve startup time
-autoload -Uz compinit
-if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qNmh+24) ]]; then
-    compinit
-else
-    compinit -C
-fi
+# Note: compinit is called at the end of this file to avoid duplicate calls
 
 # =============================================================================
 # FZF CONFIGURATION (Consolidated)
@@ -134,7 +128,12 @@ if command -v zoxide &>/dev/null; then
         unalias zi
     fi
 
-    eval "$(zoxide init zsh)"
+    # Use cached eval if available, otherwise run directly
+    if typeset -f _cached_eval >/dev/null; then
+        _cached_eval "zoxide" "zoxide init zsh"
+    else
+        eval "$(zoxide init zsh)"
+    fi
 
     # Optimized zoxide configuration
     export _ZO_FZF_OPTS="--height 40% --layout=reverse --border --preview 'eza --tree --icons --level=2 {} 2>/dev/null || tree -C {} 2>/dev/null'"
@@ -252,9 +251,13 @@ bindkey "^[[B" down-line-or-beginning-search
 # =============================================================================
 # PROMPT SETUP
 # =============================================================================
-# Starship prompt (if available)
+# Starship prompt (if available) - cached for performance
 if command -v starship &>/dev/null; then
-    eval "$(starship init zsh)"
+    if typeset -f _cached_eval >/dev/null; then
+        _cached_eval "starship" "starship init zsh"
+    else
+        eval "$(starship init zsh)"
+    fi
 fi
 
 # =============================================================================
@@ -262,7 +265,13 @@ fi
 # =============================================================================
 if command -v fnm &>/dev/null; then
     export FNM_COREPACK_ENABLED=true
-    eval "$(fnm env --use-on-cd)"
+    
+    # Use cached eval if available, otherwise run directly
+    if typeset -f _cached_eval >/dev/null; then
+        _cached_eval "fnm" "fnm env --use-on-cd"
+    else
+        eval "$(fnm env --use-on-cd)"
+    fi
 
     # Alias fnm as nvm for compatibility
     alias nvm='fnm'

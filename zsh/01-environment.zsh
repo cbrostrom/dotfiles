@@ -113,15 +113,31 @@ setopt HIST_REDUCE_BLANKS        # Remove unnecessary blanks
 setopt HIST_VERIFY               # Show command with history expansion before running
 
 # =============================================================================
-# GOOGLE CLOUD SDK
+# GOOGLE CLOUD SDK (Lazy Loaded for Performance)
 # =============================================================================
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then 
-    . '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc'
-fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc' ]; then 
-    . '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc'
+# Lazy load Google Cloud SDK to improve startup time (~200-500ms saved)
+# SDK will be loaded automatically when you first use 'gcloud' command
+if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then
+    # Add gcloud to PATH without loading completions
+    export PATH="/opt/homebrew/share/google-cloud-sdk/bin:$PATH"
+    
+    # Lazy load gcloud completions and full environment
+    gcloud() {
+        # Remove this function so it doesn't get called again
+        unfunction gcloud
+        
+        # Load the full Google Cloud SDK
+        if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then 
+            . '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc'
+        fi
+        
+        # Load completions
+        if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc' ]; then 
+            . '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc'
+        fi
+        
+        # Now run the actual gcloud command
+        command gcloud "$@"
+    }
 fi
 

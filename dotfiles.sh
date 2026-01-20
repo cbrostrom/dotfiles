@@ -33,19 +33,19 @@ check_install_status() {
     echo -e "${BLUE}Current Status:${NC}"
     
     # Check zsh
-    if command_exists zsh && [[ "$SHELL" == *"zsh"* ]]; then
+    if command -v zsh >/dev/null 2>&1 && [[ "$SHELL" == *"zsh"* ]]; then
         echo -e "  ${GREEN}✓${NC} zsh (default shell)"
-    elif command_exists zsh; then
+    elif command -v zsh >/dev/null 2>&1; then
         echo -e "  ${YELLOW}◐${NC} zsh (installed, not default)"
     else
         echo -e "  ${RED}✗${NC} zsh"
     fi
     
     # Check fnm/Node.js
-    if command_exists fnm && command_exists node; then
+    if command -v fnm >/dev/null 2>&1 && command -v node >/dev/null 2>&1; then
         local node_version=$(node --version 2>/dev/null)
         echo -e "  ${GREEN}✓${NC} Node.js ($node_version via fnm)"
-    elif command_exists node; then
+    elif command -v node >/dev/null 2>&1; then
         echo -e "  ${YELLOW}◐${NC} Node.js (not via fnm)"
     else
         echo -e "  ${RED}✗${NC} Node.js"
@@ -54,11 +54,11 @@ check_install_status() {
     # Check modern tools
     local tools_installed=0
     local tools_total=5
-    command_exists starship && ((tools_installed++))
-    command_exists eza && ((tools_installed++))
-    command_exists bat && ((tools_installed++))
-    command_exists rg && ((tools_installed++))
-    command_exists fzf && ((tools_installed++))
+    command -v starship >/dev/null 2>&1 && ((tools_installed++)) || true
+    command -v eza >/dev/null 2>&1 && ((tools_installed++)) || true
+    command -v bat >/dev/null 2>&1 && ((tools_installed++)) || true
+    command -v rg >/dev/null 2>&1 && ((tools_installed++)) || true
+    command -v fzf >/dev/null 2>&1 && ((tools_installed++)) || true
     
     if [[ $tools_installed -eq $tools_total ]]; then
         echo -e "  ${GREEN}✓${NC} Modern CLI tools ($tools_installed/$tools_total)"
@@ -107,37 +107,22 @@ show_fzf_menu() {
     check_install_status
     
     local menu_items=(
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        "📦 INSTALLATION"
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        "Full Setup [~10-15 min] - Everything: deps, tools, dotfiles, gaming, Cursor"
-        "Minimal Setup [~3-5 min] - Basic dotfiles + essential tools only"
-        "Custom Components [Interactive] - Pick and choose what to install"
-        ""
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        "🎯 QUICK ACTIONS"
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        "Cursor Settings Sync [~30 sec] - Link Cursor settings to dotfiles"
-        "Gaming Launcher [~1 min] - Install gaming scripts and presets"
-        "Development Tools [~5-8 min] - Node.js (fnm), modern CLI tools"
-        "Platform Configs [~2-3 min] - Ghostty, GNOME, distro-specific"
-        ""
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        "🔧 MAINTENANCE"
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        "Update Setup [~1-2 min] - Refresh symlinks & configs (safe, no reinstall)"
-        "Update from Git [~30 sec] - Pull latest dotfiles changes from repository"
-        "Check Status [~5 sec] - Show detailed status of all components"
-        "Force Update Symlinks [~30 sec] - Recreate all symlinks (fixes broken links)"
-        "Reload Shell Config [instant] - Apply changes without restarting terminal"
-        ""
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        "⚙️  UTILITIES"
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        "Preview Installation [~5 sec] - Dry run - see what would be installed"
-        "Uninstall Dotfiles [~1 min] - Remove all dotfiles and restore backups"
-        "Show Help [instant] - Documentation and usage information"
-        "Exit"
+        "1  │ Full Setup              │ Everything: deps, tools, dotfiles [~10-15min]"
+        "2  │ Minimal Setup           │ Basic dotfiles + essential tools [~3-5min]"
+        "3  │ Custom Components       │ Pick and choose what to install"
+        "4  │ Cursor Settings Sync    │ Link Cursor settings to dotfiles [~30sec]"
+        "5  │ Gaming Launcher         │ Install gaming scripts [~1min]"
+        "6  │ Development Tools       │ Node.js, modern CLI tools [~5-8min]"
+        "7  │ Platform Configs        │ Ghostty, GNOME, distro-specific [~2-3min]"
+        "8  │ Update Setup            │ Refresh symlinks & configs [~1-2min]"
+        "9  │ Update from Git         │ Pull latest changes [~30sec]"
+        "10 │ Check Status            │ Show detailed component status"
+        "11 │ Force Update Symlinks   │ Recreate all symlinks"
+        "12 │ Reload Shell            │ Apply changes without restart"
+        "13 │ Preview Installation    │ Dry run (no changes)"
+        "14 │ Uninstall Dotfiles      │ Remove all and restore backups"
+        "15 │ Help                    │ Show documentation"
+        "0  │ Exit                    │ Close menu"
     )
     
     # Create menu string
@@ -146,114 +131,80 @@ show_fzf_menu() {
         menu_string+="$item\n"
     done
     
-    # Show menu with fzf with better header
+    # Show menu with fzf
     local selection=$(echo -e "$menu_string" | fzf \
-        --height 95% \
+        --height 50% \
         --reverse \
         --border \
-        --prompt "🔍 Search or select: " \
-        --header="Dotfiles Manager v3.0 - Type to search, ↑/↓ to navigate, Enter to select" \
+        --prompt "Select (type number or search): " \
+        --header="Dotfiles Manager v3.0" \
         --header-first \
         --ansi \
         --no-info)
     
-    # Handle empty selection (user pressed Ctrl+C or escaped)
+    # Handle empty selection
     if [[ -z "$selection" ]]; then
-        log_info "No selection made. Exiting..."
+        log_info "Exiting..."
         exit 0
     fi
     
-    # Skip separator lines and empty lines
-    if [[ "$selection" == "━"* ]] || [[ "$selection" == "📦"* ]] || [[ "$selection" == "🎯"* ]] || [[ "$selection" == "🔧"* ]] || [[ "$selection" == "⚙️"* ]] || [[ -z "$selection" ]]; then
-        show_fzf_menu
-        return
-    fi
+    # Extract number from selection
+    local num=$(echo "$selection" | awk '{print $1}')
     
-    # Extract the action from the selection (before the bracket or dash)
-    local action=$(echo "$selection" | sed -E 's/^([^[[-]+).*/\1/' | xargs)
-    
-    # Handle selection
-    case "$action" in
-        "Full Setup")
-            log_info "Running: Full Setup"
-            echo -e "${CYAN}This will install everything: dependencies, tools, dotfiles, gaming, and Cursor settings${NC}"
+    # Handle selection by number
+    case "$num" in
+        1)
             run_install "--full"
             ;;
-        "Minimal Setup")
-            log_info "Running: Minimal Setup"
-            echo -e "${CYAN}This will install basic dotfiles and essential tools only${NC}"
+        2)
             run_install "--minimal"
             ;;
-        "Custom Components")
-            log_info "Running: Custom Components"
-            echo -e "${CYAN}Interactive menu to pick and choose components${NC}"
+        3)
             run_install "--interactive"
             ;;
-        "Cursor Settings Sync")
-            log_info "Running: Cursor Settings Sync"
-            echo -e "${CYAN}This will create symlinks from Cursor settings to your dotfiles${NC}"
+        4)
             run_install "--cursor"
             ;;
-        "Gaming Launcher")
-            log_info "Running: Gaming Launcher"
-            echo -e "${CYAN}This will install gaming scripts and presets for Steam${NC}"
+        5)
             run_install "--gaming"
             ;;
-        "Development Tools")
-            log_info "Running: Development Tools"
-            echo -e "${CYAN}This will install Node.js (via fnm) and modern CLI tools${NC}"
+        6)
             run_install "--devtools"
             ;;
-        "Platform Configs")
-            log_info "Running: Platform Configs"
-            echo -e "${CYAN}This will install platform-specific configs (Ghostty, GNOME, etc.)${NC}"
+        7)
             run_install "--platform"
             ;;
-        "Update Setup")
-            log_info "Running: Update Setup"
-            echo -e "${CYAN}This will refresh all symlinks and update configurations${NC}"
+        8)
             run_install "--update"
             ;;
-        "Update from Git")
-            log_info "Running: Update from Git"
-            echo -e "${CYAN}This will pull the latest changes from your git repository${NC}"
+        9)
             update_dotfiles
             ;;
-        "Check Status")
-            log_info "Running: Check Status"
-            echo -e "${CYAN}Showing detailed status of all components${NC}"
+        10)
             run_status
             ;;
-        "Force Update Symlinks")
-            log_info "Running: Force Update Symlinks"
-            echo -e "${CYAN}This will recreate all symlinks (useful if links are broken)${NC}"
+        11)
             run_force_update_symlinks
             ;;
-        "Reload Shell Config")
-            log_info "Running: Reload Shell Configuration"
-            echo -e "${CYAN}This will reload your shell configuration without restarting${NC}"
+        12)
             reload_shell_config
             ;;
-        "Preview Installation")
-            log_info "Running: Preview Installation"
-            echo -e "${CYAN}Dry run - showing what would be installed without making changes${NC}"
+        13)
             run_install "--dry-run"
             ;;
-        "Uninstall Dotfiles")
-            log_info "Running: Uninstall Dotfiles"
-            echo -e "${YELLOW}⚠️  This will remove all dotfiles and restore backups${NC}"
+        14)
             run_uninstall
             ;;
-        "Show Help")
+        15)
             show_help
             ;;
-        "Exit")
+        0)
             log_info "Exiting..."
             exit 0
             ;;
         *)
-            log_error "Unknown selection: '$selection'"
-            sleep 2
+            log_error "Invalid selection"
+            sleep 1
             show_fzf_menu
             ;;
     esac
@@ -326,133 +277,54 @@ show_whiptail_menu() {
     check_install_status
     echo ""
     
-    # Use descriptive menu items
+    # Simple numbered menu
     local menu_items=(
-        "Full Setup [10-15min]"
-        "Minimal Setup [3-5min]"
-        "Custom Components"
-        "Cursor Sync [30sec]"
-        "Gaming [1min]"
-        "Dev Tools [5-8min]"
-        "Platform Configs [2-3min]"
-        "Update Setup [1-2min]"
-        "Update from Git [30sec]"
-        "Check Status [5sec]"
-        "Force Symlinks [30sec]"
-        "Reload Shell [instant]"
-        "Preview [5sec]"
-        "Uninstall [1min]"
-        "Help"
-        "Exit"
+        "1" "Full Setup [10-15min]"
+        "2" "Minimal Setup [3-5min]"
+        "3" "Custom Components"
+        "4" "Cursor Sync [30sec]"
+        "5" "Gaming [1min]"
+        "6" "Dev Tools [5-8min]"
+        "7" "Platform Configs [2-3min]"
+        "8" "Update Setup [1-2min]"
+        "9" "Update from Git [30sec]"
+        "10" "Check Status"
+        "11" "Force Symlinks"
+        "12" "Reload Shell"
+        "13" "Preview"
+        "14" "Uninstall"
+        "15" "Help"
+        "0" "Exit"
     )
     
-    # Create menu string for whiptail
-    local menu_string=""
-    local counter=1
-    for item in "${menu_items[@]}"; do
-        menu_string+="$counter \"$item\" "
-        ((counter++))
-    done
-    
     # Show menu with whiptail
-    local selection=$(whiptail --title "Dotfiles Manager v3.0" --menu "Select an option (↑/↓ to navigate):" 24 70 16 $menu_string 3>&1 1>&2 2>&3)
+    local selection=$(whiptail --title "Dotfiles Manager v3.0" --menu "Select option:" 24 60 16 "${menu_items[@]}" 3>&1 1>&2 2>&3)
     
-    # Handle empty selection (user pressed Cancel or escaped)
+    # Handle empty selection
     if [[ -z "$selection" ]]; then
-        log_info "No selection made. Exiting..."
+        log_info "Exiting..."
         exit 0
     fi
     
-    # Convert selection number to menu item
-    local selected_item="${menu_items[$((selection-1))]}"
-    
-    # Extract action (before bracket)
-    local action=$(echo "$selected_item" | sed -E 's/^([^[]+).*/\1/' | xargs)
-    
-    # Handle selection
-    case "$action" in
-        "Full Setup")
-            log_info "Running: Full Setup"
-            echo -e "${CYAN}Installing everything: dependencies, tools, dotfiles, gaming, Cursor${NC}"
-            run_install "--full"
-            ;;
-        "Minimal Setup")
-            log_info "Running: Minimal Setup"
-            echo -e "${CYAN}Installing basic dotfiles and essential tools only${NC}"
-            run_install "--minimal"
-            ;;
-        "Custom Components")
-            log_info "Running: Custom Components"
-            echo -e "${CYAN}Interactive component selection${NC}"
-            run_install "--interactive"
-            ;;
-        "Cursor Sync")
-            log_info "Running: Cursor Settings Sync"
-            echo -e "${CYAN}Linking Cursor settings to dotfiles${NC}"
-            run_install "--cursor"
-            ;;
-        "Gaming")
-            log_info "Running: Gaming Launcher"
-            echo -e "${CYAN}Installing gaming scripts and presets${NC}"
-            run_install "--gaming"
-            ;;
-        "Dev Tools")
-            log_info "Running: Development Tools"
-            echo -e "${CYAN}Installing Node.js and modern CLI tools${NC}"
-            run_install "--devtools"
-            ;;
-        "Platform Configs")
-            log_info "Running: Platform Configs"
-            echo -e "${CYAN}Installing platform-specific configurations${NC}"
-            run_install "--platform"
-            ;;
-        "Update Setup")
-            log_info "Running: Update Setup"
-            echo -e "${CYAN}Refreshing symlinks and configurations${NC}"
-            run_install "--update"
-            ;;
-        "Update from Git")
-            log_info "Running: Update from Git"
-            echo -e "${CYAN}Pulling latest changes from repository${NC}"
-            update_dotfiles
-            ;;
-        "Check Status")
-            log_info "Running: Check Status"
-            echo -e "${CYAN}Showing component status${NC}"
-            run_status
-            ;;
-        "Force Symlinks")
-            log_info "Running: Force Update Symlinks"
-            echo -e "${CYAN}Recreating all symlinks${NC}"
-            run_force_update_symlinks
-            ;;
-        "Reload Shell")
-            log_info "Running: Reload Shell Configuration"
-            echo -e "${CYAN}Reloading shell configuration${NC}"
-            reload_shell_config
-            ;;
-        "Preview")
-            log_info "Running: Preview Installation"
-            echo -e "${CYAN}Dry run - no changes will be made${NC}"
-            run_install "--dry-run"
-            ;;
-        "Uninstall")
-            log_info "Running: Uninstall Dotfiles"
-            echo -e "${YELLOW}⚠️  Removing dotfiles and restoring backups${NC}"
-            run_uninstall
-            ;;
-        "Help")
-            show_help
-            ;;
-        "Exit")
-            log_info "Exiting..."
-            exit 0
-            ;;
-        *)
-            log_error "Unknown selection: '$selected_item'"
-            sleep 2
-            show_whiptail_menu
-            ;;
+    # Handle selection by number
+    case "$selection" in
+        1) run_install "--full" ;;
+        2) run_install "--minimal" ;;
+        3) run_install "--interactive" ;;
+        4) run_install "--cursor" ;;
+        5) run_install "--gaming" ;;
+        6) run_install "--devtools" ;;
+        7) run_install "--platform" ;;
+        8) run_install "--update" ;;
+        9) update_dotfiles ;;
+        10) run_status ;;
+        11) run_force_update_symlinks ;;
+        12) reload_shell_config ;;
+        13) run_install "--dry-run" ;;
+        14) run_uninstall ;;
+        15) show_help ;;
+        0) log_info "Exiting..."; exit 0 ;;
+        *) log_error "Invalid selection"; sleep 1; show_whiptail_menu ;;
     esac
 }
 
