@@ -1,0 +1,209 @@
+[
+  {
+    "identifier": "aaron-bond.better-comments"
+  },
+  {
+    "identifier": "albert.tabout"
+  },
+  {
+    "identifier": "anysphere.cursorpyright"
+  },
+  {
+    "identifier": "anysphere.remote-containers"
+  },
+  {
+    "identifier": "anysphere.remote-ssh"
+  },
+  {
+    "identifier": "anysphere.remote-wsl"
+  },
+  {
+    "identifier": "astro-build.astro-vscode"
+  },
+  {
+    "identifier": "beardedbear.beardedtheme"
+  },
+  {
+    "identifier": "bierner.emojisense"
+  },
+  {
+    "identifier": "bierner.markdown-mermaid"
+  },
+  {
+    "identifier": "bpruitt-goddard.mermaid-markdown-syntax-highlighting"
+  },
+  {
+    "identifier": "bradlc.vscode-tailwindcss"
+  },
+  {
+    "identifier": "christian-kohler.npm-intellisense"
+  },
+  {
+    "identifier": "ctcuff.font-preview"
+  },
+  {
+    "identifier": "dbaeumer.vscode-eslint"
+  },
+  {
+    "identifier": "donjayamanne.githistory"
+  },
+  {
+    "identifier": "dotjoshjohnson.xml"
+  },
+  {
+    "identifier": "editorconfig.editorconfig"
+  },
+  {
+    "identifier": "ellreka.tailwindcss-highlight"
+  },
+  {
+    "identifier": "eserozvataf.one-dark-pro-monokai-darker"
+  },
+  {
+    "identifier": "extensions.json ⇒ /Users/Christian.Brostrom/dotfiles/.config/cursor/extensions.json"
+  },
+  {
+    "identifier": "extensions.json.backup.20260121_003731"
+  },
+  {
+    "identifier": "foxundermoon.shell-format"
+  },
+  {
+    "identifier": "github.remotehub"
+  },
+  {
+    "identifier": "github.vscode-github-actions"
+  },
+  {
+    "identifier": "github.vscode-pull-request-github"
+  },
+  {
+    "identifier": "graphql.vscode-graphql"
+  },
+  {
+    "identifier": "graphql.vscode-graphql-syntax"
+  },
+  {
+    "identifier": "gurumukhi.selected-lines-count"
+  },
+  {
+    "identifier": "itsmeadarsh.vsc-handlebars-ext"
+  },
+  {
+    "identifier": "jasonlhy.hungry-delete"
+  },
+  {
+    "identifier": "mhutchie.git-graph"
+  },
+  {
+    "identifier": "miguelsolorio.symbols"
+  },
+  {
+    "identifier": "mikestead.dotenv"
+  },
+  {
+    "identifier": "ms-azuretools.vscode-docker"
+  },
+  {
+    "identifier": "ms-dotnettools.csdevkit"
+  },
+  {
+    "identifier": "ms-dotnettools.csharp"
+  },
+  {
+    "identifier": "ms-dotnettools.vscode-dotnet-runtime"
+  },
+  {
+    "identifier": "ms-python.debugpy"
+  },
+  {
+    "identifier": "ms-python.python"
+  },
+  {
+    "identifier": "ms-vscode-remote.vscode-remote-extensionpack"
+  },
+  {
+    "identifier": "ms-vscode.references-view"
+  },
+  {
+    "identifier": "ms-vscode.remote-repositories"
+  },
+  {
+    "identifier": "ms-vscode.remote-server"
+  },
+  {
+    "identifier": "ms-vscode.vscode-typescript-next"
+  },
+  {
+    "identifier": "mutantdino.resourcemonitor"
+  },
+  {
+    "identifier": "nickdemayo.vscode-json-editor"
+  },
+  {
+    "identifier": "pkief.material-icon-theme"
+  },
+  {
+    "identifier": "pmneo.tsimporter"
+  },
+  {
+    "identifier": "prettier.prettier-vscode"
+  },
+  {
+    "identifier": "prisma.prisma"
+  },
+  {
+    "identifier": "quicktype.quicktype"
+  },
+  {
+    "identifier": "redhat.vscode-yaml"
+  },
+  {
+    "identifier": "shopify.theme-check-vscode"
+  },
+  {
+    "identifier": "simonsiefke.svg-preview"
+  },
+  {
+    "identifier": "sleistner.vscode-fileutils"
+  },
+  {
+    "identifier": "sonarsource.sonarlint-vscode"
+  },
+  {
+    "identifier": "sonarsource.sonarlint_ondemand-analyzers"
+  },
+  {
+    "identifier": "sst-dev.opencode"
+  },
+  {
+    "identifier": "stylelint.vscode-stylelint"
+  },
+  {
+    "identifier": "tamasfe.even-better-toml"
+  },
+  {
+    "identifier": "usernamehw.errorlens"
+  },
+  {
+    "identifier": "vsls-contrib.gistfs"
+  },
+  {
+    "identifier": "waderyan.gitblame"
+  },
+  {
+    "identifier": "wakatime.vscode-wakatime"
+  },
+  {
+    "identifier": "wix.vscode-import-cost"
+  },
+  {
+    "identifier": "yoavbls.pretty-ts-errors"
+  },
+  {
+    "identifier": "yzhang.markdown-all-in-one"
+  },
+  {
+    "identifier": "zokugun.cron-tasks"
+  }
+]

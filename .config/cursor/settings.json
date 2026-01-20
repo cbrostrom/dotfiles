@@ -217,6 +217,5 @@
     "superbro": "linux"
   },
   "markdown-pdf.breaks": true,
-  "markdown-pdf.highlightStyle": "a11y-dark.css",
-  "workbench.colorTheme": "Bearded Theme Black & Ruby"
+  "markdown-pdf.highlightStyle": "a11y-dark.css"
 }
