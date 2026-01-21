@@ -32,31 +32,44 @@ log_info "=== Cursor Extension Installer ==="
 log_info "Extensions file: $EXTENSIONS_FILE"
 echo ""
 
-# Detect CLI command (cursor on macOS, code on Linux with Cursor)
+# Detect CLI command - find the actual binary
 CLI_CMD=""
-if command -v cursor >/dev/null 2>&1; then
-    CLI_CMD="cursor"
-elif command -v code >/dev/null 2>&1; then
-    # Check if this is actually Cursor (not VSCode)
-    if code --version 2>&1 | grep -q "cursor"; then
-        CLI_CMD="code"
+CLI_PATHS=(
+    "/Applications/Cursor.app/Contents/Resources/app/bin/cursor"  # macOS
+    "/usr/bin/cursor"  # Linux system
+    "/usr/local/bin/cursor"  # Linux local
+    "$HOME/.cursor-server/bin/cursor"  # Linux user
+    "$HOME/.local/bin/cursor"  # Linux user local
+)
+
+for path in "${CLI_PATHS[@]}"; do
+    if [[ -f "$path" ]] && [[ -x "$path" ]]; then
+        CLI_CMD="$path"
+        break
+    fi
+done
+
+# Fallback: check if 'code' in PATH (Cursor uses 'code' on Linux)
+if [[ -z "$CLI_CMD" ]]; then
+    if command -v code >/dev/null 2>&1; then
+        if code --version 2>&1 | grep -qi "cursor\|code"; then
+            CLI_CMD="code"
+        fi
     fi
 fi
 
 # Check if CLI is available
 if [[ -z "$CLI_CMD" ]]; then
-    log_error "Cursor CLI not found in PATH"
+    log_error "Cursor CLI not found"
     log_info "Please ensure Cursor is installed and the CLI is available"
     echo ""
     log_info "Setup instructions:"
     log_info "  macOS: sudo ln -s /Applications/Cursor.app/Contents/Resources/app/bin/cursor /usr/local/bin/cursor"
     log_info "  Linux: Cursor should add 'code' to PATH automatically"
-    log_info "         If not, add to ~/.bashrc or ~/.zshrc:"
-    log_info "         export PATH=\"\$PATH:/path/to/cursor/bin\""
     exit 1
 fi
 
-log_info "Using CLI command: $CLI_CMD"
+log_info "Using CLI: $CLI_CMD"
 echo ""
 
 # Check if extensions.json exists
@@ -107,7 +120,7 @@ while IFS= read -r extension; do
     
     # Install extension
     log_info "Installing: $extension"
-    if $CLI_CMD --install-extension "$extension" --force 2>&1 | grep -q "successfully installed\|already installed"; then
+    if $CLI_CMD --install-extension "$extension" --force 2>&1 | grep -qi "successfully installed\|already installed"; then
         log_success "✓ Installed: $extension"
         ((INSTALLED_COUNT++))
     else

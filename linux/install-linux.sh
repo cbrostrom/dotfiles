@@ -146,15 +146,26 @@ if [[ "$DESKTOP_ENV" == *"GNOME"* ]] || [[ "$DESKTOP_ENV" == *"gnome"* ]]; then
     echo "  - Extension recommendations"
     echo "  - GNOME Shell customization tools"
     echo ""
-    read -p "Install GNOME tools? (y/n): " install_gnome
     
-    if [ "$install_gnome" = "y" ]; then
-        echo ""
-        if [ -f "$SCRIPT_DIR/gnome/install-gnome-tools.sh" ]; then
-            "$SCRIPT_DIR/gnome/install-gnome-tools.sh"
-        else
-            echo "❌ Error: GNOME installation script not found"
-        fi
+    # Check if GNOME tools are already installed
+    GNOME_TWEAKS_INSTALLED=false
+    if command -v gnome-tweaks &> /dev/null || command -v gnome-tweak-tool &> /dev/null; then
+        GNOME_TWEAKS_INSTALLED=true
+    fi
+    
+    if $GNOME_TWEAKS_INSTALLED; then
+        echo "✓ GNOME tools already installed"
+        echo "→ Skipping GNOME-specific setup"
+    else
+        read -p "Install GNOME tools? (y/n): " install_gnome
+        
+        if [ "$install_gnome" = "y" ]; then
+            echo ""
+            if [ -f "$SCRIPT_DIR/gnome/install-gnome-tools.sh" ]; then
+                "$SCRIPT_DIR/gnome/install-gnome-tools.sh"
+            else
+                echo "❌ Error: GNOME installation script not found"
+            fi
         
         # Update .local-config
         LOCAL_CONFIG="$DOTFILES_DIR/.local-config"
