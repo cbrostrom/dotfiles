@@ -125,24 +125,14 @@ create_symlink \
     "$CURSOR_USER_DIR/snippets" \
     "snippets/"
 
-# Sync extensions.json if extensions directory exists
-if [[ -d "$CURSOR_EXTENSIONS_DIR" ]]; then
-    log_info ""
-    log_info "Setting up extensions sync..."
-    
-    # Create extensions.json in dotfiles if it doesn't exist
-    if [[ ! -f "$DOTFILES_CURSOR_DIR/extensions.json" ]] && [[ -f "$CURSOR_EXTENSIONS_DIR/extensions.json" ]]; then
-        log_info "Copying current extensions.json to dotfiles..."
-        cp "$CURSOR_EXTENSIONS_DIR/extensions.json" "$DOTFILES_CURSOR_DIR/extensions.json"
-    fi
-    
-    create_symlink \
-        "$DOTFILES_CURSOR_DIR/extensions.json" \
-        "$CURSOR_EXTENSIONS_DIR/extensions.json" \
-        "extensions.json"
-else
-    log_warning "Extensions directory not found, skipping extensions sync"
-fi
+# NOTE: We do NOT symlink extensions.json!
+# Cursor needs to manage its own internal extensions.json with full metadata.
+# Our dotfiles version is a simplified list for tracking/reinstalling only.
+log_info ""
+log_info "Extensions sync: Using separate tracking list (no symlink)"
+log_info "  - Cursor manages: ~/.cursor/extensions/extensions.json (internal metadata)"
+log_info "  - Dotfiles tracks: .config/cursor/extensions.json (simplified list)"
+log_info "  - Use ./update-cursor-extensions.sh to sync the list after installing new extensions"
 
 log_info ""
 log_success "=== Cursor Settings Sync Setup Complete! ==="
