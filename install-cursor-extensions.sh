@@ -149,4 +149,9 @@ if [[ $FAILED_COUNT -gt 0 ]]; then
 fi
 
 log_success "Extension installation complete!"
+log_info ""
+log_info "NOTE: If many extensions failed to install, Cursor CLI may not support"
+log_info "automated extension installation on this platform. You may need to"
+log_info "install extensions manually through Cursor's UI (Cmd/Ctrl+Shift+X)"
+log_info ""
 log_info "Restart Cursor to activate all extensions"
