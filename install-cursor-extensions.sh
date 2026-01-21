@@ -101,7 +101,19 @@ echo ""
 
 # Get currently installed extensions
 log_info "Checking currently installed extensions..."
-INSTALLED_EXTENSIONS=$($CLI_CMD --list-extensions 2>/dev/null || echo "")
+
+# Try CLI first, fallback to directory scan
+INSTALLED_EXTENSIONS=$($CLI_CMD --list-extensions 2>&1 | grep -v "Warning:" | grep -v "^$" || true)
+
+# If CLI didn't work or returned nothing, scan directory
+if [[ -z "$INSTALLED_EXTENSIONS" ]] || [[ $(echo "$INSTALLED_EXTENSIONS" | wc -l) -lt 2 ]]; then
+    log_warning "CLI list-extensions didn't work, scanning directory instead..."
+    if [[ -d "$HOME/.cursor/extensions" ]]; then
+        INSTALLED_EXTENSIONS=$(ls -1 "$HOME/.cursor/extensions" | grep -v "^\." | sed 's/-[0-9].*//' | sort -u)
+    else
+        INSTALLED_EXTENSIONS=""
+    fi
+fi
 
 # Install extensions
 INSTALLED_COUNT=0
