@@ -120,7 +120,9 @@ while IFS= read -r extension; do
     
     # Install extension
     log_info "Installing: $extension"
-    if $CLI_CMD --install-extension "$extension" --force 2>&1 | grep -qi "successfully installed\|already installed"; then
+    
+    # Run CLI with stdin redirected to avoid hanging
+    if echo | $CLI_CMD --install-extension "$extension" --force 2>&1 | grep -qi "successfully installed\|already installed"; then
         log_success "✓ Installed: $extension"
         ((INSTALLED_COUNT++))
     else
