@@ -166,37 +166,38 @@ if [[ "$DESKTOP_ENV" == *"GNOME"* ]] || [[ "$DESKTOP_ENV" == *"gnome"* ]]; then
             else
                 echo "❌ Error: GNOME installation script not found"
             fi
-        
-        # Update .local-config
-        LOCAL_CONFIG="$DOTFILES_DIR/.local-config"
-        if [ -f "$LOCAL_CONFIG" ]; then
-            if grep -q "DESKTOP_ENV=" "$LOCAL_CONFIG"; then
-                sed -i 's/DESKTOP_ENV=.*/DESKTOP_ENV="gnome"/' "$LOCAL_CONFIG"
-            else
-                echo 'DESKTOP_ENV="gnome"' >> "$LOCAL_CONFIG"
-            fi
             
-            if grep -q "INSTALLED_OPTIONALS=" "$LOCAL_CONFIG"; then
-                # Add gnome-tools if not already present
-                if ! grep -q "gnome-tools" "$LOCAL_CONFIG"; then
-                    sed -i 's/INSTALLED_OPTIONALS="\(.*\)"/INSTALLED_OPTIONALS="\1,gnome-tools"/' "$LOCAL_CONFIG"
+            # Update .local-config
+            LOCAL_CONFIG="$DOTFILES_DIR/.local-config"
+            if [ -f "$LOCAL_CONFIG" ]; then
+                if grep -q "DESKTOP_ENV=" "$LOCAL_CONFIG"; then
+                    sed -i 's/DESKTOP_ENV=.*/DESKTOP_ENV="gnome"/' "$LOCAL_CONFIG"
+                else
+                    echo 'DESKTOP_ENV="gnome"' >> "$LOCAL_CONFIG"
                 fi
-            else
-                echo 'INSTALLED_OPTIONALS="gnome-tools,ghostty"' >> "$LOCAL_CONFIG"
+                
+                if grep -q "INSTALLED_OPTIONALS=" "$LOCAL_CONFIG"; then
+                    # Add gnome-tools if not already present
+                    if ! grep -q "gnome-tools" "$LOCAL_CONFIG"; then
+                        sed -i 's/INSTALLED_OPTIONALS="\(.*\)"/INSTALLED_OPTIONALS="\1,gnome-tools"/' "$LOCAL_CONFIG"
+                    fi
+                else
+                    echo 'INSTALLED_OPTIONALS="gnome-tools,ghostty"' >> "$LOCAL_CONFIG"
+                fi
+                
+                echo "✓ Updated .local-config with GNOME settings"
             fi
+        else
+            echo "→ Skipping GNOME-specific setup"
             
-            echo "✓ Updated .local-config with GNOME settings"
-        fi
-    else
-        echo "→ Skipping GNOME-specific setup"
-        
-        # Still update .local-config with desktop env
-        LOCAL_CONFIG="$DOTFILES_DIR/.local-config"
-        if [ -f "$LOCAL_CONFIG" ]; then
-            if grep -q "DESKTOP_ENV=" "$LOCAL_CONFIG"; then
-                sed -i 's/DESKTOP_ENV=.*/DESKTOP_ENV="gnome"/' "$LOCAL_CONFIG"
-            else
-                echo 'DESKTOP_ENV="gnome"' >> "$LOCAL_CONFIG"
+            # Still update .local-config with desktop env
+            LOCAL_CONFIG="$DOTFILES_DIR/.local-config"
+            if [ -f "$LOCAL_CONFIG" ]; then
+                if grep -q "DESKTOP_ENV=" "$LOCAL_CONFIG"; then
+                    sed -i 's/DESKTOP_ENV=.*/DESKTOP_ENV="gnome"/' "$LOCAL_CONFIG"
+                else
+                    echo 'DESKTOP_ENV="gnome"' >> "$LOCAL_CONFIG"
+                fi
             fi
         fi
     fi
