@@ -109,11 +109,14 @@ INSTALLED_EXTENSIONS=$($CLI_CMD --list-extensions 2>&1 | grep -v "Warning:" | gr
 if [[ -z "$INSTALLED_EXTENSIONS" ]] || [[ $(echo "$INSTALLED_EXTENSIONS" | wc -l) -lt 2 ]]; then
     log_warning "CLI list-extensions didn't work, scanning directory instead..."
     if [[ -d "$HOME/.cursor/extensions" ]]; then
-        INSTALLED_EXTENSIONS=$(ls -1 "$HOME/.cursor/extensions" | grep -v "^\." | sed 's/-[0-9].*//' | sort -u)
+        # Scan directories only (not files), strip version numbers
+        INSTALLED_EXTENSIONS=$(find "$HOME/.cursor/extensions" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sed 's/-[0-9].*//' | sort -u)
     else
         INSTALLED_EXTENSIONS=""
     fi
 fi
+
+log_info "Found $(echo "$INSTALLED_EXTENSIONS" | wc -l | tr -d ' ') currently installed extensions"
 
 # Install extensions
 INSTALLED_COUNT=0
