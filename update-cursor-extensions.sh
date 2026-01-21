@@ -55,7 +55,7 @@ fi
 log_info "Scanning installed extensions in: $EXTENSIONS_DIR"
 cd "$EXTENSIONS_DIR"
 
-# Get list of extensions (strip version numbers)
+# Get list of extensions (strip version numbers) and create simple JSON
 EXTENSIONS=$(ls -1 | grep -v "^\." | sed 's/-[0-9].*//' | sort -u)
 
 if [[ -z "$EXTENSIONS" ]]; then
@@ -67,7 +67,7 @@ fi
 COUNT=$(echo "$EXTENSIONS" | wc -l | tr -d ' ')
 log_info "Found $COUNT installed extensions"
 
-# Generate JSON
+# Generate simple JSON format (just identifier field, no metadata)
 log_info "Generating extensions.json..."
 echo "$EXTENSIONS" | jq -R -s 'split("\n") | map(select(length > 0)) | map({identifier: .})' > "$EXTENSIONS_FILE"
 
