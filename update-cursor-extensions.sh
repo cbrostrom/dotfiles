@@ -26,9 +26,15 @@ else
 fi
 
 EXTENSIONS_FILE="$SCRIPT_DIR/.config/cursor/extensions.json"
+CURSOR_INTERNAL_JSON="$HOME/.cursor/extensions/extensions.json"
 EXTENSIONS_DIR="$HOME/.cursor/extensions"
 
 log_info "=== Cursor Extensions List Updater ==="
+echo ""
+
+# IMPORTANT: We update our dotfiles version, NOT Cursor's internal file
+log_info "Target file: $EXTENSIONS_FILE"
+log_info "Reading from: $CURSOR_INTERNAL_JSON"
 echo ""
 
 # Check if extensions directory exists
@@ -51,12 +57,19 @@ if [[ -f "$EXTENSIONS_FILE" ]]; then
     cp "$EXTENSIONS_FILE" "$BACKUP_FILE"
 fi
 
-# Scan installed extensions
-log_info "Scanning installed extensions in: $EXTENSIONS_DIR"
-cd "$EXTENSIONS_DIR"
+# Scan installed extensions using Cursor's internal metadata
+log_info "Reading extension metadata from Cursor's internal database..."
 
-# Get list of extensions (strip version numbers) and create simple JSON
-EXTENSIONS=$(ls -1 | grep -v "^\." | sed 's/-[0-9].*//' | sort -u)
+# Try to read from Cursor's extensions.json if it exists and is valid
+if [[ -f "$CURSOR_INTERNAL_JSON" ]] && jq empty "$CURSOR_INTERNAL_JSON" 2>/dev/null; then
+    log_info "Using Cursor's extensions.json metadata"
+    EXTENSIONS=$(jq -r '.[].identifier.id' "$CURSOR_INTERNAL_JSON" 2>/dev/null | sort -u)
+else
+    # Fallback: scan directory names
+    log_warning "Cursor's extensions.json not found or invalid, scanning directories..."
+    cd "$EXTENSIONS_DIR"
+    EXTENSIONS=$(ls -1 | grep -v "^\." | grep -v "^extensions\.json" | sed 's/-[0-9].*//' | sort -u)
+fi
 
 if [[ -z "$EXTENSIONS" ]]; then
     log_error "No extensions found"
