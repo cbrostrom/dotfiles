@@ -45,17 +45,25 @@ if command -v ghostty &> /dev/null; then
     # Create Ghostty config directory if it doesn't exist
     mkdir -p "$CONFIG_DIR/ghostty"
     
-    # Check if config already exists
+    # Check if config already exists and compare hashes
     if [ -f "$CONFIG_DIR/ghostty/config" ]; then
-        echo "⚠️  Ghostty config already exists"
-        read -p "Backup and replace with dotfiles version? (y/n): " replace_ghostty
-        if [ "$replace_ghostty" = "y" ]; then
-            cp "$CONFIG_DIR/ghostty/config" "$CONFIG_DIR/ghostty/config.backup.$(date +%Y%m%d_%H%M%S)"
-            echo "  → Backed up existing config"
-            ln -sf "$SCRIPT_DIR/ghostty/config" "$CONFIG_DIR/ghostty/config"
-            echo "  ✓ Symlinked Ghostty config"
+        # Calculate hashes
+        EXISTING_HASH=$(sha256sum "$CONFIG_DIR/ghostty/config" 2>/dev/null | cut -d' ' -f1)
+        DOTFILES_HASH=$(sha256sum "$SCRIPT_DIR/ghostty/config" 2>/dev/null | cut -d' ' -f1)
+        
+        if [ "$EXISTING_HASH" = "$DOTFILES_HASH" ]; then
+            echo "✓ Ghostty config is up to date"
         else
-            echo "  → Keeping existing config"
+            echo "⚠️  Ghostty config differs from dotfiles version"
+            read -p "Backup and replace with dotfiles version? (y/n): " replace_ghostty
+            if [ "$replace_ghostty" = "y" ]; then
+                cp "$CONFIG_DIR/ghostty/config" "$CONFIG_DIR/ghostty/config.backup.$(date +%Y%m%d_%H%M%S)"
+                echo "  → Backed up existing config"
+                ln -sf "$SCRIPT_DIR/ghostty/config" "$CONFIG_DIR/ghostty/config"
+                echo "  ✓ Symlinked Ghostty config"
+            else
+                echo "  → Keeping existing config"
+            fi
         fi
     else
         ln -sf "$SCRIPT_DIR/ghostty/config" "$CONFIG_DIR/ghostty/config"
@@ -88,17 +96,25 @@ if command -v paru &> /dev/null; then
     # Create paru config directory if it doesn't exist
     mkdir -p "$CONFIG_DIR/paru"
     
-    # Check if config already exists
+    # Check if config already exists and compare hashes
     if [ -f "$CONFIG_DIR/paru/paru.conf" ]; then
-        echo "⚠️  Paru config already exists"
-        read -p "Backup and replace with dotfiles version? (y/n): " replace_paru
-        if [ "$replace_paru" = "y" ]; then
-            cp "$CONFIG_DIR/paru/paru.conf" "$CONFIG_DIR/paru/paru.conf.backup.$(date +%Y%m%d_%H%M%S)"
-            echo "  → Backed up existing config"
-            ln -sf "$SCRIPT_DIR/paru/paru.conf" "$CONFIG_DIR/paru/paru.conf"
-            echo "  ✓ Symlinked Paru config"
+        # Calculate hashes
+        EXISTING_HASH=$(sha256sum "$CONFIG_DIR/paru/paru.conf" 2>/dev/null | cut -d' ' -f1)
+        DOTFILES_HASH=$(sha256sum "$SCRIPT_DIR/paru/paru.conf" 2>/dev/null | cut -d' ' -f1)
+        
+        if [ "$EXISTING_HASH" = "$DOTFILES_HASH" ]; then
+            echo "✓ Paru config is up to date"
         else
-            echo "  → Keeping existing config"
+            echo "⚠️  Paru config differs from dotfiles version"
+            read -p "Backup and replace with dotfiles version? (y/n): " replace_paru
+            if [ "$replace_paru" = "y" ]; then
+                cp "$CONFIG_DIR/paru/paru.conf" "$CONFIG_DIR/paru/paru.conf.backup.$(date +%Y%m%d_%H%M%S)"
+                echo "  → Backed up existing config"
+                ln -sf "$SCRIPT_DIR/paru/paru.conf" "$CONFIG_DIR/paru/paru.conf"
+                echo "  ✓ Symlinked Paru config"
+            else
+                echo "  → Keeping existing config"
+            fi
         fi
     else
         ln -sf "$SCRIPT_DIR/paru/paru.conf" "$CONFIG_DIR/paru/paru.conf"

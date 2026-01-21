@@ -32,13 +32,32 @@ log_info "=== Cursor Extension Installer ==="
 log_info "Extensions file: $EXTENSIONS_FILE"
 echo ""
 
-# Check if Cursor CLI is available
-if ! command -v cursor >/dev/null 2>&1; then
+# Detect CLI command (cursor on macOS, code on Linux with Cursor)
+CLI_CMD=""
+if command -v cursor >/dev/null 2>&1; then
+    CLI_CMD="cursor"
+elif command -v code >/dev/null 2>&1; then
+    # Check if this is actually Cursor (not VSCode)
+    if code --version 2>&1 | grep -q "cursor"; then
+        CLI_CMD="code"
+    fi
+fi
+
+# Check if CLI is available
+if [[ -z "$CLI_CMD" ]]; then
     log_error "Cursor CLI not found in PATH"
     log_info "Please ensure Cursor is installed and the CLI is available"
-    log_info "You may need to run: sudo ln -s /Applications/Cursor.app/Contents/Resources/app/bin/cursor /usr/local/bin/cursor"
+    echo ""
+    log_info "Setup instructions:"
+    log_info "  macOS: sudo ln -s /Applications/Cursor.app/Contents/Resources/app/bin/cursor /usr/local/bin/cursor"
+    log_info "  Linux: Cursor should add 'code' to PATH automatically"
+    log_info "         If not, add to ~/.bashrc or ~/.zshrc:"
+    log_info "         export PATH=\"\$PATH:/path/to/cursor/bin\""
     exit 1
 fi
+
+log_info "Using CLI command: $CLI_CMD"
+echo ""
 
 # Check if extensions.json exists
 if [[ ! -f "$EXTENSIONS_FILE" ]]; then
@@ -69,7 +88,7 @@ echo ""
 
 # Get currently installed extensions
 log_info "Checking currently installed extensions..."
-INSTALLED_EXTENSIONS=$(cursor --list-extensions 2>/dev/null || echo "")
+INSTALLED_EXTENSIONS=$($CLI_CMD --list-extensions 2>/dev/null || echo "")
 
 # Install extensions
 INSTALLED_COUNT=0
@@ -88,7 +107,7 @@ while IFS= read -r extension; do
     
     # Install extension
     log_info "Installing: $extension"
-    if cursor --install-extension "$extension" --force 2>&1 | grep -q "successfully installed\|already installed"; then
+    if $CLI_CMD --install-extension "$extension" --force 2>&1 | grep -q "successfully installed\|already installed"; then
         log_success "✓ Installed: $extension"
         ((INSTALLED_COUNT++))
     else
