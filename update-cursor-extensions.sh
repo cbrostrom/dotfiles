@@ -63,7 +63,17 @@ log_info "Reading extension metadata from Cursor's internal database..."
 # Try to read from Cursor's extensions.json if it exists and is valid
 if [[ -f "$CURSOR_INTERNAL_JSON" ]] && jq empty "$CURSOR_INTERNAL_JSON" 2>/dev/null; then
     log_info "Using Cursor's extensions.json metadata"
-    EXTENSIONS=$(jq -r '.[].identifier.id' "$CURSOR_INTERNAL_JSON" 2>/dev/null | sort -u)
+    
+    # Check format: either {identifier: "string"} or {identifier: {id: "string"}}
+    FIRST_ENTRY=$(jq -r '.[0].identifier' "$CURSOR_INTERNAL_JSON" 2>/dev/null)
+    
+    if [[ "$FIRST_ENTRY" == "{"* ]]; then
+        # Object format: {identifier: {id: "..."}}
+        EXTENSIONS=$(jq -r '.[].identifier.id' "$CURSOR_INTERNAL_JSON" 2>/dev/null | sort -u)
+    else
+        # String format: {identifier: "..."}
+        EXTENSIONS=$(jq -r '.[].identifier' "$CURSOR_INTERNAL_JSON" 2>/dev/null | sort -u)
+    fi
 else
     # Fallback: scan directory names
     log_warning "Cursor's extensions.json not found or invalid, scanning directories..."
