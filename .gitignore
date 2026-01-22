@@ -42,3 +42,7 @@ node_modules/
 
 # Gaming logs
 gaming/config/launch.log
+
+# Cursor state database (huge files)
+*.vscdb
+.backups/
