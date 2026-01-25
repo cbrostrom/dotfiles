@@ -1,0 +1,22 @@
+[Unit]
+Description=Watch for game installation changes
+Documentation=man:systemd.path(5)
+
+[Path]
+# Watch Steam directories
+PathModified=%h/.local/share/Steam/steamapps
+PathModified=%h/.steam/steam/steamapps
+PathModified=%h/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps
+
+# Watch Lutris database
+PathModified=%h/.local/share/lutris/pga.db
+
+# Watch Heroic config
+PathModified=%h/.config/heroic/legendaryConfig/legendary/installed.json
+PathModified=%h/.config/heroic/gog_store/installed.json
+
+# Trigger service when changes detected
+Unit=game-desktop-sync.service
+
+[Install]
+WantedBy=default.target

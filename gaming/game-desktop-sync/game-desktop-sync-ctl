@@ -1,0 +1,169 @@
+#!/usr/bin/env bash
+
+# Game Desktop Sync Control Script
+# Easy management of the game desktop sync service
+
+set -euo pipefail
+
+SCRIPT_NAME="game-desktop-sync"
+SERVICE="${SCRIPT_NAME}.service"
+TIMER="${SCRIPT_NAME}.timer"
+PATH_UNIT="${SCRIPT_NAME}.path"
+
+show_usage() {
+    cat << EOF
+Game Desktop Sync Control
+
+Usage: $(basename "$0") <command>
+
+Commands:
+    start       Start the timer and path watcher
+    stop        Stop the timer and path watcher
+    restart     Restart the timer and path watcher
+    status      Show status of all units
+    enable      Enable automatic startup
+    disable     Disable automatic startup
+    run         Run sync manually right now
+    logs        Show recent logs
+    clean       Remove all auto-generated game desktop files
+    help        Show this help message
+
+Examples:
+    $(basename "$0") start      # Start automatic syncing
+    $(basename "$0") run        # Sync games right now
+    $(basename "$0") logs       # View sync logs
+    $(basename "$0") status     # Check if service is running
+
+EOF
+}
+
+cmd_start() {
+    echo "Starting game desktop sync..."
+    systemctl --user start "$TIMER"
+    systemctl --user start "$PATH_UNIT"
+    echo "✓ Started"
+}
+
+cmd_stop() {
+    echo "Stopping game desktop sync..."
+    systemctl --user stop "$TIMER"
+    systemctl --user stop "$PATH_UNIT"
+    echo "✓ Stopped"
+}
+
+cmd_restart() {
+    echo "Restarting game desktop sync..."
+    systemctl --user restart "$TIMER"
+    systemctl --user restart "$PATH_UNIT"
+    echo "✓ Restarted"
+}
+
+cmd_status() {
+    echo "=== Timer Status ==="
+    systemctl --user status "$TIMER" --no-pager || true
+    echo ""
+    echo "=== Path Watcher Status ==="
+    systemctl --user status "$PATH_UNIT" --no-pager || true
+    echo ""
+    echo "=== Last Run ==="
+    systemctl --user status "$SERVICE" --no-pager || true
+}
+
+cmd_enable() {
+    echo "Enabling game desktop sync..."
+    systemctl --user enable "$TIMER"
+    systemctl --user enable "$PATH_UNIT"
+    echo "✓ Enabled (will start automatically on boot)"
+}
+
+cmd_disable() {
+    echo "Disabling game desktop sync..."
+    systemctl --user disable "$TIMER"
+    systemctl --user disable "$PATH_UNIT"
+    echo "✓ Disabled"
+}
+
+cmd_run() {
+    echo "Running game desktop sync now..."
+    systemctl --user start "$SERVICE"
+    echo "✓ Sync completed"
+    echo ""
+    echo "Check logs with: $(basename "$0") logs"
+}
+
+cmd_logs() {
+    echo "=== Systemd Journal Logs ==="
+    journalctl --user -u "$SERVICE" -n 50 --no-pager
+    echo ""
+    echo "=== Script Log File ==="
+    if [[ -f "$HOME/.local/share/game-desktop-sync.log" ]]; then
+        tail -n 20 "$HOME/.local/share/game-desktop-sync.log"
+    else
+        echo "No log file found yet"
+    fi
+}
+
+cmd_clean() {
+    echo "Removing all auto-generated game desktop files..."
+    local count=0
+    if [[ -d "$HOME/.local/share/applications/games-auto" ]]; then
+        count=$(find "$HOME/.local/share/applications/games-auto" -name "game-auto-*.desktop" | wc -l)
+        rm -rf "$HOME/.local/share/applications/games-auto"
+        echo "✓ Removed $count desktop file(s)"
+        
+        if command -v update-desktop-database &> /dev/null; then
+            update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
+            echo "✓ Updated desktop database"
+        fi
+    else
+        echo "No auto-generated files found"
+    fi
+}
+
+main() {
+    if [[ $# -eq 0 ]]; then
+        show_usage
+        exit 1
+    fi
+    
+    case "$1" in
+        start)
+            cmd_start
+            ;;
+        stop)
+            cmd_stop
+            ;;
+        restart)
+            cmd_restart
+            ;;
+        status)
+            cmd_status
+            ;;
+        enable)
+            cmd_enable
+            ;;
+        disable)
+            cmd_disable
+            ;;
+        run)
+            cmd_run
+            ;;
+        logs)
+            cmd_logs
+            ;;
+        clean)
+            cmd_clean
+            ;;
+        help|--help|-h)
+            show_usage
+            ;;
+        *)
+            echo "Error: Unknown command '$1'"
+            echo ""
+            show_usage
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

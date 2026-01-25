@@ -259,13 +259,38 @@ if command -v tailscale &>/dev/null; then
 fi
 
 # =============================================================================
-# STREAMING (APOLLO/SUNSHINE) ALIASES
+# STREAMING (SUNSHINE) ALIASES
 # =============================================================================
 if [[ "$(uname -s)" == "Linux" ]]; then
-    alias apollostatus='systemctl --user status apollo'
-    alias apollorestart='systemctl --user restart apollo'
-    alias apollolog='journalctl --user -u apollo -f'
+    # Sunshine service management
+    alias sunstatus='systemctl --user status sunshine'
+    alias sunrestart='systemctl --user restart sunshine'
+    alias sunlog='journalctl --user -u sunshine -f'
+    alias sunconfig='micro ~/.config/sunshine/sunshine.conf'
+    alias sunapps='micro ~/.config/sunshine/apps.json'
+    
+    # Steam sync aliases (apollo-steam-sync works with Sunshine too)
+    alias sunsync='apollo-steam-sync && systemctl --user restart sunshine'
+    alias sungames='apollo-steam-sync --list'
+    alias sunfix='apollo-steam-sync --fix-cover'
+    alias sunlaunch='apollo-steam-sync --launch-mode && systemctl --user restart sunshine'
+    
+    # Legacy Apollo aliases (redirect to Sunshine)
+    alias apollostatus='systemctl --user status sunshine'
+    alias apollorestart='systemctl --user restart sunshine'
+    alias apollolog='journalctl --user -u sunshine -f'
     alias apolloconfig='micro ~/.config/sunshine/sunshine.conf'
+    alias apolloapps='micro ~/.config/sunshine/apps.json'
+    alias apollosync='apollo-steam-sync && systemctl --user restart sunshine'
+    alias apollogames='apollo-steam-sync --list'
+    alias apollofix='apollo-steam-sync --fix-cover'
+    alias apollolaunch='apollo-steam-sync --launch-mode && systemctl --user restart sunshine'
+    
+    # Display management
+    alias screenctrl='screencontrol'
+    alias fixdisplay='fix-display-priority'
+    alias recoverdisplay='recover-display'
+    alias displaylog='tail -f /tmp/display-monitor.log'
 fi
 
 # =============================================================================
