@@ -2,13 +2,15 @@
 
 A streamlined, cross-platform dotfiles setup for macOS, Linux, and WSL2. Everything you need in one command.
 
+**Focus:** Symlinked configs and useful utilities, not monolithic installers.
+
 **New in v3.0:**
 - 🎯 **Modular Configuration**: .zshrc split into 5 focused modules
 - ⚡ **Performance Optimized**: Lazy loading, completion caching, consolidated FZF
-- 🧹 **Simplified**: Removed asdf and Rust builds (using package managers instead)
+- 🧹 **Simplified**: Focus on configs/symlinks, minimal scripts
 - 💾 **Backup System**: New backup.sh for safe updates
 - 🔐 **Better Security**: .local-secrets support built-in
-- 🖥️ **Platform-Specific**: Separate configs for Linux (Hyprland) and macOS
+- 🖥️ **Platform-Specific**: Separate configs for Linux (Gnome/Hyprland) and macOS
 - 📝 **Local Config Tracking**: .local-config tracks installed components per machine
 
 ## 📁 Structure
@@ -20,11 +22,10 @@ A streamlined, cross-platform dotfiles setup for macOS, Linux, and WSL2. Everyth
 │   ├── starship.toml
 │   └── lsd/
 │
-├── linux/                # Linux-specific (Hyprland, Waybar)
-│   ├── hyprland/
-│   ├── waybar/
-│   ├── interception/
-│   └── install-hyprland.sh
+├── linux/                # Linux-specific configs
+│   ├── gnome/           # Gnome configs and tools
+│   ├── hyprland/        # Hyprland migration guide (for future)
+│   └── ghostty/
 │
 ├── macos/                # macOS-specific (Ghostty, etc.)
 │   └── ghostty/
@@ -62,26 +63,20 @@ That's it! The installer will:
 
 ## 🖥️ Platform-Specific Setup
 
-### Linux (GNOME)
+### Linux
 
-Linux-specific configurations are automatically set up during installation.
+Linux-specific configurations (Gnome, Ghostty terminal, etc.) are in `linux/` and automatically symlinked during installation.
 
-For GNOME-specific setup (optional):
+For GNOME-specific tools (optional):
 
 ```bash
 cd ~/dotfiles/linux/gnome
 ./install-gnome-tools.sh
 ```
 
-This installs:
-- GNOME Tweaks and extensions
-- dconf settings backup/restore scripts
-- GNOME Shell customization tools
-- Recommended extensions list
+This includes dconf backup/restore scripts and Gnome settings.
 
-The installer automatically detects your desktop environment and offers GNOME-specific setup if you're running GNOME.
-
-See [linux/README.md](linux/README.md) for details.
+**Hyprland migration guide available:** See `linux/HYPRLAND-MIGRATION.md` for future Hyprland setup with complete storage/network mount preservation.
 
 ### macOS
 
@@ -215,12 +210,9 @@ The menu provides these options:
 
 ### Development Tools
 
-- **Node.js** via asdf
-- **Python** via asdf
-- **Go** programming language via asdf
-- **Rust** programming language via asdf
-- **asdf** version manager with asdf-direnv
+- **Node.js** via fnm (Fast Node Manager)
 - **git** with enhanced configuration
+- **direnv** for project-specific environments
 
 ### Platform-Specific Features
 
@@ -314,7 +306,7 @@ The menu provides these options:
 
 ## 🟢 Node.js Management with fnm
 
-Your dotfiles now use **fnm** (Fast Node Manager) for Node.js version management, providing better `.nvmrc` support and faster performance.
+Your dotfiles use **fnm** (Fast Node Manager) for Node.js version management, providing better `.nvmrc` support and faster performance.
 
 ### Basic Usage
 
@@ -335,37 +327,11 @@ fnm default 18.17.0
 fnm list
 ```
 
-**Note**: For compatibility, `nvm` is aliased to `fnm`, so you can use either command:
-
-```bash
-nvm install --lts    # Same as fnm install --lts
-nvm use 18.17.0      # Same as fnm use 18.17.0
-```
+**Note**: `nvm` is aliased to `fnm` for compatibility.
 
 ### .nvmrc Support
 
-Create a `.nvmrc` file in your project:
-
-```bash
-echo "18.17.0" > .nvmrc
-```
-
-When you enter the directory, fnm automatically switches to the specified version:
-
-```bash
-cd my-project  # Automatically switches to Node.js 18.17.0
-node --version # v18.17.0
-```
-
-### Migration from asdf
-
-If you're migrating from asdf, use the migration script:
-
-```bash
-./migrate-to-fnm.sh
-```
-
-For more details, see [docs/FNM-SETUP.md](docs/FNM-SETUP.md).
+Create a `.nvmrc` file in your project - fnm automatically switches versions when you cd into the directory.
 
 ## 🐛 Common Issues & Solutions
 
