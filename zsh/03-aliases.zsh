@@ -4,6 +4,16 @@
 # Modern tool replacements and convenient shortcuts
 
 # =============================================================================
+# NAVIGATION ALIASES
+# =============================================================================
+alias ..='cd ..'
+
+# Zoxide aliases - use both 'z' and ',' for directory jumping
+if command -v zoxide &>/dev/null; then
+    alias .='z'
+fi
+
+# =============================================================================
 # MODERN TOOL ALIASES
 # =============================================================================
 # bat (better cat) aliases
