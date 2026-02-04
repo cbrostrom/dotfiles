@@ -1,0 +1,74 @@
+/* 
+ * Custom settings for Phi theme
+ * This file overrides the default settings in custom.css
+ * Place this file in the same directory as custom.css (phi/ directory)
+ * 
+ * HOW IT WORKS:
+ * - custom.css defines defaults in :root
+ * - Then imports this file with @import './phi-settings.css'
+ * - Values here use 'body' selector which has HIGHER specificity than :root
+ * - This way your settings override defaults and persist when you update custom.css
+ * 
+ * USAGE:
+ * - Modify any values below to customize your theme
+ * - Remove variables you don't want to override (they'll use defaults)
+ * - Reload Vivaldi to see changes
+ */
+
+body {
+    --phi--sidebar-width: 340;
+    --phi--compact-sidebar-width: 50;
+    --phi--is-auto-compact-mode: 0;
+    --phi--is-phi-menu-icon: 1;
+    --phi--toolbar-column-count: 5;
+    --phi--address-bar-focused-width-increase: 200;
+    --phi--address-bar-font-size-decrease: 1;
+    --phi--is-address-bar-focused-height-increase: 1;
+    --phi--is-address-bar-unfocused-partial: 0;
+    --phi--is-address-bar-unfocused-hide-icons: 1;
+    --phi--is-address-bar-focused-hide-icons: 0;
+    --phi--pinned-column-count: 4;
+    --phi--webview-border: 0;
+    --phi--webview-border-radius: 8;
+    --phi--webview-shadow-size: 12;
+    --phi--webview-shadow-color: 0, 0, 0, 0.15;
+    --phi--is-individual-tiled-tab-header: 0;
+    --phi--is-hide-window-controls: 0;
+    --phi--is-hide-content-blocker: 1;
+    
+    /* Design System - 8px base spacing scale */
+    --phi--spacing-micro: 2;
+    --phi--spacing-tiny: 4;
+    --phi--spacing-small: 8;
+    --phi--spacing-medium: 12;
+    --phi--spacing-large: 16;
+    --phi--spacing-xl: 24;
+    
+    /* Tab System */
+    --phi--tab-height: 48;
+    --phi--tab-spacing: 8;
+    --phi--tab-padding-x: 12;
+    --phi--tab-padding-y: 8;
+    --phi--tab-border-radius: 8;
+    
+    /* Sidebar */
+    --phi--sidebar-padding: 8;
+    --phi--sidebar-element-spacing: 3;  /* Vertikal spacing mellem elementer (default = densityGap) */
+    
+    /* Buttons */
+    --phi--button-size: 32;
+    --phi--button-border-radius: 8;
+    --phi--button-margin: 8;
+    --phi--button-padding: 4;
+    
+    /* Pinned Tabs */
+    --phi--pinned-tab-max-height: 64;
+    --phi--pinned-tab-aspect-ratio: 1.2;
+    --phi--pinned-tab-border-radius: 8;
+    
+    /* Transitions */
+    --phi--transition-speed: 0.2s;
+    --phi--hover-scale-small: 1.02;
+    --phi--hover-scale-medium: 1.05;
+    --phi--hover-lift: -2;
+}
