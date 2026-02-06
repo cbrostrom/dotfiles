@@ -179,30 +179,51 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] ENV_VARS: $ENV_VARS" >> "$SCRIPT_DIR/launch
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] USE_GAMEMODE: $USE_GAMEMODE" >> "$SCRIPT_DIR/launch.log"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] USE_MANGOHUD: $USE_MANGOHUD" >> "$SCRIPT_DIR/launch.log"
 
-# Export environment variables individually
+# Build environment variables array for env command
+ENV_VARS_ARRAY=()
 if [[ -n "$CUSTOM_ENV" ]]; then
-    # Parse space-separated KEY=VALUE pairs
-    eval "export $CUSTOM_ENV"
+    IFS=' ' read -ra ENV_ARRAY <<< "$CUSTOM_ENV"
+    for env_var in "${ENV_ARRAY[@]}"; do
+        if [[ "$env_var" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
+            ENV_VARS_ARRAY+=("$env_var")
+        fi
+    done
 fi
 
-# Export MangoHud config if needed
+# Add MangoHud config if needed
 if [[ "$USE_MANGOHUD" == true && -n "$MANGOHUD_CONFIG" ]]; then
-    export MANGOHUD_CONFIG="$MANGOHUD_CONFIG"
+    ENV_VARS_ARRAY+=("MANGOHUD_CONFIG=$MANGOHUD_CONFIG")
 fi
 
-# Build execution chain
-if [[ "$USE_GAMEMODE" == true ]] && command -v gamemoderun >/dev/null 2>&1; then
-    if [[ "$USE_MANGOHUD" == true ]] && command -v mangohud >/dev/null 2>&1; then
-        # Both gamemode and mangohud
-        exec /usr/bin/gamemoderun /usr/bin/mangohud "$@"
+# Build execution chain with env command
+# IMPORTANT: Don't use exec - Steam needs to track the process
+if [[ ${#ENV_VARS_ARRAY[@]} -gt 0 ]]; then
+    # We have environment variables to set
+    if [[ "$USE_GAMEMODE" == true ]] && command -v gamemoderun >/dev/null 2>&1; then
+        if [[ "$USE_MANGOHUD" == true ]] && command -v mangohud >/dev/null 2>&1; then
+            env "${ENV_VARS_ARRAY[@]}" /usr/bin/gamemoderun /usr/bin/mangohud "$@"
+        else
+            env "${ENV_VARS_ARRAY[@]}" /usr/bin/gamemoderun "$@"
+        fi
+    elif [[ "$USE_MANGOHUD" == true ]] && command -v mangohud >/dev/null 2>&1; then
+        env "${ENV_VARS_ARRAY[@]}" /usr/bin/mangohud "$@"
     else
-        # Only gamemode
-        exec /usr/bin/gamemoderun "$@"
+        env "${ENV_VARS_ARRAY[@]}" "$@"
     fi
-elif [[ "$USE_MANGOHUD" == true ]] && command -v mangohud >/dev/null 2>&1; then
-    # Only mangohud
-    exec /usr/bin/mangohud "$@"
 else
-    # No wrappers
-    exec "$@"
+    # No environment variables, simpler execution
+    if [[ "$USE_GAMEMODE" == true ]] && command -v gamemoderun >/dev/null 2>&1; then
+        if [[ "$USE_MANGOHUD" == true ]] && command -v mangohud >/dev/null 2>&1; then
+            /usr/bin/gamemoderun /usr/bin/mangohud "$@"
+        else
+            /usr/bin/gamemoderun "$@"
+        fi
+    elif [[ "$USE_MANGOHUD" == true ]] && command -v mangohud >/dev/null 2>&1; then
+        /usr/bin/mangohud "$@"
+    else
+        "$@"
+    fi
 fi
+
+# Capture exit code and return it
+exit $?

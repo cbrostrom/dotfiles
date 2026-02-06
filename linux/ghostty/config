@@ -21,14 +21,20 @@
 # window-padding-y = 8
 # window-decoration = true
 
+# Wayland/Compositor Settings
+# -----------------------------------------------------------------------------
+# Fix artifacting with Hyprland scrolling layout
+# Disable vsync to prevent tearing/artifacts during window moves
+gtk-single-instance = false
+window-vsync = false
+
 # Shell Integration
 # -----------------------------------------------------------------------------
 # Use zsh as default shell
 command = /usr/bin/zsh
 
-# Enable shell integration for better terminal experience
-shell-integration = detect
-shell-integration-features = cursor,sudo,title
+# Disable shell integration to prevent escape code issues with keyd
+shell-integration = none
 
 # Performance
 # -----------------------------------------------------------------------------

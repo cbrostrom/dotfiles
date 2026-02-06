@@ -313,6 +313,32 @@ if [[ "$(uname -s)" == "Linux" ]]; then
 fi
 
 # =============================================================================
+# SYSTEM UPDATE ALIASES
+# =============================================================================
+if [[ "$(uname -s)" == "Linux" ]]; then
+    # Arch/CachyOS system update - updates both official and AUR packages + Flatpak
+    if command -v paru &>/dev/null; then
+        alias systemupdate='echo "🔄 Updating system packages..." && paru -Syu --noconfirm && echo "🔄 Updating Flatpak apps..." && flatpak update -y'
+    elif command -v yay &>/dev/null; then
+        alias systemupdate='echo "🔄 Updating system packages..." && yay -Syu --noconfirm && echo "🔄 Updating Flatpak apps..." && flatpak update -y'
+    elif command -v pacman &>/dev/null; then
+        alias systemupdate='echo "🔄 Updating system packages..." && sudo pacman -Syu --noconfirm && echo "🔄 Updating Flatpak apps..." && flatpak update -y'
+    fi
+    
+    # Work suite management
+    alias worksuite='$DOTFILES_DIR/linux/install-worksuite.sh'
+    alias worksuite-check='$DOTFILES_DIR/linux/install-worksuite.sh --check-only'
+    
+    # Gaming guides
+    alias gaming-help='cat $DOTFILES_DIR/gaming/QUICK-REFERENCE.md'
+    alias gaming-guide='${EDITOR:-nano} $DOTFILES_DIR/gaming/STEAM-LAUNCH-OPTIONS.md'
+    alias gaming-presets='${EDITOR:-nano} $DOTFILES_DIR/gaming/config/presets.conf'
+    
+    # LinuxBro network shares
+    alias linuxbro-setup='$DOTFILES_DIR/linux/setup-linuxbro-symlinks.sh'
+fi
+
+# =============================================================================
 # PLATFORM-SPECIFIC ALIASES
 # =============================================================================
 # Linux-specific aliases

@@ -1,0 +1,29 @@
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a device; this may
+# be used with UUID= as a more robust way to name devices that works even if
+# disks are added and removed. See fstab(5).
+#
+# <file system>             <mount point>  <type>  <options>  <dump>  <pass>
+UUID=FFA2-052B                            /boot          vfat    defaults,umask=0077 0 2
+UUID=abc21700-7e70-4ddb-96e6-cce05aa6515d /              btrfs   subvol=/@,defaults,noatime,compress=zstd 0 0
+UUID=abc21700-7e70-4ddb-96e6-cce05aa6515d /home          btrfs   subvol=/@home,defaults,noatime,compress=zstd 0 0
+UUID=abc21700-7e70-4ddb-96e6-cce05aa6515d /root          btrfs   subvol=/@root,defaults,noatime,compress=zstd 0 0
+UUID=abc21700-7e70-4ddb-96e6-cce05aa6515d /srv           btrfs   subvol=/@srv,defaults,noatime,compress=zstd 0 0
+UUID=abc21700-7e70-4ddb-96e6-cce05aa6515d /var/cache     btrfs   subvol=/@cache,defaults,noatime,compress=zstd 0 0
+UUID=abc21700-7e70-4ddb-96e6-cce05aa6515d /var/tmp       btrfs   subvol=/@tmp,defaults,noatime,compress=zstd 0 0
+UUID=abc21700-7e70-4ddb-96e6-cce05aa6515d /var/log       btrfs   subvol=/@log,defaults,noatime,compress=zstd 0 0
+tmpfs                                     /tmp           tmpfs   defaults,noatime,mode=1777 0 0
+
+# === GAMES DRIVES ===
+# Games Fast - NVMe 1TB (native ntfs3)
+UUID=EA58FF4758FF10D5  /mnt/games-fast   ntfs3   defaults,nofail,uid=1000,gid=1000,umask=022,prealloc 0 0
+# Games Main - NVMe 2TB (ntfs3 with force)
+UUID=ACA0A835A0A80842  /mnt/games-main   ntfs3   defaults,nofail,uid=1000,gid=1000,umask=022,prealloc,force 0 0
+# Games Extra - SATA 2TB (ntfs3)
+UUID=7046314846311078  /mnt/games-extra  ntfs3   defaults,nofail,uid=1000,gid=1000,umask=022,prealloc 0 0
+# === STORAGE & SOFTWARE ===
+# Software - SATA 465GB (ntfs3)
+UUID=F04C744B4C740E9A  /mnt/software     ntfs3   defaults,nofail,uid=1000,gid=1000,umask=022 0 0
+# Storage - HDD 7.3TB (ntfs3 with force for large drive)
+UUID=401A60D51A60CA0C  /mnt/storage      ntfs3   defaults,nofail,uid=1000,gid=1000,umask=022,force 0 0

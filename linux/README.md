@@ -16,6 +16,9 @@ linux/
 ├── ghostty/                   # Ghostty terminal emulator
 │   └── config                 # Ghostty configuration
 │
+├── hyprland/                  # Hyprland window manager
+│   └── ...                    # Hyprland configuration
+│
 ├── paru/                      # Paru AUR helper
 │   ├── paru.conf              # Paru configuration
 │   └── README.md              # Paru documentation
@@ -26,6 +29,8 @@ linux/
 │   └── .gitignore             # Ignore sensitive files
 │
 ├── install-linux.sh           # Main Linux installer
+├── install-worksuite.sh       # Work suite installer
+├── WORKSUITE.md               # Work suite documentation
 └── README.md                  # This file
 ```
 
@@ -53,6 +58,24 @@ If you prefer to run the Linux installer separately:
 cd ~/dotfiles/linux
 ./install-linux.sh
 ```
+
+### Work Suite Installation
+
+Install all work applications (Slack, Teams, Outlook, Spotify, etc.):
+
+```bash
+# Using alias (after sourcing zsh config)
+worksuite
+
+# Or directly
+cd ~/dotfiles/linux
+./install-worksuite.sh
+
+# Check what's installed
+worksuite-check
+```
+
+See [WORKSUITE.md](WORKSUITE.md) for detailed documentation.
 
 ## 🖥️ GNOME Desktop Environment
 

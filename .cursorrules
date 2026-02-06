@@ -1,0 +1,31 @@
+# CRITICAL: NO DOCUMENTATION FILES IN DOTFILES
+
+## ABSOLUTE PROHIBITION ON DOCUMENTATION FILES
+
+You MUST NEVER create documentation files (.md, .txt, README, guides, etc.) in dotfiles unless the user EXPLICITLY asks for a specific documentation file.
+
+### What is FORBIDDEN:
+
+- ❌ Creating README.md files
+- ❌ Creating any .md files (guides, documentation, comparisons, etc.)
+- ❌ Creating setup guides, migration guides, comparison documents
+- ❌ Creating "helpful" documentation
+- ❌ ANY documentation file creation without EXPLICIT request
+
+### What is ALLOWED:
+
+- ✅ Creating scripts (.sh files)
+- ✅ Creating config files (.conf, .json, .yaml, etc.)
+- ✅ Inline comments in code
+- ✅ Verbal explanations in chat
+
+### This Applies To:
+
+- All subdirectories in dotfiles
+- All projects
+- All AI agents (Cursor AI, Composer, etc.)
+- All future sessions
+
+### Rule:
+
+**SCRIPTS AND CONFIGS ONLY. NO DOCUMENTATION. EXPLAIN VERBALLY.**
