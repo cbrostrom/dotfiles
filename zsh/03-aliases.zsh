@@ -304,36 +304,21 @@ if [[ "$(uname -s)" == "Linux" ]]; then
 fi
 
 # =============================================================================
-# GSCONNECT/KDE CONNECT ALIASES
-# =============================================================================
-if [[ "$(uname -s)" == "Linux" ]]; then
-    alias gsconnect='gnome-extensions prefs gsconnect@andyholmes.github.io'
-    alias gsconnect-restart='gnome-extensions disable gsconnect@andyholmes.github.io && sleep 1 && gnome-extensions enable gsconnect@andyholmes.github.io'
-    alias gsconnect-status='gnome-extensions info gsconnect@andyholmes.github.io | grep -E "State|Enabled"'
-fi
-
-# =============================================================================
 # SYSTEM UPDATE ALIASES
 # =============================================================================
 if [[ "$(uname -s)" == "Linux" ]]; then
-    # Arch/CachyOS system update - updates both official and AUR packages + Flatpak
-    if command -v paru &>/dev/null; then
-        alias systemupdate='echo "🔄 Updating system packages..." && paru -Syu --noconfirm && echo "🔄 Updating Flatpak apps..." && flatpak update -y'
-    elif command -v yay &>/dev/null; then
-        alias systemupdate='echo "🔄 Updating system packages..." && yay -Syu --noconfirm && echo "🔄 Updating Flatpak apps..." && flatpak update -y'
-    elif command -v pacman &>/dev/null; then
-        alias systemupdate='echo "🔄 Updating system packages..." && sudo pacman -Syu --noconfirm && echo "🔄 Updating Flatpak apps..." && flatpak update -y'
+    # Debian/Ubuntu (apt)
+    if command -v apt &>/dev/null; then
+        alias systemupdate='echo "🔄 Updating system packages..." && sudo apt update && sudo apt upgrade -y && command -v flatpak &>/dev/null && echo "🔄 Updating Flatpak..." && flatpak update -y'
+    elif command -v apt-get &>/dev/null; then
+        alias systemupdate='echo "🔄 Updating system packages..." && sudo apt-get update && sudo apt-get upgrade -y && command -v flatpak &>/dev/null && echo "🔄 Updating Flatpak..." && flatpak update -y'
     fi
-    
-    # Work suite management
-    alias worksuite='$DOTFILES_DIR/linux/install-worksuite.sh'
-    alias worksuite-check='$DOTFILES_DIR/linux/install-worksuite.sh --check-only'
-    
-    # Gaming guides
-    alias gaming-help='cat $DOTFILES_DIR/gaming/QUICK-REFERENCE.md'
-    alias gaming-guide='${EDITOR:-nano} $DOTFILES_DIR/gaming/STEAM-LAUNCH-OPTIONS.md'
-    alias gaming-presets='${EDITOR:-nano} $DOTFILES_DIR/gaming/config/presets.conf'
-    
+
+    # Gaming presets (only if gamelaunch is installed)
+    if command -v gamelaunch &>/dev/null; then
+        alias gaming-presets='${EDITOR:-nano} $DOTFILES_DIR/gaming/config/presets.conf'
+    fi
+
     # LinuxBro network shares
     alias linuxbro-setup='$DOTFILES_DIR/linux/setup-linuxbro-symlinks.sh'
 fi

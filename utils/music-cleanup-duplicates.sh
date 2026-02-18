@@ -18,7 +18,7 @@ echo ""
 # Check if beets is available
 if ! command -v beet &> /dev/null; then
     echo -e "${RED}Error: Beets is not installed or not in PATH${NC}"
-    echo "Install with: paru -S beets"
+    echo "Install with: sudo apt install beets"
     exit 1
 fi
 

@@ -26,7 +26,7 @@ if ! command -v beet &> /dev/null; then
     echo -e "${RED}Error: Beets is not installed${NC}"
     echo ""
     echo "Install with:"
-    echo "  paru -S beets python-pyacoustid"
+    echo "  sudo apt install beets"
     echo ""
     exit 1
 fi

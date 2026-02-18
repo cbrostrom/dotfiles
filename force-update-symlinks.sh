@@ -91,7 +91,7 @@ if grep -q Microsoft /proc/version 2>/dev/null; then
     for WINDOWS_TERMINAL_DIR in "${WINDOWS_TERMINAL_PATHS[@]}"; do
         if [[ -d "$WINDOWS_TERMINAL_DIR" ]]; then
             log_info "Found Windows Terminal directory: $WINDOWS_TERMINAL_DIR"
-            force_create_symlink "$SCRIPT_DIR/.config/windows-terminal/settings.json" "$WINDOWS_TERMINAL_DIR/settings.json" "Windows Terminal config"
+            force_create_symlink "$SCRIPT_DIR/wsl/windows-terminal/settings.json" "$WINDOWS_TERMINAL_DIR/settings.json" "Windows Terminal config"
             WINDOWS_TERMINAL_FOUND=true
             break
         fi

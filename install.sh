@@ -439,54 +439,20 @@ install_zoxide_linux() {
 install_eza_linux() {
     if command_exists eza; then
         log_success "✓ eza already installed"
-        # Mark as explicitly installed to prevent auto-removal
-        if command_exists paru; then
-            paru -D --asexplicit eza 2>/dev/null || true
-        elif command_exists pacman; then
-            sudo pacman -D --asexplicit eza 2>/dev/null || true
-        fi
         return 0
     fi
-    
+
     log_info "Installing eza..."
-    
-    # Try package manager first (most distros have it now)
-    if command_exists paru; then
-        # Arch/CachyOS - use paru
-        log_info "Installing eza via paru..."
-        paru -S --needed --noconfirm eza
-        # Mark as explicitly installed
-        paru -D --asexplicit eza
-        log_success "eza installed via paru"
-        return 0
-    elif command_exists yay; then
-        # Arch - use yay
-        log_info "Installing eza via yay..."
-        yay -S --needed --noconfirm eza
-        # Mark as explicitly installed
-        yay -D --asexplicit eza
-        log_success "eza installed via yay"
-        return 0
-    elif command_exists pacman; then
-        # Arch - use pacman directly
-        log_info "Installing eza via pacman..."
-        sudo pacman -S --needed --noconfirm eza
-        # Mark as explicitly installed
-        sudo pacman -D --asexplicit eza
-        log_success "eza installed via pacman"
-        return 0
-    elif [[ "$PACKAGE_MANAGER" == "apt" ]]; then
-        # Debian/Ubuntu - eza is in repos for newer versions
+
+    if [[ "$PACKAGE_MANAGER" == "apt" ]]; then
         if sudo apt install -y eza 2>/dev/null; then
             log_success "eza installed via apt"
             return 0
         fi
     fi
-    
-    # Fallback: suggest manual installation via cargo or package manager
+
     log_warning "eza not available via package manager"
-    log_info "Install manually with: cargo install eza"
-    log_info "Or on Arch-based: paru -S eza"
+    log_info "Install manually: sudo apt install eza  # or cargo install eza"
 }
 
 # Function to setup fzf
@@ -533,18 +499,17 @@ setup_gaming() {
     
     # Check for gaming tools (optional, just warn if missing)
     if ! command_exists gamemoderun; then
-        log_warning "gamemode not found - install with: sudo pacman -S gamemode lib32-gamemode"
+        log_warning "gamemode not found - install with: sudo apt install gamemode"
     fi
-    
+
     if ! command_exists mangohud; then
-        log_warning "mangohud not found - install with: sudo pacman -S mangohud"
+        log_warning "mangohud not found - install with: sudo apt install mangohud"
     fi
-    
+
     # Create symlinks for gaming scripts
     if [[ -d "$SCRIPT_DIR/gaming" ]]; then
         create_symlink "$SCRIPT_DIR/gaming/bin/gamelaunch" "$HOME/bin/gamelaunch" "gamelaunch script"
         create_symlink "$SCRIPT_DIR/gaming/config/presets.conf" "$HOME/.config/game-launcher/presets.conf" "gaming presets"
-        create_symlink "$SCRIPT_DIR/gaming/README.md" "$HOME/.config/game-launcher/README.md" "gaming README"
         
         # Ensure script is executable
         if [[ -f "$SCRIPT_DIR/gaming/bin/gamelaunch" ]]; then
@@ -670,9 +635,9 @@ install_dotfiles() {
     
     # Platform-specific configs
     if $IS_MACOS; then
-        create_symlink "$SCRIPT_DIR/.config/ghostty" "$HOME/.config/ghostty" "ghostty config"
+        create_symlink "$SCRIPT_DIR/macos/ghostty" "$HOME/.config/ghostty" "ghostty config"
     elif $IS_LINUX; then
-        # Run Linux-specific installer
+        # Run Linux-specific installer (Ghostty on native Linux, Windows Terminal on WSL)
         if [[ -f "$SCRIPT_DIR/linux/install-linux.sh" ]]; then
             log_info ""
             log_info "=== Linux-Specific Configuration ==="
@@ -680,10 +645,33 @@ install_dotfiles() {
         else
             log_warning "Linux installer not found, skipping Linux-specific setup"
         fi
+        # Windows Terminal (WSL only)
+        if grep -q Microsoft /proc/version 2>/dev/null; then
+            for wt_dir in "/mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState" \
+                          "/mnt/c/Users/$USERNAME/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState"; do
+                if [[ -d "$wt_dir" ]] && [[ -f "$SCRIPT_DIR/wsl/windows-terminal/settings.json" ]]; then
+                    create_symlink "$SCRIPT_DIR/wsl/windows-terminal/settings.json" "$wt_dir/settings.json" "Windows Terminal config"
+                    break
+                fi
+            done
+        fi
     fi
-    
-    # Setup gaming scripts (cross-platform)
-    setup_gaming
+
+    # Gaming scripts (optional - skip on WSL, prompt on macOS/Linux)
+    if grep -q Microsoft /proc/version 2>/dev/null; then
+        log_info "WSL detected - skipping gamelaunch (not used on WSL)"
+    elif [[ -t 0 ]]; then
+        echo ""
+        read -p "Install gamelaunch utils? (Steam gaming scripts) [y/N]: " -n 1 -r install_gaming_reply
+        echo ""
+        if [[ "$install_gaming_reply" =~ ^[Yy]$ ]]; then
+            setup_gaming
+        else
+            log_info "Skipping gamelaunch setup"
+        fi
+    else
+        log_info "Non-interactive - skipping gamelaunch (run with --gaming to add later)"
+    fi
 }
 
 # Function to setup Cursor settings sync
@@ -691,13 +679,13 @@ setup_cursor_sync() {
     log_info "Setting up Cursor settings sync..."
     
     # Check if setup-cursor-sync.sh exists
-    if [[ ! -f "$SCRIPT_DIR/setup-cursor-sync.sh" ]]; then
+    if [[ ! -f "$SCRIPT_DIR/scripts/cursor/setup-cursor-sync.sh" ]]; then
         log_warning "setup-cursor-sync.sh not found, skipping Cursor sync"
         return 0
     fi
-    
-    # Run the Cursor sync setup script
-    bash "$SCRIPT_DIR/setup-cursor-sync.sh"
+
+    # Run the Cursor sync setup script (from dotfiles root so paths resolve)
+    (cd "$SCRIPT_DIR" && bash scripts/cursor/setup-cursor-sync.sh)
     
     log_success "Cursor settings sync setup complete"
 }
@@ -851,7 +839,7 @@ EOF
      └─ Node.js (fnm), modern CLI tools
 
   6) Platform Configs [~2-3 min]
-     └─ Ghostty, GNOME, distro-specific
+     └─ Ghostty, Windows Terminal (WSL)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚙️  ADVANCED
@@ -914,7 +902,7 @@ EOF
             "Basic Dotfiles [~1 min]|zshrc, gitconfig, starship config"
             "Cursor Settings Sync [~30 sec]|Link Cursor settings to dotfiles"
             "Gaming Launcher [~1 min]|Gaming scripts and presets"
-            "Platform Configs [~2-3 min]|Ghostty, GNOME, distro-specific"
+            "Platform Configs [~2-3 min]|Ghostty, Windows Terminal (WSL)"
         )
         
         # Display components
@@ -1450,7 +1438,7 @@ install_gaming_only() {
     log_info "  gamelaunch --preset diablo4 %command%"
     log_info "  gamelaunch --help"
     log_info ""
-    log_info "Documentation: ~/.config/dotfiles/gaming/GAMES.md"
+    log_info "Config: ~/.config/game-launcher/presets.conf"
 }
 
 install_platform_specific() {
@@ -1550,8 +1538,15 @@ install_update_setup() {
         fi
     fi
     
-    # Update gaming scripts if they exist
-    if [[ -f "$HOME/bin/gamelaunch" ]]; then
+    # Update gaming scripts if they exist (and not on WSL - remove if present)
+    if grep -q Microsoft /proc/version 2>/dev/null; then
+        if [[ -L "$HOME/bin/gamelaunch" ]] || [[ -f "$HOME/bin/gamelaunch" ]]; then
+            log_info "Removing gamelaunch from WSL (not used here)"
+            rm -f "$HOME/bin/gamelaunch" "$HOME/bin/gamelaunch-gen" 2>/dev/null
+            rm -f "$HOME/.config/game-launcher/presets.conf" 2>/dev/null
+            rmdir "$HOME/.config/game-launcher" 2>/dev/null || true
+        fi
+    elif [[ -f "$HOME/bin/gamelaunch" ]]; then
         log_info ""
         log_info "=== Updating Gaming Scripts ==="
         setup_gaming
@@ -1573,7 +1568,6 @@ show_completion_message() {
     
     if [[ "$install_mode" == "gaming" ]] || $INSTALL_GAMING; then
         log_info "3. Try: gamelaunch --help"
-        log_info "4. Read docs: cat ~/.config/dotfiles/gaming/QUICKSTART.md"
     else
         log_info "3. Run 'starship --version' to verify the prompt"
     fi

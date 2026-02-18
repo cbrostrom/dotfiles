@@ -19,12 +19,13 @@ log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-# Get script directory
+# Get script directory and dotfiles root
 if [[ -n "$BASH_SOURCE" ]]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 fi
+DOTFILES_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # OS Detection
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -41,7 +42,7 @@ else
 fi
 
 # Dotfiles Cursor config directory
-DOTFILES_CURSOR_DIR="$SCRIPT_DIR/.config/cursor"
+DOTFILES_CURSOR_DIR="$DOTFILES_DIR/.config/cursor"
 
 log_info "=== Cursor Settings Sync Setup ==="
 log_info "Cursor User directory: $CURSOR_USER_DIR"

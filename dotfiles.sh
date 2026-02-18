@@ -113,7 +113,7 @@ show_fzf_menu() {
         "4  │ Cursor Settings Sync    │ Link settings, keybindings, snippets, extensions [~30sec]"
         "5  │ Gaming Launcher         │ Install gaming scripts [~1min]"
         "6  │ Development Tools       │ Node.js, modern CLI tools [~5-8min]"
-        "7  │ Platform Configs        │ Ghostty, GNOME, distro-specific [~2-3min]"
+        "7  │ Platform Configs        │ Ghostty, Windows Terminal (WSL) [~2-3min]"
         "8  │ Update Setup            │ Refresh symlinks & configs [~1-2min]"
         "9  │ Update from Git         │ Pull latest changes [~30sec]"
         "10 │ Check Status            │ Show detailed component status"
@@ -608,7 +608,7 @@ MENU CATEGORIES
   Cursor Settings Sync - Link Cursor settings/keybindings to dotfiles
   Gaming Launcher      - Install gaming scripts for Steam
   Development Tools    - Install Node.js (fnm) and modern CLI tools
-  Platform Configs     - Install OS-specific configurations
+  Platform Configs     - Ghostty, Windows Terminal (WSL)
 
 🔧 MAINTENANCE
   Update Setup         - Refresh symlinks and configs (safe, no reinstall)

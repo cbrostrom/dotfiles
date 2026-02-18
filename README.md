@@ -1,508 +1,62 @@
-# Dotfiles v3.0 (Optimized & Modular)
+# Dotfiles
 
-A streamlined, cross-platform dotfiles setup for macOS, Linux, and WSL2. Everything you need in one command.
+Cross-platform dotfiles for macOS, Linux (Debian/Ubuntu), and WSL2.
 
-**Focus:** Symlinked configs and useful utilities, not monolithic installers.
-
-**New in v3.0:**
-- 🎯 **Modular Configuration**: .zshrc split into 5 focused modules
-- ⚡ **Performance Optimized**: Lazy loading, completion caching, consolidated FZF
-- 🧹 **Simplified**: Focus on configs/symlinks, minimal scripts
-- 💾 **Backup System**: New backup.sh for safe updates
-- 🔐 **Better Security**: .local-secrets support built-in
-- 🖥️ **Platform-Specific**: Separate configs for Linux (Gnome/Hyprland) and macOS
-- 📝 **Local Config Tracking**: .local-config tracks installed components per machine
-
-## 📁 Structure
+## Structure
 
 ```
-~/dotfiles/
-├── zsh/                  # Cross-platform shell config (modular)
-├── .config/              # Cross-platform configs only
-│   ├── starship.toml
-│   └── lsd/
-│
-├── linux/                # Linux-specific configs
-│   ├── gnome/           # Gnome configs and tools
-│   ├── hyprland/        # Hyprland migration guide (for future)
-│   └── ghostty/
-│
-├── macos/                # macOS-specific (Ghostty, etc.)
-│   └── ghostty/
-│
-├── .local-config         # Machine-specific settings (git-ignored)
-├── install.sh            # Main cross-platform installer
-└── ...
+.config/dotfiles/
+├── .zshrc, .gitconfig, .gitignore_global   # Core dotfiles
+├── install.sh, uninstall.sh, dotfiles.sh   # Setup scripts
+├── zsh/                                    # Modular zsh config (00-05)
+├── .config/                                # bat, cursor, lazygit, procs, starship
+├── macos/ghostty/                          # Ghostty terminal (macOS)
+├── linux/ghostty/                           # Ghostty terminal (native Linux)
+├── linux/install-linux.sh                  # Linux-specific setup
+├── wsl/windows-terminal/                    # Windows Terminal settings (WSL)
+├── gaming/                                 # Steam gamelaunch, MangoHud, DXVK configs
+├── scripts/cursor/                         # Cursor sync scripts
+├── utils/                                  # Helper scripts (beets, ssh-agent, etc.)
+├── vivaldi/phi/                            # Vivaldi browser theme
+└── .local-config.example                   # Machine-specific config template
 ```
 
-## 🚀 Quick Start
+## Installation
 
 ```bash
-# Clone the repository
-git clone <your-repo-url> ~/dotfiles
-cd ~/dotfiles
-
-# Install everything
-./install.sh
-
-# Or install with verification
-./install.sh --verify
+cd ~/.config/dotfiles  # or clone to your preferred location
+./install.sh           # Interactive menu, or:
+./install.sh --full    # Full setup
+./install.sh --minimal # Dotfiles only, skip dependencies
 ```
 
-That's it! The installer will:
-
-- Detect your OS automatically
-- Install all dependencies (zsh, git, Node.js via fnm)
-- Setup modern CLI tools (starship, lsd, bat, ripgrep, fzf, etc.)
-- Configure your shell with optimized plugins
-- Create symlinks for all dotfiles
-- Set zsh as your default shell
-- Install fnm for Node.js with .nvmrc support
-- Create .local-config to track installed components
-- Verify the installation (with `--verify` flag)
-
-## 🖥️ Platform-Specific Setup
-
-### Linux
-
-Linux-specific configurations (Gnome, Ghostty terminal, etc.) are in `linux/` and automatically symlinked during installation.
-
-For GNOME-specific tools (optional):
-
-```bash
-cd ~/dotfiles/linux/gnome
-./install-gnome-tools.sh
-```
-
-This includes dconf backup/restore scripts and Gnome settings.
-
-**Hyprland migration guide available:** See `linux/HYPRLAND-MIGRATION.md` for future Hyprland setup with complete storage/network mount preservation.
-
-### macOS
-
-Ghostty and other macOS-specific configs are in `macos/` and automatically symlinked during installation.
-
-## 📝 Local Configuration
-
-Your machine-specific settings are tracked in `.local-config`:
-
-```bash
-# View your current setup
-cat ~/dotfiles/.local-config
-```
-
-This file tracks:
-- Platform (linux/macos/wsl)
-- Desktop environment (hyprland/gnome/kde)
-- Installed optional components
-- Machine identifier
-- Hardware specs (for AI assistants)
-
-## 🔧 Troubleshooting
-
-If you encounter zsh prompt issues on Debian/Ubuntu systems:
-
-```bash
-# Check current status
-./fix-zsh.sh status
-
-# Fix zsh prompt issues
-./fix-zsh.sh fix
-
-# Or run the full installer with verification
-./install.sh --verify
-```
-
-If you encounter direnv issues (especially on WSL):
-
-```bash
-# Fix direnv issues
-./fix-direnv.sh
-
-# Or run the full installer with verification
-./install.sh --verify
-```
-
-If you have missing tools after installation:
-
-```bash
-# Run the full installer again (automatically checks for missing tools)
-./install.sh --verify
-```
-
-## 🎯 Using the Menu System
-
-After installation, you can use the interactive menu from anywhere:
-
-```bash
-# Show the menu (uses fzf by default, whiptail as fallback)
-./dotfiles.sh
-
-# Or run specific commands directly
-./install.sh --verify
-./status.sh
-./uninstall.sh
-```
-
-**Requirements for the menu system:**
-
-- `fzf` (automatically installed via `install.sh`, preferred)
-- `whiptail` (fallback, usually pre-installed on most systems)
-- On Debian/Ubuntu: `sudo apt install fzf`
-- On macOS: `brew install fzf`
-
-**FZF Features:**
-
-- Fuzzy search (type to filter)
-- Preview windows
-- Cross-platform compatibility
-
-The menu provides these options:
-
-1. **Full installation** - Install everything with verification
-2. **Install dotfiles only** - Only install dotfiles (skip dependencies)
-3. **Install dependencies only** - Only install dependencies (skip dotfiles)
-4. **Full installation + system update** - Install everything + update system packages
-5. **Uninstall dotfiles** - Remove all dotfiles and configurations
-6. **Check status** - Show status of all components
-7. **Update dotfiles** - Pull latest changes from git
-8. **Preview installation** - Show what would be installed (dry run)
-9. **Show help** - Show help message
-10. **Reload shell configuration** - Reload zsh configuration
-11. **Force update symlinks** - Force recreation of all symlinks
-12. **Exit** - Exit the menu
-
-## 📚 Documentation
-
-- **[Migration Guide](docs/MIGRATION.md)** - Migrating from v0.x to v2.0
-- **[ASDF Migration](docs/ASDF-MIGRATION.md)** - Complete asdf and asdf-direnv guide
-- **[Changelog](docs/CHANGELOG.md)** - Version history and changes
-- **[Summary](docs/SUMMARY.md)** - Complete v2.0 system overview
-
-## 🛠️ What's Included
-
-### Core Tools
-
-- **zsh** with zinit plugin manager
-- **starship** prompt (cross-platform)
-- **lsd** (modern ls replacement)
-- **bat** (modern cat replacement)
-- **ripgrep** (fast grep replacement)
-- **fd-find** (modern find replacement)
-- **fzf** (fuzzy finder with visual completion)
-- **direnv** (environment switching)
-
-### System Tools
-
-- **procs** (modern ps replacement)
-- **bottom** (modern top replacement)
-- **zoxide** (smart cd replacement)
-- **du-dust** (modern du replacement)
-- **tealdeer** (tldr replacement)
-- **sd** (modern sed replacement)
-
-### Git Tools
-
-- **git-delta** (enhanced git diff)
-- **lazygit** (git TUI)
-- **git-fuzzy** (git fuzzy finder)
-- **ripgrep-all** (search in all files)
-
-### Development Tools
-
-- **Node.js** via fnm (Fast Node Manager)
-- **git** with enhanced configuration
-- **direnv** for project-specific environments
-
-### Platform-Specific Features
-
-- **macOS**: Ghostty terminal config, Homebrew integration, Cursor settings sync
-- **Linux**: xterm-256color terminal fix, apt/yum/dnf support, Cursor settings sync
-- **WSL2**: Windows Terminal integration
-
-## 🎨 Features
-
-### Cross-Platform Compatibility
-
-- Automatic OS detection
-- Platform-specific package managers
-- Relative symlinks for portability
-- Terminal compatibility fixes
-- Enhanced dependency management
-
-### Development Environment
-
-- Modern shell with plugins
-- Fast fuzzy finding with fzf
-- Enhanced git workflow
-- Project-specific environments with direnv
-- Multiple language support (Node.js, Go, Rust)
-
-### Terminal Experience
-
-- Beautiful prompt with starship
-- Syntax highlighting
-- Auto-completion with visual interface
-- History search
-- Git integration
-
-## 🔧 Installation Options
-
-```bash
-# Full installation with verification
-./install.sh --verify
-
-# Install only dependencies (skip dotfiles)
-./install.sh --skip-dotfiles
-
-# Install only dotfiles (skip dependencies)
-./install.sh --skip-deps
-
-# Preview what would be installed
-./install.sh --dry-run
-
-# Interactive menu (uses fzf with whiptail fallback)
-./dotfiles.sh
-
-# Fix zsh prompt issues specifically
-./fix-zsh.sh fix
-
-# Check zsh status
-./fix-zsh.sh status
-
-# Setup Cursor settings sync (included in install.sh)
-./setup-cursor-sync.sh
-```
-
-## 🆕 What's New in v2.0
-
-### Enhanced Installation
-
-- **Better dependency management**: More comprehensive package lists for Debian/Ubuntu
-- **Improved zsh setup**: Proper shell detection and configuration
-- **Installation verification**: New `--verify` flag to check setup
-- **Enhanced error handling**: Better detection and reporting of issues
-
-### Node.js Management
-
-- **fnm (Fast Node Manager)**: Replaced asdf for Node.js with better .nvmrc support
-- **Automatic version switching**: Automatically switches Node.js versions based on .nvmrc files
-- **Faster performance**: fnm is significantly faster than nvm and asdf for Node.js
-- **Migration support**: Migration script to transition from asdf to fnm
-
-### New Tools
-
-- **fix-zsh.sh**: Dedicated script for fixing zsh prompt issues
-- **migrate-to-fnm.sh**: Migration script for transitioning to fnm
-- **Status checking**: Better verification of installation components
-- **Cross-platform improvements**: Better support for Debian 12 and other Linux distributions
-
-### Bug Fixes
-
-- Fixed zsh prompt issues on Debian systems
-- Improved symlink creation with relative paths
-- Better package manager detection
-- Enhanced terminal configuration
-
-## 🟢 Node.js Management with fnm
-
-Your dotfiles use **fnm** (Fast Node Manager) for Node.js version management, providing better `.nvmrc` support and faster performance.
-
-### Basic Usage
-
-```bash
-# Install latest LTS
-fnm install --lts
-
-# Install specific version
-fnm install 18.17.0
-
-# Use specific version
-fnm use 18.17.0
-
-# Set default version
-fnm default 18.17.0
-
-# List installed versions
-fnm list
-```
-
-**Note**: `nvm` is aliased to `fnm` for compatibility.
-
-### .nvmrc Support
-
-Create a `.nvmrc` file in your project - fnm automatically switches versions when you cd into the directory.
-
-## 🐛 Common Issues & Solutions
-
-### Zsh Prompt Not Working
-
-```bash
-# Check if zsh is properly configured
-./fix-zsh.sh status
-
-# Fix zsh prompt issues
-./fix-zsh.sh fix
-
-# Or reinstall with verification
-./install.sh --verify
-```
-
-### Missing Dependencies
-
-```bash
-# Install only dependencies
-./install.sh --skip-dotfiles
-
-# Check what's missing
-./status.sh
-```
-
-### Permission Issues
-
-```bash
-# Make scripts executable
-chmod +x *.sh
-
-# Check file permissions
-ls -la *.sh
-```
-
-## 🔄 Updating
-
-```bash
-# Update dotfiles
-git pull origin main
-
-# Reinstall with verification
-./install.sh --verify
-```
-
-## 🗑️ Uninstalling
-
-```bash
-# Remove all dotfiles and configurations
-./uninstall.sh
-```
-
-## 📋 Requirements
-
-- **macOS**: Homebrew (will be installed if missing)
-- **Linux**: apt, yum, or dnf package manager
-- **WSL2**: Windows Terminal (optional)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test on multiple platforms
-5. Submit a pull request
-
-## 💻 Cursor Settings Sync
-
-Your Cursor IDE settings (settings.json, keybindings.json, snippets, extensions) are automatically synced via dotfiles using symlinks.
-
-### How It Works
-
-The setup creates symlinks from Cursor's User directory to your dotfiles:
-
-```
-~/Library/Application Support/Cursor/User/settings.json → ~/dotfiles/.config/cursor/settings.json
-~/Library/Application Support/Cursor/User/keybindings.json → ~/dotfiles/.config/cursor/keybindings.json
-~/Library/Application Support/Cursor/User/snippets/ → ~/dotfiles/.config/cursor/snippets/
-~/.cursor/extensions/extensions.json → ~/dotfiles/.config/cursor/extensions.json
-```
-
-**Benefits:**
-- ✅ Any changes in Cursor are automatically reflected in dotfiles
-- ✅ Commit and push to sync across machines
-- ✅ No extensions needed - native symlinks
-- ✅ Works on macOS and Linux
-- ✅ Custom homemade extension sync system
-
-### Setup on New Machine
-
-The Cursor sync is automatically included in `./install.sh`, but you can also run it separately:
-
-```bash
-# Setup Cursor settings sync
-./setup-cursor-sync.sh
-
-# This will:
-# - Create symlinks for settings, keybindings, snippets
-# - Link extensions.json
-# - Offer to install all extensions from the list
-```
-
-### Extension Management
-
-#### Install All Extensions
-
-```bash
-# Install all extensions from extensions.json
-./install-cursor-extensions.sh
-
-# This will:
-# - Read the extension list from extensions.json
-# - Install missing extensions automatically
-# - Skip already installed extensions
-# - Show installation progress and summary
-```
-
-#### Update Extensions List
-
-```bash
-# Update extensions.json with currently installed extensions
-./update-cursor-extensions.sh
-
-# This will:
-# - Scan your installed extensions
-# - Update extensions.json
-# - Create backup of old list
-# - Show what was added/removed
-```
-
-**Workflow:**
-1. Install new extension in Cursor
-2. Run `./update-cursor-extensions.sh` to update the list
-3. Commit and push: `git add .config/cursor/extensions.json && git commit -m "chore: update Cursor extensions"`
-4. On another machine: `git pull && ./install-cursor-extensions.sh`
-
-### Backup Your Settings
-
-Before making changes, create a backup:
-
-```bash
-# Create timestamped backup
-./backup-cursor-settings.sh
-
-# Backups are saved to ~/.cursor-backups/
-```
-
-### Manual Restore
-
-If you need to restore from a backup:
-
-```bash
-# List available backups
-ls -la ~/.cursor-backups/
-
-# Restore from specific backup
-cp -r ~/.cursor-backups/backup_TIMESTAMP/* "$HOME/Library/Application Support/Cursor/User/"
-```
-
-### What Gets Synced
-
-| Item | Synced | Notes |
-|------|--------|-------|
-| settings.json | ✅ Auto | Via symlink |
-| keybindings.json | ✅ Auto | Via symlink |
-| snippets/ | ✅ Auto | Via symlink |
-| extensions.json | ✅ Auto | List only, via symlink |
-| Extension files | ❌ Manual | Use `install-cursor-extensions.sh` |
-| Extension data | ❌ No | Local cache/state |
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Usage
+
+- `dotfiles` – Interactive menu (requires fzf or whiptail)
+- `./install.sh --update` – Refresh symlinks after git pull
+- `./install.sh --cursor` – Cursor settings sync only
+- `./install.sh --gaming` – Gaming launcher only
+- `./status.sh` – Check installation status
+- `./uninstall.sh` – Remove symlinks, restore backups
+
+## Platforms
+
+| Platform | Terminal | Notes |
+|----------|----------|-------|
+| **WSL** | Windows Terminal | Ghostty skipped; settings in wsl/windows-terminal/ |
+| **macOS** | Ghostty | Config in macos/ghostty/ |
+| **Linux** | Ghostty | Config in linux/ghostty/; Debian/Ubuntu (apt) |
+
+## Key Components
+
+- **zsh** – Modular config with zinit, starship, fzf, zoxide
+- **fnm** – Node.js version manager (replaces nvm)
+- **Cursor** – Settings/keybindings synced via scripts/cursor/
+- **Gaming** – Optional. gamelaunch script for Steam (prompted on install; skipped on WSL)
+- **.local-config** – Machine-specific (git-ignored); copy from .local-config.example
+
+## Aliases
+
+- `systemupdate` – apt update && upgrade (Debian)
+- `gaming-presets` – Edit gamelaunch presets (when gaming is installed)
+- `linuxbro-setup` – Setup LinuxBro network symlinks

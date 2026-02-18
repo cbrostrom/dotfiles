@@ -39,8 +39,10 @@ fi
 # =============================================================================
 # Automatically start ssh-agent and load all SSH keys
 # On macOS, use built-in ssh-agent with Keychain integration instead
-if ! $IS_MACOS && [[ -f "$HOME/dotfiles/utils/ssh-agent-setup.sh" ]]; then
-    source "$HOME/dotfiles/utils/ssh-agent-setup.sh"
+if ! $IS_MACOS; then
+    for _df in "$HOME/.config/dotfiles" "$HOME/dotfiles"; do
+        [[ -f "$_df/utils/ssh-agent-setup.sh" ]] && source "$_df/utils/ssh-agent-setup.sh" && break
+    done
 fi
 
 # =============================================================================

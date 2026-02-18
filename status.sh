@@ -98,7 +98,7 @@ main_status() {
     
     # Platform-specific configs
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        check_symlink "$SCRIPT_DIR/.config/ghostty" "$HOME/.config/ghostty" "ghostty config"
+        check_symlink "$SCRIPT_DIR/macos/ghostty" "$HOME/.config/ghostty" "ghostty config"
     fi
 
     # Windows Terminal (if on WSL)
@@ -111,7 +111,7 @@ main_status() {
 
         for WINDOWS_TERMINAL_DIR in "${WINDOWS_TERMINAL_PATHS[@]}"; do
             if [[ -d "$WINDOWS_TERMINAL_DIR" ]]; then
-                check_symlink "$SCRIPT_DIR/.config/windows-terminal/settings.json" "$WINDOWS_TERMINAL_DIR/settings.json" "Windows Terminal config"
+                check_symlink "$SCRIPT_DIR/wsl/windows-terminal/settings.json" "$WINDOWS_TERMINAL_DIR/settings.json" "Windows Terminal config"
                 break
             fi
         done
@@ -134,11 +134,7 @@ main_status() {
     
     check_tool "node" "Node.js (via fnm)"
     check_tool "npm" "npm"
-    check_tool "go" "Go (via asdf)"
-    check_tool "cargo" "Rust/Cargo (via asdf)"
     check_tool "fnm" "fnm (Fast Node Manager)"
-    check_tool "asdf" "asdf version manager"
-    check_tool "python" "Python (via asdf)"
     
     echo
     log_info "=== Additional Tools ==="

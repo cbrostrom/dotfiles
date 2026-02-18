@@ -14,22 +14,10 @@
 PLATFORM="linux"
 
 # -----------------------------------------------------------------------------
-# DESKTOP ENVIRONMENT (Linux only)
-# -----------------------------------------------------------------------------
-# Options: gnome, kde, xfce, i3, sway, none
-# Only relevant for Linux systems
-DESKTOP_ENV="gnome"
-
-# -----------------------------------------------------------------------------
 # INSTALLED OPTIONAL COMPONENTS (comma-separated)
 # -----------------------------------------------------------------------------
-# Available optionals:
-#   Linux:   gnome-tools, ghostty, alacritty, kitty
-#   macOS:   ghostty, aerospace, yabai
-#   Common:  cursor, vscode
-#
-# Example: "gnome-tools,ghostty,cursor"
-INSTALLED_OPTIONALS="gnome-tools,ghostty"
+# Example: "ghostty,cursor"
+INSTALLED_OPTIONALS="ghostty,cursor"
 
 # -----------------------------------------------------------------------------
 # MACHINE IDENTIFIER (optional)

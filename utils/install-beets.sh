@@ -15,9 +15,13 @@ echo -e "${BLUE}  Beets Installation${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════${NC}"
 echo ""
 
-# Check if running Arch-based system
-if ! command -v pacman &> /dev/null; then
-    echo -e "${RED}Error: This script is for Arch-based systems${NC}"
+# Check for supported package manager
+if command -v apt &> /dev/null; then
+    PKG_MGR="apt"
+elif command -v pacman &> /dev/null; then
+    PKG_MGR="pacman"
+else
+    echo -e "${RED}Error: No supported package manager (apt/pacman)${NC}"
     exit 1
 fi
 
@@ -43,7 +47,11 @@ echo -e "${GREEN}Installing packages...${NC}"
 echo ""
 
 # Install main packages
-paru -S --needed beets python-pyacoustid python-pylast python-requests python-pillow ffmpeg
+if [[ "$PKG_MGR" == "apt" ]]; then
+    sudo apt install -y beets python3-acoustid python3-pylast python3-requests python3-pillow ffmpeg
+elif [[ "$PKG_MGR" == "pacman" ]]; then
+    sudo pacman -S --needed beets python-pyacoustid python-pylast python-requests python-pillow ffmpeg
+fi
 
 echo ""
 echo -e "${GREEN}✓ Packages installed${NC}"

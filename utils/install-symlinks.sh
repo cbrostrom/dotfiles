@@ -106,7 +106,7 @@ create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitig
 
 # Config directories
 create_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml" "starship config"
-create_symlink "$SCRIPT_DIR/.config/ghostty" "$HOME/.config/ghostty" "ghostty config"
+# Ghostty: macos/ghostty or linux/ghostty - handled by main install.sh
 create_symlink "$SCRIPT_DIR/.config/lazygit" "$HOME/.config/lazygit" "lazygit config"
 create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
 create_symlink "$SCRIPT_DIR/.config/procs" "$HOME/.config/procs" "procs config"
@@ -132,7 +132,7 @@ if [[ "$IS_WSL" == "true" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cy
                 cp "$WINDOWS_TERMINAL_DIR/settings.json" "$BACKUP_FILE"
             fi
 
-            create_symlink "$SCRIPT_DIR/.config/windows-terminal/settings.json" "$WINDOWS_TERMINAL_DIR/settings.json" "Windows Terminal config"
+            create_symlink "$SCRIPT_DIR/wsl/windows-terminal/settings.json" "$WINDOWS_TERMINAL_DIR/settings.json" "Windows Terminal config"
             WINDOWS_TERMINAL_FOUND=true
             break
         fi

@@ -106,7 +106,6 @@ fi
 # Then run 'zprof' after shell startup to see timing report
 # [[ -n "$ZPROF" ]] && zprof
 
-
 # fnm
 FNM_PATH="/home/christian/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
