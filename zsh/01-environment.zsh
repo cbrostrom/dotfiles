@@ -96,7 +96,17 @@ fi
 # Store sensitive tokens and API keys in ~/.local-secrets
 # This file is NOT tracked in git - add it to .gitignore
 if [[ -f "$HOME/.local-secrets" ]]; then
+    set -a
     source "$HOME/.local-secrets"
+    set +a
+fi
+
+# Claude Code via OpenRouter (requires OPENROUTER_API_KEY in ~/.local-secrets)
+if [[ -n "$OPENROUTER_API_KEY" ]]; then
+    export ANTHROPIC_BASE_URL="https://openrouter.ai/api"
+    export ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY"
+    export ANTHROPIC_API_KEY=""
+    export ANTHROPIC_MODEL="openrouter/free"
 fi
 
 # =============================================================================

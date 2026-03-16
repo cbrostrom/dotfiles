@@ -632,7 +632,23 @@ install_dotfiles() {
     create_symlink "$SCRIPT_DIR/.config/lazygit" "$HOME/.config/lazygit" "lazygit config"
     create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
     create_symlink "$SCRIPT_DIR/.config/procs" "$HOME/.config/procs" "procs config"
-    
+
+    # Codex CLI config
+    create_symlink "$SCRIPT_DIR/.codex" "$HOME/.codex" "codex config"
+
+    # Local secrets (API keys, tokens - not tracked in git)
+    if [[ ! -f "$SCRIPT_DIR/.local-secrets" ]]; then
+        if [[ -f "$SCRIPT_DIR/.local-secrets.example" ]]; then
+            log_info "Creating .local-secrets from example template..."
+            cp "$SCRIPT_DIR/.local-secrets.example" "$SCRIPT_DIR/.local-secrets"
+            chmod 600 "$SCRIPT_DIR/.local-secrets"
+            log_warning "Edit $SCRIPT_DIR/.local-secrets and add your actual API keys"
+        fi
+    fi
+    if [[ -f "$SCRIPT_DIR/.local-secrets" ]]; then
+        create_symlink "$SCRIPT_DIR/.local-secrets" "$HOME/.local-secrets" "local secrets"
+    fi
+
     # Platform-specific configs
     if $IS_MACOS; then
         create_symlink "$SCRIPT_DIR/macos/ghostty" "$HOME/.config/ghostty" "ghostty config"
@@ -1367,6 +1383,19 @@ install_minimal_setup() {
     create_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig" ".gitconfig"
     create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitignore_global"
     create_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml" "starship config"
+    create_symlink "$SCRIPT_DIR/.codex" "$HOME/.codex" "codex config"
+
+    # Local secrets
+    if [[ ! -f "$SCRIPT_DIR/.local-secrets" ]]; then
+        if [[ -f "$SCRIPT_DIR/.local-secrets.example" ]]; then
+            cp "$SCRIPT_DIR/.local-secrets.example" "$SCRIPT_DIR/.local-secrets"
+            chmod 600 "$SCRIPT_DIR/.local-secrets"
+            log_warning "Edit $SCRIPT_DIR/.local-secrets and add your actual API keys"
+        fi
+    fi
+    if [[ -f "$SCRIPT_DIR/.local-secrets" ]]; then
+        create_symlink "$SCRIPT_DIR/.local-secrets" "$HOME/.local-secrets" "local secrets"
+    fi
 }
 
 install_custom_setup() {
@@ -1402,6 +1431,18 @@ install_custom_setup() {
         create_symlink "$SCRIPT_DIR/.config/lazygit" "$HOME/.config/lazygit" "lazygit config"
         create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
         create_symlink "$SCRIPT_DIR/.config/procs" "$HOME/.config/procs" "procs config"
+        create_symlink "$SCRIPT_DIR/.codex" "$HOME/.codex" "codex config"
+        # Local secrets
+        if [[ ! -f "$SCRIPT_DIR/.local-secrets" ]]; then
+            if [[ -f "$SCRIPT_DIR/.local-secrets.example" ]]; then
+                cp "$SCRIPT_DIR/.local-secrets.example" "$SCRIPT_DIR/.local-secrets"
+                chmod 600 "$SCRIPT_DIR/.local-secrets"
+                log_warning "Edit $SCRIPT_DIR/.local-secrets and add your actual API keys"
+            fi
+        fi
+        if [[ -f "$SCRIPT_DIR/.local-secrets" ]]; then
+            create_symlink "$SCRIPT_DIR/.local-secrets" "$HOME/.local-secrets" "local secrets"
+        fi
     fi
     
     if $INSTALL_CURSOR; then

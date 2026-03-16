@@ -43,7 +43,7 @@ if (-not (Test-Path $dotfilesBase)) {
     Write-Info "Make sure:"
     Write-Info "  1. WSL is running"
     Write-Info "  2. The path exists in your WSL distribution"
-    Write-Info "  3. You're using the correct WSL distro name (current: $wslDistro)"
+    Write-Info "  3. You are using the correct WSL distro name (current: $wslDistro)"
     Write-Host ""
     Write-Info "Available WSL distros:"
     wsl --list --quiet
@@ -89,7 +89,7 @@ function Sync-File {
         $targetHash = (Get-FileHash $Target -Algorithm MD5).Hash
         
         if ($sourceHash -eq $targetHash -and -not $Force) {
-            Write-Success "✓ $Description is already up to date"
+            Write-Success "[OK] $Description is already up to date"
             return $true
         }
         
@@ -100,7 +100,7 @@ function Sync-File {
     # Copy file
     Write-Info "Syncing: $Description"
     Copy-Item $Source $Target -Force
-    Write-Success "✓ Synced: $Description"
+    Write-Success "[OK] Synced: $Description"
     return $true
 }
 
@@ -127,7 +127,7 @@ if (-not $ExtensionsOnly) {
         
         Write-Host ""
     } else {
-        Write-Info "Skipping settings sync (--SkipSettings)"
+        Write-Info "Skipping settings sync (-SkipSettings)"
         Write-Host ""
     }
 }
@@ -172,6 +172,10 @@ if (-not $SkipExtensions) {
         } else {
             Write-Info "Using CLI: $cursorCli"
             Write-Host ""
+            
+            # Change to Windows native directory (Cursor CLI fails with UNC paths)
+            $originalLocation = Get-Location
+            Set-Location $env:USERPROFILE
             
             # Read and parse extensions.json
             try {
@@ -224,7 +228,7 @@ if (-not $SkipExtensions) {
                     
                     # Check if already installed
                     if (-not $Force -and ($installedExtensions -contains $extensionId)) {
-                        Write-Success "[$counter/$totalExtensions] ✓ Already installed: $extensionId"
+                        Write-Success "[$counter/$totalExtensions] [OK] Already installed: $extensionId"
                         $skippedCount++
                         continue
                     }
@@ -242,15 +246,15 @@ if (-not $SkipExtensions) {
                         $exitCode = $LASTEXITCODE
                         
                         if ($exitCode -eq 0 -or $output -match "successfully installed|already installed") {
-                            Write-Success "[$counter/$totalExtensions] ✓ Installed: $extensionId"
+                            Write-Success "[$counter/$totalExtensions] [OK] Installed: $extensionId"
                             $installedCount++
                         } else {
-                            Write-Error "[$counter/$totalExtensions] ✗ Failed: $extensionId"
+                            Write-Error "[$counter/$totalExtensions] [FAIL] Failed: $extensionId"
                             $failedCount++
                             $failedExtensions += $extensionId
                         }
                     } catch {
-                        Write-Error "[$counter/$totalExtensions] ✗ Failed: $extensionId ($_)"
+                        Write-Error "[$counter/$totalExtensions] [FAIL] Failed: $extensionId ($_)"
                         $failedCount++
                         $failedExtensions += $extensionId
                     }
@@ -264,10 +268,10 @@ if (-not $SkipExtensions) {
                 # Extension Summary
                 Write-Host ""
                 Write-Info "=== Extension Installation Summary ==="
-                Write-Success "✓ Installed: $installedCount"
-                Write-Info "⊙ Already installed (skipped): $skippedCount"
+                Write-Success "[OK] Installed: $installedCount"
+                Write-Info "[SKIP] Already installed: $skippedCount"
                 if ($failedCount -gt 0) {
-                    Write-Error "✗ Failed: $failedCount"
+                    Write-Error "[FAIL] Failed: $failedCount"
                     Write-Host ""
                     Write-Warning "Failed extensions:"
                     foreach ($failed in $failedExtensions) {
@@ -277,10 +281,13 @@ if (-not $SkipExtensions) {
             } else {
                 Write-Warning "No extensions found in extensions.json"
             }
+            
+            # Restore original location
+            Set-Location $originalLocation
         }
     }
 } else {
-    Write-Info "Skipping extension installation (--SkipExtensions)"
+    Write-Info "Skipping extension installation (-SkipExtensions)"
 }
 
 # ============================================
@@ -303,4 +310,4 @@ Write-Host ""
 Write-Warning "IMPORTANT: Restart Cursor to apply all changes"
 Write-Host ""
 Write-Info "Press any key to exit..."
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')

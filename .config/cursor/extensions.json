@@ -54,16 +54,10 @@
     "identifier": "editorconfig.editorconfig"
   },
   {
-    "identifier": "ellreka.tailwindcss-highlight"
-  },
-  {
     "identifier": "eserozvataf.one-dark-pro-monokai-darker"
   },
   {
     "identifier": "foxundermoon.shell-format"
-  },
-  {
-    "identifier": "github.remotehub"
   },
   {
     "identifier": "github.vscode-github-actions"
@@ -76,12 +70,6 @@
   },
   {
     "identifier": "graphql.vscode-graphql-syntax"
-  },
-  {
-    "identifier": "gurumukhi.selected-lines-count"
-  },
-  {
-    "identifier": "itsmeadarsh.vsc-handlebars-ext"
   },
   {
     "identifier": "jasonlhy.hungry-delete"
@@ -99,12 +87,6 @@
     "identifier": "ms-azuretools.vscode-docker"
   },
   {
-    "identifier": "ms-dotnettools.csdevkit"
-  },
-  {
-    "identifier": "ms-dotnettools.csharp"
-  },
-  {
     "identifier": "ms-dotnettools.vscode-dotnet-runtime"
   },
   {
@@ -114,31 +96,13 @@
     "identifier": "ms-python.python"
   },
   {
-    "identifier": "ms-vscode-remote.vscode-remote-extensionpack"
-  },
-  {
     "identifier": "ms-vscode.references-view"
-  },
-  {
-    "identifier": "ms-vscode.remote-repositories"
-  },
-  {
-    "identifier": "ms-vscode.remote-server"
   },
   {
     "identifier": "ms-vscode.vscode-typescript-next"
   },
   {
-    "identifier": "mutantdino.resourcemonitor"
-  },
-  {
-    "identifier": "nickdemayo.vscode-json-editor"
-  },
-  {
     "identifier": "pkief.material-icon-theme"
-  },
-  {
-    "identifier": "pmneo.tsimporter"
   },
   {
     "identifier": "prettier.prettier-vscode"
@@ -147,16 +111,10 @@
     "identifier": "prisma.prisma"
   },
   {
-    "identifier": "quicktype.quicktype"
-  },
-  {
     "identifier": "redhat.vscode-yaml"
   },
   {
     "identifier": "shopify.theme-check-vscode"
-  },
-  {
-    "identifier": "simonsiefke.svg-preview"
   },
   {
     "identifier": "sleistner.vscode-fileutils"
@@ -175,9 +133,6 @@
   },
   {
     "identifier": "usernamehw.errorlens"
-  },
-  {
-    "identifier": "vsls-contrib.gistfs"
   },
   {
     "identifier": "waderyan.gitblame"

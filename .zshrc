@@ -106,9 +106,17 @@ fi
 # Then run 'zprof' after shell startup to see timing report
 # [[ -n "$ZPROF" ]] && zprof
 
+
 # fnm
 FNM_PATH="/home/christian/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
   export PATH="$FNM_PATH:$PATH"
   eval "`fnm env`"
 fi
+
+# bun completions
+[ -s "/home/christian/.bun/_bun" ] && source "/home/christian/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
