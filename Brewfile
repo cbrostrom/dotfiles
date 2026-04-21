@@ -11,8 +11,6 @@ brew "zsh"
 brew "curl"
 brew "wget"
 brew "jq"
-brew "tmux"
-
 # Modern replacements
 brew "bat"
 brew "eza"
