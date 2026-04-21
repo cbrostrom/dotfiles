@@ -159,7 +159,13 @@ lean-ctx-status() {
     fi
 }
 
-if [ -z "${LEAN_CTX_ACTIVE:-}" ] && [ "${LEAN_CTX_ENABLED:-1}" != "0" ]; then
-    lean-ctx-on
+if [ -z "${LEAN_CTX_ACTIVE:-}" ] \
+   && { [ "${LEAN_CTX_ENABLED:-0}" != "0" ] \
+        || [ -n "${CURSOR_AGENT:-}" ] \
+        || [ -n "${CURSOR_TRACE_ID:-}" ] \
+        || [ -n "${CLAUDECODE:-}" ] \
+        || [ -n "${CODEX_CLI:-}" ] \
+        || [ -n "${AI_AGENT:-}" ]; }; then
+    lean-ctx-on >/dev/null
 fi
 # lean-ctx shell hook — end
