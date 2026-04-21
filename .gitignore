@@ -9,9 +9,12 @@
 
 # Backup files
 *.backup.*
+*.backup_*
 *.bak
+*.bak.*
 *.old
 *~
+.config/cursor/extensions.json.backup*
 
 # OS files
 .DS_Store
