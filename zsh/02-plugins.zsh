@@ -142,7 +142,7 @@ if command -v zoxide &>/dev/null; then
     export _ZO_EXCLUDE_DIRS="$HOME/.cache:$HOME/.local/share:$HOME/.npm:$HOME/.pnpm-store:$HOME/.cargo/registry"
 
     # Enhanced zoxide aliases with fzf integration
-    alias zj='zoxide query -i' # Interactive query with fzf (changed from zi to avoid zinit conflict)
+    alias ,='zoxide query -i' # Interactive fzf jump (was 'zj' — now used by zellij wrapper)
     alias za='zoxide add'      # Add current directory
     alias zr='zoxide remove'   # Remove directory from database
     alias zq='zoxide query'    # Query without jumping
