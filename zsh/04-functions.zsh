@@ -12,12 +12,20 @@
 # zj kill      — kill the host session
 zj() {
     command -v zellij >/dev/null 2>&1 || { echo "zellij not installed"; return 1; }
-    local session
+    local session layout
     session="$(hostname -s 2>/dev/null || echo main)"
+    case "$session" in
+        mac|Macbook*|*macbook*) layout="dev" ;;
+        linuxbro|cloudbro)      layout="ops" ;;
+        superbro)               layout="vps" ;;
+        monsterbro|*WSL*|*wsl*) layout="dev" ;;
+        *)                      layout="default" ;;
+    esac
+    layout="${ZJ_DEFAULT_LAYOUT:-$layout}"
     case "${1:-}" in
         ls|list)  zellij list-sessions ;;
         kill)     zellij kill-session "$session" ;;
-        "")       zellij attach -c "$session" ;;
+        "")       zellij --layout "$layout" attach -c "$session" ;;
         *)        zellij --layout "$1" attach -c "${session}-$1" ;;
     esac
 }
