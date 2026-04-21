@@ -107,7 +107,7 @@ fi
 # [[ -n "$ZPROF" ]] && zprof
 
 
-# fnm
+# fnm (Linux)
 FNM_PATH="/home/christian/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
   export PATH="$FNM_PATH:$PATH"
@@ -120,3 +120,43 @@ fi
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/Christian.Brostrom/.lmstudio/bin"
+# End of LM Studio CLI section
+
+
+# lean-ctx shell hook — transparent CLI compression (90+ patterns)
+_lean_ctx_cmds=(git cargo docker docker-compose kubectl gh pip pip3 ruff go golangci-lint eslint prettier tsc ls find grep curl wget)
+
+lean-ctx-on() {
+    for _lc_cmd in "${_lean_ctx_cmds[@]}"; do
+        # shellcheck disable=SC2139
+        alias "$_lc_cmd"='/Users/Christian.Brostrom/.cargo/bin/lean-ctx -c '"$_lc_cmd"
+    done
+    alias k='/Users/Christian.Brostrom/.cargo/bin/lean-ctx -c kubectl'
+    export LEAN_CTX_ENABLED=1
+    echo "lean-ctx: ON"
+}
+
+lean-ctx-off() {
+    for _lc_cmd in "${_lean_ctx_cmds[@]}"; do
+        unalias "$_lc_cmd" 2>/dev/null || true
+    done
+    unalias k 2>/dev/null || true
+    unset LEAN_CTX_ENABLED
+    echo "lean-ctx: OFF"
+}
+
+lean-ctx-status() {
+    if [ -n "${LEAN_CTX_ENABLED:-}" ]; then
+        echo "lean-ctx: ON"
+    else
+        echo "lean-ctx: OFF"
+    fi
+}
+
+if [ -z "${LEAN_CTX_ACTIVE:-}" ] && [ "${LEAN_CTX_ENABLED:-1}" != "0" ]; then
+    lean-ctx-on
+fi
+# lean-ctx shell hook — end

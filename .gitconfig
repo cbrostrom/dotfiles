@@ -1,6 +1,7 @@
 [user]
 	name = Christian Kjærulff Brostrøm
 	email = 2435832+cbrostrom@users.noreply.github.com
+	signingkey = /Users/Christian.Brostrom/.ssh/github
 	
 [core]
 	autocrlf = input
@@ -28,3 +29,7 @@
 
 [diff]
     colorMoved = default
+[gpg]
+	format = ssh
+[commit]
+	gpgsign = true

@@ -171,6 +171,82 @@ weather() {
 }
 
 # =============================================================================
+# SMART PACKAGE MANAGER DETECTION
+# =============================================================================
+# Auto-detects the correct package manager by walking up from cwd to find a
+# lockfile. Caches result per directory to avoid repeated filesystem lookups.
+
+typeset -gA _pm_cache
+
+_detect_pm() {
+    local dir="$PWD"
+
+    if [[ -n "${_pm_cache[$dir]}" ]]; then
+        echo "${_pm_cache[$dir]}"
+        return
+    fi
+
+    local check="$dir"
+    while [[ "$check" != "/" ]]; do
+        [[ -f "$check/bun.lock" || -f "$check/bun.lockb" ]] && { _pm_cache[$dir]="bun"; echo "bun"; return; }
+        [[ -f "$check/pnpm-lock.yaml" ]]                     && { _pm_cache[$dir]="pnpm"; echo "pnpm"; return; }
+        [[ -f "$check/yarn.lock" ]]                           && { _pm_cache[$dir]="yarn"; echo "yarn"; return; }
+        [[ -f "$check/package-lock.json" ]]                   && { _pm_cache[$dir]="npm"; echo "npm"; return; }
+        check="$(dirname "$check")"
+    done
+
+    _pm_cache[$dir]="bun"
+    echo "bun"
+}
+
+ni()   { local pm=$(_detect_pm); "$pm" install "$@"; }
+na()   { local pm=$(_detect_pm); case $pm in npm) npm install "$@";; yarn) yarn add "$@";; *) "$pm" add "$@";; esac; }
+nr()   { local pm=$(_detect_pm); "$pm" run "$@"; }
+ns()   { local pm=$(_detect_pm); case $pm in yarn) yarn start "$@";; *) "$pm" run start "$@";; esac; }
+nb()   { local pm=$(_detect_pm); "$pm" run build "$@"; }
+nd()   { local pm=$(_detect_pm); "$pm" run dev "$@"; }
+nt()   { local pm=$(_detect_pm); "$pm" run test "$@"; }
+nup()  { local pm=$(_detect_pm); case $pm in yarn) yarn upgrade "$@";; *) "$pm" update "$@";; esac; }
+nout() { local pm=$(_detect_pm); case $pm in bun) bun outdated "$@";; *) "$pm" outdated "$@";; esac; }
+nls()  { local pm=$(_detect_pm); case $pm in bun) bun pm ls "$@";; *) "$pm" list "$@";; esac; }
+nx()   { local pm=$(_detect_pm); case $pm in npm) npx "$@";; bun) bunx "$@";; pnpm) pnpm dlx "$@";; yarn) yarn dlx "$@";; esac; }
+nrm()  { local pm=$(_detect_pm); case $pm in npm) npm uninstall "$@";; yarn) yarn remove "$@";; *) "$pm" remove "$@";; esac; }
+
+pm() {
+    case "${1:-}" in
+        which)
+            local pm=$(_detect_pm)
+            echo "$pm (detected from lockfile)"
+            local check="$PWD"
+            while [[ "$check" != "/" ]]; do
+                for f in bun.lock bun.lockb pnpm-lock.yaml yarn.lock package-lock.json; do
+                    [[ -f "$check/$f" ]] && { echo "  lockfile: $check/$f"; return; }
+                done
+                check="$(dirname "$check")"
+            done
+            echo "  lockfile: none (using default: bun)"
+            ;;
+        flush)
+            _pm_cache=()
+            echo "pm cache cleared"
+            ;;
+        *)
+            echo "Usage: pm <command>"
+            echo "  which  - show detected package manager and lockfile"
+            echo "  flush  - clear detection cache"
+            echo ""
+            echo "Smart aliases (auto-detect pm):"
+            echo "  ni     install        na    add package"
+            echo "  nr     run script     ns    start"
+            echo "  nb     build          nd    dev"
+            echo "  nt     test           nx    execute (npx/bunx)"
+            echo "  nup    update         nout  outdated"
+            echo "  nls    list           nrm   remove package"
+            ;;
+    esac
+}
+
+# =============================================================================
 # GIT WORKTREE HELPERS
 # =============================================================================
 # Create new worktree with branch

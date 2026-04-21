@@ -291,3 +291,17 @@ if command -v fnm &>/dev/null; then
     alias fnmdefault='fnm default'
 fi
 
+# =============================================================================
+# GREPAI (Semantic Code Search)
+# =============================================================================
+if command -v grepai &>/dev/null; then
+    if typeset -f _cached_eval >/dev/null; then
+        _cached_eval "grepai" "grepai completion zsh"
+    else
+        eval "$(grepai completion zsh)"
+    fi
+fi
+
+# add to ~/.zshrc
+export DRIFT_TIMEOUT=120   # seconds of inactivity (default: 120)
+eval "$(drift shell-init zsh)"

@@ -59,17 +59,9 @@ fi
 # Project shortcuts
 alias dev='cd ~/Projects && ls'
 
-# npm shortcuts
-alias ni='npm install'
-alias nr='npm run'
-alias ns='npm start'
-alias nb='npm run build'
-alias nd='npm run dev'
-alias nci='npm ci'
-alias nup='npm update'
-alias nls='npm list'
-alias nout='npm outdated'
-alias nupg='npx npm-check-updates'
+# Package manager shortcuts are defined as smart functions in 04-functions.zsh
+# They auto-detect the correct pm (bun/npm/pnpm/yarn) from the project lockfile.
+# Run `pm` to see all available commands, `pm which` to see detected manager.
 
 # =============================================================================
 # GIT ALIASES
