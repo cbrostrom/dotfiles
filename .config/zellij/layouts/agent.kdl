@@ -1,0 +1,14 @@
+// agent layout — AI agent monitoring (cursor / codex / claude sessions)
+layout {
+    tab name="agent" focus=true {
+        pane split_direction="vertical" {
+            pane size="50%" name="agent-cli"
+            pane split_direction="horizontal" {
+                pane name="watch" command="watch" { args "-n" "2" "git" "status" "-s"; }
+                pane name="logs"
+            }
+        }
+    }
+    pane size=1 borderless=true { plugin location="zellij:tab-bar"; }
+    pane size=2 borderless=true { plugin location="zellij:status-bar"; }
+}
