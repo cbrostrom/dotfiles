@@ -106,3 +106,22 @@ _setup_cursor_integration
 unset -f _find_windows_user_home
 unset -f _setup_cursor_integration
 
+# =============================================================================
+# ZELLIJ AUTO-START
+# =============================================================================
+# Auto-attach (or create) a 'main' Zellij session for interactive shells.
+# Skips: nested Zellij, SSH sessions, editor-integrated terminals (VS Code/Cursor).
+if command -v zellij >/dev/null 2>&1 \
+   && [[ -z "$ZELLIJ" ]] \
+   && [[ $- == *i* ]] \
+   && [[ -z "$SSH_CONNECTION" ]] \
+   && [[ -z "$SSH_CLIENT" ]] \
+   && [[ -z "$SSH_TTY" ]] \
+   && [[ -z "$VSCODE_INJECTION" ]] \
+   && [[ -z "$CURSOR_TRACE_ID" ]] \
+   && [[ "$TERM_PROGRAM" != "vscode" ]]; then
+    export ZELLIJ_AUTO_ATTACH=true
+    export ZELLIJ_AUTO_EXIT=true
+    exec zellij attach -c main
+fi
+
