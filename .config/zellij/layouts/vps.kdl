@@ -1,5 +1,8 @@
 // vps layout — superbro VPS server overview (no GUI tools)
 layout {
+    pane size=1 borderless=true {
+        plugin location="zjstatus"
+    }
     tab name="vps" focus=true {
         pane split_direction="horizontal" {
             pane split_direction="vertical" {
@@ -13,6 +16,4 @@ layout {
         }
     }
     tab name="shell" { pane; }
-    pane size=1 borderless=true { plugin location="zellij:tab-bar"; }
-    pane size=2 borderless=true { plugin location="zellij:status-bar"; }
 }
