@@ -40,7 +40,7 @@ if [[ "$OSTYPE" == "Darwin" ]]; then
         source "$BREW_CACHE_FILE"
     fi
     
-    unset -f _generate_brew_cache
+    unset -f _generate_brew_cache 2>/dev/null
 fi
 
 # =============================================================================
@@ -74,8 +74,8 @@ _cached_eval() {
     fi
 }
 
-# Export for use in other modules
-export -f _cached_eval 2>/dev/null || true
+# Note: _cached_eval is auto-available in subsequent sourced modules within
+# the same shell — no `export -f` needed (zsh doesn't support it anyway).
 
 # =============================================================================
 # BINARY PATH CACHING (used by other modules)
