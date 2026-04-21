@@ -8,7 +8,23 @@
 
 set -uo pipefail
 
+FIX_MODE=false
+for arg in "$@"; do
+    case "$arg" in
+        --fix) FIX_MODE=true ;;
+    esac
+done
+
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Ensure Homebrew is in PATH for accurate tool detection
+for _brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
+    if [[ -x "$_brew_bin" ]]; then
+        eval "$("$_brew_bin" shellenv)"
+        break
+    fi
+done
+unset _brew_bin
 
 if [[ -t 1 ]]; then
     G='\033[0;32m'; Y='\033[1;33m'; R='\033[0;31m'; B='\033[0;34m'; N='\033[0m'
@@ -80,7 +96,7 @@ done
 hdr "Tools"
 need_core=(zsh git curl)
 need_modern=(starship zoxide fzf bat eza rg fd zellij)
-need_workflow=(atuin mise direnv carapace lazygit gh)
+need_workflow=(lazygit gh)
 
 for cmd in "${need_core[@]}"; do
     command -v "$cmd" >/dev/null 2>&1 && ok "$cmd" || bad "$cmd missing (REQUIRED)"
@@ -102,6 +118,10 @@ if [[ -f "$HOME/.local-secrets" ]]; then
         ok "~/.local-secrets exists (chmod 600)"
     else
         warn "~/.local-secrets has perms $perms — should be 600"
+        echo "    Fix: chmod 600 ~/.local-secrets"
+        if $FIX_MODE; then
+            chmod 600 "$HOME/.local-secrets" && ok "  → fixed (chmod 600)"
+        fi
     fi
 else
     warn "~/.local-secrets not present (copy from .local-secrets.example)"

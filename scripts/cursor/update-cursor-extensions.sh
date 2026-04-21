@@ -25,7 +25,8 @@ else
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 fi
 
-EXTENSIONS_FILE="$SCRIPT_DIR/.config/cursor/extensions.json"
+DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
+EXTENSIONS_FILE="$DOTFILES_DIR/.config/cursor/extensions.json"
 CURSOR_INTERNAL_JSON="$HOME/.cursor/extensions/extensions.json"
 EXTENSIONS_DIR="$HOME/.cursor/extensions"
 
