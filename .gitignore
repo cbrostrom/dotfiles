@@ -6,6 +6,7 @@
 *.p12
 *.pfx
 .local-secrets
+.gitconfig.local
 
 # Backup files
 *.backup.*

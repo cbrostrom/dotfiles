@@ -1,26 +1,27 @@
 [user]
 	name = Christian Kjærulff Brostrøm
 	email = 2435832+cbrostrom@users.noreply.github.com
-	signingkey = ~/.ssh/github.pub
-	
+
 [core]
 	autocrlf = input
 	excludesfile = ~/.gitignore_global
 
 [init]
 	defaultBranch = main
-	
+
 [alias]
 	dotfiles = !git --git-dir=$HOME/.config/dotfiles/ --work-tree=$HOME
-	
+
 [merge]
-    conflictstyle = diff3
+	conflictstyle = diff3
 
 [diff]
-    colorMoved = default
-[gpg]
-	format = ssh
+	colorMoved = default
+
 [gpg "ssh"]
 	allowedSignersFile = ~/.config/git/allowed_signers
-[commit]
-	gpgsign = true
+
+# Per-machine overrides (signing keys, work email, etc.)
+# Created from .gitconfig.local.example by install script.
+[include]
+	path = ~/.gitconfig.local
