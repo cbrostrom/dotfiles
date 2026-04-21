@@ -1,0 +1,11 @@
+# server-headless profile — superbro VPS
+# No GUI; focus on monitoring, backup, networking.
+
+htop
+ncdu
+restic
+rsync
+iotop
+net-tools
+dnsutils
+mtr-tiny
