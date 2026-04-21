@@ -10,6 +10,7 @@
 #   ./bootstrap.sh --link-only      # only (re)create symlinks
 #   ./bootstrap.sh --packages-only  # only install packages
 #   ./bootstrap.sh --doctor         # diagnostic only, no changes
+#   ./bootstrap.sh --update         # git pull + re-run packages/symlinks/fonts (skip macOS defaults)
 #   ./bootstrap.sh --profile=server-headless   # override profile
 #
 # Profiles:
@@ -149,6 +150,7 @@ main() {
             --link-only)     mode="link";;
             --packages-only) mode="pkg";;
             --doctor)        mode="doctor";;
+            --update|-u)     mode="update";;
             --profile=*)     ;;
             -h|--help)
                 grep -E '^# ' "$0" | sed 's/^# //'
@@ -166,6 +168,17 @@ main() {
         link)   install_symlinks ;;
         pkg)    install_packages "$profile" ;;
         doctor) run_doctor ;;
+        update)
+            log "git pull --rebase --autostash …"
+            (cd "$DOTFILES_DIR" && git pull --rebase --autostash) || warn "git pull failed (non-fatal)"
+            install_packages "$profile" || warn "package install reported errors"
+            install_symlinks
+            install_zellij
+            install_fonts "$profile"
+            install_cursor_extensions "$profile"
+            run_doctor || true
+            ok "update complete (profile: $profile)"
+            ;;
         full)
             install_packages "$profile" || warn "package install reported errors"
             install_symlinks
