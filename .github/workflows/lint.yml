@@ -1,0 +1,40 @@
+name: Lint
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install zsh + shellcheck + shfmt
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y zsh shellcheck
+          curl -fsSL -o /tmp/shfmt https://github.com/mvdan/sh/releases/latest/download/shfmt_v3.7.0_linux_amd64
+          chmod +x /tmp/shfmt
+          sudo mv /tmp/shfmt /usr/local/bin/shfmt
+
+      - name: shellcheck *.sh
+        run: |
+          set -e
+          fail=0
+          while IFS= read -r f; do
+            shellcheck -S warning -e SC1090,SC1091 "$f" || fail=1
+          done < <(find . -path ./.git -prune -o -name '*.sh' -print)
+          exit $fail
+
+      - name: shfmt -d *.sh
+        run: |
+          shfmt -d -i 4 -ci $(find . -path ./.git -prune -o -name '*.sh' -print)
+
+      - name: zsh -n on all *.zsh + .zshrc + .zshenv
+        run: |
+          set -e
+          for f in $(find . -path ./.git -prune -o \( -name '*.zsh' -o -name '.zshrc' -o -name '.zshenv' \) -print); do
+            zsh -n "$f"
+          done
