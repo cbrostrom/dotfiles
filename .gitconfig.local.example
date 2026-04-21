@@ -1,0 +1,27 @@
+# Per-machine git config overrides.
+# Copied to ~/.gitconfig.local on install (never overwritten).
+# Included from ~/.gitconfig — values here win over the shared config.
+#
+# Common uses:
+#   - SSH/GPG commit signing (only on machines that hold the key)
+#   - Work email override for specific repos via includeIf
+#   - Machine-specific aliases or credential helpers
+
+# --- SSH commit signing -----------------------------------------------------
+# Uncomment on machines where the signing key actually exists.
+#
+# [user]
+# 	signingkey = ~/.ssh/github.pub
+#
+# [gpg]
+# 	format = ssh
+#
+# [commit]
+# 	gpgsign = true
+#
+# [tag]
+# 	gpgsign = true
+
+# --- Work email override (example) -----------------------------------------
+# [includeIf "gitdir:~/work/"]
+# 	path = ~/.gitconfig.work

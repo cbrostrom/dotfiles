@@ -29,8 +29,15 @@ _DF_STATUS="$DOTFILES_STATE_DIR/status"
 _DF_NOTIFIED="$DOTFILES_STATE_DIR/notified-sha"
 _DF_OWN_PUSHES="$DOTFILES_STATE_DIR/own-pushes"
 
-_df_mtime() { stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null || echo 0; }
-_df_age()   { echo $(( $(date +%s) - $(_df_mtime "$1") )); }
+_df_mtime() {
+    local m
+    m=$(stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null)
+    [[ "$m" == <-> ]] && echo "$m" || echo 0
+}
+_df_age() {
+    local m=$(_df_mtime "$1")
+    echo $(( $(date +%s) - m ))
+}
 
 _df_format_age() {
     local s=$1
@@ -42,7 +49,8 @@ _df_format_age() {
 
 _df_should_check() {
     [[ ! -f "$_DF_LAST_ATTEMPT" ]] && return 0
-    (( $(_df_age "$_DF_LAST_ATTEMPT") > DOTFILES_THROTTLE_SECONDS ))
+    local age=$(_df_age "$_DF_LAST_ATTEMPT")
+    (( ${age:-0} > ${DOTFILES_THROTTLE_SECONDS:-14400} ))
 }
 
 _df_with_timeout() {

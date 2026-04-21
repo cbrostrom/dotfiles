@@ -105,6 +105,15 @@ create_symlink "$SCRIPT_DIR/.zshenv" "$HOME/.zshenv" ".zshenv"
 create_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig" ".gitconfig"
 create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitignore_global"
 
+# Per-machine git overrides (signing keys etc., not tracked in git)
+if [[ ! -f "$HOME/.gitconfig.local" ]]; then
+    if [[ -f "$SCRIPT_DIR/.gitconfig.local.example" ]]; then
+        log_info "Creating ~/.gitconfig.local from example template..."
+        cp "$SCRIPT_DIR/.gitconfig.local.example" "$HOME/.gitconfig.local"
+        log_warning "Edit ~/.gitconfig.local to enable commit signing on this machine"
+    fi
+fi
+
 # Config directories
 create_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml" "starship config"
 # Ghostty: macos/ghostty or linux/ghostty - handled by main install.sh
