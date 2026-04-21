@@ -41,7 +41,7 @@ fi
 # On macOS, use built-in ssh-agent with Keychain integration instead
 if ! $IS_MACOS; then
     for _df in "$HOME/.config/dotfiles" "$HOME/dotfiles"; do
-        [[ -f "$_df/utils/ssh-agent-setup.sh" ]] && source "$_df/utils/ssh-agent-setup.sh" && break
+        [[ -f "$_df/scripts/system/ssh-agent-setup.sh" ]] && source "$_df/scripts/system/ssh-agent-setup.sh" && break
     done
 fi
 
@@ -71,23 +71,40 @@ export NPM_CONFIG_FUND=false
 export NPM_CONFIG_AUDIT=false
 
 # =============================================================================
-# HOMEBREW SETUP (macOS only)
+# HOMEBREW SETUP
 # =============================================================================
-if $IS_MACOS; then
-    if [[ -f "/opt/homebrew/bin/brew" ]]; then
-        eval "$('/opt/homebrew/bin/brew' shellenv)"
-    elif [[ -f "/usr/local/bin/brew" ]]; then
-        eval "$('/usr/local/bin/brew' shellenv)"
-    fi
-fi
-
-# Linux Homebrew
+# macOS brew shellenv is cached and sourced in 00-performance.zsh.
+# Only Linux (homelab/linuxbrew) is handled here — small enough not to need cache.
 if $IS_LINUX; then
     if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
         eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
     elif command -v brew >/dev/null 2>&1; then
         eval "$(brew shellenv)"
     fi
+fi
+
+# =============================================================================
+# NODE / BUN / FNM (cross-platform, $HOME-based)
+# =============================================================================
+# fnm: prefer XDG dir, fall back to default install location
+if [[ -d "$HOME/.local/share/fnm" ]]; then
+    export PATH="$HOME/.local/share/fnm:$PATH"
+elif [[ -d "$HOME/.fnm" ]]; then
+    export PATH="$HOME/.fnm:$PATH"
+fi
+
+# Bun
+if [[ -d "$HOME/.bun" ]]; then
+    export BUN_INSTALL="$HOME/.bun"
+    export PATH="$BUN_INSTALL/bin:$PATH"
+    [[ -s "$HOME/.bun/_bun" ]] && source "$HOME/.bun/_bun"
+fi
+
+# =============================================================================
+# LM STUDIO (mac only — desktop GUI app)
+# =============================================================================
+if $IS_MACOS && [[ -d "$HOME/.lmstudio/bin" ]]; then
+    export PATH="$PATH:$HOME/.lmstudio/bin"
 fi
 
 # =============================================================================

@@ -16,25 +16,27 @@ fi
 # =============================================================================
 # MODERN TOOL ALIASES
 # =============================================================================
-# bat (better cat) aliases
+# Policy: Do NOT override POSIX tools (cat/less/grep/find/sed/diff/ps).
+# Scripts and muscle memory rely on them. Use short aliases instead.
+
+# bat (better cat) — short alias 'b'; pager 'less' stays POSIX
 if command -v bat &>/dev/null; then
-    alias cat='bat'
-    alias less='bat'
+    alias b='bat'
 elif command -v batcat &>/dev/null; then
-    alias cat='batcat'
-    alias less='batcat'
+    alias b='batcat'
+    alias bat='batcat'
 fi
 
-# ripgrep (better grep) aliases
+# ripgrep — short alias 'rgi' for case-insensitive; 'grep' stays POSIX
 if command -v rg &>/dev/null; then
-    alias grep='rg'
+    alias rgi='rg -i'
 fi
 
-# fd (better find) aliases
+# fd (better find) — short alias 'fdf'; 'find' stays POSIX
 if command -v fd &>/dev/null; then
-    alias find='fd'
+    : # 'fd' is already the binary name on most systems
 elif command -v fdfind &>/dev/null; then
-    alias find='fdfind'
+    alias fd='fdfind'
 fi
 
 # eza (better ls) aliases - modern ls replacement with git integration
@@ -56,7 +58,7 @@ fi
 # =============================================================================
 # WEB DEVELOPMENT ALIASES
 # =============================================================================
-# Project shortcuts
+# Project shortcut (single source of truth — overrides any earlier alias)
 alias dev='cd ~/Projects && ls'
 
 # Package manager shortcuts are defined as smart functions in 04-functions.zsh
@@ -134,9 +136,10 @@ alias gwtl='git worktree list'
 alias gwtr='git worktree remove'
 
 # FZF-enhanced git aliases
+# Note: 'gcm' is reserved for 'git commit -m' above — use gcof/gbf for fzf branch picker
 if command -v fzf &>/dev/null; then
     alias gcof='git checkout $(git branch | fzf)'
-    alias gcm='git checkout $(git branch | fzf)'
+    alias gbf='git checkout $(git branch | fzf)'
     alias gcf='git commit --fixup $(git log --oneline | fzf | awk "{print \$1}")'
     alias gpick='git cherry-pick $(git log --oneline | fzf | awk "{print \$1}")'
     alias gdf='git diff $(git branch | fzf)'
@@ -152,24 +155,23 @@ if command -v git-fuzzy &>/dev/null; then
 fi
 
 if command -v delta &>/dev/null; then
-    alias diff='delta'
+    alias dlt='delta'
 fi
 
 # =============================================================================
 # SYSTEM TOOL ALIASES
 # =============================================================================
-# Process and system monitoring
+# Process and system monitoring (do not override POSIX 'ps' / 'top')
 if command -v procs &>/dev/null; then
-    alias ps='procs'
+    alias prc='procs'
 fi
 
 if command -v htop &>/dev/null; then
     alias h='htop'
 fi
 
-# bottom binary is called 'btm' on most systems
 if command -v btm &>/dev/null; then
-    alias top='btm'
+    alias btm='btm'
     alias bottom='btm'
 fi
 
@@ -194,10 +196,8 @@ if command -v tldr &>/dev/null; then
     alias help='tldr'
 fi
 
-# Text processing
-if command -v sd &>/dev/null; then
-    alias sed='sd'
-fi
+# Text processing — 'sd' has DIFFERENT syntax from sed; do NOT override
+# (use 'sd' directly; alias kept here only for discoverability)
 
 # =============================================================================
 # DOCKER ALIASES
@@ -271,23 +271,12 @@ if [[ "$(uname -s)" == "Linux" ]]; then
     alias sunconfig='micro ~/.config/sunshine/sunshine.conf'
     alias sunapps='micro ~/.config/sunshine/apps.json'
     
-    # Steam sync aliases (apollo-steam-sync works with Sunshine too)
+    # Steam sync (apollo-steam-sync works with Sunshine too)
     alias sunsync='apollo-steam-sync && systemctl --user restart sunshine'
     alias sungames='apollo-steam-sync --list'
     alias sunfix='apollo-steam-sync --fix-cover'
     alias sunlaunch='apollo-steam-sync --launch-mode && systemctl --user restart sunshine'
-    
-    # Legacy Apollo aliases (redirect to Sunshine)
-    alias apollostatus='systemctl --user status sunshine'
-    alias apollorestart='systemctl --user restart sunshine'
-    alias apollolog='journalctl --user -u sunshine -f'
-    alias apolloconfig='micro ~/.config/sunshine/sunshine.conf'
-    alias apolloapps='micro ~/.config/sunshine/apps.json'
-    alias apollosync='apollo-steam-sync && systemctl --user restart sunshine'
-    alias apollogames='apollo-steam-sync --list'
-    alias apollofix='apollo-steam-sync --fix-cover'
-    alias apollolaunch='apollo-steam-sync --launch-mode && systemctl --user restart sunshine'
-    
+
     # Display management
     alias screenctrl='screencontrol'
     alias fixdisplay='fix-display-priority'

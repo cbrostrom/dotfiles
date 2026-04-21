@@ -7,8 +7,16 @@ name = "openrouter"
 base_url = "https://openrouter.ai/api/v1"
 env_key = "OPENROUTER_API_KEY"
 
+# Trusted project roots — covers Debian (/home/christian), macOS (/Users/Christian.Brostrom),
+# and any other $HOME the codex CLI sees. Add more as needed per machine.
 [projects."/home/christian"]
 trust_level = "trusted"
 
 [projects."/home/christian/.config"]
+trust_level = "trusted"
+
+[projects."/Users/Christian.Brostrom"]
+trust_level = "trusted"
+
+[projects."/Users/Christian.Brostrom/.config"]
 trust_level = "trusted"

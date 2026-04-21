@@ -26,9 +26,10 @@ if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
 
     # Load fzf-tab for visual completion
     zinit light Aloxaf/fzf-tab
-    
-    # Fast syntax highlighting - load with wait to ensure all widgets are registered first
-    zinit ice wait lucid atload'zicompinit; zicdreplay'
+
+    # Fast syntax highlighting (compinit is run explicitly later in this file —
+    # no zicompinit needed here; just replay cached completions after load)
+    zinit ice wait lucid atload'zicdreplay'
     zinit light zdharma-continuum/fast-syntax-highlighting
 fi
 
@@ -151,19 +152,14 @@ if command -v zoxide &>/dev/null; then
     alias j='zoxide query -i'
     alias jj='zoxide query -i'
 
-    # Quick project navigation
-    alias dev='zoxide query -i ~/Projects'
+    # Quick project navigation (zoxide -i = interactive fzf picker)
+    # Note: 'dev' alias is defined in 03-aliases.zsh as 'cd ~/Projects && ls'
     alias work='zoxide query -i ~/Work'
     alias docs='zoxide query -i ~/Documents'
     alias dl='zoxide query -i ~/Downloads'
     alias conf='zoxide query -i ~/.config'
-    
-    # Smart project aliases - jump to frequent directories
+
     alias projects='cd ~/Projects && ls'
-    
-    # Quick jump to common project types
-    alias webapp='zoxide query -i | rg -i "web|app|site|front"'
-    alias backend='zoxide query -i | rg -i "api|back|server"'
 
     # Git repository navigation with fzf
     if command -v fzf &>/dev/null; then

@@ -4,6 +4,25 @@
 # Utility functions and custom commands
 
 # =============================================================================
+# ZELLIJ WRAPPER (zj <layout>)
+# =============================================================================
+# zj           — attach to host-named session with default layout
+# zj dev       — attach (or create) host-named session with the 'dev' layout
+# zj ls        — list sessions
+# zj kill      — kill the host session
+zj() {
+    command -v zellij >/dev/null 2>&1 || { echo "zellij not installed"; return 1; }
+    local session
+    session="$(hostname -s 2>/dev/null || echo main)"
+    case "${1:-}" in
+        ls|list)  zellij list-sessions ;;
+        kill)     zellij kill-session "$session" ;;
+        "")       zellij attach -c "$session" ;;
+        *)        zellij --layout "$1" attach -c "${session}-$1" ;;
+    esac
+}
+
+# =============================================================================
 # DOTFILES FUNCTION
 # =============================================================================
 # Function to find and run dotfiles manager from anywhere
@@ -103,11 +122,9 @@ dotfiles-debug() {
 # =============================================================================
 # PORT UTILITIES
 # =============================================================================
-# Load utility functions for managing ports
-if [[ -f "$HOME/dotfiles/functions/port-utils.sh" ]]; then
-    source "$HOME/dotfiles/functions/port-utils.sh"
-elif [[ -f "$HOME/.config/dotfiles/functions/port-utils.sh" ]]; then
-    source "$HOME/.config/dotfiles/functions/port-utils.sh"
+# Load utility functions for managing ports (uses DOTFILES_DIR from .zshrc)
+if [[ -n "$DOTFILES_DIR" && -f "$DOTFILES_DIR/functions/port-utils.sh" ]]; then
+    source "$DOTFILES_DIR/functions/port-utils.sh"
 fi
 
 # =============================================================================

@@ -52,6 +52,9 @@ fi
 
 ZSH_MODULES_DIR="$DOTFILES_DIR/zsh"
 
+# Load shared platform helpers (is_macos, is_linux, has, cache_eval, profile, …)
+[[ -f "$ZSH_MODULES_DIR/lib/platform.sh" ]] && source "$ZSH_MODULES_DIR/lib/platform.sh"
+
 # =============================================================================
 # LOAD MODULES
 # =============================================================================
@@ -79,6 +82,15 @@ if [[ -d "$ZSH_MODULES_DIR" ]]; then
 
     # 06 - Auto-update notification (background fetch + tiered notify)
     [[ -f "$ZSH_MODULES_DIR/06-autoupdate.zsh" ]] && source "$ZSH_MODULES_DIR/06-autoupdate.zsh"
+
+    # 08 - Workflow plugins (atuin, mise, direnv, carapace, abbr) — guarded
+    [[ -f "$ZSH_MODULES_DIR/08-workflow.zsh" ]] && source "$ZSH_MODULES_DIR/08-workflow.zsh"
+
+    # Per-host overrides BEFORE Zellij auto-attach so a host can opt out
+    [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
+
+    # 07 - Zellij auto-attach (LAST — uses `exec`, replaces shell)
+    [[ -f "$ZSH_MODULES_DIR/07-zellij.zsh" ]] && source "$ZSH_MODULES_DIR/07-zellij.zsh"
 else
     echo "Warning: ZSH modules directory not found at $ZSH_MODULES_DIR"
     echo "Falling back to basic configuration"
@@ -92,14 +104,8 @@ else
     fi
 fi
 
-# =============================================================================
-# MACHINE-SPECIFIC CONFIGURATION (Optional)
-# =============================================================================
-# Load machine-specific configuration if it exists
-# This file is not tracked in git and can contain local customizations
-if [[ -f "$HOME/.zshrc.local" ]]; then
-    source "$HOME/.zshrc.local"
-fi
+# Note: ~/.zshrc.local is sourced inside the modules block above,
+# right before 07-zellij.zsh, so host-specific overrides can disable auto-attach.
 
 # =============================================================================
 # PERFORMANCE PROFILING (Optional)
@@ -110,34 +116,17 @@ fi
 # [[ -n "$ZPROF" ]] && zprof
 
 
-# fnm (Linux)
-FNM_PATH="/home/christian/.local/share/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
-  eval "`fnm env`"
-fi
-
-# bun completions
-[ -s "/home/christian/.bun/_bun" ] && source "/home/christian/.bun/_bun"
-
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-# Added by LM Studio CLI (lms)
-export PATH="$PATH:/Users/Christian.Brostrom/.lmstudio/bin"
-# End of LM Studio CLI section
-
-
 # lean-ctx shell hook — transparent CLI compression (90+ patterns)
+_lean_ctx_bin="$(command -v lean-ctx 2>/dev/null)"
 _lean_ctx_cmds=(git cargo docker docker-compose kubectl gh pip pip3 ruff go golangci-lint eslint prettier tsc ls find grep curl wget)
 
 lean-ctx-on() {
+    [[ -z "$_lean_ctx_bin" ]] && { echo "lean-ctx not installed"; return 1; }
     for _lc_cmd in "${_lean_ctx_cmds[@]}"; do
         # shellcheck disable=SC2139
-        alias "$_lc_cmd"='/Users/Christian.Brostrom/.cargo/bin/lean-ctx -c '"$_lc_cmd"
+        alias "$_lc_cmd"="$_lean_ctx_bin -c $_lc_cmd"
     done
-    alias k='/Users/Christian.Brostrom/.cargo/bin/lean-ctx -c kubectl'
+    alias k="$_lean_ctx_bin -c kubectl"
     export LEAN_CTX_ENABLED=1
     echo "lean-ctx: ON"
 }
@@ -159,7 +148,7 @@ lean-ctx-status() {
     fi
 }
 
-if [ -z "${LEAN_CTX_ACTIVE:-}" ] \
+if [[ -n "$_lean_ctx_bin" ]] && [ -z "${LEAN_CTX_ACTIVE:-}" ] \
    && { [ "${LEAN_CTX_ENABLED:-0}" != "0" ] \
         || [ -n "${CURSOR_AGENT:-}" ] \
         || [ -n "${CURSOR_TRACE_ID:-}" ] \

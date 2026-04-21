@@ -1,7 +1,7 @@
 [user]
 	name = Christian Kjærulff Brostrøm
 	email = 2435832+cbrostrom@users.noreply.github.com
-	signingkey = /Users/Christian.Brostrom/.ssh/github.pub
+	signingkey = ~/.ssh/github.pub
 	
 [core]
 	autocrlf = input
