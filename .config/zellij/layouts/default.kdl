@@ -1,7 +1,10 @@
-// default layout — zjstatus on top, single pane below
+// default layout — zjstatus on top (tabs+mode+session+time), vanilla status-bar on bottom
 layout {
     pane size=1 borderless=true {
         plugin location="zjstatus"
     }
     pane
+    pane size=2 borderless=true {
+        plugin location="zellij:status-bar"
+    }
 }

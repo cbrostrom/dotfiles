@@ -1,13 +1,11 @@
-// dev layout — editor + shell + git pane (top bar via zjstatus)
+// dev layout — editor + shell + git pane (tab-bar on top)
 layout {
     pane size=1 borderless=true {
         plugin location="zjstatus"
     }
     tab name="code" focus=true {
         pane split_direction="vertical" {
-            pane size="70%" name="editor" command="micro" {
-                args "."
-            }
+            pane size="70%" name="editor"
             pane split_direction="horizontal" {
                 pane name="shell"
                 pane name="git" command="lazygit"
@@ -16,5 +14,8 @@ layout {
     }
     tab name="logs" {
         pane name="logs"
+    }
+    pane size=2 borderless=true {
+        plugin location="zellij:status-bar"
     }
 }
