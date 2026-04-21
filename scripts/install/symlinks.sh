@@ -38,11 +38,11 @@ log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Get script directory (cross-platform)
-# Script is in utils/, so we need parent directory for dotfiles root
+# Script is in scripts/install/, dotfiles root is two levels up
 if [[ -n "$BASH_SOURCE" ]]; then
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 else
-    SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+    SCRIPT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 fi
 
 # Function to create symlink with backup
