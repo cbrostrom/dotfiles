@@ -1,0 +1,17 @@
+// ops layout — system overview (mac/linuxbro desktop)
+layout {
+    tab name="ops" focus=true {
+        pane split_direction="horizontal" {
+            pane split_direction="vertical" {
+                pane name="top"  command="btm"  { args "--basic"; }
+                pane name="logs" command="tail" { args "-f" "/var/log/syslog"; }
+            }
+            pane split_direction="vertical" {
+                pane name="net"   command="bandwhich"
+                pane name="shell"
+            }
+        }
+    }
+    pane size=1 borderless=true { plugin location="zellij:tab-bar"; }
+    pane size=2 borderless=true { plugin location="zellij:status-bar"; }
+}
