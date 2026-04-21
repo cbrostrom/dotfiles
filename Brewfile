@@ -39,10 +39,6 @@ brew "lazygit"
 brew "gh"
 brew "lazydocker"
 brew "yazi"
-brew "direnv"
-brew "mise"
-brew "atuin"
-brew "carapace"
 brew "gh-dash"
 
 # Node / Bun

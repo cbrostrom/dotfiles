@@ -101,6 +101,7 @@ log_info "Detected OS: $(uname -s) $(uname -r)"
 
 # Basic dotfiles
 create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
+create_symlink "$SCRIPT_DIR/.zshenv" "$HOME/.zshenv" ".zshenv"
 create_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig" ".gitconfig"
 create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitignore_global"
 

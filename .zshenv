@@ -37,7 +37,4 @@ fi
 # fnm
 [[ -d "$HOME/.local/share/fnm" ]] && path=("$HOME/.local/share/fnm" $path)
 
-# mise (planned — Fase E)
-[[ -d "$HOME/.local/share/mise/shims" ]] && path=("$HOME/.local/share/mise/shims" $path)
-
 export PATH

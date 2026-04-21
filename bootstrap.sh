@@ -24,6 +24,15 @@ set -euo pipefail
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export DOTFILES_DIR
 
+# Make Homebrew available in this script's PATH (script runs as plain bash)
+for _brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
+    if [[ -x "$_brew_bin" ]]; then
+        eval "$("$_brew_bin" shellenv)"
+        break
+    fi
+done
+unset _brew_bin
+
 # Source platform helpers (zsh-flavored, but compatible bash subset)
 # We re-implement minimally here since bootstrap.sh runs under bash.
 is_macos()  { [[ "$(uname -s)" == "Darwin" ]]; }
@@ -134,7 +143,7 @@ install_symlinks() {
 # -----------------------------------------------------------------------------
 run_doctor() {
     if [[ -x "$DOTFILES_DIR/scripts/doctor.sh" ]]; then
-        bash "$DOTFILES_DIR/scripts/doctor.sh"
+        bash "$DOTFILES_DIR/scripts/doctor.sh" "$@"
     else
         warn "scripts/doctor.sh not yet present"
     fi
@@ -145,12 +154,14 @@ run_doctor() {
 # -----------------------------------------------------------------------------
 main() {
     local mode="full"
+    local fix_flag=""
     for arg in "$@"; do
         case "$arg" in
             --link-only)     mode="link";;
             --packages-only) mode="pkg";;
             --doctor)        mode="doctor";;
             --update|-u)     mode="update";;
+            --fix)           fix_flag="--fix";;
             --profile=*)     ;;
             -h|--help)
                 grep -E '^# ' "$0" | sed 's/^# //'
@@ -167,7 +178,7 @@ main() {
     case "$mode" in
         link)   install_symlinks ;;
         pkg)    install_packages "$profile" ;;
-        doctor) run_doctor ;;
+        doctor) run_doctor $fix_flag ;;
         update)
             log "git pull --rebase --autostash …"
             (cd "$DOTFILES_DIR" && git pull --rebase --autostash) || warn "git pull failed (non-fatal)"
@@ -176,7 +187,7 @@ main() {
             install_zellij
             install_fonts "$profile"
             install_cursor_extensions "$profile"
-            run_doctor || true
+            run_doctor $fix_flag || true
             ok "update complete (profile: $profile)"
             ;;
         full)
@@ -186,7 +197,7 @@ main() {
             install_fonts "$profile"
             apply_macos_defaults
             install_cursor_extensions "$profile"
-            run_doctor || true
+            run_doctor $fix_flag || true
             ok "bootstrap complete (profile: $profile)"
             ;;
     esac

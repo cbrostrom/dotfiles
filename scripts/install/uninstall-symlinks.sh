@@ -100,6 +100,7 @@ log_info "Detected OS: $(uname -s) $(uname -r)"
 
 # Basic dotfiles
 remove_symlink "$HOME/.zshrc" ".zshrc"
+remove_symlink "$HOME/.zshenv" ".zshenv"
 remove_symlink "$HOME/.gitconfig" ".gitconfig"
 remove_symlink "$HOME/.gitignore_global" ".gitignore_global"
 
