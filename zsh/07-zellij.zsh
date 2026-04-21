@@ -38,7 +38,22 @@ if command -v zellij >/dev/null 2>&1 \
     export ZELLIJ_AUTO_ATTACH=true
     export ZELLIJ_AUTO_EXIT=true
     _zj_session="$(hostname -s 2>/dev/null || echo main)"
-    exec zellij attach -c "$_zj_session"
+
+    # ---------------------------------------------------------------------
+    # Per-host default layout
+    # ---------------------------------------------------------------------
+    # Override per machine via ~/.zshrc.local:  export ZJ_DEFAULT_LAYOUT=dev
+    # Falls back to host-name mapping below, then to 'default'.
+    case "$_zj_session" in
+        mac|Macbook*|*macbook*) _zj_layout="dev" ;;
+        linuxbro|cloudbro)      _zj_layout="ops" ;;
+        superbro)               _zj_layout="vps" ;;
+        monsterbro|*WSL*|*wsl*) _zj_layout="dev" ;;
+        *)                      _zj_layout="default" ;;
+    esac
+    _zj_layout="${ZJ_DEFAULT_LAYOUT:-$_zj_layout}"
+
+    exec zellij --layout "$_zj_layout" attach -c "$_zj_session"
 fi
 
-unset _zj_profile _zj_session
+unset _zj_profile _zj_session _zj_layout

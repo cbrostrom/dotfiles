@@ -23,6 +23,18 @@ PLATFORM="linux"
 PROFILE="desktop-full"
 
 # -----------------------------------------------------------------------------
+# ZELLIJ DEFAULT LAYOUT (optional override)
+# -----------------------------------------------------------------------------
+# Auto-mapping in zsh/07-zellij.zsh selects layout by hostname:
+#   mac/Macbook*  → dev    linuxbro/cloudbro → ops
+#   superbro      → vps    monsterbro/WSL    → dev
+# Set ZJ_DEFAULT_LAYOUT to override (must match a file in .config/zellij/layouts/)
+# Examples: dev | shopify | agent | ops | vps | default
+# Set in ~/.zshrc.local for per-host override:
+#   export ZJ_DEFAULT_LAYOUT=shopify
+# ZJ_DEFAULT_LAYOUT="dev"
+
+# -----------------------------------------------------------------------------
 # INSTALLED OPTIONAL COMPONENTS (comma-separated)
 # -----------------------------------------------------------------------------
 # Example: "ghostty,cursor"

@@ -87,6 +87,11 @@ install_packages() {
     fi
 }
 
+install_zellij() {
+    log "ensuring zellij is installed …"
+    bash "$DOTFILES_DIR/scripts/install/zellij.sh" || warn "zellij install reported errors (non-fatal)"
+}
+
 install_fonts() {
     local profile="$1"
     if [[ "$profile" == "server-headless" ]]; then
@@ -164,6 +169,7 @@ main() {
         full)
             install_packages "$profile" || warn "package install reported errors"
             install_symlinks
+            install_zellij
             install_fonts "$profile"
             apply_macos_defaults
             install_cursor_extensions "$profile"
