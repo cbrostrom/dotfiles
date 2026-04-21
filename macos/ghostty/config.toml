@@ -21,8 +21,8 @@ window-colorspace = "display-p3"
 theme = "custom"
 background = "#131313"
 foreground = "#d6dbe5"
-selection-background = "#1f1f1f"
-selection-foreground = "#d6dbe5"
+selection-background = "#3a4555"
+selection-foreground = "#ffffff"
 cursor-color = "#b9b9b9"
 
 # Color palette (16 colors)
