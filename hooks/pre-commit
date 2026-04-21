@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# pre-commit hook — syntax-check shell/zsh files before commit
+# Symlink into place: ln -sf ../../hooks/pre-commit .git/hooks/pre-commit
+
+set -euo pipefail
+
+errors=0
+changed=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || true)
+
+if [[ -z "$changed" ]]; then
+    exit 0
+fi
+
+while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    [[ ! -f "$f" ]] && continue
+    case "$f" in
+        *.zsh|.zshrc|.zshenv)
+            if ! zsh -n "$f" 2>&1; then
+                echo "✗ zsh syntax error in $f" >&2
+                errors=$((errors + 1))
+            fi
+            ;;
+        *.sh|*.bash)
+            if ! bash -n "$f" 2>&1; then
+                echo "✗ bash syntax error in $f" >&2
+                errors=$((errors + 1))
+            fi
+            if command -v shellcheck >/dev/null 2>&1; then
+                shellcheck -S warning -e SC1090,SC1091 "$f" || {
+                    echo "⚠ shellcheck warnings in $f (non-blocking)" >&2
+                }
+            fi
+            ;;
+    esac
+done <<< "$changed"
+
+if [[ $errors -gt 0 ]]; then
+    echo ""
+    echo "Commit aborted: $errors syntax error(s)." >&2
+    exit 1
+fi
+
+exit 0

@@ -1,0 +1,19 @@
+# sops config — recipients per machine.
+# Add each host's age public key (output of `age-keygen` on that machine)
+# under `keys` and reference under `creation_rules`.
+#
+# After adding keys, encrypt: sops -e -i path/to/secret.enc.yaml
+
+keys:
+    # mac:        &mac        age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    # linuxbro:   &linuxbro   age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    # superbro:   &superbro   age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    # wsl:        &wsl        age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+creation_rules:
+    - path_regex: \.enc\.(yaml|yml|json|env)$
+      age:
+          # - *mac
+          # - *linuxbro
+          # - *superbro
+          # - *wsl
