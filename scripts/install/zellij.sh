@@ -83,6 +83,25 @@ install_debian() {
     log "installed: $(zellij --version)"
 }
 
+install_plugins() {
+    local plugin_dir="$HOME/.config/zellij/plugins"
+    mkdir -p "$plugin_dir"
+
+    local zjs="$plugin_dir/zjstatus.wasm"
+    if [[ -f "$zjs" ]]; then
+        log "zjstatus.wasm already present — skip"
+    else
+        log "downloading zjstatus.wasm …"
+        if curl -fsSL -o "$zjs" \
+            https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm; then
+            log "zjstatus installed: $(du -h "$zjs" | cut -f1)"
+        else
+            warn "zjstatus download failed (status-bar layouts will fail)"
+            rm -f "$zjs"
+        fi
+    fi
+}
+
 case "$(uname -s)" in
     Darwin) install_macos ;;
     Linux)
@@ -95,3 +114,5 @@ case "$(uname -s)" in
         ;;
     *)  warn "unsupported OS: $(uname -s)"; exit 1 ;;
 esac
+
+install_plugins
