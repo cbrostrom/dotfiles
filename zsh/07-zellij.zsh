@@ -18,10 +18,17 @@ _zj_profile="${PROFILE:-}"
 if [[ -z "$_zj_profile" && -f "$HOME/.local-config" ]]; then
     _zj_profile="$(grep -E '^PROFILE=' "$HOME/.local-config" 2>/dev/null | cut -d= -f2 | tr -d '"')"
 fi
-# Fallback heuristic: no DISPLAY/WAYLAND → headless
+# Fallback heuristic: only Linux without DISPLAY/Wayland counts as headless.
+# macOS GUI never sets DISPLAY (X11 only) — must not be classified as headless.
 if [[ -z "$_zj_profile" ]]; then
-    if [[ -z "$DISPLAY" && -z "$WAYLAND_DISPLAY" && -z "$WSL_DISTRO_NAME" ]]; then
+    if [[ "$OSTYPE" == darwin* ]]; then
+        _zj_profile="desktop-full"
+    elif [[ -n "$WSL_DISTRO_NAME" ]]; then
+        _zj_profile="wsl"
+    elif [[ -z "$DISPLAY" && -z "$WAYLAND_DISPLAY" ]]; then
         _zj_profile="server-headless"
+    else
+        _zj_profile="desktop-full"
     fi
 fi
 
@@ -45,11 +52,11 @@ if command -v zellij >/dev/null 2>&1 \
     # Override per machine via ~/.zshrc.local:  export ZJ_DEFAULT_LAYOUT=dev
     # Falls back to host-name mapping below, then to 'default'.
     case "$_zj_session" in
-        mac|Macbook*|*macbook*) _zj_layout="dev" ;;
-        linuxbro|cloudbro)      _zj_layout="ops" ;;
-        superbro)               _zj_layout="vps" ;;
-        monsterbro|*WSL*|*wsl*) _zj_layout="dev" ;;
-        *)                      _zj_layout="default" ;;
+        AKQABro|mac|Macbook*|*macbook*) _zj_layout="dev" ;;
+        linuxbro|cloudbro)              _zj_layout="ops" ;;
+        superbro)                       _zj_layout="vps" ;;
+        monsterbro|*WSL*|*wsl*)         _zj_layout="dev" ;;
+        *)                              _zj_layout="default" ;;
     esac
     _zj_layout="${ZJ_DEFAULT_LAYOUT:-$_zj_layout}"
 

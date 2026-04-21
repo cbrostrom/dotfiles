@@ -15,11 +15,11 @@ zj() {
     local session layout
     session="$(hostname -s 2>/dev/null || echo main)"
     case "$session" in
-        mac|Macbook*|*macbook*) layout="dev" ;;
-        linuxbro|cloudbro)      layout="ops" ;;
-        superbro)               layout="vps" ;;
-        monsterbro|*WSL*|*wsl*) layout="dev" ;;
-        *)                      layout="default" ;;
+        AKQABro|mac|Macbook*|*macbook*) layout="dev" ;;
+        linuxbro|cloudbro)              layout="ops" ;;
+        superbro)                       layout="vps" ;;
+        monsterbro|*WSL*|*wsl*)         layout="dev" ;;
+        *)                              layout="default" ;;
     esac
     layout="${ZJ_DEFAULT_LAYOUT:-$layout}"
     case "${1:-}" in
