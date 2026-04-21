@@ -46,4 +46,4 @@ else
 fi
 
 echo ""
-echo "Tip: Run './utils/profile-zsh-startup.sh' to see detailed breakdown"
+echo "Tip: Run './scripts/zsh/profile-startup.sh' to see detailed breakdown"

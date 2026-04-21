@@ -91,12 +91,12 @@ bitrate:320000..                    Bitrate 320kbps or higher
 
 🎵 Your Scripts
 ────────────────────────────────────────────────
-./utils/install-beets.sh            Install Beets
-./utils/music-import-with-beets.sh  Import all from TempMusic
-./utils/music-import-album.sh NAME  Import single album
-./utils/music-cleanup-analyze.sh    Analyze collection
-./utils/music-cleanup-duplicates.sh Find duplicates
-./utils/music-cleanup-find-low-quality.sh Find low quality
+./scripts/install/beets.sh                     Install Beets
+./scripts/music/import-with-beets.sh           Import all from TempMusic
+./scripts/music/import-album.sh NAME           Import single album
+./scripts/music/cleanup-analyze.sh             Analyze collection
+./scripts/music/cleanup-duplicates.sh          Find duplicates
+./scripts/music/cleanup-find-low-quality.sh    Find low quality
 
 📚 Documentation: https://beets.readthedocs.io/
 

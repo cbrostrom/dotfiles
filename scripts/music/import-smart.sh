@@ -23,7 +23,7 @@ echo ""
 # Check if beets is installed
 if ! command -v beet &> /dev/null; then
     echo -e "${RED}Error: Beets is not installed${NC}"
-    echo "Run: ./utils/install-beets.sh"
+    echo "Run: ./scripts/install/beets.sh"
     exit 1
 fi
 
