@@ -700,6 +700,42 @@ detect_os() {
 
 # Main function
 main() {
+    # -------------------------------------------------------------------------
+    # Non-interactive shortcut: any args → pass straight to install.sh + exit
+    # -------------------------------------------------------------------------
+    # Examples:
+    #   dotfiles --update         dotfiles --doctor
+    #   dotfiles --link-only      dotfiles --packages-only
+    #   dotfiles --help / -h      show usage and exit
+    if [[ $# -gt 0 ]]; then
+        case "$1" in
+            -h|--help|help)
+                show_help
+                exit 0
+                ;;
+            status)
+                run_status
+                exit 0
+                ;;
+            update-git|pull)
+                update_dotfiles
+                exit 0
+                ;;
+            menu|--menu|-i|--interactive)
+                ;;  # fall through to interactive menu below
+            *)
+                # Forward everything to install.sh (which delegates to bootstrap.sh)
+                if [[ -f "$SCRIPT_DIR/install.sh" ]]; then
+                    cd "$SCRIPT_DIR"
+                    exec ./install.sh "$@"
+                else
+                    log_error "install.sh not found in $SCRIPT_DIR"
+                    exit 1
+                fi
+                ;;
+        esac
+    fi
+
     # Show system info
     show_system_info
     
