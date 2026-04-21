@@ -636,6 +636,9 @@ install_dotfiles() {
     # Codex CLI config
     create_symlink "$SCRIPT_DIR/.codex" "$HOME/.codex" "codex config"
 
+    # tmux config
+    create_symlink "$SCRIPT_DIR/.config/tmux" "$HOME/.config/tmux" "tmux config"
+
     # Local secrets (API keys, tokens - not tracked in git)
     if [[ ! -f "$SCRIPT_DIR/.local-secrets" ]]; then
         if [[ -f "$SCRIPT_DIR/.local-secrets.example" ]]; then
@@ -1112,6 +1115,7 @@ dry_run() {
     echo "  - ~/.gitconfig"
     echo "  - ~/.gitignore_global"
     echo "  - ~/.config/starship.toml"
+    echo "  - ~/.config/tmux/"
     if $IS_MACOS; then
         echo "  - ~/.config/ghostty/"
     fi
@@ -1432,6 +1436,7 @@ install_custom_setup() {
         create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
         create_symlink "$SCRIPT_DIR/.config/procs" "$HOME/.config/procs" "procs config"
         create_symlink "$SCRIPT_DIR/.codex" "$HOME/.codex" "codex config"
+        create_symlink "$SCRIPT_DIR/.config/tmux" "$HOME/.config/tmux" "tmux config"
         # Local secrets
         if [[ ! -f "$SCRIPT_DIR/.local-secrets" ]]; then
             if [[ -f "$SCRIPT_DIR/.local-secrets.example" ]]; then
