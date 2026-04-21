@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Track SHAs we push from this machine, so the dotfiles auto-update notification
+# system (zsh/06-autoupdate.zsh) doesn't bug us about commits we already know exist.
+set -e
+state_dir="$HOME/.cache/dotfiles"
+mkdir -p "$state_dir"
+own_pushes="$state_dir/own-pushes"
+
+zero="0000000000000000000000000000000000000000"
+while read -r local_ref local_sha remote_ref remote_sha; do
+    [[ "$local_sha" == "$zero" ]] && continue
+    echo "$local_sha" >> "$own_pushes"
+done
+
+if [[ -f "$own_pushes" ]] && (( $(wc -l < "$own_pushes") > 100 )); then
+    tail -100 "$own_pushes" > "$own_pushes.tmp" && mv "$own_pushes.tmp" "$own_pushes"
+fi
+
+exit 0

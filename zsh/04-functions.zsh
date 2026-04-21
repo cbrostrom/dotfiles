@@ -41,6 +41,66 @@ dotfiles() {
 }
 
 # =============================================================================
+# DOTFILES UPDATE FUNCTIONS
+# =============================================================================
+# Companion functions for the auto-update notification system (06-autoupdate.zsh).
+
+# Pull dotfiles and re-exec shell. Only place exec zsh is invoked.
+dotfiles-update() {
+    local repo="${DOTFILES_DIR:-$HOME/dotfiles}"
+    local git_bin="${DOTFILES_GIT_BIN:-$(command -v /opt/homebrew/bin/git 2>/dev/null || command -v git)}"
+    ( cd "$repo" && "$git_bin" pull --ff-only ) || { echo "dotfiles pull failed"; return 1; }
+    if ! zsh -n "$repo/.zshrc" 2>/dev/null; then
+        echo "warning: new .zshrc has syntax errors — NOT re-execing"
+        return 1
+    fi
+    rm -f "$HOME/.cache/dotfiles/status" "$HOME/.cache/dotfiles/notified-sha"
+    exec zsh
+}
+
+dotfiles-status() {
+    local repo="${DOTFILES_DIR:-$HOME/dotfiles}"
+    local git_bin="${DOTFILES_GIT_BIN:-$(command -v /opt/homebrew/bin/git 2>/dev/null || command -v git)}"
+    ( cd "$repo" && "$git_bin" fetch && "$git_bin" status -sb )
+}
+
+# Force fresh check on next shell start
+dotfiles-check() {
+    rm -f "$HOME/.cache/dotfiles/last-attempt" \
+          "$HOME/.cache/dotfiles/last-fetch" \
+          "$HOME/.cache/dotfiles/status" \
+          "$HOME/.cache/dotfiles/notified-sha"
+    echo "dotfiles cache cleared — next shell will re-check"
+}
+
+dotfiles-debug() {
+    local d="$HOME/.cache/dotfiles"
+    echo "=== dotfiles auto-update state ==="
+    echo "repo:              ${DOTFILES_DIR:-$HOME/dotfiles}"
+    echo "git binary:        ${DOTFILES_GIT_BIN:-<unset>}"
+    echo "timeout binary:    ${DOTFILES_TIMEOUT_BIN:-<none, using fallback>}"
+    echo "throttle seconds:  ${DOTFILES_THROTTLE_SECONDS:-14400}"
+    echo "autocheck:         ${DOTFILES_AUTOCHECK:-1}"
+    echo "update-on-exit:    ${DOTFILES_UPDATE_ON_EXIT:-0}"
+    echo
+    local f age
+    for f in last-attempt last-fetch status notified-sha own-pushes; do
+        if [[ -f "$d/$f" ]]; then
+            age=$(( $(date +%s) - $(stat -f %m "$d/$f" 2>/dev/null || stat -c %Y "$d/$f" 2>/dev/null || echo 0) ))
+            echo "$f: $((age/60))m ago"
+            [[ "$f" == "status" || "$f" == "notified-sha" ]] && sed 's/^/  /' "$d/$f"
+        else
+            echo "$f: <missing>"
+        fi
+    done
+    if [[ ! -L "$DOTFILES_REPO/.git/hooks/pre-push" && ! -f "$DOTFILES_REPO/.git/hooks/pre-push" ]]; then
+        echo
+        echo "note: pre-push hook not installed — own-push suppression disabled"
+        echo "      run install.sh or symlink hooks/pre-push manually"
+    fi
+}
+
+# =============================================================================
 # PORT UTILITIES
 # =============================================================================
 # Load utility functions for managing ports

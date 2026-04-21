@@ -55,6 +55,35 @@ cd ~/.config/dotfiles  # or clone to your preferred location
 - **Gaming** – Optional. gamelaunch script for Steam (prompted on install; skipped on WSL)
 - **.local-config** – Machine-specific (git-ignored); copy from .local-config.example
 
+## Troubleshooting
+
+### `git config` viser ingen output i terminal
+
+Hvis `lean-ctx` shell-wrapper er aktiv (`lean-ctx-status` viser ON), bliver output fra `git config --list | grep ...` filtreret/munget af wrapperen. Workarounds:
+
+```bash
+/opt/homebrew/bin/git config --list   # bypass wrapper
+command git config --list             # bypass alias
+lean-ctx-off                          # disable wrapper for current shell
+```
+
+### SSH commit signing ("cannot run gpg" eller "gpg failed to sign")
+
+`commit.gpgsign=true` med `gpg.format=ssh` — git invoker `ssh-keygen -Y sign` som læser private key direkte og prompter passphrase non-interaktivt → fejler stille → generisk "gpg failed".
+
+Fix: brug **pubkey-filen** som signingkey i stedet for private key. Git bruger så ssh-agent automatisk:
+
+```ini
+[user]
+    signingkey = ~/.ssh/github.pub   # NOT ~/.ssh/github
+[gpg]
+    format = ssh
+[gpg "ssh"]
+    allowedSignersFile = ~/.config/git/allowed_signers
+```
+
+Verify med `/opt/homebrew/bin/git log --show-signature -1`.
+
 ## Aliases
 
 - `systemupdate` – apt update && upgrade (Debian)
