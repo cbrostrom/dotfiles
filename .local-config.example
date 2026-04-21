@@ -14,6 +14,15 @@
 PLATFORM="linux"
 
 # -----------------------------------------------------------------------------
+# PROFILE — drives bootstrap.sh package selection + Zellij behavior
+# -----------------------------------------------------------------------------
+# Options:
+#   desktop-full     mac, linuxbro     — full GUI + dev stack
+#   server-headless  superbro VPS      — no GUI, security baseline, no auto-zellij
+#   wsl              monsterbro WSL    — TUI + Windows interop
+PROFILE="desktop-full"
+
+# -----------------------------------------------------------------------------
 # INSTALLED OPTIONAL COMPONENTS (comma-separated)
 # -----------------------------------------------------------------------------
 # Example: "ghostty,cursor"
