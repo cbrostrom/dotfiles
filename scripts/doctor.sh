@@ -112,15 +112,16 @@ done
 
 # ----- secrets -----
 hdr "Secrets"
-if [[ -f "$HOME/.local-secrets" ]]; then
-    perms="$(stat -f '%Lp' "$HOME/.local-secrets" 2>/dev/null || stat -c '%a' "$HOME/.local-secrets" 2>/dev/null)"
+if [[ -e "$HOME/.local-secrets" ]]; then
+    secrets_target="$(readlink -f "$HOME/.local-secrets" 2>/dev/null || echo "$HOME/.local-secrets")"
+    perms="$(stat -Lf '%Lp' "$HOME/.local-secrets" 2>/dev/null || stat -L -c '%a' "$HOME/.local-secrets" 2>/dev/null)"
     if [[ "$perms" == "600" ]]; then
         ok "~/.local-secrets exists (chmod 600)"
     else
         warn "~/.local-secrets has perms $perms — should be 600"
-        echo "    Fix: chmod 600 ~/.local-secrets"
+        echo "    Fix: chmod 600 $secrets_target"
         if $FIX_MODE; then
-            chmod 600 "$HOME/.local-secrets" && ok "  → fixed (chmod 600)"
+            chmod 600 "$secrets_target" && ok "  → fixed (chmod 600)"
         fi
     fi
 else
