@@ -1,0 +1,28 @@
+# Base packages for ALL Debian environments
+# (linuxbro homelab, superbro VPS, monsterbro WSL)
+
+zsh
+git
+curl
+wget
+ca-certificates
+gnupg
+build-essential
+unzip
+xz-utils
+
+# Modern CLI tooling (matches macOS Brewfile parity)
+ripgrep
+fd-find
+bat
+fzf
+zoxide
+jq
+tmux
+
+# Editors / multiplexer
+micro
+
+# Security baseline
+ufw
+fail2ban

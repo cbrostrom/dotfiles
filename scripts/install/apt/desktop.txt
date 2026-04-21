@@ -1,0 +1,19 @@
+# desktop-full profile — linuxbro (homelab w/ GUI, gaming, Sunshine)
+
+# Fonts (Nerd Fonts installed separately via bootstrap)
+fontconfig
+
+# GUI / X11 helpers
+xclip
+wl-clipboard
+
+# Multimedia (Sunshine / streaming)
+ffmpeg
+
+# Build deps for Ghostty / extra GUI tools
+libgtk-4-dev
+libadwaita-1-dev
+
+# Helpful TUIs
+htop
+ncdu
