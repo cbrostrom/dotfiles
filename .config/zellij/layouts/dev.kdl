@@ -1,8 +1,11 @@
-// dev layout — editor + shell + git pane
+// dev layout — editor + shell + git pane (top bar via zjstatus)
 layout {
+    pane size=1 borderless=true {
+        plugin location="zjstatus"
+    }
     tab name="code" focus=true {
         pane split_direction="vertical" {
-            pane size="70%" name="editor" command="nvim" {
+            pane size="70%" name="editor" command="micro" {
                 args "."
             }
             pane split_direction="horizontal" {
@@ -14,6 +17,4 @@ layout {
     tab name="logs" {
         pane name="logs"
     }
-    pane size=1 borderless=true { plugin location="zellij:tab-bar"; }
-    pane size=2 borderless=true { plugin location="zellij:status-bar"; }
 }

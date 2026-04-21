@@ -1,8 +1,11 @@
 // shopify layout — Shopify CLI + theme dev
 layout {
+    pane size=1 borderless=true {
+        plugin location="zjstatus"
+    }
     tab name="theme" focus=true {
         pane split_direction="vertical" {
-            pane size="65%" name="editor" command="nvim" { args "."; }
+            pane size="65%" name="editor" command="micro" { args "."; }
             pane split_direction="horizontal" {
                 pane name="shopify-dev" command="shopify" { args "theme" "dev"; }
                 pane name="shell"
@@ -12,6 +15,4 @@ layout {
     tab name="storefront" {
         pane name="storefront"
     }
-    pane size=1 borderless=true { plugin location="zellij:tab-bar"; }
-    pane size=2 borderless=true { plugin location="zellij:status-bar"; }
 }
