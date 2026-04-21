@@ -76,3 +76,10 @@ _cached_eval() {
 
 # Export for use in other modules
 export -f _cached_eval 2>/dev/null || true
+
+# =============================================================================
+# BINARY PATH CACHING (used by other modules)
+# =============================================================================
+# Cache lookups so other modules don't re-resolve git/timeout each invocation
+export DOTFILES_GIT_BIN="${DOTFILES_GIT_BIN:-$(command -v /opt/homebrew/bin/git 2>/dev/null || command -v git)}"
+export DOTFILES_TIMEOUT_BIN="${DOTFILES_TIMEOUT_BIN:-$(command -v gtimeout 2>/dev/null || command -v timeout 2>/dev/null)}"

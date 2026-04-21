@@ -76,6 +76,9 @@ if [[ -d "$ZSH_MODULES_DIR" ]]; then
     
     # 05 - Integrations (editor integrations)
     [[ -f "$ZSH_MODULES_DIR/05-integrations.zsh" ]] && source "$ZSH_MODULES_DIR/05-integrations.zsh"
+
+    # 06 - Auto-update notification (background fetch + tiered notify)
+    [[ -f "$ZSH_MODULES_DIR/06-autoupdate.zsh" ]] && source "$ZSH_MODULES_DIR/06-autoupdate.zsh"
 else
     echo "Warning: ZSH modules directory not found at $ZSH_MODULES_DIR"
     echo "Falling back to basic configuration"
