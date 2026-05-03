@@ -58,7 +58,7 @@ else
     bash "$SCRIPT_DIR/scripts/zed/zed-update-local.sh"
 fi
 
-# Symlink a file (with backup of any existing non-symlink)
+# Symlink a file or directory (with backup of any existing non-symlink)
 link_file() {
     local src="$1" dst="$2" label="$3"
     [[ ! -e "$src" ]] && { log_warning "Source missing, skipping: $src"; return 0; }
@@ -73,9 +73,12 @@ link_file() {
 }
 
 # settings.json → settings.local.json (Zed writes changes back here directly)
-link_file "$LOCAL"                  "$ZED_TARGET/settings.json" "settings.json → settings.local.json"
-link_file "$ZED_SOURCE/keymap.json" "$ZED_TARGET/keymap.json"   "keymap.json"
-link_file "$ZED_SOURCE/rules"       "$ZED_TARGET/rules"         "rules"
+link_file "$LOCAL"                    "$ZED_TARGET/settings.json" "settings.json → settings.local.json"
+link_file "$ZED_SOURCE/keymap.json"   "$ZED_TARGET/keymap.json"   "keymap.json"
+link_file "$ZED_SOURCE/rules"         "$ZED_TARGET/rules"         "rules"
+link_file "$ZED_SOURCE/snippets"      "$ZED_TARGET/snippets"      "snippets/"
+link_file "$ZED_SOURCE/tasks.json"    "$ZED_TARGET/tasks.json"    "tasks.json"
+link_file "$ZED_SOURCE/themes"        "$ZED_TARGET/themes"        "themes/ (custom)"
 
 log_success "Zed config installed."
 log_info "Promote local changes to base: bash scripts/zed/zed-diff-base.sh"
