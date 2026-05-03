@@ -80,5 +80,14 @@ link_file "$ZED_SOURCE/snippets"      "$ZED_TARGET/snippets"      "snippets/"
 link_file "$ZED_SOURCE/tasks.json"    "$ZED_TARGET/tasks.json"    "tasks.json"
 link_file "$ZED_SOURCE/themes"        "$ZED_TARGET/themes"        "themes/ (custom)"
 
+# themes/ — link each .json file individually so user-installed themes are preserved
+if [[ -d "$ZED_SOURCE/themes" ]]; then
+    mkdir -p "$ZED_TARGET/themes"
+    for theme_src in "$ZED_SOURCE/themes"/*.json; do
+        [[ -f "$theme_src" ]] || continue
+        link_file "$theme_src" "$ZED_TARGET/themes/$(basename "$theme_src")" "themes/$(basename "$theme_src")"
+    done
+fi
+
 log_success "Zed config installed."
 log_info "Promote local changes to base: bash scripts/zed/zed-diff-base.sh"
