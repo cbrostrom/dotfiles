@@ -26,7 +26,13 @@ LOCAL="$ZED_SOURCE/settings.local.json"
 
 # Resolve target Zed config directory
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    ZED_TARGET="$HOME/Library/Application Support/Zed"
+    # Zed supports both XDG (~/.config/zed) and macOS default (~/Library/Application Support/Zed)
+    # Prefer whichever already exists (XDG takes precedence if both exist)
+    if [[ -d "$HOME/.config/zed" ]]; then
+        ZED_TARGET="$HOME/.config/zed"
+    else
+        ZED_TARGET="$HOME/Library/Application Support/Zed"
+    fi
 elif grep -qi microsoft /proc/version 2>/dev/null; then
     WIN_USER="${USERNAME:-christian}"
     ZED_TARGET="/mnt/c/Users/$WIN_USER/AppData/Roaming/Zed"
