@@ -50,3 +50,6 @@ gaming/config/launch.log
 # Cursor state database (huge files)
 *.vscdb
 .backups/
+
+# Zed machine-specific settings (merged into settings.json per machine)
+.config/zed/settings.local.json
