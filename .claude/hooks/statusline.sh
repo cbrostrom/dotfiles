@@ -20,12 +20,14 @@ if [[ -n "$cwd_val" ]]; then
     cwd_part="$(printf ' \033[38;5;240m·\033[0m \033[38;2;231;111;81m%s\033[0m' "$cwd_val")"
 fi
 
-# Git branch (warm Nordic: #f4a261)
+# Git branch + dirty indicator (warm Nordic: #f4a261)
 git_branch=""
 if command -v git >/dev/null 2>&1; then
     branch="$(git branch --show-current 2>/dev/null)"
     if [[ -n "$branch" ]]; then
-        git_branch="$(printf ' \033[38;5;240m·\033[0m \033[38;2;244;162;97m\xef\xa3\xa6 %s\033[0m' "$branch")"
+        dirty=""
+        git diff --quiet 2>/dev/null && git diff --cached --quiet 2>/dev/null || dirty="$(printf ' \033[38;5;167m*\033[0m')"
+        git_branch="$(printf ' \033[38;5;240m·\033[0m \033[38;2;244;162;97m\xef\xa3\xa6 %s\033[0m' "$branch")${dirty}"
     fi
 fi
 
