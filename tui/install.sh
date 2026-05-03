@@ -59,15 +59,20 @@ run_install() {
     for step in "${SELECTED[@]}"; do
         case "$step" in
             "Packages (brew / apt)")
-                _spin_install "Installing packages" bash "$DOTFILES_DIR/bootstrap.sh" --packages-only ;;
+                _spin_install "Installing packages" bash "$DOTFILES_DIR/bootstrap.sh" --packages-only
+                gum style --foreground 8 "    brew (macOS) / apt (Linux) — se bootstrap.sh for liste" ;;
             "Symlinks")
-                _spin_install "Creating symlinks" bash "$DOTFILES_DIR/scripts/install/symlinks.sh" ;;
+                _spin_install "Creating symlinks" bash "$DOTFILES_DIR/scripts/install/symlinks.sh"
+                gum style --foreground 8 "    ~/.zshrc, ~/.gitconfig, ~/.zshenv og øvrige dotfiler" ;;
             "Fonts")
-                _spin_install "Installing fonts" bash "$DOTFILES_DIR/scripts/install/nerd-fonts.sh" ;;
+                _spin_install "Installing fonts" bash "$DOTFILES_DIR/scripts/install/nerd-fonts.sh"
+                gum style --foreground 8 "    Hack Nerd Font Mono → ~/Library/Fonts (mac) / ~/.local/share/fonts (linux)" ;;
             "Zed config")
-                _spin_install "Setting up Zed" bash "$DOTFILES_DIR/scripts/zed/install-zed-config.sh" ;;
+                _spin_install "Setting up Zed" bash "$DOTFILES_DIR/scripts/zed/install-zed-config.sh"
+                gum style --foreground 8 "    settings.json (base→local merge), keymap.json, rules, auto_install_extensions" ;;
             "macOS defaults")
-                _spin_install "Applying macOS defaults" bash "$DOTFILES_DIR/macos/defaults.sh" ;;
+                _spin_install "Applying macOS defaults" bash "$DOTFILES_DIR/macos/defaults.sh"
+                gum style --foreground 8 "    Dock, Finder, trackpad, screenshots — se macos/defaults.sh" ;;
         esac
     done
 
