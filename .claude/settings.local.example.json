@@ -1,4 +1,9 @@
 {
+    "$schema": "https://code.claude.com/schemas/settings.json",
+    "statusLine": {
+        "type": "command",
+        "command": "bash \"HOME_PLACEHOLDER/.claude/plugins/cache/caveman/caveman/ef6050c5e184/hooks/caveman-statusline.sh\""
+    },
     "hooks": {
         "SessionStart": [
             {
@@ -32,3 +37,4 @@
         "defaultMode": "default"
     }
 }
+

@@ -49,6 +49,21 @@ else
     bash "$SCRIPT_DIR/scripts/claude/claude-update-local.sh"
 fi
 
+# Ensure statusLine is set (caveman statusline, machine-specific path)
+CAVEMAN_STATUSLINE="$HOME/.claude/plugins/cache/caveman/caveman/ef6050c5e184/hooks/caveman-statusline.sh"
+if [[ -f "$CAVEMAN_STATUSLINE" ]]; then
+    python3 - "$LOCAL" "$CAVEMAN_STATUSLINE" <<'PYEOF'
+import json, sys
+with open(sys.argv[1]) as f:
+    d = json.load(f)
+if 'statusLine' not in d:
+    d['statusLine'] = {"type": "command", "command": f"bash \"{sys.argv[2]}\""}
+    with open(sys.argv[1], 'w') as f:
+        json.dump(d, f, indent=4, ensure_ascii=False)
+    print("[claude] statusLine set to caveman-statusline.sh")
+PYEOF
+fi
+
 # --- symlink helper ---
 link_file() {
     local src="$1" dst="$2" label="$3"
