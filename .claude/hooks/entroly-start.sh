@@ -15,4 +15,13 @@ disown
 
 # Give it a moment to bind
 sleep 1
+
+# Silently re-sync Claude config (symlinks + settings merge, no git pull)
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.config/dotfiles}"
+[[ ! -d "$DOTFILES_DIR" ]] && DOTFILES_DIR="$HOME/dotfiles"
+if [[ -f "$DOTFILES_DIR/scripts/claude/install-claude-config.sh" ]]; then
+    bash "$DOTFILES_DIR/scripts/claude/install-claude-config.sh" >/dev/null 2>&1 &
+    disown
+fi
+
 exit 0

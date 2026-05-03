@@ -128,6 +128,51 @@ else
     warn "~/.local-secrets not present (copy from .local-secrets.example)"
 fi
 
+# ----- claude -----
+hdr "Claude Code"
+claude_dir="$HOME/.claude"
+
+check_claude_link() {
+    local dst="$1" label="$2" fix="$3"
+    if [[ -L "$dst" ]]; then
+        ok "$label → $(readlink "$dst")"
+    elif [[ -e "$dst" ]]; then
+        warn "$label er ikke symlink — Fix: $fix"
+    else
+        bad "$label mangler — Fix: $fix"
+    fi
+}
+
+check_claude_link "$claude_dir/settings.json" "~/.claude/settings.json" \
+    "bash $DOTFILES_DIR/scripts/claude/install-claude-config.sh"
+check_claude_link "$claude_dir/CLAUDE.md" "~/.claude/CLAUDE.md" \
+    "bash $DOTFILES_DIR/scripts/claude/install-claude-config.sh"
+
+for hook in rtk-rewrite.sh entroly-start.sh claude-session-check.sh; do
+    hpath="$claude_dir/hooks/$hook"
+    if [[ -L "$hpath" ]]; then
+        if [[ -x "$hpath" ]]; then
+            ok "hooks/$hook (symlink, eksekverbar)"
+        else
+            warn "hooks/$hook ikke eksekverbar — Fix: chmod +x $hpath"
+            $FIX_MODE && chmod +x "$hpath" && ok "  → fixed"
+        fi
+    elif [[ -e "$hpath" ]]; then
+        warn "hooks/$hook er ikke symlink"
+    else
+        bad "hooks/$hook mangler — Fix: bash $DOTFILES_DIR/scripts/claude/install-claude-config.sh"
+    fi
+done
+
+# Token check (source secrets first)
+# shellcheck disable=SC1090
+[[ -f "$HOME/.local-secrets" ]] && set -a && source "$HOME/.local-secrets" 2>/dev/null && set +a
+if [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]]; then
+    ok "GITHUB_PERSONAL_ACCESS_TOKEN sat"
+else
+    warn "GITHUB_PERSONAL_ACCESS_TOKEN mangler — tilføj til ~/.local-secrets"
+fi
+
 # ----- summary -----
 hdr "Summary"
 if (( syn_err > 0 )); then
