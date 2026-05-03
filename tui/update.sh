@@ -30,7 +30,7 @@ run_update() {
 
     _spin "Syncing Zed config" \
         bash "$DOTFILES_DIR/scripts/zed/install-zed-config.sh"
-    gum style --foreground 8 "    settings.json (base→local merge), keymap.json, rules"
+    gum style --foreground 8 "    settings.json (base→local merge), keymap.json, rules, snippets/, themes/"
 
     _spin "Syncing Claude config" \
         bash "$DOTFILES_DIR/scripts/claude/install-claude-config.sh"
