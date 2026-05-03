@@ -21,12 +21,17 @@ run_install() {
     local opts=("Packages (brew / apt)" "Symlinks" "Fonts" "Zed config")
     [[ "$(uname -s)" == "Darwin" ]] && opts+=("macOS defaults")
 
-    mapfile -t SELECTED < <(
-        gum choose --no-limit \
-            --header "Select components to install:" \
-            --selected "Symlinks,Zed config" \
-            "${opts[@]}"
-    )
+    local _tmpsel
+    _tmpsel="$(mktemp)"
+    gum choose --no-limit \
+        --header "Select components to install:" \
+        --selected "Symlinks,Zed config" \
+        "${opts[@]}" > "$_tmpsel" || true
+    SELECTED=()
+    while IFS= read -r line; do
+        [[ -n "$line" ]] && SELECTED+=("$line")
+    done < "$_tmpsel"
+    rm -f "$_tmpsel"
 
     [[ ${#SELECTED[@]} -eq 0 ]] && { echo "Nothing selected."; return; }
 
