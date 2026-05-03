@@ -21,14 +21,24 @@ if [[ ! -f "$LOCAL" ]]; then
     exit 0
 fi
 
-# Pretty-print both for clean diff (strips jq's normalization noise if possible)
-if command -v jq >/dev/null 2>&1; then
-    BASE_PP="$(jq . "$BASE")"
-    LOCAL_PP="$(jq . "$LOCAL")"
-else
-    BASE_PP="$(cat "$BASE")"
-    LOCAL_PP="$(cat "$LOCAL")"
-fi
+# Pretty-print both via python3 (handles JSONC // comments)
+pp_jsonc() {
+    python3 - "$1" <<'PYEOF'
+import json, sys, re
+
+def strip_jsonc(text):
+    text = re.sub(r'^\s*//[^\n]*', '', text, flags=re.MULTILINE)
+    text = re.sub(r'/\*.*?\*/', '', text, flags=re.DOTALL)
+    text = re.sub(r',(\s*[}\]])', r'\1', text)
+    return text
+
+with open(sys.argv[1], encoding='utf-8') as f:
+    print(json.dumps(json.loads(strip_jsonc(f.read())), indent=4, ensure_ascii=False))
+PYEOF
+}
+
+BASE_PP="$(pp_jsonc "$BASE")"
+LOCAL_PP="$(pp_jsonc "$LOCAL")"
 
 echo "=== diff: settings.base.json (−) vs settings.local.json (+) ==="
 diff <(echo "$BASE_PP") <(echo "$LOCAL_PP") || true
