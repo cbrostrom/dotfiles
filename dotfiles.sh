@@ -4,10 +4,6 @@ set -euo pipefail
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export DOTFILES_DIR
 
-source "$DOTFILES_DIR/tui/status.sh"
-source "$DOTFILES_DIR/tui/update.sh"
-source "$DOTFILES_DIR/tui/install.sh"
-
 # --- gum detection ---
 ensure_gum() {
     command -v gum >/dev/null 2>&1 && return 0
@@ -15,11 +11,15 @@ ensure_gum() {
     if [[ "$(uname -s)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
         echo "Install via: brew install gum"
         read -rp "Auto-install now? [y/N] " ans
-        [[ "$ans" =~ ^[Yy]$ ]] && brew install gum && return 0
+        if [[ "$ans" =~ ^[Yy]$ ]]; then
+            brew install gum && return 0
+        fi
     elif [[ -f /etc/debian_version ]]; then
         echo "Install via: sudo apt install gum"
         read -rp "Auto-install now? [y/N] " ans
-        [[ "$ans" =~ ^[Yy]$ ]] && sudo apt install -y gum && return 0
+        if [[ "$ans" =~ ^[Yy]$ ]]; then
+            sudo apt install -y gum && return 0
+        fi
     fi
     echo "Please install gum and re-run. Exiting."
     exit 1
@@ -28,6 +28,9 @@ ensure_gum() {
 # --- main loop ---
 main() {
     ensure_gum
+    source "$DOTFILES_DIR/tui/status.sh"
+    source "$DOTFILES_DIR/tui/update.sh"
+    source "$DOTFILES_DIR/tui/install.sh"
 
     while true; do
         clear
