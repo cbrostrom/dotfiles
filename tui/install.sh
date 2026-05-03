@@ -25,7 +25,7 @@ run_install() {
         gum choose --no-limit \
             --header "Select components to install:" \
             --selected "Symlinks,Zed config" \
-            "${opts[@]}" 2>/dev/null
+            "${opts[@]}"
     )
 
     [[ ${#SELECTED[@]} -eq 0 ]] && { echo "Nothing selected."; return; }
@@ -37,7 +37,7 @@ run_install() {
     done
     echo
 
-    gum confirm "Run selected steps?" 2>/dev/null || return
+    gum confirm "Run selected steps?" || return
 
     local failed=()
 

@@ -22,7 +22,7 @@ if [[ "$perms" == "600" ]]; then
     gum style --foreground 10 "  ✓ Permissions: 600 (correct)"
 else
     gum style --foreground 9 "  ✗ Permissions: $perms (should be 600)"
-    if gum confirm "Fix permissions now?" 2>/dev/null; then
+    if gum confirm "Fix permissions now?"; then
         chmod 600 "$SECRETS_FILE"
         gum style --foreground 10 "  ✓ Fixed."
     fi

@@ -7,11 +7,11 @@ ACTION=$(gum choose \
     "Re-link all" \
     "Check status" \
     "← Back" \
-    --header "TOOLS › SYMLINKS" 2>/dev/null) || exit 0
+    --header "TOOLS › SYMLINKS") || exit 0
 
 case "$ACTION" in
     "Re-link all")
-        gum confirm "Re-create all symlinks?" 2>/dev/null || exit 0
+        gum confirm "Re-create all symlinks?" || exit 0
         gum spin --title "Re-linking…" -- \
             bash "$DOTFILES_DIR/scripts/install/symlinks.sh"
         gum style --foreground 10 "Done."

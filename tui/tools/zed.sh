@@ -8,7 +8,7 @@ ACTION=$(gum choose \
     "Diff base vs local" \
     "Promote change to base" \
     "← Back" \
-    --header "TOOLS › ZED" 2>/dev/null) || exit 0
+    --header "TOOLS › ZED") || exit 0
 
 case "$ACTION" in
     "Merge settings (base → local)")
