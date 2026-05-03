@@ -72,13 +72,38 @@ link_file() {
     log_success "Linked $label"
 }
 
+# On WSL, Windows Zed cannot follow symlinks to WSL paths.
+# Copy read-only files to Windows AppData; settings.local.json is still symlinked
+# because it lives on the WSL side and Zed WSL server reads it from there.
+copy_file() {
+    local src="$1" dst="$2" label="$3"
+    [[ ! -e "$src" ]] && { log_warning "Source missing, skipping: $src"; return 0; }
+    if [[ -e "$dst" && ! -L "$dst" ]]; then
+        local bak="${dst}.backup.$(date +%Y%m%d_%H%M%S)"
+        log_warning "Backing up: $dst → $bak"
+        mv "$dst" "$bak"
+    fi
+    [[ -L "$dst" ]] && rm "$dst"
+    cp -r "$src" "$dst"
+    log_success "Copied $label"
+}
+
+IS_WSL=false
+grep -qi microsoft /proc/version 2>/dev/null && IS_WSL=true
+
 # settings.json → settings.local.json (Zed writes changes back here directly)
 link_file "$LOCAL"                    "$ZED_TARGET/settings.json" "settings.json → settings.local.json"
-link_file "$ZED_SOURCE/keymap.json"   "$ZED_TARGET/keymap.json"   "keymap.json"
-link_file "$ZED_SOURCE/rules"         "$ZED_TARGET/rules"         "rules"
-link_file "$ZED_SOURCE/snippets"      "$ZED_TARGET/snippets"      "snippets/"
-link_file "$ZED_SOURCE/tasks.json"    "$ZED_TARGET/tasks.json"    "tasks.json"
-link_file "$ZED_SOURCE/themes"        "$ZED_TARGET/themes"        "themes/ (custom)"
+
+if $IS_WSL; then
+    copy_file "$ZED_SOURCE/keymap.json"   "$ZED_TARGET/keymap.json"   "keymap.json"
+    copy_file "$ZED_SOURCE/rules"         "$ZED_TARGET/rules"         "rules"
+else
+    link_file "$ZED_SOURCE/keymap.json"   "$ZED_TARGET/keymap.json"   "keymap.json"
+    link_file "$ZED_SOURCE/rules"         "$ZED_TARGET/rules"         "rules"
+    link_file "$ZED_SOURCE/snippets"      "$ZED_TARGET/snippets"      "snippets/"
+    link_file "$ZED_SOURCE/tasks.json"    "$ZED_TARGET/tasks.json"    "tasks.json"
+    link_file "$ZED_SOURCE/themes"        "$ZED_TARGET/themes"        "themes/ (custom)"
+fi
 
 # themes/ — link each .json file individually so user-installed themes are preserved
 if [[ -d "$ZED_SOURCE/themes" ]]; then

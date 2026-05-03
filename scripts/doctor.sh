@@ -64,9 +64,10 @@ hdr "Symlinks"
 check_link() {
     local target="$1" expect="$2"
     if [[ -L "$target" ]]; then
-        local actual
+        local actual resolved
         actual="$(readlink "$target")"
-        if [[ "$actual" == "$expect" || "$actual" == *"$expect"* ]]; then
+        resolved="$(readlink -f "$target" 2>/dev/null || realpath "$target" 2>/dev/null || echo "")"
+        if [[ "$resolved" == "$expect" ]]; then
             ok "$target → $actual"
         else
             warn "$target → $actual (expected $expect)"
@@ -103,7 +104,16 @@ for cmd in "${need_core[@]}"; do
 done
 echo
 for cmd in "${need_modern[@]}"; do
-    command -v "$cmd" >/dev/null 2>&1 && ok "$cmd" || warn "$cmd missing"
+    if command -v "$cmd" >/dev/null 2>&1; then
+        ok "$cmd"
+    else
+        # Debian renames bat→batcat, fd→fdfind
+        case "$cmd" in
+            bat) command -v batcat >/dev/null 2>&1 && ok "bat (batcat)" || warn "bat missing" ;;
+            fd)  command -v fdfind >/dev/null 2>&1 && ok "fd (fdfind)"  || warn "fd missing" ;;
+            *)   warn "$cmd missing" ;;
+        esac
+    fi
 done
 echo
 for cmd in "${need_workflow[@]}"; do
@@ -114,7 +124,7 @@ done
 hdr "Secrets"
 if [[ -e "$HOME/.local-secrets" ]]; then
     secrets_target="$(readlink -f "$HOME/.local-secrets" 2>/dev/null || echo "$HOME/.local-secrets")"
-    perms="$(stat -Lf '%Lp' "$HOME/.local-secrets" 2>/dev/null || stat -L -c '%a' "$HOME/.local-secrets" 2>/dev/null)"
+    perms="$(stat -c '%a' "$HOME/.local-secrets" 2>/dev/null || stat -f '%Lp' "$HOME/.local-secrets" 2>/dev/null)"
     if [[ "$perms" == "600" ]]; then
         ok "~/.local-secrets exists (chmod 600)"
     else
