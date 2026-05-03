@@ -49,20 +49,19 @@ else
     bash "$SCRIPT_DIR/scripts/claude/claude-update-local.sh"
 fi
 
-# Ensure statusLine is set (caveman statusline, machine-specific path)
-CAVEMAN_STATUSLINE="$HOME/.claude/plugins/cache/caveman/caveman/ef6050c5e184/hooks/caveman-statusline.sh"
-if [[ -f "$CAVEMAN_STATUSLINE" ]]; then
-    python3 - "$LOCAL" "$CAVEMAN_STATUSLINE" <<'PYEOF'
+# Ensure statusLine points to combined statusline script
+STATUSLINE_SCRIPT="$HOME/.claude/hooks/statusline.sh"
+python3 - "$LOCAL" "$STATUSLINE_SCRIPT" <<'PYEOF'
 import json, sys
 with open(sys.argv[1]) as f:
     d = json.load(f)
-if 'statusLine' not in d:
-    d['statusLine'] = {"type": "command", "command": f"bash \"{sys.argv[2]}\""}
+target = {"type": "command", "command": f"bash \"{sys.argv[2]}\""}
+if d.get('statusLine') != target:
+    d['statusLine'] = target
     with open(sys.argv[1], 'w') as f:
         json.dump(d, f, indent=4, ensure_ascii=False)
-    print("[claude] statusLine set to caveman-statusline.sh")
+    print("[claude] statusLine updated")
 PYEOF
-fi
 
 # --- symlink helper ---
 link_file() {
@@ -84,6 +83,7 @@ link_file "$CLAUDE_SRC/RTK.md"             "$CLAUDE_DIR/RTK.md"                 
 link_file "$CLAUDE_SRC/hooks/rtk-rewrite.sh"          "$CLAUDE_DIR/hooks/rtk-rewrite.sh"          "hooks/rtk-rewrite.sh"
 link_file "$CLAUDE_SRC/hooks/entroly-start.sh"        "$CLAUDE_DIR/hooks/entroly-start.sh"        "hooks/entroly-start.sh"
 link_file "$CLAUDE_SRC/hooks/claude-session-check.sh" "$CLAUDE_DIR/hooks/claude-session-check.sh" "hooks/claude-session-check.sh"
+link_file "$CLAUDE_SRC/hooks/statusline.sh"           "$CLAUDE_DIR/hooks/statusline.sh"           "hooks/statusline.sh"
 
 # Ensure hooks are executable
 chmod +x "$CLAUDE_DIR/hooks/"*.sh 2>/dev/null || true
