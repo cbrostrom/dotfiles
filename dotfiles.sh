@@ -32,6 +32,13 @@ main() {
     source "$DOTFILES_DIR/tui/update.sh"
     source "$DOTFILES_DIR/tui/install.sh"
 
+    # Direct mode: dotfiles --update / --install / --doctor
+    case "${1:-}" in
+        --update)  run_update;  return ;;
+        --install) run_install; return ;;
+        --doctor)  bash "$DOTFILES_DIR/scripts/doctor.sh"; return ;;
+    esac
+
     while true; do
         clear
         show_status   # from tui/status.sh — prints status block
