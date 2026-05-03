@@ -42,8 +42,7 @@ main() {
             "Tools" \
             "Quit" \
             --header "ACTIONS" \
-            --cursor "› " \
-            2>/dev/null) || break
+            --cursor "› ") || break
 
         case "$ACTION" in
             "Install / Setup") run_install ;;
@@ -61,7 +60,7 @@ run_tools() {
         "Fonts" \
         "Secrets" \
         "← Back" \
-        --header "TOOLS" 2>/dev/null) || return
+        --header "TOOLS") || return
 
     case "$CATEGORY" in
         "Zed")      bash "$DOTFILES_DIR/tui/tools/zed.sh" ;;
