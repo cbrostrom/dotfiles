@@ -68,20 +68,6 @@ check_install_status() {
         echo -e "  ${RED}✗${NC} Modern CLI tools (0/$tools_total)"
     fi
     
-    # Check Cursor sync
-    local cursor_synced=false
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        [[ -L "$HOME/Library/Application Support/Cursor/User/settings.json" ]] && cursor_synced=true
-    else
-        [[ -L "$HOME/.config/Cursor/User/settings.json" ]] && cursor_synced=true
-    fi
-    
-    if $cursor_synced; then
-        echo -e "  ${GREEN}✓${NC} Cursor settings synced"
-    else
-        echo -e "  ${RED}✗${NC} Cursor settings not synced"
-    fi
-    
     # Check dotfiles
     if [[ -L "$HOME/.zshrc" ]] && [[ -L "$HOME/.gitconfig" ]]; then
         echo -e "  ${GREEN}✓${NC} Dotfiles linked"
@@ -89,13 +75,6 @@ check_install_status() {
         echo -e "  ${YELLOW}◐${NC} Dotfiles exist (not linked)"
     else
         echo -e "  ${RED}✗${NC} Dotfiles not installed"
-    fi
-    
-    # Check gaming
-    if [[ -f "$HOME/bin/gamelaunch" ]]; then
-        echo -e "  ${GREEN}✓${NC} Gaming launcher"
-    else
-        echo -e "  ${RED}✗${NC} Gaming launcher"
     fi
     
     echo ""
@@ -110,8 +89,6 @@ show_fzf_menu() {
         "1  │ Full Setup              │ Everything: deps, tools, dotfiles [~10-15min]"
         "2  │ Minimal Setup           │ Basic dotfiles + essential tools [~3-5min]"
         "3  │ Custom Components       │ Pick and choose what to install"
-        "4  │ Cursor Settings Sync    │ Link settings, keybindings, snippets, extensions [~30sec]"
-        "5  │ Gaming Launcher         │ Install gaming scripts [~1min]"
         "6  │ Development Tools       │ Node.js, modern CLI tools [~5-8min]"
         "7  │ Platform Configs        │ Ghostty, Windows Terminal (WSL) [~2-3min]"
         "8  │ Update Setup            │ Refresh symlinks & configs [~1-2min]"
@@ -161,12 +138,6 @@ show_fzf_menu() {
             ;;
         3)
             run_install "--interactive"
-            ;;
-        4)
-            run_install "--cursor"
-            ;;
-        5)
-            run_install "--gaming"
             ;;
         6)
             run_install "--devtools"
@@ -282,8 +253,6 @@ show_whiptail_menu() {
         "1" "Full Setup [10-15min]"
         "2" "Minimal Setup [3-5min]"
         "3" "Custom Components"
-        "4" "Cursor Sync [30sec]"
-        "5" "Gaming [1min]"
         "6" "Dev Tools [5-8min]"
         "7" "Platform Configs [2-3min]"
         "8" "Update Setup [1-2min]"
@@ -311,8 +280,6 @@ show_whiptail_menu() {
         1) run_install "--full" ;;
         2) run_install "--minimal" ;;
         3) run_install "--interactive" ;;
-        4) run_install "--cursor" ;;
-        5) run_install "--gaming" ;;
         6) run_install "--devtools" ;;
         7) run_install "--platform" ;;
         8) run_install "--update" ;;
@@ -605,8 +572,6 @@ MENU CATEGORIES
   Custom Components    - Interactive selection of specific components
 
 🎯 QUICK ACTIONS
-  Cursor Settings Sync - Link Cursor settings/keybindings to dotfiles
-  Gaming Launcher      - Install gaming scripts for Steam
   Development Tools    - Install Node.js (fnm) and modern CLI tools
   Platform Configs     - Ghostty, Windows Terminal (WSL)
 

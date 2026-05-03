@@ -158,14 +158,9 @@ main_uninstallation() {
         done
     fi
     
-    # Gaming (optional - remove if present)
-    remove_symlink "$HOME/bin/gamelaunch" "gamelaunch script"
-    remove_symlink "$HOME/.config/game-launcher/presets.conf" "gaming presets"
-
     # Clean up empty directories
     log_info "Cleaning up empty directories..."
     rmdir "$HOME/.config/ghostty" 2>/dev/null || true
-    rmdir "$HOME/.config/game-launcher" 2>/dev/null || true
     
     log_info ""
     log_success "=== Uninstallation Complete! ==="
