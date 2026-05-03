@@ -118,14 +118,6 @@ if [[ -f "$HOME/.local-secrets" ]]; then
     set +a
 fi
 
-# Claude Code via OpenRouter (requires OPENROUTER_API_KEY in ~/.local-secrets)
-if [[ -n "$OPENROUTER_API_KEY" ]]; then
-    export ANTHROPIC_BASE_URL="https://openrouter.ai/api"
-    export ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY"
-    export ANTHROPIC_API_KEY=""
-    export ANTHROPIC_MODEL="openrouter/free"
-fi
-
 # =============================================================================
 # ZSH HISTORY CONFIGURATION
 # =============================================================================
@@ -149,24 +141,23 @@ setopt HIST_VERIFY               # Show command with history expansion before ru
 if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then
     # Add gcloud to PATH without loading completions
     export PATH="/opt/homebrew/share/google-cloud-sdk/bin:$PATH"
-    
+
     # Lazy load gcloud completions and full environment
     gcloud() {
         # Remove this function so it doesn't get called again
         unfunction gcloud
-        
+
         # Load the full Google Cloud SDK
-        if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then 
+        if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then
             . '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc'
         fi
-        
+
         # Load completions
-        if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc' ]; then 
+        if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc' ]; then
             . '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc'
         fi
-        
+
         # Now run the actual gcloud command
         command gcloud "$@"
     }
 fi
-
