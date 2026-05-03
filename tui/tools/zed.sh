@@ -3,6 +3,18 @@ set -euo pipefail
 
 DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
+_show_diff() {
+    local diff_out
+    diff_out="$(bash "$DOTFILES_DIR/scripts/zed/zed-diff-base.sh" 2>&1 | grep -v '^=== diff:')"
+    if [[ -z "${diff_out// }" ]]; then
+        gum style --foreground 10 "  ✓ base og local er identiske"
+    else
+        echo "$diff_out"
+    fi
+    echo
+    read -rsp "Press any key…" -n1
+}
+
 ACTION=$(gum choose \
     "Merge settings (base → local)" \
     "Diff base vs local" \
@@ -19,7 +31,7 @@ case "$ACTION" in
         ;;
     "Diff base vs local")
         echo
-        bash "$DOTFILES_DIR/scripts/zed/zed-diff-base.sh" | less -R
+        _show_diff
         ;;
     "Promote change to base")
         echo
@@ -29,7 +41,9 @@ case "$ACTION" in
         gum style --foreground 8  "  3. git commit + push"
         gum style --foreground 8  "  4. Other machines pick up on next update"
         echo
-        bash "$DOTFILES_DIR/scripts/zed/zed-diff-base.sh" | less -R
+        _show_diff
+        echo
+        read -rsp "Press any key…" -n1
         ;;
     "← Back"|"") exit 0 ;;
 esac
