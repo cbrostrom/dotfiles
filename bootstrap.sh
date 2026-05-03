@@ -14,7 +14,7 @@
 #   ./bootstrap.sh --profile=server-headless   # override profile
 #
 # Profiles:
-#   desktop-full    — mac, linuxbro (GUI tools, fonts, Cursor)
+#   desktop-full    — mac, linuxbro (GUI tools, fonts)
 #   server-headless — superbro VPS  (no GUI, security stack)
 #   wsl             — WSL2 on monsterbro (TUI + Windows interop)
 # =============================================================================
@@ -119,17 +119,6 @@ apply_macos_defaults() {
     fi
 }
 
-install_cursor_extensions() {
-    local profile="$1"
-    if [[ "$profile" == "server-headless" ]]; then
-        return 0
-    fi
-    if has cursor && [[ -x "$DOTFILES_DIR/scripts/cursor/install-cursor-extensions.sh" ]]; then
-        log "syncing Cursor extensions …"
-        bash "$DOTFILES_DIR/scripts/cursor/install-cursor-extensions.sh" || warn "cursor extension sync had errors"
-    fi
-}
-
 install_zed_config() {
     local profile="$1"
     if [[ "$profile" == "server-headless" ]]; then
@@ -197,7 +186,6 @@ main() {
             install_symlinks
             install_zellij
             install_fonts "$profile"
-            install_cursor_extensions "$profile"
             install_zed_config "$profile"
             run_doctor $fix_flag || true
             ok "update complete (profile: $profile)"
@@ -208,7 +196,6 @@ main() {
             install_zellij
             install_fonts "$profile"
             apply_macos_defaults
-            install_cursor_extensions "$profile"
             install_zed_config "$profile"
             run_doctor $fix_flag || true
             ok "bootstrap complete (profile: $profile)"

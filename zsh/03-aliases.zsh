@@ -295,11 +295,6 @@ if [[ "$(uname -s)" == "Linux" ]]; then
         alias systemupdate='echo "🔄 Updating system packages..." && sudo apt-get update && sudo apt-get upgrade -y && command -v flatpak &>/dev/null && echo "🔄 Updating Flatpak..." && flatpak update -y'
     fi
 
-    # Gaming presets (only if gamelaunch is installed)
-    if command -v gamelaunch &>/dev/null; then
-        alias gaming-presets='${EDITOR:-nano} $DOTFILES_DIR/gaming/config/presets.conf'
-    fi
-
     # LinuxBro network shares
     alias linuxbro-setup='$DOTFILES_DIR/linux/setup-linuxbro-symlinks.sh'
 fi
