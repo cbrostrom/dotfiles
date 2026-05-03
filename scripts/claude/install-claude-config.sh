@@ -66,7 +66,11 @@ link_file() {
 link_file "$LOCAL"                          "$CLAUDE_DIR/settings.json"          "settings.json → settings.local.json"
 link_file "$CLAUDE_SRC/CLAUDE.md"           "$CLAUDE_DIR/CLAUDE.md"              "CLAUDE.md"
 link_file "$CLAUDE_SRC/RTK.md"             "$CLAUDE_DIR/RTK.md"                 "RTK.md"
-link_file "$CLAUDE_SRC/hooks/rtk-rewrite.sh"    "$CLAUDE_DIR/hooks/rtk-rewrite.sh"    "hooks/rtk-rewrite.sh"
-link_file "$CLAUDE_SRC/hooks/entroly-start.sh"   "$CLAUDE_DIR/hooks/entroly-start.sh"  "hooks/entroly-start.sh"
+link_file "$CLAUDE_SRC/hooks/rtk-rewrite.sh"          "$CLAUDE_DIR/hooks/rtk-rewrite.sh"          "hooks/rtk-rewrite.sh"
+link_file "$CLAUDE_SRC/hooks/entroly-start.sh"        "$CLAUDE_DIR/hooks/entroly-start.sh"        "hooks/entroly-start.sh"
+link_file "$CLAUDE_SRC/hooks/claude-session-check.sh" "$CLAUDE_DIR/hooks/claude-session-check.sh" "hooks/claude-session-check.sh"
+
+# Ensure hooks are executable
+chmod +x "$CLAUDE_DIR/hooks/"*.sh 2>/dev/null || true
 
 log_success "Claude config installed."
