@@ -40,6 +40,9 @@ else
     ZED_TARGET="$HOME/.config/zed"
 fi
 
+IS_WSL=false
+grep -qi microsoft /proc/version 2>/dev/null && IS_WSL=true
+
 log_info "Source : $ZED_SOURCE"
 log_info "Target : $ZED_TARGET"
 
@@ -53,10 +56,47 @@ if [[ ! -f "$LOCAL" ]]; then
     log_info "First install — copying base to settings.local.json"
     cp "$BASE" "$LOCAL"
     log_success "Created settings.local.json from base"
-else
-    log_info "Updating settings.local.json with new base changes …"
-    bash "$SCRIPT_DIR/scripts/zed/zed-update-local.sh"
 fi
+
+# On WSL: merge Windows settings.json into local BEFORE base merge.
+# This preserves any UI changes the user made in Zed on Windows.
+WIN_SETTINGS="$ZED_TARGET/settings.json"
+if $IS_WSL && [[ -f "$WIN_SETTINGS" && ! -L "$WIN_SETTINGS" ]]; then
+    log_info "Merging Windows settings into local (Windows UI changes preserved)…"
+    python3 - "$WIN_SETTINGS" "$LOCAL" <<'PYEOF'
+import json, sys, re
+
+def strip_jsonc(text):
+    text = re.sub(r'^\s*//[^\n]*', '', text, flags=re.MULTILINE)
+    text = re.sub(r'/\*.*?\*/', '', text, flags=re.DOTALL)
+    text = re.sub(r',(\s*[}\]])', r'\1', text)
+    return text
+
+def load_jsonc(path):
+    with open(path, encoding='utf-8') as f:
+        return json.loads(strip_jsonc(f.read()))
+
+def deep_merge(base, override):
+    result = dict(base)
+    for k, v in override.items():
+        if k in result and isinstance(result[k], dict) and isinstance(v, dict):
+            result[k] = deep_merge(result[k], v)
+        else:
+            result[k] = v
+    return result
+
+win    = load_jsonc(sys.argv[1])
+local  = load_jsonc(sys.argv[2])
+# local first, then Windows overrides (Windows UI changes win)
+merged = deep_merge(local, win)
+with open(sys.argv[2], 'w', encoding='utf-8') as f:
+    json.dump(merged, f, indent=4, ensure_ascii=False)
+PYEOF
+    log_success "Windows settings merged into local"
+fi
+
+log_info "Updating settings.local.json with new base changes…"
+bash "$SCRIPT_DIR/scripts/zed/zed-update-local.sh"
 
 # Symlink a file or directory (with backup of any existing non-symlink)
 link_file() {
@@ -95,9 +135,6 @@ copy_file() {
     cp -r "$src" "$dst"
     log_success "Copied $label"
 }
-
-IS_WSL=false
-grep -qi microsoft /proc/version 2>/dev/null && IS_WSL=true
 
 if $IS_WSL; then
     # Windows Zed cannot follow WSL symlinks — copy everything
