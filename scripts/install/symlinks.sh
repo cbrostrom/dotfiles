@@ -171,6 +171,11 @@ if [[ "$IS_WSL" == "true" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cy
     fi
 fi
 
+# Zed editor config (delegated to dedicated script for platform handling)
+if [[ -x "$SCRIPT_DIR/scripts/zed/install-zed-config.sh" ]]; then
+    bash "$SCRIPT_DIR/scripts/zed/install-zed-config.sh"
+fi
+
 # Add more config directories as needed
 # create_symlink "$SCRIPT_DIR/.config/nvim" "$HOME/.config/nvim" "nvim config"
 # create_symlink "$SCRIPT_DIR/.config/alacritty" "$HOME/.config/alacritty" "alacritty config"

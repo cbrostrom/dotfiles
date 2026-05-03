@@ -1,0 +1,32 @@
+// Machine-specific Zed settings — NOT synced to git
+//
+// Copy relevant sections into your actual settings.json after symlinking,
+// or maintain a local override outside dotfiles.
+//
+// GITHUB_PERSONAL_ACCESS_TOKEN: add to ~/.local-secrets (already gitignored)
+// The mcp-server-github picks it up from the shell environment automatically.
+
+{
+    "context_servers": {
+        // Engram MCP — path differs per machine/OS
+        // Windows:
+        "engram": {
+            "command": "C:\\path\\to\\engram.exe",
+            "args": ["mcp"],
+            "env": {
+                "ENGRAM_DATA_DIR": "C:\\Users\\christian\\.engram"
+            }
+        }
+        // macOS / Linux:
+        // "engram": {
+        //     "command": "/usr/local/bin/engram",
+        //     "args": ["mcp"],
+        //     "env": {
+        //         "ENGRAM_DATA_DIR": "/home/christian/.engram"
+        //     }
+        // }
+    }
+
+    // wsl_connections is already in shared settings.json (ignored on macOS/Linux)
+    // Add extra WSL project paths here if needed per machine
+}

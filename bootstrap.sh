@@ -130,6 +130,17 @@ install_cursor_extensions() {
     fi
 }
 
+install_zed_config() {
+    local profile="$1"
+    if [[ "$profile" == "server-headless" ]]; then
+        return 0
+    fi
+    if [[ -x "$DOTFILES_DIR/scripts/zed/install-zed-config.sh" ]]; then
+        log "installing Zed config …"
+        bash "$DOTFILES_DIR/scripts/zed/install-zed-config.sh" || warn "Zed config install had errors (non-fatal)"
+    fi
+}
+
 # -----------------------------------------------------------------------------
 # Symlinks
 # -----------------------------------------------------------------------------
@@ -187,6 +198,7 @@ main() {
             install_zellij
             install_fonts "$profile"
             install_cursor_extensions "$profile"
+            install_zed_config "$profile"
             run_doctor $fix_flag || true
             ok "update complete (profile: $profile)"
             ;;
@@ -197,6 +209,7 @@ main() {
             install_fonts "$profile"
             apply_macos_defaults
             install_cursor_extensions "$profile"
+            install_zed_config "$profile"
             run_doctor $fix_flag || true
             ok "bootstrap complete (profile: $profile)"
             ;;

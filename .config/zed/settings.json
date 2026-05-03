@@ -1,0 +1,153 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// Machine-specific config (engram MCP, wsl_connections on macOS, etc.)
+// → see settings.local.example.json and add manually per machine
+{
+    "context_servers": {
+        "mcp-server-github": {
+            "enabled": true,
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-github"]
+        },
+        "claude-code": {
+            "command": "claude",
+            "args": ["mcp", "serve"]
+        },
+        "tailwindcss-server": {
+            "command": "npx",
+            "args": ["-y", "tailwindcss-mcp-server"]
+        }
+    },
+    "auto_install_extensions": {
+        "astro": true,
+        "dockerfile": true,
+        "github-actions": true,
+        "graphql": true,
+        "html": true,
+        "liquid": true,
+        "nix": true,
+        "tailwind-css": true,
+        "yaml": true,
+        "toml": true
+    },
+    "git_panel": {
+        "dock": "left"
+    },
+    "edit_predictions": {
+        "provider": "copilot"
+    },
+    "agent": {
+        "default_profile": "write",
+        "tool_permissions": {
+            "tools": {
+                "terminal": {
+                    "always_allow": [
+                        { "pattern": "^npx\\s+skills(\\s|$)" },
+                        { "pattern": "^echo\\s+skills(\\s|$)" },
+                        { "pattern": "^cat\\b" },
+                        { "pattern": "^python3\\b" },
+                        { "pattern": "^dir\\s+/s(\\s|$)" }
+                    ]
+                },
+                "fetch": {
+                    "always_allow": [
+                        { "pattern": "^https?://github\\.com" },
+                        { "pattern": "^https?://zed\\.dev" }
+                    ]
+                }
+            }
+        },
+        "button": true,
+        "default_model": {
+            "effort": "high",
+            "provider": "copilot_chat",
+            "model": "claude-sonnet-4.6",
+            "enable_thinking": true
+        },
+        "enable_feedback": true,
+        "flexible": false,
+        "dock": "right",
+        "sidebar_side": "right",
+        "favorite_models": [
+            {
+                "provider": "copilot_chat",
+                "model": "claude-sonnet-4.6",
+                "enable_thinking": true,
+                "effort": "high"
+            }
+        ],
+        "model_parameters": []
+    },
+    "agent_servers": {
+        "claude-acp": {
+            "type": "registry"
+        },
+        "github-copilot-cli": {
+            "type": "registry"
+        }
+    },
+    "wsl_connections": [
+        {
+            "distro_name": "Debian",
+            "user": null,
+            "projects": [
+                { "paths": ["/home/christian"] },
+                { "paths": ["/home/christian/Projects"] },
+                { "paths": ["/home/christian/Projects/huskr"] },
+                { "paths": ["/home/christian/Projects/laesr"] },
+                { "paths": ["/home/christian/Work/Fiskars/stellar-shopify"] }
+            ]
+        }
+    ],
+    "which_key": {
+        "enabled": false
+    },
+    "text_rendering_mode": "platform_default",
+    "ui_font_family": ".ZedSans",
+    "telemetry": {
+        "diagnostics": false,
+        "metrics": false
+    },
+    "when_closing_with_no_tabs": "keep_window_open",
+    "session": {
+        "trust_all_worktrees": true
+    },
+    "terminal": {
+        "cursor_shape": "bar"
+    },
+    "project_panel": {
+        "diagnostic_badges": true,
+        "git_status_indicator": true,
+        "bold_folder_labels": true,
+        "dock": "left",
+        "auto_fold_dirs": false
+    },
+    "minimap": {
+        "show": "auto"
+    },
+    "cursor_shape": "bar",
+    "buffer_font_fallbacks": ["Monaco", "Courier New", "monospace"],
+    "buffer_font_family": "JetBrainsMono Nerd Font",
+    "file_types": {
+        "tailwindcss": ["*.css"]
+    },
+    "auto_indent_on_paste": true,
+    "use_on_type_format": true,
+    "base_keymap": "VSCode",
+    "icon_theme": {
+        "mode": "dark",
+        "light": "Zed (Default)",
+        "dark": "Colored Zed Icons Theme Dark"
+    },
+    "ui_font_size": 16,
+    "buffer_font_size": 14.0,
+    "theme": {
+        "mode": "dark",
+        "light": "Ayu Dark",
+        "dark": "Ayu Darker"
+    },
+    "proxy": ""
+}
