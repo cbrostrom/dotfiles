@@ -124,7 +124,7 @@ done
 hdr "Secrets"
 if [[ -e "$HOME/.local-secrets" ]]; then
     secrets_target="$(readlink -f "$HOME/.local-secrets" 2>/dev/null || echo "$HOME/.local-secrets")"
-    perms="$(stat -c '%a' "$HOME/.local-secrets" 2>/dev/null || stat -f '%Lp' "$HOME/.local-secrets" 2>/dev/null)"
+    perms="$(stat -c '%a' "$secrets_target" 2>/dev/null || stat -f '%Lp' "$secrets_target" 2>/dev/null)"
     if [[ "$perms" == "600" ]]; then
         ok "~/.local-secrets exists (chmod 600)"
     else
