@@ -29,12 +29,24 @@ if [[ ! -f "$LOCAL" ]]; then
 fi
 
 # Deep merge: base first, local overrides (local wins all conflicts)
+# Both files are JSONC (Zed format) — strip // comments before parsing
 merge_into_local() {
-    if command -v jq >/dev/null 2>&1; then
-        jq -s '.[0] * .[1]' "$BASE" "$LOCAL"
-    elif command -v python3 >/dev/null 2>&1; then
+    if command -v python3 >/dev/null 2>&1; then
         python3 - "$BASE" "$LOCAL" <<'PYEOF'
-import json, sys
+import json, sys, re
+
+def strip_jsonc(text):
+    # Remove only line-starting // comments (preserves https:// URLs in strings)
+    text = re.sub(r'^\s*//[^\n]*', '', text, flags=re.MULTILINE)
+    # Remove /* */ block comments
+    text = re.sub(r'/\*.*?\*/', '', text, flags=re.DOTALL)
+    # Remove trailing commas before } or ]
+    text = re.sub(r',(\s*[}\]])', r'\1', text)
+    return text
+
+def load_jsonc(path):
+    with open(path, encoding='utf-8') as f:
+        return json.loads(strip_jsonc(f.read()))
 
 def deep_merge(base, override):
     result = dict(base)
@@ -45,12 +57,12 @@ def deep_merge(base, override):
             result[k] = v
     return result
 
-base  = json.load(open(sys.argv[1]))
-local = json.load(open(sys.argv[2]))
+base  = load_jsonc(sys.argv[1])
+local = load_jsonc(sys.argv[2])
 print(json.dumps(deep_merge(base, local), indent=4, ensure_ascii=False))
 PYEOF
     else
-        log_error "Neither jq nor python3 found"; exit 1
+        log_error "python3 not found"; exit 1
     fi
 }
 
