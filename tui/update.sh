@@ -26,8 +26,8 @@ run_update() {
     _spin "Updating symlinks" \
         bash "$DOTFILES_DIR/scripts/install/symlinks.sh"
 
-    _spin "Merging Zed settings" \
-        bash "$DOTFILES_DIR/scripts/zed/zed-update-local.sh"
+    _spin "Syncing Zed config" \
+        bash "$DOTFILES_DIR/scripts/zed/install-zed-config.sh"
 
     echo
     gum style --foreground 8 "  Running doctor…"
