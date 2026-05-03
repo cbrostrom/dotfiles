@@ -29,8 +29,14 @@ run_update() {
     _spin "Merging Zed settings" \
         bash "$DOTFILES_DIR/scripts/zed/zed-update-local.sh"
 
-    _spin "Running doctor" \
-        bash "$DOTFILES_DIR/scripts/doctor.sh" 2>/dev/null
+    echo
+    gum style --foreground 8 "  Running doctor…"
+    if bash "$DOTFILES_DIR/scripts/doctor.sh"; then
+        gum style --foreground 10 "  ✓ Running doctor"
+    else
+        gum style --foreground 9  "  ✗ Running doctor"
+        failed+=("Running doctor")
+    fi
 
     echo
     if [[ ${#failed[@]} -eq 0 ]]; then
