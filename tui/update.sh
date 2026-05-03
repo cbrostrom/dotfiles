@@ -22,15 +22,19 @@ run_update() {
 
     _spin "Pulling latest from git" \
         git -C "$DOTFILES_DIR" pull --rebase --autostash
+    gum style --foreground 8 "    zsh, git, scripts, dotfiles"
 
     _spin "Updating symlinks" \
         bash "$DOTFILES_DIR/scripts/install/symlinks.sh"
+    gum style --foreground 8 "    ~/.zshrc, ~/.gitconfig, ~/.zshenv og øvrige dotfiler"
 
     _spin "Syncing Zed config" \
         bash "$DOTFILES_DIR/scripts/zed/install-zed-config.sh"
+    gum style --foreground 8 "    settings.json (base→local merge), keymap.json, rules"
 
     _spin "Syncing Claude config" \
         bash "$DOTFILES_DIR/scripts/claude/install-claude-config.sh"
+    gum style --foreground 8 "    settings.json (base→local merge), CLAUDE.md, RTK.md, hooks"
 
     echo
     gum style --foreground 8 "  Running doctor…"
