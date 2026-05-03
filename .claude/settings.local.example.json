@@ -1,0 +1,30 @@
+{
+    "hooks": {
+        "SessionStart": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "HOME_PLACEHOLDER/.claude/hooks/entroly-start.sh",
+                        "async": true
+                    }
+                ]
+            }
+        ],
+        "PreToolUse": [
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "HOME_PLACEHOLDER/.claude/hooks/rtk-rewrite.sh"
+                    }
+                ]
+            }
+        ]
+    },
+    "permissions": {
+        "allow": [],
+        "defaultMode": "default"
+    }
+}

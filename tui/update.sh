@@ -29,6 +29,9 @@ run_update() {
     _spin "Syncing Zed config" \
         bash "$DOTFILES_DIR/scripts/zed/install-zed-config.sh"
 
+    _spin "Syncing Claude config" \
+        bash "$DOTFILES_DIR/scripts/claude/install-claude-config.sh"
+
     echo
     gum style --foreground 8 "  Running doctor…"
     if bash "$DOTFILES_DIR/scripts/doctor.sh"; then

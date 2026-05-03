@@ -53,4 +53,7 @@ gaming/config/launch.log
 
 # Zed machine-specific settings (merged into settings.json per machine)
 .config/zed/settings.local.json
+
+# Claude machine-specific settings (merged into settings.json per machine)
+.claude/settings.local.json
 .superpowers/
