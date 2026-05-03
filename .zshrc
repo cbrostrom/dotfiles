@@ -88,9 +88,6 @@ if [[ -d "$ZSH_MODULES_DIR" ]]; then
 
     # Per-host overrides BEFORE Zellij auto-attach so a host can opt out
     [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
-
-    # 07 - Zellij auto-attach (LAST — uses `exec`, replaces shell)
-    [[ -f "$ZSH_MODULES_DIR/07-zellij.zsh" ]] && source "$ZSH_MODULES_DIR/07-zellij.zsh"
 else
     echo "Warning: ZSH modules directory not found at $ZSH_MODULES_DIR"
     echo "Falling back to basic configuration"
@@ -158,3 +155,4 @@ if [[ -n "$_lean_ctx_bin" ]] && [ -z "${LEAN_CTX_ACTIVE:-}" ] \
     lean-ctx-on >/dev/null
 fi
 # lean-ctx shell hook — end
+export PATH="$(fnm exec --using=default env | grep PATH | cut -d= -f2-):$PATH"
