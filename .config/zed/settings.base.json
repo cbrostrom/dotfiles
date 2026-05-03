@@ -23,15 +23,22 @@
     },
     "auto_install_extensions": {
         "astro": true,
+        "ayu-darker": true,
+        "colored-zed-icons-theme": true,
+        "csv": true,
         "dockerfile": true,
+        "git-firefly": true,
         "github-actions": true,
+        "github-activity-summarizer": true,
         "graphql": true,
         "html": true,
+        "ini": true,
         "liquid": true,
+        "mcp-server-github": true,
+        "mcp-server-shopify-dev": true,
         "nix": true,
-        "tailwind-css": true,
-        "yaml": true,
-        "toml": true
+        "toml": true,
+        "yaml": true
     },
     "git_panel": {
         "dock": "left"
