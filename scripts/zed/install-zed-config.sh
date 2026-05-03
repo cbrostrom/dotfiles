@@ -78,12 +78,19 @@ link_file() {
 copy_file() {
     local src="$1" dst="$2" label="$3"
     [[ ! -e "$src" ]] && { log_warning "Source missing, skipping: $src"; return 0; }
-    # Remove stale symlink first (broken WSL→Windows symlinks show as existing)
+    # Remove stale symlink (broken WSL→Windows symlinks can show as existing)
     [[ -L "$dst" ]] && rm "$dst"
+    # Only backup if existing file differs from source (skip on idempotent runs)
     if [[ -e "$dst" ]]; then
-        local bak="${dst}.backup.$(date +%Y%m%d_%H%M%S)"
-        log_warning "Backing up: $dst → $bak"
-        mv "$dst" "$bak"
+        if ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+            local bak="${dst}.backup.$(date +%Y%m%d_%H%M%S)"
+            log_warning "Backing up changed: $dst → $bak"
+            mv "$dst" "$bak"
+        else
+            cp -r "$src" "$dst"
+            log_success "Copied $label (unchanged)"
+            return 0
+        fi
     fi
     cp -r "$src" "$dst"
     log_success "Copied $label"
@@ -92,10 +99,11 @@ copy_file() {
 IS_WSL=false
 grep -qi microsoft /proc/version 2>/dev/null && IS_WSL=true
 
-# settings.json → settings.local.json (Zed writes changes back here directly)
-link_file "$LOCAL"                    "$ZED_TARGET/settings.json" "settings.json → settings.local.json"
-
 if $IS_WSL; then
+    # Windows Zed cannot follow WSL symlinks — copy everything
+    # Settings changes made in Zed write to Windows AppData; promote back with:
+    #   cp "$ZED_TARGET/settings.json" "$LOCAL"
+    copy_file "$LOCAL"                    "$ZED_TARGET/settings.json" "settings.json (copy)"
     copy_file "$ZED_SOURCE/keymap.json"   "$ZED_TARGET/keymap.json"   "keymap.json"
     copy_file "$ZED_SOURCE/rules"         "$ZED_TARGET/rules"         "rules"
     # Copy each theme individually (Windows cannot follow WSL symlinks)
@@ -109,6 +117,8 @@ if $IS_WSL; then
         done
     fi
 else
+    # Mac/Linux: symlinks work — Zed writes back through symlink to settings.local.json
+    link_file "$LOCAL"                    "$ZED_TARGET/settings.json" "settings.json → settings.local.json"
     link_file "$ZED_SOURCE/keymap.json"   "$ZED_TARGET/keymap.json"   "keymap.json"
     link_file "$ZED_SOURCE/rules"         "$ZED_TARGET/rules"         "rules"
     link_file "$ZED_SOURCE/snippets"      "$ZED_TARGET/snippets"      "snippets/"
