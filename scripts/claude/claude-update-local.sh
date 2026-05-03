@@ -20,18 +20,23 @@ LOCAL="$SCRIPT_DIR/.claude/settings.local.json"
 MERGED="$(python3 - "$BASE" "$LOCAL" <<'PYEOF'
 import json, sys
 
-def deep_merge(base, override):
+# Arrays under these keys are always taken from base (not merged with local)
+BASE_WINS_ARRAYS = {'permissions'}
+
+def deep_merge(base, override, base_wins_arrays=None, _key=None):
     result = dict(base)
     for k, v in override.items():
         if k in result and isinstance(result[k], dict) and isinstance(v, dict):
-            result[k] = deep_merge(result[k], v)
+            result[k] = deep_merge(result[k], v, base_wins_arrays, k)
+        elif k in result and isinstance(result[k], list) and _key in (base_wins_arrays or set()):
+            pass  # keep base array (e.g. permissions.deny/allow/ask)
         else:
             result[k] = v
     return result
 
 with open(sys.argv[1]) as f: base = json.load(f)
 with open(sys.argv[2]) as f: local = json.load(f)
-print(json.dumps(deep_merge(base, local), indent=4, ensure_ascii=False))
+print(json.dumps(deep_merge(base, local, BASE_WINS_ARRAYS), indent=4, ensure_ascii=False))
 PYEOF
 )"
 
