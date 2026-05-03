@@ -42,4 +42,14 @@ sudo apt-get update -y
 # shellcheck disable=SC2086
 sudo apt-get install -y --no-install-recommends $PKGS
 
+# gum (Charmbracelet) — not in standard apt repos
+if ! command -v gum >/dev/null 2>&1; then
+    log "adding Charmbracelet apt repo for gum…"
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" \
+        | sudo tee /etc/apt/sources.list.d/charm.list >/dev/null
+    sudo apt-get update -y && sudo apt-get install -y gum
+fi
+
 log "done."
