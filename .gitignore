@@ -53,3 +53,4 @@ gaming/config/launch.log
 
 # Zed machine-specific settings (merged into settings.json per machine)
 .config/zed/settings.local.json
+.superpowers/
