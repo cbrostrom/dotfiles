@@ -18,7 +18,12 @@ _check_zed() {
     else
         zed_dir="$HOME/.config/zed"
     fi
-    [[ -L "$zed_dir/settings.json" ]] && echo "ok" || echo "fail"
+    # On WSL we copy (not symlink) settings.json — accept either
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+        [[ -f "$zed_dir/settings.json" ]] && echo "ok" || echo "fail"
+    else
+        [[ -L "$zed_dir/settings.json" ]] && echo "ok" || echo "fail"
+    fi
 }
 
 _check_secrets() {
