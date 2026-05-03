@@ -78,12 +78,13 @@ link_file() {
 copy_file() {
     local src="$1" dst="$2" label="$3"
     [[ ! -e "$src" ]] && { log_warning "Source missing, skipping: $src"; return 0; }
-    if [[ -e "$dst" && ! -L "$dst" ]]; then
+    # Remove stale symlink first (broken WSL→Windows symlinks show as existing)
+    [[ -L "$dst" ]] && rm "$dst"
+    if [[ -e "$dst" ]]; then
         local bak="${dst}.backup.$(date +%Y%m%d_%H%M%S)"
         log_warning "Backing up: $dst → $bak"
         mv "$dst" "$bak"
     fi
-    [[ -L "$dst" ]] && rm "$dst"
     cp -r "$src" "$dst"
     log_success "Copied $label"
 }
@@ -97,21 +98,29 @@ link_file "$LOCAL"                    "$ZED_TARGET/settings.json" "settings.json
 if $IS_WSL; then
     copy_file "$ZED_SOURCE/keymap.json"   "$ZED_TARGET/keymap.json"   "keymap.json"
     copy_file "$ZED_SOURCE/rules"         "$ZED_TARGET/rules"         "rules"
+    # Copy each theme individually (Windows cannot follow WSL symlinks)
+    if [[ -d "$ZED_SOURCE/themes" ]]; then
+        # Remove symlinked dir if present (would cause copy-to-self)
+        [[ -L "$ZED_TARGET/themes" ]] && rm "$ZED_TARGET/themes"
+        mkdir -p "$ZED_TARGET/themes"
+        for theme_src in "$ZED_SOURCE/themes"/*.json; do
+            [[ -f "$theme_src" ]] || continue
+            copy_file "$theme_src" "$ZED_TARGET/themes/$(basename "$theme_src")" "themes/$(basename "$theme_src")"
+        done
+    fi
 else
     link_file "$ZED_SOURCE/keymap.json"   "$ZED_TARGET/keymap.json"   "keymap.json"
     link_file "$ZED_SOURCE/rules"         "$ZED_TARGET/rules"         "rules"
     link_file "$ZED_SOURCE/snippets"      "$ZED_TARGET/snippets"      "snippets/"
     link_file "$ZED_SOURCE/tasks.json"    "$ZED_TARGET/tasks.json"    "tasks.json"
-    link_file "$ZED_SOURCE/themes"        "$ZED_TARGET/themes"        "themes/ (custom)"
-fi
-
-# themes/ — link each .json file individually so user-installed themes are preserved
-if [[ -d "$ZED_SOURCE/themes" ]]; then
-    mkdir -p "$ZED_TARGET/themes"
-    for theme_src in "$ZED_SOURCE/themes"/*.json; do
-        [[ -f "$theme_src" ]] || continue
-        link_file "$theme_src" "$ZED_TARGET/themes/$(basename "$theme_src")" "themes/$(basename "$theme_src")"
-    done
+    # Link each theme individually so user-installed themes in target are preserved
+    if [[ -d "$ZED_SOURCE/themes" ]]; then
+        mkdir -p "$ZED_TARGET/themes"
+        for theme_src in "$ZED_SOURCE/themes"/*.json; do
+            [[ -f "$theme_src" ]] || continue
+            link_file "$theme_src" "$ZED_TARGET/themes/$(basename "$theme_src")" "themes/$(basename "$theme_src")"
+        done
+    fi
 fi
 
 log_success "Zed config installed."
