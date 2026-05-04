@@ -1,0 +1,10 @@
+# Repos where Claude is allowed to run `git push` / `gh release create` /
+# `npm publish`. One absolute path or ~-path per line. Matches the path
+# itself and any subdirectory. Lines starting with # are comments.
+#
+# Customer / work projects must NEVER be added here without thinking twice.
+# The hook denies push by default; a missing entry == blocked.
+
+~/dotfiles
+~/.claude
+~/Projects/Private
