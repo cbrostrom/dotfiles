@@ -1,0 +1,23 @@
+// Zed tasks — https://zed.dev/docs/tasks
+[
+  {
+    "label": "git: merge branch into current",
+    "command": "bash -c 'set -e; cur=$(git rev-parse --abbrev-ref HEAD); b=$(git branch --all --format=\"%(refname:short)\" | grep -v \"^${cur}$\" | sed \"s|^origin/||\" | sort -u | fzf --prompt=\"Merge into ${cur}: \" --height=40%) && echo \"→ git merge $b\" && git merge --no-edit \"$b\"'",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: merge --no-ff branch into current",
+    "command": "bash -c 'set -e; cur=$(git rev-parse --abbrev-ref HEAD); b=$(git branch --all --format=\"%(refname:short)\" | grep -v \"^${cur}$\" | sed \"s|^origin/||\" | sort -u | fzf --prompt=\"Merge --no-ff into ${cur}: \" --height=40%) && echo \"→ git merge --no-ff $b\" && git merge --no-ff --no-edit \"$b\"'",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: abort merge",
+    "command": "git merge --abort && echo 'merge aborted'",
+    "use_new_terminal": false,
+    "reveal": "always"
+  }
+]
