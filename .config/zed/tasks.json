@@ -1,5 +1,9 @@
 // Zed tasks — https://zed.dev/docs/tasks
 // Leader: ctrl-space (see keymap.json). Each task also runnable via `task: spawn`.
+//
+// Shell: zsh (WSL). Notes:
+//   - git --format uses single quotes to avoid zsh glob-expansion of %(...)
+//   - read prompt syntax: read "var?prompt" (zsh), not read -p (bash-only)
 [
   // ─── git ───────────────────────────────────────────────────────────────
   {
@@ -9,15 +13,35 @@
     "reveal": "always"
   },
   {
+    "label": "git: checkout (fzf)",
+    "command": "b=$(git branch --all --format='%(refname:short)' | sed 's|^origin/||' | sort -u | fzf --prompt='checkout: ' --height=40%) && git checkout \"$b\"",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: new branch",
+    "command": "read \"b?new branch: \" && git checkout -b \"$b\"",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: new branch from (fzf)",
+    "command": "git fetch --all -q && base=$(git branch --all --format='%(refname:short)' | sed 's|^origin/||' | sort -u | fzf --prompt='base branch: ' --height=40%) && read \"b?new branch name: \" && git checkout -b \"$b\" \"origin/$base\" 2>/dev/null || git checkout -b \"$b\" \"$base\"",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
     "label": "git: merge branch into current",
-    "command": "bash -c 'set -e; cur=$(git rev-parse --abbrev-ref HEAD); b=$(git branch --all --format=\"%(refname:short)\" | grep -v \"^${cur}$\" | sed \"s|^origin/||\" | sort -u | fzf --prompt=\"Merge into ${cur}: \" --height=40%) && echo \"→ git merge $b\" && git merge --no-edit \"$b\"'",
+    "command": "cur=$(git rev-parse --abbrev-ref HEAD) && b=$(git branch --all --format='%(refname:short)' | grep -v \"^${cur}$\" | sed 's|^origin/||' | sort -u | fzf --prompt=\"merge into ${cur}: \" --height=40%) && git merge --no-edit \"$b\"",
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always"
   },
   {
     "label": "git: merge --no-ff branch into current",
-    "command": "bash -c 'set -e; cur=$(git rev-parse --abbrev-ref HEAD); b=$(git branch --all --format=\"%(refname:short)\" | grep -v \"^${cur}$\" | sed \"s|^origin/||\" | sort -u | fzf --prompt=\"Merge --no-ff into ${cur}: \" --height=40%) && echo \"→ git merge --no-ff $b\" && git merge --no-ff --no-edit \"$b\"'",
+    "command": "cur=$(git rev-parse --abbrev-ref HEAD) && b=$(git branch --all --format='%(refname:short)' | grep -v \"^${cur}$\" | sed 's|^origin/||' | sort -u | fzf --prompt=\"merge --no-ff into ${cur}: \" --height=40%) && git merge --no-ff --no-edit \"$b\"",
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always"
@@ -25,18 +49,6 @@
   {
     "label": "git: abort merge",
     "command": "git merge --abort && echo 'merge aborted'",
-    "use_new_terminal": false,
-    "reveal": "always"
-  },
-  {
-    "label": "git: checkout (fzf)",
-    "command": "bash -c 'b=$(git branch --all --format=\"%(refname:short)\" | sed \"s|^origin/||\" | sort -u | fzf --prompt=\"checkout: \" --height=40%) && git checkout \"$b\"'",
-    "use_new_terminal": false,
-    "reveal": "always"
-  },
-  {
-    "label": "git: new branch",
-    "command": "bash -c 'read -p \"new branch: \" b && git checkout -b \"$b\"'",
     "use_new_terminal": false,
     "reveal": "always"
   },
@@ -66,13 +78,13 @@
   },
   {
     "label": "git: stash push -m",
-    "command": "bash -c 'read -p \"stash msg: \" m && git stash push -m \"$m\"'",
+    "command": "read \"m?stash msg: \" && git stash push -m \"$m\"",
     "use_new_terminal": false,
     "reveal": "always"
   },
   {
     "label": "git: stash pop (fzf)",
-    "command": "bash -c 's=$(git stash list | fzf --height=40% | cut -d: -f1) && [ -n \"$s\" ] && git stash pop \"$s\"'",
+    "command": "s=$(git stash list | fzf --height=40% | cut -d: -f1) && [[ -n \"$s\" ]] && git stash pop \"$s\"",
     "use_new_terminal": false,
     "reveal": "always"
   },

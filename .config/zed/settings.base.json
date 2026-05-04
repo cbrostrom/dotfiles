@@ -68,16 +68,18 @@
         },
         "button": true,
         "default_model": {
-            "effort": "high",
             "provider": "copilot_chat",
-            "model": "claude-sonnet-4.6",
-            "enable_thinking": true
+            "model": "gpt-4o"
         },
         "enable_feedback": true,
         "flexible": false,
         "dock": "right",
         "sidebar_side": "right",
         "favorite_models": [
+            {
+                "provider": "copilot_chat",
+                "model": "gpt-4o"
+            },
             {
                 "provider": "copilot_chat",
                 "model": "claude-sonnet-4.6",
