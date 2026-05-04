@@ -28,6 +28,22 @@ detect_desktop_path() {
     esac
 }
 
+# Sync src/ into dst/. delete=true mirrors --delete (remove stale files).
+_sync_dir() {
+    local src="$1" dst="$2" with_delete="${3:-false}"
+    mkdir -p "$dst"
+    if command -v rsync >/dev/null 2>&1; then
+        if [ "$with_delete" = "true" ]; then
+            rsync -a --delete "$src/" "$dst/"
+        else
+            rsync -a "$src/" "$dst/"
+        fi
+    else
+        [ "$with_delete" = "true" ] && find "${dst:?}" -mindepth 1 -delete 2>/dev/null || true
+        cp -r "$src/." "$dst/"
+    fi
+}
+
 usage() {
     echo "Usage: claude-sync <push|pull|status>"
     echo ""
@@ -45,7 +61,7 @@ sync_memories_push() {
         slug=$(basename "$(dirname "$memory_dir")")
         local dest="$MEMORIES_DIR/$slug"
         mkdir -p "$dest"
-        rsync -a --delete "$memory_dir/" "$dest/"
+        _sync_dir "$memory_dir" "$dest" true
         count=$((count + 1))
     done
     echo "Memory: synced $count project director(ies)"
@@ -59,7 +75,7 @@ sync_memories_pull() {
         slug=$(basename "$slug_dir")
         local dest="$CLAUDE_PROJECTS/$slug/memory"
         mkdir -p "$dest"
-        rsync -a "$slug_dir" "$dest/"
+        _sync_dir "$slug_dir" "$dest"
         count=$((count + 1))
     done
     echo "Memory: restored $count project director(ies)"
@@ -136,7 +152,11 @@ cmd_status() {
             continue
         fi
         local diff
-        diff=$(rsync -an --delete "$memory_dir/" "$dest/" 2>/dev/null | grep -v "/$" | head -5 || true)
+        if command -v rsync >/dev/null 2>&1; then
+            diff=$(rsync -an --delete "$memory_dir/" "$dest/" 2>/dev/null | grep -v "/$" | head -5 || true)
+        else
+            diff=$(diff -rq "$memory_dir/" "$dest/" 2>/dev/null | head -5 || true)
+        fi
         if [ -n "$diff" ]; then
             echo "  ÆNDRET: $slug"
             echo "$diff" | sed 's/^/    /'
