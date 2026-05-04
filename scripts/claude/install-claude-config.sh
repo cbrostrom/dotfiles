@@ -98,4 +98,8 @@ log_success "Linked skills/ → dotfiles"
 # Ensure hooks are executable
 chmod +x "$CLAUDE_DIR/hooks/"*.sh 2>/dev/null || true
 
+# Pull Claude memory files + desktop config from dotfiles
+log_info "Running claude-sync pull..."
+bash "$SCRIPT_DIR/scripts/claude/claude-sync.sh" pull
+
 log_success "Claude config installed."
