@@ -84,6 +84,8 @@ link_file "$CLAUDE_SRC/hooks/rtk-rewrite.sh"          "$CLAUDE_DIR/hooks/rtk-rew
 link_file "$CLAUDE_SRC/hooks/entroly-start.sh"        "$CLAUDE_DIR/hooks/entroly-start.sh"        "hooks/entroly-start.sh"
 link_file "$CLAUDE_SRC/hooks/claude-session-check.sh" "$CLAUDE_DIR/hooks/claude-session-check.sh" "hooks/claude-session-check.sh"
 link_file "$CLAUDE_SRC/hooks/statusline.sh"           "$CLAUDE_DIR/hooks/statusline.sh"           "hooks/statusline.sh"
+link_file "$CLAUDE_SRC/hooks/git-push-guard.sh"       "$CLAUDE_DIR/hooks/git-push-guard.sh"       "hooks/git-push-guard.sh"
+link_file "$CLAUDE_SRC/push-whitelist.txt"            "$CLAUDE_DIR/push-whitelist.txt"            "push-whitelist.txt"
 
 # Ensure hooks are executable
 chmod +x "$CLAUDE_DIR/hooks/"*.sh 2>/dev/null || true

@@ -26,6 +26,10 @@
                 "hooks": [
                     {
                         "type": "command",
+                        "command": "HOME_PLACEHOLDER/.claude/hooks/git-push-guard.sh"
+                    },
+                    {
+                        "type": "command",
                         "command": "HOME_PLACEHOLDER/.claude/hooks/rtk-rewrite.sh"
                     }
                 ]
