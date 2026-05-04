@@ -13,13 +13,14 @@ detect_desktop_path() {
             echo "$HOME/Library/Application Support/Claude/claude_desktop_config.json"
             ;;
         Linux)
-            local win_user
-            win_user=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' || true)
-            if [ -n "$win_user" ] && [ -d "/mnt/c/Users/$win_user/AppData/Roaming/Claude" ]; then
-                echo "/mnt/c/Users/$win_user/AppData/Roaming/Claude/claude_desktop_config.json"
-            else
-                echo ""
-            fi
+            local claude_path
+            for claude_path in /mnt/c/Users/*/AppData/Roaming/Claude; do
+                [ -d "$claude_path" ] && {
+                    echo "$claude_path/claude_desktop_config.json"
+                    return
+                }
+            done
+            echo ""
             ;;
         *)
             echo ""
