@@ -19,3 +19,6 @@ fi
 command -v lazydocker >/dev/null 2>&1 && alias lzd='lazydocker'
 command -v gh-dash    >/dev/null 2>&1 && alias ghd='gh dash'
 command -v yazi       >/dev/null 2>&1 && alias y='yazi'
+
+# Claude sync
+alias claude-sync='bash ~/.config/dotfiles/scripts/claude/claude-sync.sh'
