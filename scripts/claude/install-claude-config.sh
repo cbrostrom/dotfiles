@@ -87,6 +87,14 @@ link_file "$CLAUDE_SRC/hooks/statusline.sh"           "$CLAUDE_DIR/hooks/statusl
 link_file "$CLAUDE_SRC/hooks/git-push-guard.sh"       "$CLAUDE_DIR/hooks/git-push-guard.sh"       "hooks/git-push-guard.sh"
 link_file "$CLAUDE_SRC/push-whitelist.txt"            "$CLAUDE_DIR/push-whitelist.txt"            "push-whitelist.txt"
 
+# Skills directory — symlinked so new installs are auto-tracked in dotfiles
+if [ -d "$CLAUDE_DIR/skills" ] && [ ! -L "$CLAUDE_DIR/skills" ]; then
+    mv "$CLAUDE_DIR/skills" "$CLAUDE_DIR/skills.backup.$(date +%Y%m%d_%H%M%S)"
+    log_warning "Backed up existing skills to ~/.claude/skills.backup.*"
+fi
+ln -sfn "$CLAUDE_SRC/skills" "$CLAUDE_DIR/skills"
+log_success "Linked skills/ → dotfiles"
+
 # Ensure hooks are executable
 chmod +x "$CLAUDE_DIR/hooks/"*.sh 2>/dev/null || true
 
