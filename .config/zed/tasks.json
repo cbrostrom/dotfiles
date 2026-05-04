@@ -1,5 +1,13 @@
 // Zed tasks — https://zed.dev/docs/tasks
+// Leader: ctrl-space (see keymap.json). Each task also runnable via `task: spawn`.
 [
+  // ─── git ───────────────────────────────────────────────────────────────
+  {
+    "label": "git: status (lazygit)",
+    "command": "lazygit",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
   {
     "label": "git: merge branch into current",
     "command": "bash -c 'set -e; cur=$(git rev-parse --abbrev-ref HEAD); b=$(git branch --all --format=\"%(refname:short)\" | grep -v \"^${cur}$\" | sed \"s|^origin/||\" | sort -u | fzf --prompt=\"Merge into ${cur}: \" --height=40%) && echo \"→ git merge $b\" && git merge --no-edit \"$b\"'",
@@ -17,6 +25,126 @@
   {
     "label": "git: abort merge",
     "command": "git merge --abort && echo 'merge aborted'",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: checkout (fzf)",
+    "command": "bash -c 'b=$(git branch --all --format=\"%(refname:short)\" | sed \"s|^origin/||\" | sort -u | fzf --prompt=\"checkout: \" --height=40%) && git checkout \"$b\"'",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: new branch",
+    "command": "bash -c 'read -p \"new branch: \" b && git checkout -b \"$b\"'",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: push",
+    "command": "git push",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: push -u origin HEAD",
+    "command": "git push -u origin HEAD",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: pull --rebase",
+    "command": "git pull --rebase",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: fetch --all --prune",
+    "command": "git fetch --all --prune",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: stash push -m",
+    "command": "bash -c 'read -p \"stash msg: \" m && git stash push -m \"$m\"'",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: stash pop (fzf)",
+    "command": "bash -c 's=$(git stash list | fzf --height=40% | cut -d: -f1) && [ -n \"$s\" ] && git stash pop \"$s\"'",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "git: log graph",
+    "command": "git log --graph --oneline --decorate --all -40",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+
+  // ─── gh / github ──────────────────────────────────────────────────────
+  {
+    "label": "gh: pr create --fill",
+    "command": "gh pr create --fill",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "gh: pr view --web",
+    "command": "gh pr view --web",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "gh: pr checks --watch",
+    "command": "gh pr checks --watch",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "gh: repo view --web",
+    "command": "gh repo view --web",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+
+  // ─── dotfiles ─────────────────────────────────────────────────────────
+  {
+    "label": "dotfiles: bootstrap",
+    "command": "bash ~/dotfiles/bootstrap.sh",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "dotfiles: zed-diff-base",
+    "command": "bash ~/dotfiles/scripts/zed/zed-diff-base.sh",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "dotfiles: install zed-config",
+    "command": "bash ~/dotfiles/scripts/zed/install-zed-config.sh",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+
+  // ─── rtk ──────────────────────────────────────────────────────────────
+  {
+    "label": "rtk: gain",
+    "command": "rtk gain",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "rtk: gain --history",
+    "command": "rtk gain --history",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "rtk: discover",
+    "command": "rtk discover",
     "use_new_terminal": false,
     "reveal": "always"
   }

@@ -1,17 +1,94 @@
-// Zed keymap
+// Zed keymap — https://zed.dev/docs/key-bindings
 //
-// For information on binding keys, see the Zed
-// documentation: https://zed.dev/docs/key-bindings
+// Leader: ctrl-space  (chord prefix, works without vim mode)
 //
-// To see the default key bindings run `zed: open default keymap`
-// from the command palette.
+// Quick reference:
+//   ctrl-space g s    git: status (lazygit)
+//   ctrl-space g m    git: merge branch into current (fzf)
+//   ctrl-space g M    git: merge --no-ff
+//   ctrl-space g a    git: abort merge
+//   ctrl-space g c    git: checkout (fzf)
+//   ctrl-space g n    git: new branch
+//   ctrl-space g p    git: push
+//   ctrl-space g P    git: push -u origin HEAD
+//   ctrl-space g l    git: pull --rebase
+//   ctrl-space g f    git: fetch --all --prune
+//   ctrl-space g S    git: stash push -m
+//   ctrl-space g O    git: stash pop (fzf)
+//   ctrl-space g L    git: log graph
+//   ctrl-space h c    gh: pr create --fill
+//   ctrl-space h v    gh: pr view --web
+//   ctrl-space h w    gh: pr checks --watch
+//   ctrl-space h r    gh: repo view --web
+//   ctrl-space d b    dotfiles: bootstrap
+//   ctrl-space d d    dotfiles: zed-diff-base
+//   ctrl-space d i    dotfiles: install zed-config
+//   ctrl-space r g    rtk: gain
+//   ctrl-space r h    rtk: gain --history
+//   ctrl-space r d    rtk: discover
+//   ctrl-space f f    file finder
+//   ctrl-space f g    project search
+//   ctrl-space f r    recent projects
+//   ctrl-space s     outline (symbols)
+//   ctrl-space q     close active item
+//   ctrl-space t     terminal toggle
+//   ctrl-space p     command palette
 [
   {
     "context": "Workspace",
     "bindings": {
       "shift shift": "command_palette::Toggle",
       "ctrl ctrl": "file_finder::Toggle",
-      "cmd-shift-m": ["task::Spawn", { "task_name": "git: merge branch into current" }]
+      "cmd-shift-m": ["task::Spawn", { "task_name": "git: merge branch into current" }],
+
+      // Pane navigation
+      "ctrl-h": ["workspace::ActivatePaneInDirection", "Left"],
+      "ctrl-j": ["workspace::ActivatePaneInDirection", "Down"],
+      "ctrl-k": ["workspace::ActivatePaneInDirection", "Up"],
+      "ctrl-l": ["workspace::ActivatePaneInDirection", "Right"],
+
+      // ─── Leader chords ────────────────────────────────────────────────
+      // git
+      "ctrl-space g s": ["task::Spawn", { "task_name": "git: status (lazygit)" }],
+      "ctrl-space g m": ["task::Spawn", { "task_name": "git: merge branch into current" }],
+      "ctrl-space g shift-m": ["task::Spawn", { "task_name": "git: merge --no-ff branch into current" }],
+      "ctrl-space g a": ["task::Spawn", { "task_name": "git: abort merge" }],
+      "ctrl-space g c": ["task::Spawn", { "task_name": "git: checkout (fzf)" }],
+      "ctrl-space g n": ["task::Spawn", { "task_name": "git: new branch" }],
+      "ctrl-space g p": ["task::Spawn", { "task_name": "git: push" }],
+      "ctrl-space g shift-p": ["task::Spawn", { "task_name": "git: push -u origin HEAD" }],
+      "ctrl-space g l": ["task::Spawn", { "task_name": "git: pull --rebase" }],
+      "ctrl-space g f": ["task::Spawn", { "task_name": "git: fetch --all --prune" }],
+      "ctrl-space g shift-s": ["task::Spawn", { "task_name": "git: stash push -m" }],
+      "ctrl-space g shift-o": ["task::Spawn", { "task_name": "git: stash pop (fzf)" }],
+      "ctrl-space g shift-l": ["task::Spawn", { "task_name": "git: log graph" }],
+
+      // gh
+      "ctrl-space h c": ["task::Spawn", { "task_name": "gh: pr create --fill" }],
+      "ctrl-space h v": ["task::Spawn", { "task_name": "gh: pr view --web" }],
+      "ctrl-space h w": ["task::Spawn", { "task_name": "gh: pr checks --watch" }],
+      "ctrl-space h r": ["task::Spawn", { "task_name": "gh: repo view --web" }],
+
+      // dotfiles
+      "ctrl-space d b": ["task::Spawn", { "task_name": "dotfiles: bootstrap" }],
+      "ctrl-space d d": ["task::Spawn", { "task_name": "dotfiles: zed-diff-base" }],
+      "ctrl-space d i": ["task::Spawn", { "task_name": "dotfiles: install zed-config" }],
+
+      // rtk
+      "ctrl-space r g": ["task::Spawn", { "task_name": "rtk: gain" }],
+      "ctrl-space r h": ["task::Spawn", { "task_name": "rtk: gain --history" }],
+      "ctrl-space r d": ["task::Spawn", { "task_name": "rtk: discover" }],
+
+      // find / nav
+      "ctrl-space f f": "file_finder::Toggle",
+      "ctrl-space f g": "pane::DeploySearch",
+      "ctrl-space f r": "projects::OpenRecent",
+
+      // misc
+      "ctrl-space s": "outline::Toggle",
+      "ctrl-space q": "pane::CloseActiveItem",
+      "ctrl-space t": "workspace::ToggleBottomDock",
+      "ctrl-space p": "command_palette::Toggle"
     }
   },
   {
