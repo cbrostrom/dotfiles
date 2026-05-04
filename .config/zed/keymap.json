@@ -9,6 +9,7 @@
 //   space g a    git: abort merge
 //   space g c    git: checkout (fzf)
 //   space g n    git: new branch
+//   space g N    git: new branch from (fzf)
 //   space g p    git: push
 //   space g P    git: push -u origin HEAD
 //   space g l    git: pull --rebase
@@ -61,6 +62,7 @@
       "space g a": ["task::Spawn", { "task_name": "git: abort merge" }],
       "space g c": ["task::Spawn", { "task_name": "git: checkout (fzf)" }],
       "space g n": ["task::Spawn", { "task_name": "git: new branch" }],
+      "space g shift-n": ["task::Spawn", { "task_name": "git: new branch from (fzf)" }],
       "space g p": ["task::Spawn", { "task_name": "git: push" }],
       "space g shift-p": ["task::Spawn", { "task_name": "git: push -u origin HEAD" }],
       "space g l": ["task::Spawn", { "task_name": "git: pull --rebase" }],
