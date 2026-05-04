@@ -98,54 +98,61 @@ fi
 log_info "Updating settings.local.json with new base changes…"
 bash "$SCRIPT_DIR/scripts/zed/zed-update-local.sh"
 
-# Symlink a file or directory (with backup of any existing non-symlink)
+# Symlink a file or directory (replaces any existing non-symlink without backup —
+# git is the backup for dotfiles-tracked files).
 link_file() {
     local src="$1" dst="$2" label="$3"
     [[ ! -e "$src" ]] && { log_warning "Source missing, skipping: $src"; return 0; }
     [[ -L "$dst" ]] && rm "$dst"
-    if [[ -e "$dst" ]]; then
-        local bak="${dst}.backup.$(date +%Y%m%d_%H%M%S)"
-        log_warning "Backing up: $dst → $bak"
-        mv "$dst" "$bak"
-    fi
+    [[ -e "$dst" ]] && rm -rf "$dst"
     ln -sf "$src" "$dst"
     log_success "Linked $label"
 }
 
-# On WSL, Windows Zed cannot follow symlinks to WSL paths.
-# Copy read-only files to Windows AppData; settings.local.json is still symlinked
-# because it lives on the WSL side and Zed WSL server reads it from there.
+# On WSL, Windows Zed cannot follow symlinks to WSL paths — copy instead.
+# No backups: git tracks dotfiles; Windows edits are promoted via reverse_sync_if_newer.
 copy_file() {
     local src="$1" dst="$2" label="$3"
     [[ ! -e "$src" ]] && { log_warning "Source missing, skipping: $src"; return 0; }
-    # Remove stale symlink (broken WSL→Windows symlinks can show as existing)
     [[ -L "$dst" ]] && rm "$dst"
-    # Only backup if existing file differs from source (skip on idempotent runs)
-    if [[ -e "$dst" ]]; then
-        if ! diff -q "$src" "$dst" >/dev/null 2>&1; then
-            local bak="${dst}.backup.$(date +%Y%m%d_%H%M%S)"
-            log_warning "Backing up changed: $dst → $bak"
-            mv "$dst" "$bak"
-        else
-            cp -r "$src" "$dst"
-            log_success "Copied $label (unchanged)"
-            return 0
-        fi
+    if [[ -e "$dst" ]] && diff -rq "$src" "$dst" >/dev/null 2>&1; then
+        log_success "Copied $label (unchanged)"
+        return 0
     fi
     cp -r "$src" "$dst"
     log_success "Copied $label"
 }
 
+# For git-tracked files that users also edit in Zed on Windows: if the Windows
+# version is newer than the dotfiles version, promote it back to dotfiles.
+# Promotes keymap.json and tasks.json (no machine-specific content).
+reverse_sync_if_newer() {
+    local src="$1" win="$2" label="$3"
+    [[ ! -f "$win" ]] && return 0
+    [[ ! -f "$src" ]] && return 0
+    diff -q "$src" "$win" >/dev/null 2>&1 && return 0  # identical — skip
+    local src_ts win_ts
+    src_ts=$(stat -c '%Y' "$src" 2>/dev/null || stat -f '%m' "$src" 2>/dev/null)
+    win_ts=$(stat -c '%Y' "$win" 2>/dev/null || stat -f '%m' "$win" 2>/dev/null)
+    if (( win_ts > src_ts )); then
+        cp "$win" "$src"
+        log_success "Promoted $label from Windows → dotfiles (Windows was newer)"
+    fi
+}
+
 if $IS_WSL; then
-    # Windows Zed cannot follow WSL symlinks — copy everything
-    # Settings changes made in Zed write to Windows AppData; promote back with:
-    #   cp "$ZED_TARGET/settings.json" "$LOCAL"
+    # Windows Zed cannot follow WSL symlinks — copy everything.
+    # For user-editable files (keymap, tasks): promote from Windows first if newer,
+    # so edits made in Zed on Windows aren't silently overwritten.
+    reverse_sync_if_newer "$ZED_SOURCE/keymap.json" "$ZED_TARGET/keymap.json" "keymap.json"
+    reverse_sync_if_newer "$ZED_SOURCE/tasks.json"  "$ZED_TARGET/tasks.json"  "tasks.json"
+
     copy_file "$LOCAL"                    "$ZED_TARGET/settings.json" "settings.json (copy)"
     copy_file "$ZED_SOURCE/keymap.json"   "$ZED_TARGET/keymap.json"   "keymap.json"
+    copy_file "$ZED_SOURCE/tasks.json"    "$ZED_TARGET/tasks.json"    "tasks.json"
     copy_file "$ZED_SOURCE/rules"         "$ZED_TARGET/rules"         "rules"
     # Copy each theme individually (Windows cannot follow WSL symlinks)
     if [[ -d "$ZED_SOURCE/themes" ]]; then
-        # Remove symlinked dir if present (would cause copy-to-self)
         [[ -L "$ZED_TARGET/themes" ]] && rm "$ZED_TARGET/themes"
         mkdir -p "$ZED_TARGET/themes"
         for theme_src in "$ZED_SOURCE/themes"/*.json; do
@@ -171,4 +178,7 @@ else
 fi
 
 log_success "Zed config installed."
-log_info "Promote local changes to base: bash scripts/zed/zed-diff-base.sh"
+log_info "Promote settings changes to base: bash scripts/zed/zed-diff-base.sh"
+
+# Write sync timestamp for status display
+date -Iseconds > "$SCRIPT_DIR/.zed-sync-ts" 2>/dev/null || true
