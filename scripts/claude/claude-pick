@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# claude-pick — fuzzy-select project dir, launch claude there.
+# Picker: fzf. Cross-platform, terminal-native.
+
+set -euo pipefail
+
+ROOTS=(
+  "$HOME/Projects/Clients"
+  "$HOME/Projects/Internal"
+  "$HOME/Projects/Private"
+  "$HOME/Projects/Shopify"
+  "$HOME/Projects/Workspaces"
+  "$HOME/Projects/Docker"
+)
+
+if ! command -v fzf >/dev/null; then
+  echo "claude-pick: fzf not installed" >&2
+  exit 1
+fi
+
+collect() {
+  if command -v fd >/dev/null; then
+    for r in "${ROOTS[@]}"; do
+      [[ -d "$r" ]] && fd -H -t d -d 4 '^\.git$' "$r" 2>/dev/null \
+        | sed 's|/\.git/$||;s|/\.git$||'
+    done
+  else
+    for r in "${ROOTS[@]}"; do
+      [[ -d "$r" ]] && find "$r" -maxdepth 4 -type d -name .git -prune 2>/dev/null \
+        | sed 's|/\.git$||'
+    done
+  fi
+}
+
+selected=$(
+  collect | sort -u | sed "s|^$HOME|~|" |
+    fzf --height=60% --layout=reverse --border \
+        --prompt='claude › ' \
+        --preview="dir={}; dir=\"\${dir/#\\~/$HOME}\"; \
+                   git -C \"\$dir\" log --oneline --color=always -10 2>/dev/null \
+                   || ls -la \"\$dir\"" \
+        --preview-window='right:50%:wrap'
+) || true
+
+[[ -z "${selected:-}" ]] && { echo "claude-pick: cancelled" >&2; exit 130; }
+
+target="${selected/#\~/$HOME}"
+[[ -d "$target" ]] || { echo "claude-pick: not a dir: $target" >&2; exit 1; }
+
+cd "$target"
+echo "→ $target"
+exec claude "$@"

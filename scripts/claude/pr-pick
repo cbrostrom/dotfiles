@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# pr-pick — fuzzy-pick PR in current repo via gh, view it.
+# Default: open in browser. Pass --diff to print diff, --checkout to check out.
+
+set -euo pipefail
+
+if ! command -v gh >/dev/null 2>&1; then
+  echo "pr-pick: gh not installed" >&2
+  exit 1
+fi
+
+mode="view"
+case "${1:-}" in
+  --diff)     mode="diff" ;;
+  --checkout) mode="checkout" ;;
+  --view|"")  mode="view" ;;
+  *)          echo "pr-pick: unknown arg: $1" >&2; exit 2 ;;
+esac
+
+# "<num>\t<title> (<author>) [<branch>]"
+mapfile -t lines < <(
+  gh pr list --limit 50 --json number,title,author,headRefName \
+    --jq '.[] | "\(.number)\t#\(.number)  \(.title)  (\(.author.login))  [\(.headRefName)]"'
+)
+
+if (( ${#lines[@]} == 0 )); then
+  echo "pr-pick: no open PRs" >&2
+  exit 1
+fi
+
+if ! command -v fzf >/dev/null; then
+  echo "pr-pick: fzf not installed" >&2
+  exit 1
+fi
+
+selected=$(
+  printf '%s\n' "${lines[@]}" |
+    fzf --height=70% --layout=reverse --border \
+        --delimiter='\t' --with-nth=2 \
+        --prompt='PR › ' \
+        --preview='gh pr view {1}' \
+        --preview-window='right:60%:wrap' \
+    | awk -F'\t' '{print $2}'
+) || true
+
+if [[ -z "${selected:-}" ]]; then
+  echo "pr-pick: nothing selected" >&2
+  exit 130
+fi
+
+num=$(printf '%s\n' "${lines[@]}" | awk -F'\t' -v sel="$selected" '$2==sel {print $1; exit}')
+if [[ -z "$num" ]]; then
+  echo "pr-pick: match lookup failed" >&2
+  exit 1
+fi
+
+case "$mode" in
+  view)     exec gh pr view "$num" --web ;;
+  diff)     exec gh pr diff "$num" ;;
+  checkout) exec gh pr checkout "$num" ;;
+esac
