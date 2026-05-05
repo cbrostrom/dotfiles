@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# claude-worktree-pick — fuzzy-pick git worktree of current repo, launch claude there.
+# Run inside any git repo. Lists worktrees via `git worktree list`.
+
+set -euo pipefail
+
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "claude-worktree-pick: not inside a git repo" >&2
+  exit 1
+fi
+
+# Format: "<path>  [branch]"
+mapfile -t lines < <(
+  git worktree list --porcelain |
+    awk '
+      /^worktree / { p=$2 }
+      /^branch /   { gsub("refs/heads/", "", $2); b=$2 }
+      /^detached/  { b="(detached)" }
+      /^$/         { if (p) printf "%s\t[%s]\n", p, b; p=""; b="" }
+      END          { if (p) printf "%s\t[%s]\n", p, b }
+    '
+)
+
+if (( ${#lines[@]} == 0 )); then
+  echo "claude-worktree-pick: no worktrees" >&2
+  exit 1
+fi
+
+home="$HOME"
+display=$(printf '%s\n' "${lines[@]}" | awk -F'\t' -v h="$home" '{ sub(h,"~",$1); printf "%s  %s\n", $1, $2 }')
+
+if ! command -v fzf >/dev/null; then
+  echo "claude-worktree-pick: fzf not installed" >&2
+  exit 1
+fi
+
+selected=$(
+  printf '%s\n' "$display" |
+    fzf --height=40% --layout=reverse --border --prompt='worktree › '
+) || true
+
+if [[ -z "${selected:-}" ]]; then
+  echo "claude-worktree-pick: nothing selected" >&2
+  exit 130
+fi
+
+# First whitespace-separated token = path (with ~ expanded).
+target_disp=$(printf '%s' "$selected" | awk '{print $1}')
+target="${target_disp/#\~/$HOME}"
+
+if [[ ! -d "$target" ]]; then
+  echo "claude-worktree-pick: not a dir: $target" >&2
+  exit 1
+fi
+
+cd "$target"
+echo "→ $target"
+exec claude "$@"

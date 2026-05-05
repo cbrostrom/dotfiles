@@ -9,9 +9,9 @@
 //   space g a    git: abort merge
 //   space g c    git: checkout (fzf)
 //   space g n    git: new branch
-//   space g N    git: new branch from (fzf)
-//   space g p    git: push
-//   space g P    git: push -u origin HEAD
+//   space g p    git: panel
+//   space g P    git: push
+//   space g U    git: push -u origin HEAD
 //   space g l    git: pull --rebase
 //   space g f    git: fetch --all --prune
 //   space g S    git: stash push -m
@@ -34,20 +34,34 @@
 //   space q      close active item
 //   space t      terminal toggle
 //   space p      command palette
+//   space e      project panel
+//   space x      diagnostics
+//   space w v    split right
+//   space w s    split down
+//   space w c    close pane
+//   space b n/p  next/prev buffer
+//   space b d    close buffer
 [
   {
     "context": "Workspace",
     "bindings": {
       "shift shift": "command_palette::Toggle",
       "ctrl ctrl": "file_finder::Toggle",
-      "cmd-shift-m": ["task::Spawn", { "task_name": "git: merge branch into current" }],
+      "cmd-shift-m": [
+        "task::Spawn",
+        { "task_name": "git: merge branch into current" },
+      ],
+
+      // Panels
+      "cmd-shift-e": "project_panel::ToggleFocus",
+      "cmd-shift-g": "git_panel::ToggleFocus",
 
       // Pane navigation
       "ctrl-h": ["workspace::ActivatePaneInDirection", "Left"],
       "ctrl-j": ["workspace::ActivatePaneInDirection", "Down"],
       "ctrl-k": ["workspace::ActivatePaneInDirection", "Up"],
-      "ctrl-l": ["workspace::ActivatePaneInDirection", "Right"]
-    }
+      "ctrl-l": ["workspace::ActivatePaneInDirection", "Right"],
+    },
   },
   {
     // Vim normal/visual leader chords. Only fire when not typing a count
@@ -57,18 +71,29 @@
     "bindings": {
       // git
       "space g s": ["task::Spawn", { "task_name": "git: status (lazygit)" }],
-      "space g m": ["task::Spawn", { "task_name": "git: merge branch into current" }],
-      "space g shift-m": ["task::Spawn", { "task_name": "git: merge --no-ff branch into current" }],
+      "space g m": [
+        "task::Spawn",
+        { "task_name": "git: merge branch into current" },
+      ],
+      "space g shift-m": [
+        "task::Spawn",
+        { "task_name": "git: merge --no-ff branch into current" },
+      ],
       "space g a": ["task::Spawn", { "task_name": "git: abort merge" }],
       "space g c": ["task::Spawn", { "task_name": "git: checkout (fzf)" }],
       "space g n": ["task::Spawn", { "task_name": "git: new branch" }],
-      "space g shift-n": ["task::Spawn", { "task_name": "git: new branch from (fzf)" }],
-      "space g p": ["task::Spawn", { "task_name": "git: push" }],
-      "space g shift-p": ["task::Spawn", { "task_name": "git: push -u origin HEAD" }],
+      "space g shift-p": ["task::Spawn", { "task_name": "git: push" }],
+      "space g shift-u": [
+        "task::Spawn",
+        { "task_name": "git: push -u origin HEAD" },
+      ],
       "space g l": ["task::Spawn", { "task_name": "git: pull --rebase" }],
       "space g f": ["task::Spawn", { "task_name": "git: fetch --all --prune" }],
       "space g shift-s": ["task::Spawn", { "task_name": "git: stash push -m" }],
-      "space g shift-o": ["task::Spawn", { "task_name": "git: stash pop (fzf)" }],
+      "space g shift-o": [
+        "task::Spawn",
+        { "task_name": "git: stash pop (fzf)" },
+      ],
       "space g shift-l": ["task::Spawn", { "task_name": "git: log graph" }],
 
       // gh
@@ -80,7 +105,10 @@
       // dotfiles
       "space d b": ["task::Spawn", { "task_name": "dotfiles: bootstrap" }],
       "space d d": ["task::Spawn", { "task_name": "dotfiles: zed-diff-base" }],
-      "space d i": ["task::Spawn", { "task_name": "dotfiles: install zed-config" }],
+      "space d i": [
+        "task::Spawn",
+        { "task_name": "dotfiles: install zed-config" },
+      ],
 
       // rtk
       "space r g": ["task::Spawn", { "task_name": "rtk: gain" }],
@@ -92,17 +120,33 @@
       "space f g": "pane::DeploySearch",
       "space f r": "projects::OpenRecent",
 
+      // panels
+      "space e": "project_panel::ToggleFocus",
+      "space g p": "git_panel::ToggleFocus",
+      "space x": "diagnostics::Deploy",
+
+      // splits
+      "space w v": "pane::SplitRight",
+      "space w s": "pane::SplitDown",
+      "space w c": "pane::CloseActiveItem",
+      "space w =": "workspace::ActivateNextPane",
+
+      // buffers
+      "space b n": "pane::ActivateNextItem",
+      "space b p": "pane::ActivatePrevItem",
+      "space b d": "pane::CloseActiveItem",
+
       // misc
       "space s": "outline::Toggle",
       "space q": "pane::CloseActiveItem",
       "space t": "workspace::ToggleBottomDock",
-      "space p": "command_palette::Toggle"
-    }
+      "space p": "command_palette::Toggle",
+    },
   },
   {
     "context": "Editor && vim_mode == insert",
     "bindings": {
-      // "j k": "vim::NormalBefore"
-    }
-  }
+      "j k": "vim::NormalBefore",
+    },
+  },
 ]

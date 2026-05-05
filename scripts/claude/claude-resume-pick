@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# claude-resume-pick — fuzzy-pick prior Claude Code session, resume it.
+# Reads ~/.claude/projects/*/*.jsonl, extracts sessionId + cwd + first user msg.
+
+set -euo pipefail
+
+PROJ_DIR="$HOME/.claude/projects"
+
+if [[ ! -d "$PROJ_DIR" ]]; then
+  echo "claude-resume-pick: no $PROJ_DIR" >&2
+  exit 1
+fi
+
+# Build "DISPLAY\tSESSION_ID\tCWD" lines, sorted by mtime desc.
+mapfile -t lines < <(
+  python3 - "$PROJ_DIR" <<'PY'
+import json, os, sys, time
+root = sys.argv[1]
+rows = []
+for project in os.listdir(root):
+    pdir = os.path.join(root, project)
+    if not os.path.isdir(pdir):
+        continue
+    for fname in os.listdir(pdir):
+        if not fname.endswith(".jsonl"):
+            continue
+        path = os.path.join(pdir, fname)
+        sid = fname[:-6]
+        try:
+            mtime = os.path.getmtime(path)
+        except OSError:
+            continue
+        cwd = ""
+        branch = ""
+        first_user = ""
+        try:
+            with open(path) as fh:
+                for line in fh:
+                    try:
+                        d = json.loads(line)
+                    except Exception:
+                        continue
+                    cwd = cwd or d.get("cwd", "")
+                    branch = branch or (d.get("gitBranch") or "")
+                    if not first_user and d.get("type") == "user":
+                        msg = d.get("message", {})
+                        c = msg.get("content")
+                        if isinstance(c, str):
+                            first_user = c
+                        elif isinstance(c, list):
+                            for part in c:
+                                if isinstance(part, dict) and part.get("type") == "text":
+                                    first_user = part.get("text", "")
+                                    break
+                    if cwd and first_user:
+                        break
+        except OSError:
+            continue
+        home = os.path.expanduser("~")
+        cwd_disp = cwd.replace(home, "~", 1) if cwd else "?"
+        preview = (first_user or "").strip().replace("\n", " ")[:60]
+        when = time.strftime("%m-%d %H:%M", time.localtime(mtime))
+        br = f"[{branch}]" if branch else ""
+        display = f"{when}  {cwd_disp} {br}  {preview}"
+        rows.append((mtime, display, sid, cwd))
+rows.sort(key=lambda r: r[0], reverse=True)
+for _, disp, sid, cwd in rows:
+    print(f"{disp}\t{sid}\t{cwd}")
+PY
+)
+
+if (( ${#lines[@]} == 0 )); then
+  echo "claude-resume-pick: no sessions" >&2
+  exit 1
+fi
+
+if ! command -v fzf >/dev/null; then
+  echo "claude-resume-pick: fzf not installed" >&2
+  exit 1
+fi
+
+# Show display column to fzf; preview shows full prompt + meta.
+selected=$(
+  printf '%s\n' "${lines[@]}" |
+    fzf --height=70% --layout=reverse --border \
+        --delimiter='\t' --with-nth=1 \
+        --prompt='resume › ' \
+        --preview='echo "session: {2}"; echo "cwd:     {3}"; echo; echo "—"; echo' \
+        --preview-window='down:3:wrap' \
+    | awk -F'\t' '{print $1}'
+) || true
+
+if [[ -z "${selected:-}" ]]; then
+  echo "claude-resume-pick: nothing selected" >&2
+  exit 130
+fi
+
+# Lookup sessionId + cwd by exact display match.
+match=$(printf '%s\n' "${lines[@]}" | awk -F'\t' -v sel="$selected" '$1==sel {print; exit}')
+if [[ -z "$match" ]]; then
+  echo "claude-resume-pick: match lookup failed" >&2
+  exit 1
+fi
+
+session_id=$(printf '%s' "$match" | awk -F'\t' '{print $2}')
+cwd=$(printf '%s' "$match" | awk -F'\t' '{print $3}')
+
+if [[ -n "$cwd" && -d "$cwd" ]]; then
+  cd "$cwd"
+fi
+
+echo "→ resume $session_id  in ${cwd:-$PWD}"
+exec claude --resume "$session_id" "$@"
