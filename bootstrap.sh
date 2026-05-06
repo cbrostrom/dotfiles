@@ -139,6 +139,38 @@ install_symlinks() {
 }
 
 # -----------------------------------------------------------------------------
+# Claude Code skills (installed via npx skills add, linked into ~/.claude/skills/)
+# -----------------------------------------------------------------------------
+install_skills() {
+    local list="$DOTFILES_DIR/.claude/skills/skills.list"
+    local skills_dir="$HOME/.claude/skills"
+    [[ -f "$list" ]] || return 0
+    if ! command -v npx >/dev/null 2>&1; then
+        warn "npx not found — skipping Claude Code skills install"
+        return 0
+    fi
+    log "installing Claude Code skills from .claude/skills/skills.list …"
+    while IFS= read -r source || [[ -n "$source" ]]; do
+        [[ "$source" =~ ^#|^[[:space:]]*$ ]] && continue
+        skill_name=$(basename "$source" | sed 's/-skill$//')
+        if [[ -d "$HOME/.agents/skills/$skill_name" ]]; then
+            ok "skill already installed: $skill_name"
+        else
+            log "installing skill: $source"
+            npx --yes skills add "$source" --agent "Claude Code" --scope global --non-interactive 2>/dev/null \
+                || warn "skill install failed: $source"
+        fi
+        # Ensure symlink uses absolute path (avoids dotfiles-symlink relative-path bug)
+        local target="$HOME/.agents/skills/$skill_name"
+        local link="$skills_dir/$skill_name"
+        if [[ -d "$target" && (! -L "$link" || "$(readlink -f "$link" 2>/dev/null)" != "$target") ]]; then
+            ln -sf "$target" "$link"
+            ok "linked: $link -> $target"
+        fi
+    done < "$list"
+}
+
+# -----------------------------------------------------------------------------
 # Doctor
 # -----------------------------------------------------------------------------
 run_doctor() {
@@ -184,6 +216,7 @@ main() {
             (cd "$DOTFILES_DIR" && git pull --rebase --autostash) || warn "git pull failed (non-fatal)"
             install_packages "$profile" || warn "package install reported errors"
             install_symlinks
+            install_skills
             install_zellij
             install_fonts "$profile"
             install_zed_config "$profile"
@@ -193,6 +226,7 @@ main() {
         full)
             install_packages "$profile" || warn "package install reported errors"
             install_symlinks
+            install_skills
             install_zellij
             install_fonts "$profile"
             apply_macos_defaults
