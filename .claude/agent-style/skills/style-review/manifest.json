@@ -1,0 +1,111 @@
+{
+  "entries": [
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".agent-style/skills/style-review/references/fixture-prose/clean-control.expected.json",
+      "sha256": "6007d8a6619903bfc54ee5664fc8b3acab979882691dc03fc61c9abf34f4d976"
+    },
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".agent-style/skills/style-review/references/fixture-prose/clean-control.md",
+      "sha256": "04fe8cc55b27599a0bc5942d2f599125aff6c67c029e619157d6b3f0492fcc4a"
+    },
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".agent-style/skills/style-review/references/fixture-prose/mech-violations.expected.json",
+      "sha256": "738148b5587a88cc75b3eace09da05d2b096f957ea4381e9d9ed259d7f82e8ca"
+    },
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".agent-style/skills/style-review/references/fixture-prose/mech-violations.md",
+      "sha256": "b35195070ca028a605e31ab53609910507e15f775071a31b2a9d812594f27c39"
+    },
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".agent-style/skills/style-review/references/fixture-prose/messy-real-world.expected.json",
+      "sha256": "72c58c9602e4529f766397ece7bcf750dd1aa68caf0fb2c75df60528d85bc1c4"
+    },
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".agent-style/skills/style-review/references/fixture-prose/messy-real-world.md",
+      "sha256": "bba5e10b0fe7e413531d35efd78135a6e3cc686db1c755cb6cf972409751160d"
+    },
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".agent-style/skills/style-review/references/fixture-prose/mixed.expected.json",
+      "sha256": "195e35dbd073ba64d5b62027a3dc921c8f98822cd912b86b9e8a29bd665b1016"
+    },
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".agent-style/skills/style-review/references/fixture-prose/mixed.md",
+      "sha256": "e5a96318cd992d61e07d7a2e323c3e93095b77fb96206f86448bb4cdf32358fb"
+    },
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".agent-style/skills/style-review/references/fixture-prose/struct-violations.expected.json",
+      "sha256": "24b656b62924a53bba5aa05d1231b18e87e39db220aceb85bedaaaae1953550a"
+    },
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".agent-style/skills/style-review/references/fixture-prose/struct-violations.md",
+      "sha256": "b4325346c16555bc7c82ff76d62704c9b4eff48f8e7a2d0e26b02ff050557ef3"
+    },
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".agent-style/skills/style-review/references/revision-prompt.md",
+      "sha256": "08b50ab2c4aba0bb4af8470c772247628dab7b1e6fe68ce519e934efac4e9e55"
+    },
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".agent-style/skills/style-review/references/rule-detectors.md",
+      "sha256": "e70d8063dc8a1fd12903b495ddb20a5567069ca3c0d93a4329a2671ea11bbc09"
+    },
+    {
+      "covered_surfaces": [
+        "claude-code"
+      ],
+      "kind": "file",
+      "path": ".claude/skills/style-review/SKILL.md",
+      "sha256": "7d7d169de73aeda8baed746125867d93579c8540c32e9074731630a555473703"
+    }
+  ],
+  "generated_by": "agent-style 0.3.5",
+  "schema_version": 1,
+  "tool": "style-review"
+}

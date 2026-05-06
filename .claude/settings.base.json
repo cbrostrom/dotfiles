@@ -22,7 +22,7 @@
             }
         }
     },
-    "language": "Danish",
+    "language": "english",
     "effortLevel": "medium",
     "autoUpdatesChannel": "stable",
     "editorMode": "normal",
@@ -62,6 +62,44 @@
             "args": ["-y", "@modelcontextprotocol/server-github"],
             "env": {
                 "GITHUB_PERSONAL_ACCESS_TOKEN": "$GITHUB_PERSONAL_ACCESS_TOKEN"
+            }
+        },
+        "engram-personal": {
+            "command": "ssh",
+            "args": [
+                "superbro",
+                "ENGRAM_DATA_DIR=/home/christian/.engram/personal /home/christian/.local/bin/engram mcp"
+            ]
+        },
+        "engram-work": {
+            "command": "ssh",
+            "args": [
+                "superbro",
+                "ENGRAM_DATA_DIR=/home/christian/.engram/work /home/christian/.local/bin/engram mcp"
+            ]
+        },
+        "atlassian-fiskars": {
+            "command": "mcp-atlassian",
+            "args": [],
+            "env": {
+                "JIRA_URL": "$ATLASSIAN_FISKARS_JIRA_URL",
+                "JIRA_USERNAME": "$ATLASSIAN_USERNAME",
+                "JIRA_API_TOKEN": "$ATLASSIAN_API_TOKEN",
+                "CONFLUENCE_URL": "$ATLASSIAN_FISKARS_CONFLUENCE_URL",
+                "CONFLUENCE_USERNAME": "$ATLASSIAN_USERNAME",
+                "CONFLUENCE_API_TOKEN": "$ATLASSIAN_API_TOKEN"
+            }
+        },
+        "atlassian-akqa": {
+            "command": "mcp-atlassian",
+            "args": [],
+            "env": {
+                "JIRA_URL": "$ATLASSIAN_AKQA_JIRA_URL",
+                "JIRA_USERNAME": "$ATLASSIAN_USERNAME",
+                "JIRA_API_TOKEN": "$ATLASSIAN_API_TOKEN",
+                "CONFLUENCE_URL": "$ATLASSIAN_AKQA_CONFLUENCE_URL",
+                "CONFLUENCE_USERNAME": "$ATLASSIAN_USERNAME",
+                "CONFLUENCE_API_TOKEN": "$ATLASSIAN_API_TOKEN"
             }
         }
     }

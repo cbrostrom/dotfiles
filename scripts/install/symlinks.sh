@@ -125,6 +125,16 @@ create_symlink "$SCRIPT_DIR/.config/zellij" "$HOME/.config/zellij" "zellij confi
 # Codex CLI config
 create_symlink "$SCRIPT_DIR/.codex" "$HOME/.codex" "codex config"
 
+# Claude Code MCP wrapper scripts
+if [[ -d "$SCRIPT_DIR/.claude/scripts" ]]; then
+    mkdir -p "$HOME/.claude/scripts"
+    for script in "$SCRIPT_DIR/.claude/scripts/"*.sh; do
+        [[ -f "$script" ]] || continue
+        chmod +x "$script"
+        create_symlink "$script" "$HOME/.claude/scripts/$(basename "$script")" "claude script: $(basename "$script")"
+    done
+fi
+
 # Local secrets (API keys, tokens - not tracked in git)
 if [[ ! -f "$SCRIPT_DIR/.local-secrets" ]]; then
     if [[ -f "$SCRIPT_DIR/.local-secrets.example" ]]; then
