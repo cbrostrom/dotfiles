@@ -154,6 +154,17 @@ install_zed_config() {
     fi
 }
 
+install_vscodium_config() {
+    local profile="$1"
+    if [[ "$profile" == "server-headless" ]]; then
+        return 0
+    fi
+    if [[ -x "$DOTFILES_DIR/scripts/vscodium/install-vscodium-config.sh" ]]; then
+        log "installing VSCodium config …"
+        bash "$DOTFILES_DIR/scripts/vscodium/install-vscodium-config.sh" --config || warn "VSCodium config install had errors (non-fatal)"
+    fi
+}
+
 # -----------------------------------------------------------------------------
 # Symlinks
 # -----------------------------------------------------------------------------
@@ -247,6 +258,7 @@ main() {
         case "$arg" in
             --link-only)     mode="link";;
             --packages-only) mode="pkg";;
+            --mcp-only)      mode="mcp";;
             --doctor)        mode="doctor";;
             --update|-u)     mode="update";;
             --fix)           fix_flag="--fix";;
@@ -266,6 +278,7 @@ main() {
     case "$mode" in
         link)   install_symlinks ;;
         pkg)    install_packages "$profile" ;;
+        mcp)    install_python_tools; install_mcp_servers ;;
         doctor) run_doctor $fix_flag ;;
         update)
             log "git pull --rebase --autostash …"
@@ -279,6 +292,7 @@ main() {
             install_zellij
             install_fonts "$profile"
             install_zed_config "$profile"
+            install_vscodium_config "$profile"
             run_doctor $fix_flag || true
             ok "update complete (profile: $profile)"
             ;;
@@ -293,6 +307,7 @@ main() {
             install_fonts "$profile"
             apply_macos_defaults
             install_zed_config "$profile"
+            install_vscodium_config "$profile"
             run_doctor $fix_flag || true
             ok "bootstrap complete (profile: $profile)"
             ;;

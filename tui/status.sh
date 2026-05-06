@@ -93,16 +93,13 @@ _badge() {
 }
 
 show_status() {
-    local zsh_st git_st zed_st sec_st node_st
+    local zsh_st git_st sec_st node_st
     zsh_st=$(_check_symlink "$HOME/.zshrc")
     git_st=$(_check_git)
-    zed_st=$(_check_zed)
     sec_st=$(_check_secrets)
     node_st=$(_check_node)
-    local last zed_sync drift version git_hash
+    local last version git_hash
     last=$(_last_update)
-    zed_sync=$(_zed_last_sync)
-    drift=$(_zed_drift)
     version="$(cat "$DOTFILES_DIR/VERSION" 2>/dev/null || echo "?")"
     git_hash="$(git -C "$DOTFILES_DIR" rev-parse --short HEAD 2>/dev/null || echo "?")"
 
@@ -110,11 +107,6 @@ show_status() {
     echo
     _badge "$zsh_st"  "zsh"     "$([[ $zsh_st  == ok ]] && echo linked   || echo "not linked")"
     _badge "$git_st"  "git"     "$([[ $git_st  == ok ]] && echo configured || echo "check gitconfig")"
-    if [[ -n "$drift" ]]; then
-        _badge "warn" "zed" "synced ${zed_sync} · Windows has local edits: ${drift}"
-    else
-        _badge "$zed_st" "zed" "$([[ $zed_st == ok ]] && echo "synced ${zed_sync}" || echo "not synced")"
-    fi
     _badge "$sec_st"  "secrets" "$([[ $sec_st  == ok ]] && echo ok || { [[ $sec_st == warn ]] && echo "bad perms" || echo "missing"; })"
     _badge "$node_st" "node"    "$(command -v node >/dev/null 2>&1 && node --version 2>/dev/null || echo "not found")"
     echo

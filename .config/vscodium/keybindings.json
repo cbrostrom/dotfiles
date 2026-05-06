@@ -1,0 +1,126 @@
+// VSCodium Keybindings — no VIM
+// shift+shift → command palette  (experimental double-tap)
+// ctrl+ctrl   → go to file       (experimental double-tap)
+// alt+alt     → which-key menu   (experimental double-tap)
+[
+  // ─── DOUBLE-TAP LEADERS (experimental) ────────────────────────────────────
+  {
+    "key": "shift shift",
+    "command": "workbench.action.showCommands"
+  },
+  {
+    "key": "ctrl ctrl",
+    "command": "workbench.action.quickOpen"
+  },
+  {
+    "key": "alt alt",
+    "command": "whichkey.show",
+    "when": "!inputFocus"
+  },
+  // Fallback: alt+space also triggers which-key (reliable, cross-platform)
+  {
+    "key": "alt+space",
+    "command": "whichkey.show",
+    "when": "!inputFocus"
+  },
+
+  // ─── PANEL NAVIGATION (ctrl+shift+letter — consistent set) ───────────────
+  // ctrl+shift+e = Explorer (VSCode default, no override needed)
+  // ctrl+shift+f = Search   (VSCode default, no override needed)
+  // ctrl+shift+g = SCM/Git  (VSCode default, no override needed)
+  // ctrl+shift+c = Claude   (override: removes "Open External Terminal")
+  {
+    "key": "ctrl+shift+c",
+    "command": "-workbench.action.terminal.openNativeConsole"
+  },
+  {
+    "key": "ctrl+shift+c",
+    "command": "workbench.view.extension.claude-sessions-sidebar"
+  },
+
+  // ─── QUICK NAVIGATION (no leader needed) ──────────────────────────────────
+  {
+    "key": "ctrl+j",
+    "command": "workbench.action.quickOpenSelectNext",
+    "when": "inQuickOpen"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "workbench.action.quickOpenSelectPrevious",
+    "when": "inQuickOpen"
+  },
+  {
+    "key": "ctrl+j",
+    "command": "selectNextSuggestion",
+    "when": "suggestWidgetMultipleSuggestions && suggestWidgetVisible && textInputFocus"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "selectPrevSuggestion",
+    "when": "suggestWidgetMultipleSuggestions && suggestWidgetVisible && textInputFocus"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "acceptSelectedSuggestion",
+    "when": "suggestWidgetMultipleSuggestions && suggestWidgetVisible && textInputFocus"
+  },
+  {
+    "key": "ctrl+j",
+    "command": "showNextParameterHint",
+    "when": "editorFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "showPrevParameterHint",
+    "when": "editorFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
+  },
+  {
+    "key": "ctrl+j",
+    "command": "selectNextCodeAction",
+    "when": "codeActionMenuVisible"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "selectPrevCodeAction",
+    "when": "codeActionMenuVisible"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "acceptSelectedCodeAction",
+    "when": "codeActionMenuVisible"
+  },
+
+  // ─── EDITOR SPLITS (hjkl focus) ───────────────────────────────────────────
+  {
+    "key": "ctrl+alt+h",
+    "command": "workbench.action.focusLeftGroup"
+  },
+  {
+    "key": "ctrl+alt+l",
+    "command": "workbench.action.focusRightGroup"
+  },
+  {
+    "key": "ctrl+alt+k",
+    "command": "workbench.action.focusAboveGroup"
+  },
+  {
+    "key": "ctrl+alt+j",
+    "command": "workbench.action.focusBelowGroup"
+  },
+
+  // ─── TAB NAVIGATION ───────────────────────────────────────────────────────
+  {
+    "key": "alt+shift+]",
+    "command": "workbench.action.nextEditor"
+  },
+  {
+    "key": "alt+shift+[",
+    "command": "workbench.action.previousEditor"
+  },
+
+  // ─── TERMINAL TOGGLE ──────────────────────────────────────────────────────
+  {
+    "key": "ctrl+`",
+    "command": "workbench.action.terminal.toggleTerminal"
+  }
+]

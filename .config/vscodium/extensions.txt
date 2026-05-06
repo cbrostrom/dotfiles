@@ -1,0 +1,29 @@
+# VSCodium extensions — one extension ID per line
+# Managed via dotfiles. Install: scripts/vscodium/install-vscodium-config.sh --install-extensions
+# Open VSX registry: https://open-vsx.org (use IDs from there, not VS Marketplace)
+
+# Claude Code
+anthropic.claude-code
+
+# Editor utilities
+formulahendry.auto-close-tag
+formulahendry.auto-rename-tag
+usernamehw.errorlens
+yoavbls.pretty-ts-errors
+
+# Git
+github.vscode-pull-request-github
+mhutchie.git-graph
+waderyan.gitblame
+
+# Remote development
+jeanp413.open-remote-ssh
+jeanp413.open-remote-wsl
+
+# UI / Theme
+jellydn.vscode-whichkey
+pkief.material-icon-theme
+teabyii.ayu
+
+# Formatting
+esbenp.prettier-vscode
