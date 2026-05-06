@@ -293,6 +293,7 @@ fi
 # =============================================================================
 # CLAUDE CODE LAUNCHERS (~/.local/bin)
 # =============================================================================
+alias cc='claude'
 alias ccp='claude-pick'
 alias ccr='claude-resume-pick'
 alias ccw='claude-worktree-pick'

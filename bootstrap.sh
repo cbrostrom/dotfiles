@@ -97,6 +97,16 @@ install_packages() {
     fi
 }
 
+install_python_tools() {
+    if ! command -v pipx >/dev/null 2>&1; then
+        warn "pipx not found — skipping Python tool installs"
+        return 0
+    fi
+    log "installing Python MCP tools via pipx …"
+    pipx install mcp-atlassian 2>/dev/null || pipx upgrade mcp-atlassian 2>/dev/null || warn "mcp-atlassian install failed (non-fatal)"
+    ok "mcp-atlassian ready: $(command -v mcp-atlassian 2>/dev/null || echo 'not found')"
+}
+
 install_zellij() {
     log "ensuring zellij is installed …"
     bash "$DOTFILES_DIR/scripts/install/zellij.sh" || warn "zellij install reported errors (non-fatal)"
@@ -171,6 +181,38 @@ install_skills() {
 }
 
 # -----------------------------------------------------------------------------
+# Claude Code MCP servers
+# -----------------------------------------------------------------------------
+install_mcp_servers() {
+    local list="$DOTFILES_DIR/.claude/mcp-servers.list"
+    [[ -f "$list" ]] || return 0
+    if ! command -v claude >/dev/null 2>&1; then
+        warn "claude CLI not found — skipping MCP server registration"
+        return 0
+    fi
+    log "registering Claude Code MCP servers from .claude/mcp-servers.list …"
+    while IFS='|' read -r name command args_rest || [[ -n "$name" ]]; do
+        name="${name%%#*}"; name="${name// /}"
+        [[ -z "$name" || "$name" == \#* ]] && continue
+        command="${command// /}"
+        command="${command/#\~/$HOME}"
+        [[ -z "$command" ]] && { warn "MCP entry '$name' missing command — skipping"; continue; }
+        IFS='|' read -ra arg_tokens <<< "$args_rest"
+        local -a args=()
+        for t in "${arg_tokens[@]}"; do
+            t="${t# }"; t="${t% }"
+            [[ -n "$t" ]] && args+=("$t")
+        done
+        claude mcp remove "$name" --scope user 2>/dev/null || true
+        if claude mcp add --scope user "$name" "$command" "${args[@]}" 2>/dev/null; then
+            ok "MCP registered: $name"
+        else
+            warn "MCP registration failed: $name"
+        fi
+    done < "$list"
+}
+
+# -----------------------------------------------------------------------------
 # Doctor
 # -----------------------------------------------------------------------------
 run_doctor() {
@@ -216,7 +258,9 @@ main() {
             (cd "$DOTFILES_DIR" && git pull --rebase --autostash) || warn "git pull failed (non-fatal)"
             install_packages "$profile" || warn "package install reported errors"
             install_symlinks
+            install_python_tools
             install_skills
+            install_mcp_servers
             install_zellij
             install_fonts "$profile"
             install_zed_config "$profile"
@@ -226,7 +270,9 @@ main() {
         full)
             install_packages "$profile" || warn "package install reported errors"
             install_symlinks
+            install_python_tools
             install_skills
+            install_mcp_servers
             install_zellij
             install_fonts "$profile"
             apply_macos_defaults

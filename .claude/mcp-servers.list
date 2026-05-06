@@ -1,0 +1,34 @@
+# Claude Code MCP servers — registered via `claude mcp add` on bootstrap
+# Format: name | command | arg1 | arg2 | ...
+# Pipes separate tokens. Spaces within a token are fine.
+# Lines starting with # are comments. Blank lines ignored.
+# Profile tags (optional, comma-separated): profile:desktop-full,wsl
+# Servers without profile tag install on all profiles.
+
+# GitHub — requires GITHUB_PERSONAL_ACCESS_TOKEN in ~/.local-secrets
+github | npx | -y | @modelcontextprotocol/server-github
+
+# Shopify Dev MCP
+shopify-dev | npx | -y | @shopify/dev-mcp@latest
+
+# Mermaid diagram rendering
+mcp-mermaid | npx | -y | mcp-mermaid
+
+# Tailwind CSS tooling
+tailwindcss | npx | -y | tailwindcss-mcp-server
+
+# Engram personal vault — all projects (personal + work)
+# Requires: SuperBro reachable via Tailscale SSH
+engram-personal | ssh | superbro | ENGRAM_DATA_DIR=/home/christian/.engram/personal /home/christian/.local/bin/engram mcp
+
+# Engram work vault — stellar-shopify only, safe to share with colleagues
+# Requires: SuperBro reachable via Tailscale SSH
+engram-work | ssh | superbro | ENGRAM_DATA_DIR=/home/christian/.engram/work /home/christian/.local/bin/engram mcp
+
+# Atlassian MCP — Fiskars workspace
+# Requires: ATLASSIAN_* env vars in ~/.local-secrets, mcp-atlassian installed via pipx
+atlassian-fiskars | ~/.claude/scripts/atlassian-fiskars.sh
+
+# Atlassian MCP — AKQA workspace
+# Requires: ATLASSIAN_* env vars in ~/.local-secrets, mcp-atlassian installed via pipx
+atlassian-akqa | ~/.claude/scripts/atlassian-akqa.sh
