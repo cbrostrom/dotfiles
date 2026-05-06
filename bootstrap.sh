@@ -229,7 +229,7 @@ install_mcp_servers() {
             [[ -n "$t" ]] && args+=("$t")
         done
         claude mcp remove "$name" --scope user 2>/dev/null || true
-        if claude mcp add --scope user "$name" "$command" "${args[@]}" 2>/dev/null; then
+        if claude mcp add --scope user "$name" -- "$command" "${args[@]}" 2>/dev/null; then
             ok "MCP registered: $name"
         else
             warn "MCP registration failed: $name"
