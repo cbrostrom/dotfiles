@@ -1,5 +1,5 @@
 // Zed tasks — https://zed.dev/docs/tasks
-// Leader: ctrl-space (see keymap.json). Each task also runnable via `task: spawn`.
+// Leader: alt-space (see keymap.json). Each task also runnable via `task: spawn`.
 //
 // Shell: zsh (WSL). Notes:
 //   - git --format uses single quotes to avoid zsh glob-expansion of %(...)
