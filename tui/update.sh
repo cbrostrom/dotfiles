@@ -32,9 +32,21 @@ run_update() {
         bash "$DOTFILES_DIR/scripts/zed/install-zed-config.sh"
     gum style --foreground 8 "    settings.json (base→local merge), keymap.json, rules, snippets/, themes/"
 
+    _spin "Syncing VSCodium config" \
+        bash "$DOTFILES_DIR/scripts/vscodium/install-vscodium-config.sh" --config
+    gum style --foreground 8 "    settings.json (base→local merge), keybindings.json, tasks.json"
+
     _spin "Syncing Claude config" \
         bash "$DOTFILES_DIR/scripts/claude/install-claude-config.sh"
     gum style --foreground 8 "    settings.json (base→local merge), CLAUDE.md, RTK.md, hooks"
+
+    _spin "Upgrading Python MCP tools" \
+        pipx upgrade mcp-atlassian 2>/dev/null || true
+    gum style --foreground 8 "    mcp-atlassian"
+
+    _spin "Registering MCP servers" \
+        bash "$DOTFILES_DIR/bootstrap.sh" --mcp-only
+    gum style --foreground 8 "    github, shopify-dev, engram-personal/work, atlassian-fiskars/akqa, …"
 
     echo
     gum style --foreground 8 "  Running doctor…"

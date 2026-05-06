@@ -1,0 +1,157 @@
+#!/usr/bin/env bash
+# Install VSCodium config from dotfiles → VSCodium User directory.
+# Uses copy (not symlinks) — Windows cannot follow WSL symlinks.
+set -euo pipefail
+
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SRC="$DOTFILES_DIR/.config/vscodium"
+
+# Color helpers (only when running in a terminal)
+if [[ -t 1 ]]; then
+    GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
+else
+    GREEN=''; YELLOW=''; RED=''; NC=''
+fi
+ok()   { printf "${GREEN}[ ok ]${NC} %s\n" "$*"; }
+warn() { printf "${YELLOW}[warn]${NC} %s\n" "$*"; }
+err()  { printf "${RED}[err ]${NC} %s\n" "$*" >&2; }
+
+# Detect VSCodium User directory
+_vscodium_user_dir() {
+    local uname
+    uname="$(uname -s)"
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+        local win_user="${USERNAME:-$(whoami)}"
+        echo "/mnt/c/Users/$win_user/AppData/Roaming/VSCodium/User"
+    elif [[ "$uname" == "Darwin" ]]; then
+        echo "$HOME/Library/Application Support/VSCodium/User"
+    else
+        echo "$HOME/.config/VSCodium/User"
+    fi
+}
+
+# Detect codium binary (WSL: prefer Windows exe in PATH)
+_codium_bin() {
+    if command -v codium >/dev/null 2>&1; then
+        echo "codium"
+    elif command -v codium.cmd >/dev/null 2>&1; then
+        echo "codium.cmd"
+    else
+        echo ""
+    fi
+}
+
+# Merge base → local (jq: base fills missing keys, local wins on conflict)
+_merge_settings() {
+    local base="$SRC/settings.base.json"
+    local local_file="$SRC/settings.local.json"
+    local example="$SRC/settings.local.example.json"
+
+    if [[ ! -f "$local_file" ]]; then
+        if [[ -f "$example" ]]; then
+            cp "$example" "$local_file"
+            warn "Created settings.local.json from example — review before committing"
+        else
+            cp "$base" "$local_file"
+        fi
+    fi
+
+    if ! command -v jq >/dev/null 2>&1; then
+        warn "jq not found — copying base settings without local merge (install jq for full support)"
+        cp "$base" "$local_file"
+        return
+    fi
+
+    # Strip JSONC comments before merging (VSCodium accepts comments, jq does not)
+    local tmp_base tmp_local merged
+    tmp_base="$(mktemp)"
+    tmp_local="$(mktemp)"
+    merged="$(mktemp)"
+    trap "rm -f '$tmp_base' '$tmp_local' '$merged'" RETURN
+
+    sed 's|//.*||g' "$base"       | jq '.' > "$tmp_base"
+    sed 's|//.*||g' "$local_file" | jq '.' > "$tmp_local"
+
+    # Merge: base provides defaults, local wins on conflicts
+    jq -s '.[0] * .[1]' "$tmp_base" "$tmp_local" > "$merged"
+    cp "$merged" "$local_file"
+    ok "Merged settings.base.json → settings.local.json"
+}
+
+install_config() {
+    local dest
+    dest="$(_vscodium_user_dir)"
+
+    if [[ ! -d "$dest" ]]; then
+        warn "VSCodium User dir not found: $dest (is VSCodium installed?)"
+        return 1
+    fi
+
+    _merge_settings
+
+    local drifted=()
+    for f in keybindings.json tasks.json; do
+        if [[ -f "$dest/$f" && -f "$SRC/$f" ]]; then
+            if ! diff -q "$SRC/$f" "$dest/$f" >/dev/null 2>&1; then
+                drifted+=("$f")
+            fi
+        fi
+    done
+    if [[ ${#drifted[@]} -gt 0 ]]; then
+        warn "Windows has local edits in: ${drifted[*]} — review before overwriting"
+        for f in "${drifted[@]}"; do
+            diff "$SRC/$f" "$dest/$f" 2>/dev/null || true
+        done
+        read -rp "Overwrite? [y/N] " ans
+        [[ "$ans" =~ ^[Yy]$ ]] || { warn "Skipping overwrite."; return 0; }
+    fi
+
+    cp "$SRC/settings.local.json" "$dest/settings.json"
+    ok "Copied settings.json → $dest"
+
+    for f in keybindings.json tasks.json; do
+        [[ -f "$SRC/$f" ]] && cp "$SRC/$f" "$dest/$f" && ok "Copied $f → $dest"
+    done
+}
+
+install_extensions() {
+    local ext_file="$SRC/extensions.txt"
+    [[ -f "$ext_file" ]] || { warn "No extensions.txt found at $SRC"; return 0; }
+
+    local codium
+    codium="$(_codium_bin)"
+    if [[ -z "$codium" ]]; then
+        warn "codium binary not found in PATH — skipping extension install"
+        warn "Add VSCodium to PATH or install extensions manually"
+        return 0
+    fi
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ "$line" =~ ^#|^[[:space:]]*$ ]] && continue
+        ext_id="${line%% *}"
+        if "$codium" --list-extensions 2>/dev/null | grep -qi "^${ext_id}$"; then
+            ok "already installed: $ext_id"
+        else
+            if "$codium" --install-extension "$ext_id" 2>/dev/null; then
+                ok "installed: $ext_id"
+            else
+                warn "failed to install: $ext_id (may not be on Open VSX)"
+            fi
+        fi
+    done < "$ext_file"
+}
+
+main() {
+    local mode="${1:-config}"
+    case "$mode" in
+        --install-extensions|-e) install_extensions ;;
+        --config|-c|config)      install_config ;;
+        --all|-a)                install_config; install_extensions ;;
+        *)
+            echo "Usage: $(basename "$0") [--config|--install-extensions|--all]"
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

@@ -58,5 +58,8 @@ gaming/config/launch.log
 
 # Claude machine-specific settings (merged into settings.json per machine)
 .claude/settings.local.json
+
+# VSCodium machine-specific settings (merged into settings.json per machine)
+.config/vscodium/settings.local.json
 .superpowers/
 .remember/

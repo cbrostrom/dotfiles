@@ -39,38 +39,35 @@ main() {
         --doctor)  bash "$DOTFILES_DIR/scripts/doctor.sh"; return ;;
     esac
 
-    while true; do
-        clear
-        show_status   # from tui/status.sh — prints status block
+    local version git_hash
+    version="$(cat "$DOTFILES_DIR/VERSION" 2>/dev/null || echo "?")"
+    git_hash="$(git -C "$DOTFILES_DIR" rev-parse --short HEAD 2>/dev/null || echo "?")"
 
-        ACTION=$(gum choose \
-            "Install / Setup" \
-            "Update" \
-            "Tools" \
-            "Quit" \
-            --header "ACTIONS" \
-            --cursor "› ") || break
+    while true; do
+        ACTION=$(printf "Install / Setup\nUpdate\nTools\nStatus\nQuit" | fzf \
+            --height=10 --layout=reverse --border \
+            --prompt='dotfiles › ' \
+            --header="v${version} (${git_hash})" \
+            --no-preview) || break
 
         case "$ACTION" in
             "Install / Setup") run_install ;;
             "Update")          run_update ;;
             "Tools")           run_tools ;;
+            "Status")          clear; show_status; read -rsp "Press any key…" -n1; echo ;;
             "Quit"|"")         break ;;
         esac
     done
 }
 
 run_tools() {
-    CATEGORY=$(gum choose \
-        "Zed" \
-        "Symlinks" \
-        "Fonts" \
-        "Secrets" \
-        "← Back" \
-        --header "TOOLS") || return
+    CATEGORY=$(printf "VSCodium\nSymlinks\nFonts\nSecrets\n← Back" | fzf \
+        --height=10 --layout=reverse --border \
+        --prompt='tools › ' \
+        --no-preview) || return
 
     case "$CATEGORY" in
-        "Zed")      bash "$DOTFILES_DIR/tui/tools/zed.sh" ;;
+        "VSCodium") bash "$DOTFILES_DIR/tui/tools/vscodium.sh" ;;
         "Symlinks") bash "$DOTFILES_DIR/tui/tools/symlinks.sh" ;;
         "Fonts")    bash "$DOTFILES_DIR/tui/tools/fonts.sh" ;;
         "Secrets")  bash "$DOTFILES_DIR/tui/tools/secrets.sh" ;;
