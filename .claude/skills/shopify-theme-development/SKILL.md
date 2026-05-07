@@ -9,6 +9,7 @@ description: >
 metadata:
   author: stellar-team
   version: "1.0"
+group: smart.frontend
 ---
 
 # Shopify Theme Development
