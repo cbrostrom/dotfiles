@@ -145,7 +145,8 @@ apply_macos_defaults() {
 
 install_zed_config() {
     local profile="$1"
-    if [[ "$profile" == "server-headless" ]]; then
+    if [[ "$profile" == "server-headless" || "$profile" == "wsl" ]]; then
+        log "skipping Zed config ($profile profile)"
         return 0
     fi
     if [[ -x "$DOTFILES_DIR/scripts/zed/install-zed-config.sh" ]]; then
