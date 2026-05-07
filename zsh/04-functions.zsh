@@ -382,4 +382,30 @@ gwtgo() {
     fi
 }
 
+# code / vs — open VSCodium with file or directory
+# WSL: invokes Windows codium.exe, converts Linux paths via wslpath -w
+# Linux/Mac: uses native `codium`; mac falls back to `open -a VSCodium`
+code() {
+    if is_wsl && command -v codium.exe >/dev/null 2>&1; then
+        local -a converted=()
+        local arg
+        for arg in "$@"; do
+            if [[ -e "$arg" ]]; then
+                converted+=("$(wslpath -w -- "$arg")")
+            else
+                converted+=("$arg")
+            fi
+        done
+        codium.exe "${converted[@]}"
+    elif command -v codium >/dev/null 2>&1; then
+        codium "$@"
+    elif is_macos && [[ -d /Applications/VSCodium.app ]]; then
+        open -a VSCodium "$@"
+    else
+        echo "code: VSCodium not found on PATH" >&2
+        return 127
+    fi
+}
+alias vs='code'
+
 
