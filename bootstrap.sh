@@ -140,6 +140,13 @@ install_rust_tools() {
     fi
 }
 
+install_ssh_superbro() {
+    if [[ -x "$DOTFILES_DIR/scripts/install/ssh-superbro.sh" ]]; then
+        log "configuring SSH for superbro …"
+        bash "$DOTFILES_DIR/scripts/install/ssh-superbro.sh" || warn "ssh superbro setup reported errors (non-fatal)"
+    fi
+}
+
 install_zellij() {
     log "ensuring zellij is installed …"
     bash "$DOTFILES_DIR/scripts/install/zellij.sh" || warn "zellij install reported errors (non-fatal)"
@@ -298,7 +305,7 @@ main() {
     case "$mode" in
         link)   install_symlinks ;;
         pkg)    install_packages "$profile" ;;
-        mcp)    install_python_tools; install_mcp_servers ;;
+        mcp)    install_python_tools; install_ssh_superbro; install_mcp_servers ;;
         doctor) run_doctor $fix_flag ;;
         update)
             log "git pull --rebase --autostash …"
@@ -308,6 +315,7 @@ main() {
             install_python_tools
             install_rust_tools
             install_skills
+            install_ssh_superbro
             install_mcp_servers
             install_zellij
             install_fonts "$profile"
@@ -322,6 +330,7 @@ main() {
             install_python_tools
             install_rust_tools
             install_skills
+            install_ssh_superbro
             install_mcp_servers
             install_zellij
             install_fonts "$profile"
