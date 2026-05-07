@@ -184,24 +184,25 @@ else
 fi
 
 # ----- MCP drift -----
-hdr "MCP drift (mcp-servers.list vs claude mcp list)"
+# Reads ~/.claude.json directly instead of `claude mcp list` to avoid
+# spawning every stdio server for health checks (engram MCPs trigger SSH
+# host-key prompts when superbro is not yet trusted).
+hdr "MCP drift (mcp-servers.list vs ~/.claude.json)"
 mcp_list_file="$DOTFILES_DIR/.claude/mcp-servers.list"
-if ! command -v claude >/dev/null 2>&1; then
-    warn "claude CLI not found — skipping MCP drift check"
+claude_json="$HOME/.claude.json"
+if [[ ! -f "$claude_json" ]]; then
+    warn "$claude_json missing — skipping MCP drift check"
+elif ! command -v jq >/dev/null 2>&1; then
+    warn "jq not found — skipping MCP drift check (install jq to enable)"
 elif [[ ! -f "$mcp_list_file" ]]; then
     warn "$mcp_list_file missing — skipping MCP drift check"
 else
-    # Names declared in dotfiles list
     declared="$(awk -F'|' '
         /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
         { gsub(/[[:space:]]/, "", $1); if ($1 != "") print $1 }
     ' "$mcp_list_file" | sort -u)"
 
-    # Names currently registered (exclude claude.ai cloud servers and header lines)
-    registered="$(claude mcp list 2>/dev/null | awk -F: '
-        /^claude\.ai / { next }
-        /^[A-Za-z0-9_-]+:/ { print $1 }
-    ' | sort -u)"
+    registered="$(jq -r '.mcpServers // {} | keys[]' "$claude_json" 2>/dev/null | sort -u)"
 
     missing="$(comm -23 <(echo "$declared") <(echo "$registered"))"
     extra="$(comm -13 <(echo "$declared") <(echo "$registered"))"
@@ -211,7 +212,7 @@ else
     fi
     if [[ -n "$missing" ]]; then
         while IFS= read -r n; do
-            [[ -n "$n" ]] && bad "MCP missing locally: $n — Fix: ./bootstrap.sh --update"
+            [[ -n "$n" ]] && bad "MCP missing locally: $n — Fix: ./bootstrap.sh --mcp-only"
         done <<< "$missing"
     fi
     if [[ -n "$extra" ]]; then
