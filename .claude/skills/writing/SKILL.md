@@ -5,6 +5,7 @@ license: MIT
 metadata:
   author: Anbeeld
   version: '1.3.1'
+group: smart.docs
 ---
 
 # Writing ruleset

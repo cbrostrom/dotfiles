@@ -1,3 +1,6 @@
+---
+group: smart.utilities
+---
 # SPDX-License-Identifier: CC-BY-4.0
 ---
 name: style-review
