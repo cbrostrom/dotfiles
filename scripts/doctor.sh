@@ -183,6 +183,44 @@ else
     warn "GITHUB_PERSONAL_ACCESS_TOKEN mangler — tilføj til ~/.local-secrets"
 fi
 
+# ----- MCP drift -----
+hdr "MCP drift (mcp-servers.list vs claude mcp list)"
+mcp_list_file="$DOTFILES_DIR/.claude/mcp-servers.list"
+if ! command -v claude >/dev/null 2>&1; then
+    warn "claude CLI not found — skipping MCP drift check"
+elif [[ ! -f "$mcp_list_file" ]]; then
+    warn "$mcp_list_file missing — skipping MCP drift check"
+else
+    # Names declared in dotfiles list
+    declared="$(awk -F'|' '
+        /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
+        { gsub(/[[:space:]]/, "", $1); if ($1 != "") print $1 }
+    ' "$mcp_list_file" | sort -u)"
+
+    # Names currently registered (exclude claude.ai cloud servers and header lines)
+    registered="$(claude mcp list 2>/dev/null | awk -F: '
+        /^claude\.ai / { next }
+        /^[A-Za-z0-9_-]+:/ { print $1 }
+    ' | sort -u)"
+
+    missing="$(comm -23 <(echo "$declared") <(echo "$registered"))"
+    extra="$(comm -13 <(echo "$declared") <(echo "$registered"))"
+
+    if [[ -z "$missing" && -z "$extra" ]]; then
+        ok "MCP servers in sync ($(echo "$declared" | wc -l | tr -d ' ') entries)"
+    fi
+    if [[ -n "$missing" ]]; then
+        while IFS= read -r n; do
+            [[ -n "$n" ]] && bad "MCP missing locally: $n — Fix: ./bootstrap.sh --update"
+        done <<< "$missing"
+    fi
+    if [[ -n "$extra" ]]; then
+        while IFS= read -r n; do
+            [[ -n "$n" ]] && warn "MCP registered but not in list: $n — Fix: claude mcp remove $n --scope user (or add to mcp-servers.list)"
+        done <<< "$extra"
+    fi
+fi
+
 # ----- summary -----
 hdr "Summary"
 if (( syn_err > 0 )); then
