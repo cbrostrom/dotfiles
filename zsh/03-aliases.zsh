@@ -291,12 +291,36 @@ if [[ "$(uname -s)" == "Linux" ]]; then
 fi
 
 # =============================================================================
-# CLAUDE CODE LAUNCHERS (~/.local/bin)
+# CLAUDE CODE LAUNCHERS
 # =============================================================================
-alias cc='claude'
-alias ccp='claude-pick'
-alias ccr='claude-resume-pick'
-alias ccw='claude-worktree-pick'
+# Core
+alias cc='claude'                                  # plain launch
+alias ccc='claude --continue'                      # continue most recent in cwd
+alias ccr='claude --resume'                        # built-in resume picker
+alias ccf='claude --continue --fork-session'       # fork most recent into new session
+
+# Custom pickers (~/.local/bin)
+alias ccp='claude-pick'                            # fuzzy-pick project to start in
+alias ccrp='claude-resume-pick'                    # fuzzy-pick past session to resume
+alias ccw='claude-worktree-pick'                   # fuzzy-pick git worktree
+
+# Modes
+alias ccy='claude --dangerously-skip-permissions'  # YOLO: skip permission prompts
+alias ccb='claude --bare'                          # minimal mode (no hooks/MCP/skills)
+alias ccd='claude --debug'                         # debug mode
+alias cci='claude --ide'                           # auto-connect IDE
+alias ccq='claude -p'                              # one-shot print (non-interactive)
+
+# Subcommands
+alias ccdoc='claude doctor'
+alias ccup='claude update'
+alias ccmcp='claude mcp'
+alias ccpl='claude plugins'
+alias ccag='claude agents'
+alias ccauth='claude auth'
+
+# PR resume (interactive picker if no arg)
+alias ccpr='claude --from-pr'
 
 # =============================================================================
 # SYSTEM UPDATE ALIASES
