@@ -19,6 +19,15 @@ engram-personal | ssh | superbro | ENGRAM_DATA_DIR=/home/christian/.engram/perso
 # Requires: SuperBro reachable via Tailscale SSH
 engram-work | ssh | superbro | ENGRAM_DATA_DIR=/home/christian/.engram/work /home/christian/.local/bin/engram mcp
 
+# Mermaid diagram generator
+mcp-mermaid | npx | -y | mcp-mermaid
+
+# Shopify dev tools — docs, GraphQL, theme validation
+shopify-dev | npx | -y | @shopify/dev-mcp@latest
+
+# Tailwind CSS — utilities, color palette, component templates
+tailwindcss | npx | -y | tailwindcss-mcp-server
+
 # Atlassian MCP — Fiskars workspace
 # Requires: ATLASSIAN_* env vars in ~/.local-secrets, mcp-atlassian installed via pipx
 atlassian-fiskars | ~/.claude/scripts/atlassian-fiskars.sh
