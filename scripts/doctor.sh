@@ -222,6 +222,30 @@ else
     fi
 fi
 
+# ----- engram SSH reachability -----
+# Engram MCPs spawn `ssh superbro …` at runtime. If superbro's host key is
+# not in known_hosts under that alias, SSH blocks on a yes/no prompt and the
+# MCP server never starts. Probe non-interactively so doctor never blocks.
+hdr "Engram SSH (superbro)"
+if ! command -v ssh >/dev/null 2>&1; then
+    warn "ssh not installed — engram MCPs will not work"
+else
+    ssh_probe="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=yes \
+                     -o ConnectTimeout=3 -o ServerAliveInterval=2 \
+                     superbro 'echo ok' 2>&1)"
+    if [[ "$ssh_probe" == "ok" ]]; then
+        ok "ssh superbro reachable"
+    elif grep -q "host key.* not.* known\|authenticity\|Host key verification failed" <<< "$ssh_probe"; then
+        warn "ssh superbro host key not trusted under alias 'superbro' — Fix: ssh superbro (accept once) or add HostKeyAlias to ~/.ssh/config"
+    elif grep -q "Permission denied" <<< "$ssh_probe"; then
+        warn "ssh superbro auth failed — check ~/.ssh/id_* and authorized_keys on superbro"
+    elif grep -q "Could not resolve\|Name or service not known\|No route to host\|[Cc]onnection.*timed out\|Connection refused" <<< "$ssh_probe"; then
+        warn "ssh superbro unreachable (Tailscale up? host alias defined?)"
+    else
+        warn "ssh superbro probe failed: $(echo "$ssh_probe" | head -1)"
+    fi
+fi
+
 # ----- summary -----
 hdr "Summary"
 if (( syn_err > 0 )); then
