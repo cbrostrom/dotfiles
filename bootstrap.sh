@@ -107,6 +107,20 @@ install_python_tools() {
     ok "mcp-atlassian ready: $(command -v mcp-atlassian 2>/dev/null || echo 'not found')"
 }
 
+install_rust_tools() {
+    if ! command -v cargo >/dev/null 2>&1; then
+        warn "cargo not found — skipping Rust tool installs (install rustup: https://rustup.rs)"
+        return 0
+    fi
+    log "installing Rust MCP tools via cargo …"
+    if command -v lean-ctx >/dev/null 2>&1; then
+        ok "lean-ctx already installed: $(command -v lean-ctx)"
+    else
+        cargo install lean-ctx 2>/dev/null || warn "lean-ctx install failed (non-fatal)"
+        ok "lean-ctx ready: $(command -v lean-ctx 2>/dev/null || echo 'not found')"
+    fi
+}
+
 install_zellij() {
     log "ensuring zellij is installed …"
     bash "$DOTFILES_DIR/scripts/install/zellij.sh" || warn "zellij install reported errors (non-fatal)"
@@ -259,6 +273,7 @@ main() {
             install_packages "$profile" || warn "package install reported errors"
             install_symlinks
             install_python_tools
+            install_rust_tools
             install_skills
             install_mcp_servers
             install_zellij
@@ -271,6 +286,7 @@ main() {
             install_packages "$profile" || warn "package install reported errors"
             install_symlinks
             install_python_tools
+            install_rust_tools
             install_skills
             install_mcp_servers
             install_zellij

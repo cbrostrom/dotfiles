@@ -8,14 +8,8 @@
 # GitHub — requires GITHUB_PERSONAL_ACCESS_TOKEN in ~/.local-secrets
 github | npx | -y | @modelcontextprotocol/server-github
 
-# Shopify Dev MCP
-shopify-dev | npx | -y | @shopify/dev-mcp@latest
-
-# Mermaid diagram rendering
-mcp-mermaid | npx | -y | mcp-mermaid
-
-# Tailwind CSS tooling
-tailwindcss | npx | -y | tailwindcss-mcp-server
+# lean-ctx — token-saving context tool. Requires `cargo install lean-ctx`.
+lean-ctx | ~/.cargo/bin/lean-ctx
 
 # Engram personal vault — all projects (personal + work)
 # Requires: SuperBro reachable via Tailscale SSH
