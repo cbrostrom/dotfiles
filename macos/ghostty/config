@@ -1,0 +1,122 @@
+# Ghostty Terminal Configuration
+# Docs: https://ghostty.org/docs/config
+
+# =============================================================================
+# APPEARANCE & THEMING
+# =============================================================================
+
+font-family = Hack Nerd Font Mono
+
+fullscreen = false
+window-theme = dark
+window-padding-x = 10
+window-padding-y = 5
+window-padding-balance = true
+window-padding-color = background
+window-save-state = always
+window-colorspace = display-p3
+macos-titlebar-style = transparent
+macos-window-shadow = true
+
+background = #131313
+foreground = #d6dbe5
+selection-background = #3a4555
+selection-foreground = #ffffff
+cursor-color = #b9b9b9
+cursor-style = bar
+cursor-style-blink = false
+
+background-opacity = 0.97
+background-blur-radius = 20
+unfocused-split-opacity = 0.85
+
+# Color palette (16 colors)
+palette = 0=#1f1f1f
+palette = 1=#f81118
+palette = 2=#2dc55e
+palette = 3=#ecba0f
+palette = 4=#2a84d2
+palette = 5=#4e5ab7
+palette = 6=#1081d6
+palette = 7=#d6dbe5
+palette = 8=#d6dbe5
+palette = 9=#de352e
+palette = 10=#1dd361
+palette = 11=#f3bd09
+palette = 12=#1081d6
+palette = 13=#5350b9
+palette = 14=#0f7ddb
+palette = 15=#ffffff
+
+# =============================================================================
+# BEHAVIOR & INTEGRATION
+# =============================================================================
+
+# Run zsh directly without "Waiting to run" prompt
+command = /opt/homebrew/bin/zsh --login --interactive
+wait-after-command = false
+
+working-directory = home
+shell-integration = zsh
+window-inherit-working-directory = true
+window-inherit-font-size = true
+
+clipboard-read = allow
+clipboard-write = allow
+copy-on-select = clipboard
+
+custom-shader-animation = always
+adjust-cell-height = 35%
+
+mouse-hide-while-typing = true
+mouse-scroll-multiplier = 2
+
+scrollback-limit = 100000
+
+confirm-close-surface = false
+quit-after-last-window-closed = false
+
+# Send Option as Alt/ESC so terminal apps (Zellij, Vim) receive Alt+key
+# left = Alt for keybinds, right = composed chars (æ, ø, å) still work
+macos-option-as-alt = left
+macos-non-native-fullscreen = visible-menu
+
+# Quake-style drop-down
+quick-terminal-position = top
+
+# =============================================================================
+# KEYBINDINGS
+# =============================================================================
+
+# Configuration management
+keybind = cmd+s>r=reload_config
+keybind = cmd+s>x=close_surface
+
+# Window management
+keybind = cmd+s>n=new_window
+keybind = cmd+s>w=close_window
+keybind = cmd+s>f=toggle_fullscreen
+
+# Tab management
+keybind = cmd+s>t=new_tab
+keybind = cmd+s>shift+l=next_tab
+keybind = cmd+s>shift+h=previous_tab
+keybind = cmd+s>comma=move_tab:-1
+keybind = cmd+s>period=move_tab:1
+keybind = cmd+s>shift+w=close_tab
+
+# Split management
+keybind = cmd+s>v=new_split:right
+keybind = cmd+s>d=new_split:down
+keybind = cmd+s>shift+v=new_split:left
+keybind = cmd+s>shift+d=new_split:up
+keybind = cmd+s>shift+o=close_surface
+
+# Navigation
+keybind = cmd+s>j=goto_split:bottom
+keybind = cmd+s>k=goto_split:top
+keybind = cmd+s>shift+j=goto_split:next
+keybind = cmd+s>shift+k=goto_split:previous
+
+# Quick terminal
+keybind = global:cmd+grave_accent=toggle_quick_terminal
