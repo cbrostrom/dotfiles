@@ -31,7 +31,7 @@ case "$(uname -s)" in
     Darwin)
         if command -v brew >/dev/null 2>&1; then
             log "Installing via Homebrew…"
-            brew install --cask font-jetbrains-mono-nerd-font font-symbols-only-nerd-font || true
+            brew install --cask font-jetbrains-mono-nerd-font || true
         else
             install_manual "$HOME/Library/Fonts"
         fi

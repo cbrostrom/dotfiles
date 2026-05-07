@@ -107,9 +107,28 @@ install_python_tools() {
     ok "mcp-atlassian ready: $(command -v mcp-atlassian 2>/dev/null || echo 'not found')"
 }
 
+install_rust_toolchain() {
+    if command -v cargo >/dev/null 2>&1; then
+        return 0
+    fi
+    if [[ -x "$HOME/.cargo/bin/cargo" ]]; then
+        export PATH="$HOME/.cargo/bin:$PATH"
+        return 0
+    fi
+    log "installing rustup (minimal stable toolchain) …"
+    if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+        | sh -s -- -y --default-toolchain stable --profile minimal --no-modify-path; then
+        export PATH="$HOME/.cargo/bin:$PATH"
+        ok "rustup installed: $(command -v cargo 2>/dev/null || echo 'not on PATH')"
+    else
+        warn "rustup install failed (non-fatal)"
+    fi
+}
+
 install_rust_tools() {
+    install_rust_toolchain
     if ! command -v cargo >/dev/null 2>&1; then
-        warn "cargo not found — skipping Rust tool installs (install rustup: https://rustup.rs)"
+        warn "cargo not found after toolchain install — skipping Rust tool installs"
         return 0
     fi
     log "installing Rust MCP tools via cargo …"
