@@ -4,105 +4,50 @@
 # Editor integrations and platform-specific configurations
 
 # =============================================================================
-# CURSOR/CODE EDITOR INTEGRATION (Cross-Platform)
+# CURSOR EDITOR INTEGRATION (Cross-Platform)
 # =============================================================================
-# Intelligently sets up 'code' and 'cursor' commands based on OS
-# Works on macOS, Linux, and WSL2
+# Sets up `cursor` command per OS. `code`/`vs` belong to VSCodium and are
+# defined in 04-functions.zsh — do not redefine them here.
 
-# Function to safely resolve Windows user path (WSL only)
 _find_windows_user_home() {
     local win_home
     win_home=$(wslpath "$(cmd.exe /C "echo %USERPROFILE%" 2>/dev/null | tr -d '\r')" 2>/dev/null)
     echo "$win_home"
 }
 
-# Function to set up Cursor integration
 _setup_cursor_integration() {
-    local cursor_bin=""
-    local cursor_found=false
-
     if $IS_WSL; then
-        # WSL: Check for Cursor on Windows
         local win_home=$(_find_windows_user_home)
         if [[ -n "$win_home" ]]; then
             local cursor_exe="$win_home/AppData/Local/Programs/cursor/Cursor.exe"
             if [[ -x "$cursor_exe" ]]; then
-                cursor_bin="$cursor_exe"
-                cursor_found=true
-
-                # Create wrapper functions for WSL
+                export CURSOR_PATH="$cursor_exe"
                 cursor() {
                     local target="."
-                    if [[ -n "$1" ]]; then
-                        target="$1"
-                    fi
-                    "$cursor_bin" "$(wslpath -w "$target")" >/dev/null 2>&1 &
+                    [[ -n "$1" ]] && target="$1"
+                    "$CURSOR_PATH" "$(wslpath -w "$target")" >/dev/null 2>&1 &
                 }
-
-                code() {
-                    cursor "$@"
-                }
-
-                # Export for subshells
-                export CURSOR_PATH="$cursor_bin"
             fi
         fi
     elif $IS_MACOS; then
-        # macOS: Check for Cursor.app
-        if [[ -d "/Applications/Cursor.app" ]]; then
-            cursor_found=true
-
+        if [[ -d /Applications/Cursor.app ]]; then
             cursor() {
                 local target="."
-                if [[ -n "$1" ]]; then
-                    target="$1"
-                fi
-                open -a "Cursor" "$target"
-            }
-
-            code() {
-                cursor "$@"
-            }
-        # Fallback: Check if cursor CLI is in PATH
-        elif command -v cursor >/dev/null 2>&1; then
-            cursor_found=true
-            code() {
-                cursor "$@"
+                [[ -n "$1" ]] && target="$1"
+                open -a Cursor "$target"
             }
         fi
     elif $IS_LINUX; then
-        # Linux: Check if cursor is in PATH (AppImage or installed via package)
-        if command -v cursor >/dev/null 2>&1; then
-            cursor_found=true
-            code() {
-                cursor "$@"
-            }
-        # Check common Linux installation paths
-        elif [[ -x "$HOME/.local/bin/cursor" ]]; then
-            cursor_found=true
+        if [[ -x "$HOME/.local/bin/cursor" ]]; then
             alias cursor="$HOME/.local/bin/cursor"
-            code() {
-                "$HOME/.local/bin/cursor" "$@"
-            }
-        elif [[ -x "/usr/local/bin/cursor" ]]; then
-            cursor_found=true
-            alias cursor="/usr/local/bin/cursor"
-            code() {
-                "/usr/local/bin/cursor" "$@"
-            }
+        elif [[ -x /usr/local/bin/cursor ]]; then
+            alias cursor=/usr/local/bin/cursor
         fi
     fi
-
-    # Status message (optional - comment out if you don't want startup messages)
-    # if $cursor_found; then
-    #     echo "✓ Cursor integration active ($OS_TYPE)"
-    # fi
 }
 
-# Run the setup
 _setup_cursor_integration
 
-# Cleanup temporary functions
 unset -f _find_windows_user_home
 unset -f _setup_cursor_integration
 
