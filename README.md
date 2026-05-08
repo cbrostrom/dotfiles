@@ -1,42 +1,52 @@
 # Dotfiles
 
-Cross-platform dotfiles for macOS, Linux (Debian/Ubuntu), and WSL2.
+Cross-platform dotfiles for macOS, Linux (Debian/Ubuntu), and WSL2. Provisioned
+via a module system: each piece of setup (symlinks, fonts, VSCodium, MCP
+servers, etc.) is a self-contained module under `modules/`.
 
 ## Structure
 
 ```
 .config/dotfiles/
+├── bootstrap.sh                  # Module-driven entrypoint
+├── modules/                      # Module system + individual modules
+│   ├── _lib/                       # loader, log, platform, config helpers
+│   ├── packages/  symlinks/  fonts/  vscodium/  zed/  …
+│   └── README.md                   # How to add a module
+├── modules.conf.example          # Per-machine enable/disable template
 ├── .zshrc, .gitconfig, .gitignore_global   # Core dotfiles
-├── install.sh, uninstall.sh, dotfiles.sh   # Setup scripts
-├── zsh/                                    # Modular zsh config (00-05)
-├── .config/                                # bat, cursor, lazygit, procs, starship
-├── macos/ghostty/                          # Ghostty terminal (macOS)
-├── linux/ghostty/                           # Ghostty terminal (native Linux)
-├── linux/install-linux.sh                  # Linux-specific setup
-├── wsl/windows-terminal/                    # Windows Terminal settings (WSL)
-├── gaming/                                 # Steam gamelaunch, MangoHud, DXVK configs
-├── scripts/cursor/                         # Cursor sync scripts
-├── utils/                                  # Helper scripts (beets, ssh-agent, etc.)
-├── vivaldi/phi/                            # Vivaldi browser theme
-└── .local-config.example                   # Machine-specific config template
+├── zsh/                          # Modular zsh config (00-08)
+├── .config/                      # bat, lazygit, procs, starship, zellij, vscodium…
+├── macos/ghostty/                # Ghostty terminal (macOS)
+├── linux/ghostty/                # Ghostty terminal (native Linux)
+├── wsl/windows-terminal/         # Windows Terminal settings (WSL)
+├── scripts/                      # Implementation scripts (called by modules)
+├── tui/                          # gum-based interactive front-end
+└── .local-config.example         # Machine-specific config template
 ```
 
 ## Installation
 
 ```bash
-cd ~/.config/dotfiles  # or clone to your preferred location
-./install.sh           # Interactive menu, or:
-./install.sh --full    # Full setup
-./install.sh --minimal # Dotfiles only, skip dependencies
+cd ~/.config/dotfiles                 # or clone to preferred location
+./bootstrap.sh                        # full install — discovers + runs all enabled modules
+./bootstrap.sh --list                 # see modules and their state on this machine
+./bootstrap.sh --only=symlinks,zsh    # run a subset
+./bootstrap.sh --skip=fonts           # opt out of one
+./bootstrap.sh --update               # git pull + re-run all enabled
 ```
+
+Per-machine module configuration: `~/.config/dotfiles/modules.conf` (copy from
+`modules.conf.example`). One module name per line; prefix `!` to disable.
+
+See `modules/README.md` for module authoring details.
 
 ## Usage
 
-- `dotfiles` – Interactive menu (requires fzf or whiptail)
-- `./install.sh --update` – Refresh symlinks after git pull
-- `./install.sh --cursor` – Cursor settings sync only
-- `./install.sh --gaming` – Gaming launcher only
-- `./status.sh` – Check installation status
+- `dotfiles` – Interactive TUI (requires `gum`)
+- `./bootstrap.sh --list` – Module status table
+- `./bootstrap.sh --update` – Refresh after `git pull`
+- `./status.sh` – Quick health check
 - `./uninstall.sh` – Remove symlinks, restore backups
 
 ## Platforms
