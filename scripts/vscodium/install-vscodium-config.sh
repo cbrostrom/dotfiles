@@ -136,6 +136,17 @@ install_config() {
     _inject_git_path "$dest/settings.json"
     ok "Copied settings.json → $dest"
 
+    # On WSL: git extension runs on the WSL remote server, which has machine-scoped
+    # settings separate from Windows. Ensure the server settings have the Linux git path.
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+        local wsl_server_user="$HOME/.vscodium-server/data/User"
+        if [[ -d "$HOME/.vscodium-server" ]]; then
+            mkdir -p "$wsl_server_user"
+            printf '{\n  "git.path": "/usr/bin/git"\n}\n' > "$wsl_server_user/settings.json"
+            ok "Set git.path=/usr/bin/git in WSL server settings"
+        fi
+    fi
+
     for f in keybindings.json tasks.json; do
         [[ -f "$SRC/$f" ]] && cp "$SRC/$f" "$dest/$f" && ok "Copied $f → $dest"
     done
