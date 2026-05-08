@@ -408,4 +408,27 @@ code() {
 }
 alias vs='code'
 
+# =============================================================================
+# CLIPIMG (WSL-only) — save Windows clipboard image to /tmp, print path
+# =============================================================================
+# Usage:
+#   clipimg              → /tmp/clip-<ts>.png, prints WSL path
+#   clipimg foo.png      → saves to foo.png
+# Path also copied to Linux clipboard via xclip if available.
+clipimg() {
+    is_wsl || { echo "clipimg: WSL only" >&2; return 1; }
+    local out="${1:-/tmp/clip-$(date +%s).png}"
+    local win_out
+    win_out="$(wslpath -w "$out" 2>/dev/null)" || { echo "clipimg: wslpath failed" >&2; return 1; }
+    powershell.exe -NoProfile -Command "
+        Add-Type -AssemblyName System.Windows.Forms
+        \$img = [System.Windows.Forms.Clipboard]::GetImage()
+        if (\$img -eq \$null) { Write-Error 'no image in clipboard'; exit 1 }
+        \$img.Save('$win_out', [System.Drawing.Imaging.ImageFormat]::Png)
+    " >&2
+    [[ -s "$out" ]] || { echo "clipimg: save failed (no image in clipboard?)" >&2; return 1; }
+    echo "$out"
+    command -v xclip >/dev/null 2>&1 && printf '%s' "$out" | xclip -selection clipboard 2>/dev/null
+}
+
 
