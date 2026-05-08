@@ -8,6 +8,10 @@
 # GitHub — requires GITHUB_PERSONAL_ACCESS_TOKEN in ~/.local-secrets
 github | npx | -y | @modelcontextprotocol/server-github
 
+# Google Calendar — requires OAuth credentials (~/.config/google-calendar-mcp/)
+# Auth is machine-local: run `npx @cocal/google-calendar-mcp` once per machine to authenticate
+google-calendar | npx | -y | @cocal/google-calendar-mcp
+
 # lean-ctx — token-saving context tool. Requires `cargo install lean-ctx`.
 lean-ctx | ~/.cargo/bin/lean-ctx
 
