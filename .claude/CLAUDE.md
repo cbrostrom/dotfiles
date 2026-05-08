@@ -91,9 +91,10 @@ Natural language signals that activate specific tools, MCPs, or modes. Match loo
 
 | Keywords / intent | Action |
 |---|---|
-| "stacks", "deploy stack", "redeploy", "stack status" | `mcp-dockhand` MCP (Dockhand API on superbro) |
-| "containers on superbro", "restart X on superbro", "superbro logs" | `docker-superbro` MCP or `mcp-dockhand` |
-| "containers on linuxbro", "linuxbro logs", "plex/sonarr/radarr" | `docker-linuxbro` MCP tools |
+| "stacks on superbro", "deploy stack", "superbro stack status" | `mcp-dockhand` MCP (Dockhand API on superbro) |
+| "stacks on linuxbro", "linuxbro stack status" | `mcp-dockhand-linuxbro` MCP (Dockhand API on linuxbro) |
+| "containers on superbro", "restart X on superbro", "superbro logs" | `mcp-dockhand` or `docker-superbro` |
+| "containers on linuxbro", "linuxbro logs", "plex/sonarr/radarr" | `mcp-dockhand-linuxbro` or `docker-linuxbro` |
 
 ## Mode signals
 
