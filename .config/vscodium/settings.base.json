@@ -77,6 +77,12 @@
   // ─── SECURITY ─────────────────────────────────────────────────────────────
   "security.workspace.trust.enabled": false,
 
+  // ─── REMOTE ───────────────────────────────────────────────────────────────
+  "remote.extensionKind": {
+    "vscode.git": ["workspace"],
+    "vscode.git-base": ["workspace"]
+  },
+
   // ─── GIT ──────────────────────────────────────────────────────────────────
   "git.enabled": true,
   "git.autofetch": true,
