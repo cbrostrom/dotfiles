@@ -44,7 +44,6 @@ ms-azuretools.vscode-docker
 # Config / infra
 redhat.vscode-yaml
 mikestead.dotenv
-mkhl.direnv
 
 # Go
 golang.go
