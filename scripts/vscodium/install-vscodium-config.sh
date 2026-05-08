@@ -41,6 +41,39 @@ _codium_bin() {
     fi
 }
 
+# Ensure vscode.git + vscode.git-base are not in the disabled list (settings-optimization sites disable them).
+_ensure_git_enabled() {
+    local db
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+        db="/mnt/c/Users/${USERNAME:-$(whoami)}/AppData/Roaming/VSCodium/User/globalStorage/state.vscdb"
+    elif [[ "$(uname -s)" == "Darwin" ]]; then
+        db="$HOME/Library/Application Support/VSCodium/User/globalStorage/state.vscdb"
+    else
+        db="$HOME/.config/VSCodium/User/globalStorage/state.vscdb"
+    fi
+    [[ -f "$db" ]] || return 0
+    command -v python3 >/dev/null 2>&1 || return 0
+    python3 - "$db" << 'PYEOF'
+import sqlite3, json, sys
+db = sys.argv[1]
+conn = sqlite3.connect(db)
+row = conn.execute("SELECT value FROM ItemTable WHERE key='extensionsIdentifiers/disabled'").fetchone()
+if not row:
+    conn.close()
+    sys.exit(0)
+disabled = json.loads(row[0])
+blocked = {'vscode.git', 'vscode.git-base'}
+cleaned = [e for e in disabled if e.get('id') not in blocked]
+removed = [e['id'] for e in disabled if e.get('id') in blocked]
+if removed:
+    conn.execute("UPDATE ItemTable SET value=? WHERE key='extensionsIdentifiers/disabled'", (json.dumps(cleaned),))
+    conn.commit()
+    print(f"Re-enabled: {', '.join(removed)}")
+conn.close()
+PYEOF
+    ok "Verified vscode.git not in disabled list"
+}
+
 # Patch vscodium-server product.json + git extension on WSL so vscode.git activates remotely.
 # VSCodium ships with empty extensionKindMap; without it jeanp413.open-remote-wsl never routes
 # vscode.git to the server side. Re-run when vscodium-server updates (new commit hash).
@@ -170,6 +203,8 @@ install_config() {
         read -rp "Overwrite? [y/N] " ans
         [[ "$ans" =~ ^[Yy]$ ]] || { warn "Skipping overwrite."; return 0; }
     fi
+
+    _ensure_git_enabled
 
     cp "$SRC/settings.local.json" "$dest/settings.json"
     _inject_git_path "$dest/settings.json"
