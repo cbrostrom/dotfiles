@@ -74,6 +74,9 @@
     "source.organizeImports": "never"
   },
 
+  // ─── SECURITY ─────────────────────────────────────────────────────────────
+  "security.workspace.trust.enabled": false,
+
   // ─── GIT ──────────────────────────────────────────────────────────────────
   "git.enabled": true,
   "git.autofetch": true,
