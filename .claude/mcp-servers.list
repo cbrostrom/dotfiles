@@ -32,6 +32,11 @@ tailwindcss | npx | -y | tailwindcss-mcp-server
 # Requires: ATLASSIAN_* env vars in ~/.local-secrets, mcp-atlassian installed via pipx
 atlassian-fiskars | ~/.claude/scripts/atlassian-fiskars.sh
 
+# Docker — remote daemon management via SSH (superbro + linuxbro)
+# Requires: mcp-server-docker (npx), hosts reachable via Tailscale SSH
+docker-superbro | ~/.claude/scripts/docker-superbro.sh
+docker-linuxbro | ~/.claude/scripts/docker-linuxbro.sh
+
 # Atlassian MCP — AKQA workspace
 # Requires: ATLASSIAN_* env vars in ~/.local-secrets, mcp-atlassian installed via pipx
 atlassian-akqa | ~/.claude/scripts/atlassian-akqa.sh
