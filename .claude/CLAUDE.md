@@ -57,6 +57,47 @@ Rules:
 
 MCP servers registered via `~/.dotfiles/.claude/mcp-servers.list` — auto-installed on bootstrap.
 
+# Keyword dispatch
+
+Natural language signals that activate specific tools, MCPs, or modes. Match loosely — user won't always use exact words.
+
+## Memory routing
+
+| Keywords / intent | Action |
+|---|---|
+| "remember", "save this", "note that", "don't forget" | Engram `mem_save` (+ Graphiti `add_memory` if relational) |
+| "what did we do", "last session", "pick up where", "context" | Engram `mem_context` |
+| "how does X relate to Y", "connections between", "timeline of", "when did X change" | Graphiti `search_facts` / `search_nodes` |
+| "what do you know about X", "recall", "search memory" | Both: Engram `mem_search` + Graphiti `search_nodes` |
+| "we're done", "wrapping up", "end of session" | Engram `mem_session_summary` (+ Graphiti `add_memory` for session highlights) |
+
+## Infrastructure
+
+| Keywords / intent | Action |
+|---|---|
+| "containers on superbro", "restart X on superbro", "superbro logs" | `docker-superbro` MCP tools |
+| "containers on linuxbro", "linuxbro logs", "plex/sonarr/radarr" | `docker-linuxbro` MCP tools |
+| "deploy", "docker compose", "stack" | Appropriate docker MCP based on which host |
+
+## Mode signals
+
+| Keywords / intent | Action |
+|---|---|
+| "be brief", "save tokens", "less words" | Activate caveman mode if not active |
+| "explain in detail", "teach me", "walk me through", "why does" | Drop caveman temporarily, give full explanation |
+| "plan this", "architect", "think through", "let's design" | Enter plan mode (`EnterPlanMode`) |
+| "review this", "check my code", "audit" | Use review/security-review skill |
+| "build UI", "make it look good", "frontend" | Use frontend-design skill |
+| "write a post", "draft article", "help me write" | Use writing skill |
+
+## Project detection
+
+| Keywords / intent | Action |
+|---|---|
+| Shopify, theme, Liquid, sections, blocks | Use shopify-theme-development + liquid-skills |
+| stellar-shopify, Fiskars, AKQA | Switch to `engram-work` vault |
+| "search Jira", "check Confluence", tickets | Use appropriate atlassian MCP (fiskars vs akqa based on context) |
+
 # graphify
 - **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
 When the user types `/graphify`, invoke the Skill tool with `skill: "graphify"` before doing anything else.
