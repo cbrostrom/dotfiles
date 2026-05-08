@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-exec env DOCKER_HOST="ssh://superbro" npx -y mcp-server-docker
+exec env DOCKER_HOST="ssh://superbro" uvx mcp-server-docker
