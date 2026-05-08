@@ -256,10 +256,19 @@ install_mcp_servers() {
             [[ -n "$t" ]] && args+=("$t")
         done
         claude mcp remove "$name" --scope user 2>/dev/null || true
-        if claude mcp add --scope user "$name" -- "$command" "${args[@]}" 2>/dev/null; then
-            ok "MCP registered: $name"
+        # HTTP transport: command is "http" sentinel, first arg is URL
+        if [[ "$command" == "http" ]]; then
+            if claude mcp add --transport http --scope user "$name" "${args[0]}" 2>/dev/null; then
+                ok "MCP registered (http): $name"
+            else
+                warn "MCP registration failed: $name"
+            fi
         else
-            warn "MCP registration failed: $name"
+            if claude mcp add --scope user "$name" -- "$command" "${args[@]}" 2>/dev/null; then
+                ok "MCP registered: $name"
+            else
+                warn "MCP registration failed: $name"
+            fi
         fi
     done < "$list"
 }
@@ -319,7 +328,6 @@ main() {
             install_mcp_servers
             install_zellij
             install_fonts "$profile"
-            install_zed_config "$profile"
             install_vscodium_config "$profile"
             run_doctor $fix_flag || true
             ok "update complete (profile: $profile)"
