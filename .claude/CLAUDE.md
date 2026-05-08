@@ -59,7 +59,23 @@ MCP servers registered via `~/.dotfiles/.claude/mcp-servers.list` — auto-insta
 
 # Keyword dispatch
 
-Natural language signals that activate specific tools, MCPs, or modes. Match loosely — user won't always use exact words.
+Natural language signals that activate specific tools, MCPs, or modes. Match loosely — user won't always use exact words. Dot-commands (`.plan`, `.review`) are shorthand triggers — treat them as immediate mode/skill activation.
+
+## Dot-commands (shorthand triggers)
+
+| Command | Action |
+|---|---|
+| `.plan` | Enter plan mode (`EnterPlanMode`) |
+| `.review` | Invoke review skill |
+| `.security` | Invoke security-review skill |
+| `.ui` | Invoke frontend-design skill |
+| `.write` | Invoke writing skill |
+| `.caveman` | Activate caveman mode |
+| `.normal` | Deactivate caveman mode |
+| `.remember` | Save current context to both Engram + Graphiti |
+| `.recall` | Search both Engram + Graphiti for relevant context |
+| `.docker` | List containers on contextually relevant host |
+| `.stacks` | List stacks via Dockhand MCP (superbro) |
 
 ## Memory routing
 
@@ -75,9 +91,9 @@ Natural language signals that activate specific tools, MCPs, or modes. Match loo
 
 | Keywords / intent | Action |
 |---|---|
-| "containers on superbro", "restart X on superbro", "superbro logs" | `docker-superbro` MCP tools |
+| "stacks", "deploy stack", "redeploy", "stack status" | `mcp-dockhand` MCP (Dockhand API on superbro) |
+| "containers on superbro", "restart X on superbro", "superbro logs" | `docker-superbro` MCP or `mcp-dockhand` |
 | "containers on linuxbro", "linuxbro logs", "plex/sonarr/radarr" | `docker-linuxbro` MCP tools |
-| "deploy", "docker compose", "stack" | Appropriate docker MCP based on which host |
 
 ## Mode signals
 
@@ -97,6 +113,10 @@ Natural language signals that activate specific tools, MCPs, or modes. Match loo
 | Shopify, theme, Liquid, sections, blocks | Use shopify-theme-development + liquid-skills |
 | stellar-shopify, Fiskars, AKQA | Switch to `engram-work` vault |
 | "search Jira", "check Confluence", tickets | Use appropriate atlassian MCP (fiskars vs akqa based on context) |
+
+# Security model
+
+Tailscale is the primary security layer. All self-hosted MCPs (Engram, Graphiti, mcp-dockhand, docker-linuxbro) are only reachable via Tailscale CGNAT IPs (100.64.0.0/10). A machine must be enrolled in the tailnet to connect. No public exposure, no VPN needed beyond Tailscale.
 
 # graphify
 - **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
