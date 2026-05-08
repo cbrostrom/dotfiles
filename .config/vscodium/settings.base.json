@@ -37,7 +37,7 @@
   "editor.minimap.enabled": false,
   "breadcrumbs.enabled": false,
   "editor.codeLens": false,
-  "window.menuBarVisibility": "toggle",
+  "window.menuBarVisibility": "classic",
   "editor.renderWhitespace": "boundary",
   "editor.guides.bracketPairs": false,
   "editor.guides.indentation": true,
@@ -75,6 +75,8 @@
   },
 
   // ─── GIT ──────────────────────────────────────────────────────────────────
+  "git.enabled": true,
+  "git.path": "C:\\Program Files\\Git\\cmd\\git.exe",
   "git.autofetch": true,
   "git.confirmSync": false,
   "git.enableSmartCommit": true,
