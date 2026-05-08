@@ -48,7 +48,7 @@ _inject_git_path() {
 
     local git_path=""
     if grep -qi microsoft /proc/version 2>/dev/null; then
-        git_path='C:\\Program Files\\Git\\cmd\\git.exe'
+        git_path='C:\Program Files\Git\cmd\git.exe'
     elif [[ "$(uname -s)" == "Darwin" ]]; then
         if [[ -x "/opt/homebrew/bin/git" ]]; then
             git_path="/opt/homebrew/bin/git"
