@@ -41,6 +41,45 @@ _codium_bin() {
     fi
 }
 
+# Patch vscodium-server product.json + git extension on WSL so vscode.git activates remotely.
+# VSCodium ships with empty extensionKindMap; without it jeanp413.open-remote-wsl never routes
+# vscode.git to the server side. Re-run when vscodium-server updates (new commit hash).
+_patch_wsl_server_git() {
+    command -v python3 >/dev/null 2>&1 || return 0
+    [[ -d "$HOME/.vscodium-server/bin" ]] || return 0
+
+    for commit_dir in "$HOME/.vscodium-server/bin"/*/; do
+        [[ -d "$commit_dir" ]] || continue
+
+        local product="$commit_dir/product.json"
+        local git_pkg="$commit_dir/extensions/git/package.json"
+
+        if [[ -f "$product" ]]; then
+            python3 - "$product" << 'PYEOF'
+import json, sys
+f = sys.argv[1]
+d = json.load(open(f))
+km = d.setdefault('extensionKindMap', {})
+km['vscode.git'] = ['workspace']
+km['vscode.git-base'] = ['workspace']
+json.dump(d, open(f, 'w'), indent='\t')
+PYEOF
+            ok "Patched extensionKindMap in $(basename "$commit_dir")/product.json"
+        fi
+
+        if [[ -f "$git_pkg" ]]; then
+            python3 - "$git_pkg" << 'PYEOF'
+import json, sys
+f = sys.argv[1]
+d = json.load(open(f))
+d['extensionKind'] = ['workspace']
+json.dump(d, open(f, 'w'), indent='\t')
+PYEOF
+            ok "Patched extensionKind in git extension package.json"
+        fi
+    done
+}
+
 # Inject platform-specific git.path into a settings JSON file
 _inject_git_path() {
     local file="$1"
@@ -136,14 +175,14 @@ install_config() {
     _inject_git_path "$dest/settings.json"
     ok "Copied settings.json → $dest"
 
-    # On WSL: git extension runs on the WSL remote server, which has machine-scoped
-    # settings separate from Windows. Ensure the server settings have the Linux git path.
+    # On WSL: patch server binary + set remote git path
     if grep -qi microsoft /proc/version 2>/dev/null; then
         local wsl_server_user="$HOME/.vscodium-server/data/User"
         if [[ -d "$HOME/.vscodium-server" ]]; then
             mkdir -p "$wsl_server_user"
             printf '{\n  "git.path": "/usr/bin/git"\n}\n' > "$wsl_server_user/settings.json"
             ok "Set git.path=/usr/bin/git in WSL server settings"
+            _patch_wsl_server_git
         fi
     fi
 
