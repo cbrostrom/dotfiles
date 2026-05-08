@@ -33,7 +33,8 @@ tailwindcss | npx | -y | tailwindcss-mcp-server
 atlassian-fiskars | ~/.claude/scripts/atlassian-fiskars.sh
 
 # Graphiti — temporal knowledge graph (HTTP transport, runs on superbro:8000)
-graphiti | http | http://100.100.1.50:8000/mcp/
+# Graphiti — temporal knowledge graph on superbro (Tailscale direct)
+graphiti | http | http://100.100.1.50:8000/mcp
 
 # Docker — remote daemon management via SSH (superbro + linuxbro)
 # Requires: mcp-server-docker (npx), hosts reachable via Tailscale SSH
