@@ -36,6 +36,9 @@ atlassian-fiskars | ~/.claude/scripts/atlassian-fiskars.sh
 # Graphiti — temporal knowledge graph on superbro (Tailscale direct)
 graphiti | http | http://100.100.1.50:8000/mcp
 
+# Dockhand — full Dockhand API for superbro stack management (Tailscale-only)
+mcp-dockhand | http | http://100.100.1.50:8080/mcp
+
 # Docker — remote daemon management via SSH (superbro + linuxbro)
 # Requires: mcp-server-docker (npx), hosts reachable via Tailscale SSH
 docker-superbro | ~/.claude/scripts/docker-superbro.sh
