@@ -41,6 +41,32 @@ _codium_bin() {
     fi
 }
 
+# Inject platform-specific git.path into a settings JSON file
+_inject_git_path() {
+    local file="$1"
+    command -v jq >/dev/null 2>&1 || return 0
+
+    local git_path=""
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+        git_path='C:\\Program Files\\Git\\cmd\\git.exe'
+    elif [[ "$(uname -s)" == "Darwin" ]]; then
+        if [[ -x "/opt/homebrew/bin/git" ]]; then
+            git_path="/opt/homebrew/bin/git"
+        elif [[ -x "/usr/local/bin/git" ]]; then
+            git_path="/usr/local/bin/git"
+        else
+            git_path="/usr/bin/git"
+        fi
+    else
+        git_path="/usr/bin/git"
+    fi
+
+    local tmp
+    tmp="$(mktemp)"
+    jq --arg p "$git_path" '."git.path" = $p' "$file" > "$tmp" && mv "$tmp" "$file"
+    ok "Injected git.path: $git_path"
+}
+
 # Merge base → local (jq: base fills missing keys, local wins on conflict)
 _merge_settings() {
     local base="$SRC/settings.base.json"
@@ -107,6 +133,7 @@ install_config() {
     fi
 
     cp "$SRC/settings.local.json" "$dest/settings.json"
+    _inject_git_path "$dest/settings.json"
     ok "Copied settings.json → $dest"
 
     for f in keybindings.json tasks.json; do
