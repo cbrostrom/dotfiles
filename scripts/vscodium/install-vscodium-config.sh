@@ -177,7 +177,7 @@ _merge_settings() {
 }
 
 install_config() {
-    local dest
+    local dest force="${FORCE_YES:-0}"
     dest="$(_vscodium_user_dir)"
 
     if [[ ! -d "$dest" ]]; then
@@ -200,8 +200,12 @@ install_config() {
         for f in "${drifted[@]}"; do
             diff "$SRC/$f" "$dest/$f" 2>/dev/null || true
         done
-        read -rp "Overwrite? [y/N] " ans
-        [[ "$ans" =~ ^[Yy]$ ]] || { warn "Skipping overwrite."; return 0; }
+        if [[ "$force" == "1" ]]; then
+            warn "Force mode — overwriting without prompt"
+        else
+            read -rp "Overwrite? [y/N] " ans
+            [[ "$ans" =~ ^[Yy]$ ]] || { warn "Skipping overwrite."; return 0; }
+        fi
     fi
 
     _ensure_git_enabled
@@ -241,10 +245,10 @@ install_extensions() {
     while IFS= read -r line || [[ -n "$line" ]]; do
         [[ "$line" =~ ^#|^[[:space:]]*$ ]] && continue
         ext_id="${line%% *}"
-        if "$codium" --list-extensions 2>/dev/null | grep -qi "^${ext_id}$"; then
+        if "$codium" --list-extensions </dev/null 2>/dev/null | grep -qi "^${ext_id}$"; then
             ok "already installed: $ext_id"
         else
-            if "$codium" --install-extension "$ext_id" 2>/dev/null; then
+            if "$codium" --install-extension "$ext_id" </dev/null 2>/dev/null; then
                 ok "installed: $ext_id"
             else
                 warn "failed to install: $ext_id (may not be on Open VSX)"
@@ -255,12 +259,19 @@ install_extensions() {
 
 main() {
     local mode="${1:-config}"
+    # Parse flags before mode
+    for arg in "$@"; do
+        case "$arg" in
+            --yes|-y) FORCE_YES=1 ;;
+        esac
+    done
     case "$mode" in
         --install-extensions|-e) install_extensions ;;
         --config|-c|config)      install_config ;;
         --all|-a)                install_config; install_extensions ;;
+        --yes|-y)                install_config ;;  # bare --yes defaults to --config
         *)
-            echo "Usage: $(basename "$0") [--config|--install-extensions|--all]"
+            echo "Usage: $(basename "$0") [--config|--install-extensions|--all] [--yes]"
             exit 1
             ;;
     esac

@@ -25,5 +25,28 @@ jellydn.vscode-whichkey
 pkief.material-icon-theme
 teabyii.ayu
 
+# Shopify
+shopify.theme-check-vscode
+
 # Formatting
 esbenp.prettier-vscode
+dbaeumer.vscode-eslint
+
+# Styling
+bradlc.vscode-tailwindcss
+
+# Shell
+timonwong.shellcheck
+
+# Docker
+ms-azuretools.vscode-docker
+
+# Config / infra
+redhat.vscode-yaml
+mikestead.dotenv
+mkhl.direnv
+
+# Go
+golang.go
+
+# GitHub Actions — cschleiden.vscode-github-actions not on Open VSX
