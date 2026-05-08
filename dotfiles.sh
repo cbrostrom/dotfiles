@@ -61,17 +61,83 @@ main() {
 }
 
 run_tools() {
-    CATEGORY=$(printf "VSCodium\nSymlinks\nFonts\nSecrets\n← Back" | fzf \
-        --height=10 --layout=reverse --border \
+    # Enumerate eligible modules from the registry, sorted by category.
+    . "$DOTFILES_DIR/modules/_lib/log.sh"
+    . "$DOTFILES_DIR/modules/_lib/platform.sh"
+    . "$DOTFILES_DIR/modules/_lib/config.sh"
+    . "$DOTFILES_DIR/modules/_lib/loader.sh"
+    DOTFILES_QUIET=1 modules_init >/dev/null 2>&1 || return
+    DOTFILES_QUIET=1 modules_discover >/dev/null 2>&1 || return
+
+    # Build menu: "<category>: <name> — <desc>" for modules eligible on this machine.
+    # Skip platform-incompatible modules (they can't run here anyway).
+    local -a entries=()
+    local name action label
+    while IFS= read -r name; do
+        action="$(_decide_module_action "$name")"
+        case "$action" in
+            run|skip-disabled|skip-not-selected|skip-missing-req:*)
+                label="$(printf '%-9s · %-18s · %s' \
+                    "${_MODULES_CATEGORY[$name]}" "$name" "${_MODULES_DESC[$name]}")"
+                entries+=("$label")
+                ;;
+        esac
+    done < <(
+        # Sort by category-order then name.
+        for n in "${_MODULES_REGISTRY[@]}"; do
+            cat="${_MODULES_CATEGORY[$n]:-optional}"
+            case "$cat" in
+                core)     prio=1 ;;
+                shell)    prio=2 ;;
+                claude)   prio=3 ;;
+                editor)   prio=4 ;;
+                gui)      prio=5 ;;
+                tools)    prio=6 ;;
+                optional) prio=7 ;;
+                *)        prio=9 ;;
+            esac
+            printf "%d %s\n" "$prio" "$n"
+        done | sort -k1n -k2 | awk '{print $2}'
+    )
+
+    entries+=("← Back")
+
+    local pick
+    pick=$(printf "%s\n" "${entries[@]}" | fzf \
+        --height=20 --layout=reverse --border \
         --prompt='tools › ' \
+        --header='select a module to run (filter by typing)' \
         --no-preview) || return
 
-    case "$CATEGORY" in
-        "VSCodium") bash "$DOTFILES_DIR/tui/tools/vscodium.sh" ;;
-        "Symlinks") bash "$DOTFILES_DIR/tui/tools/symlinks.sh" ;;
-        "Fonts")    bash "$DOTFILES_DIR/tui/tools/fonts.sh" ;;
-        "Secrets")  bash "$DOTFILES_DIR/tui/tools/secrets.sh" ;;
-        "← Back"|"") return ;;
+    [[ "$pick" == "← Back" || -z "$pick" ]] && return
+
+    # Extract module name from "category : name : desc"
+    local module_name
+    module_name="$(echo "$pick" | awk -F' · ' '{print $2}' | tr -d ' ')"
+
+    [[ -z "$module_name" ]] && return
+
+    # Show preview / confirm / run sequence
+    local action
+    action=$(printf "Run\nPreview (--diff)\nInfo\nCancel" | fzf \
+        --height=8 --layout=reverse --border \
+        --prompt="$module_name › " \
+        --no-preview) || return
+
+    case "$action" in
+        Run)
+            gum spin --title "Running $module_name" -- \
+                bash "$DOTFILES_DIR/bootstrap.sh" "--only=$module_name" \
+                && gum style --foreground 10 "  ✓ $module_name complete" \
+                || gum style --foreground 9  "  ✗ $module_name failed"
+            read -rsp "Press any key…" -n1; echo ;;
+        "Preview (--diff)")
+            bash "$DOTFILES_DIR/bootstrap.sh" "--diff=$module_name" 2>&1 | less -R
+            ;;
+        Info)
+            bash "$DOTFILES_DIR/bootstrap.sh" "--info=$module_name" 2>&1 | less -R
+            ;;
+        Cancel|"") return ;;
     esac
 }
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 MODULE_NAME="ssh-superbro"
 MODULE_DESC="SSH config for superbro VPS (Tailscale CGNAT)"
+MODULE_CATEGORY="tools"
 MODULE_PLATFORMS="all"
 MODULE_PROFILES="all"
 MODULE_CORE=false

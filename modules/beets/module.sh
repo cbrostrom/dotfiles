@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 MODULE_NAME="beets"
 MODULE_DESC="beets music library tagger (opt-in only)"
+MODULE_CATEGORY="optional"
 MODULE_PLATFORMS="macos linux"
 MODULE_PROFILES="desktop-full"
 MODULE_CORE=false

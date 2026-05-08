@@ -30,6 +30,7 @@ modules/
     install.sh           REQUIRED  install / configure logic (idempotent)
     update.sh            optional  re-run friendly variant; defaults to install.sh
     status.sh            optional  exit 0 if installed/healthy, 1 if needs install
+    diff.sh              optional  preview what install.sh would do (--diff fallback prints install.sh source)
     uninstall.sh         optional  cleanup
 ```
 
@@ -42,6 +43,7 @@ The runner enters each `install.sh` with `DOTFILES_DIR`, `MODULE_DIR`, and
 #!/usr/bin/env bash
 MODULE_NAME="vscodium"                      # must match directory name
 MODULE_DESC="VSCodium settings + extensions"
+MODULE_CATEGORY="editor"                    # core|shell|claude|editor|gui|tools|optional
 MODULE_PLATFORMS="macos linux wsl"          # default: all
 MODULE_PROFILES="desktop-full wsl"          # default: all
 MODULE_CORE=false                           # default: false
@@ -54,6 +56,7 @@ MODULE_DEFAULT_ENABLED=true                 # default: true
 |---------------------------|----------------------------------------------------------------------|
 | `MODULE_NAME`             | Identifier; must match directory name                                |
 | `MODULE_DESC`             | One-line description shown in `--list`                               |
+| `MODULE_CATEGORY`         | Group label used by `--list` and the TUI tools menu                   |
 | `MODULE_PLATFORMS`        | `macos`, `linux`, `wsl`, or `all`. Empty = all.                       |
 | `MODULE_PROFILES`         | `desktop-full`, `server-headless`, `wsl`, or `all`. Empty = all.       |
 | `MODULE_CORE`             | If `true`, disabling triggers a warning (still respected).           |
@@ -87,7 +90,9 @@ CLI / env precedence (later wins):
 ```bash
 ./bootstrap.sh                     # full install (everything enabled+eligible)
 ./bootstrap.sh --update            # git pull + run all enabled
-./bootstrap.sh --list              # human-readable status table
+./bootstrap.sh --list              # human-readable status table (grouped by category, colored)
+./bootstrap.sh --info=fonts        # detail view: deps, status, last-run, hints
+./bootstrap.sh --diff=symlinks     # preview what the module would do (or print install.sh)
 ./bootstrap.sh --only=fonts,zsh    # run only these (and their deps)
 ./bootstrap.sh --skip=mcp-servers  # run all except this
 ./bootstrap.sh --doctor            # diagnostic only

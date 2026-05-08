@@ -10,6 +10,8 @@
 #   ./bootstrap.sh --update              # git pull + re-run all enabled
 #   ./bootstrap.sh --list                # show module table (state + status)
 #   ./bootstrap.sh --status              # alias for --list
+#   ./bootstrap.sh --info=NAME           # detailed view of one module
+#   ./bootstrap.sh --diff=NAME           # preview what NAME would do
 #   ./bootstrap.sh --only=mod1,mod2      # run only these modules (+ their deps)
 #   ./bootstrap.sh --skip=mod1,mod2      # run all except these
 #   ./bootstrap.sh --doctor [--fix]      # diagnostic only, no changes
@@ -53,10 +55,12 @@ unset _brew_bin
 # -----------------------------------------------------------------------------
 # Argument parsing
 # -----------------------------------------------------------------------------
-MODE="full"           # full | update | list | doctor
+MODE="full"           # full | update | list | doctor | info | diff
 FIX_FLAG=""
 ONLY=""
 SKIP=""
+INFO_TARGET=""
+DIFF_TARGET=""
 
 # Legacy aliases collected here so we can apply them after parsing.
 _LEGACY_ONLY=""
@@ -70,6 +74,8 @@ for arg in "$@"; do
         --update|-u)        MODE="update" ;;
         --list)             MODE="list" ;;
         --status)           MODE="list" ;;
+        --info=*)           MODE="info"; INFO_TARGET="${arg#--info=}" ;;
+        --diff=*)           MODE="diff"; DIFF_TARGET="${arg#--diff=}" ;;
         --doctor)           MODE="doctor" ;;
         --fix)              FIX_FLAG="--fix" ;;
         --only=*)           ONLY="${arg#--only=}" ;;
@@ -101,6 +107,12 @@ modules_discover
 case "$MODE" in
     list)
         modules_print_table
+        ;;
+    info)
+        modules_info "$INFO_TARGET"
+        ;;
+    diff)
+        modules_diff "$DIFF_TARGET"
         ;;
     doctor)
         if [[ -x "$DOTFILES_DIR/scripts/doctor.sh" ]]; then

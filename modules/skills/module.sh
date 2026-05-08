@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 MODULE_NAME="skills"
 MODULE_DESC="Claude Code skills from .claude/skills/skills.list"
+MODULE_CATEGORY="claude"
 MODULE_PLATFORMS="all"
 MODULE_PROFILES="all"
 MODULE_CORE=false

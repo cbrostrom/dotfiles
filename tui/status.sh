@@ -119,7 +119,9 @@ _show_module_summary() {
         esac
     done < <(modules_list_all)
 
-    gum style --foreground 8 "  modules:  $clean_n clean · $dirty_n dirty · $unknown_n unknown · $disabled_n disabled · $platform_n n/a"
+    # Glyph row uses printf directly so ANSI escapes render (gum treats input as literal text).
+    printf "  \033[2mmodules:\033[0m  \033[32m✓\033[0m %d  \033[33m⚠\033[0m %d  \033[2m?\033[0m %d  \033[2m⊘\033[0m %d  \033[31m─\033[0m %d\n" \
+        "$clean_n" "$dirty_n" "$unknown_n" "$disabled_n" "$platform_n"
 }
 
 show_status() {
