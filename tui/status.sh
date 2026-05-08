@@ -92,6 +92,36 @@ _badge() {
     esac
 }
 
+_show_module_summary() {
+    # shellcheck source=/dev/null
+    . "$DOTFILES_DIR/modules/_lib/log.sh"   2>/dev/null || return 0
+    . "$DOTFILES_DIR/modules/_lib/platform.sh" 2>/dev/null || return 0
+    . "$DOTFILES_DIR/modules/_lib/config.sh" 2>/dev/null || return 0
+    . "$DOTFILES_DIR/modules/_lib/loader.sh" 2>/dev/null || return 0
+    DOTFILES_QUIET=1 modules_init >/dev/null 2>&1 || return 0
+    DOTFILES_QUIET=1 modules_discover >/dev/null 2>&1 || return 0
+
+    local name action status state
+    local -i clean_n=0 dirty_n=0 unknown_n=0 disabled_n=0 platform_n=0
+    while IFS= read -r name; do
+        action="$(_decide_module_action "$name")"
+        status="$(modules_status "$name")"
+        case "$action" in
+            run)
+                case "$status" in
+                    clean)   clean_n=$((clean_n + 1)) ;;
+                    dirty)   dirty_n=$((dirty_n + 1)) ;;
+                    *)       unknown_n=$((unknown_n + 1)) ;;
+                esac
+                ;;
+            skip-platform|skip-profile) platform_n=$((platform_n + 1)) ;;
+            skip-disabled|skip-not-selected) disabled_n=$((disabled_n + 1)) ;;
+        esac
+    done < <(modules_list_all)
+
+    gum style --foreground 8 "  modules:  $clean_n clean · $dirty_n dirty · $unknown_n unknown · $disabled_n disabled · $platform_n n/a"
+}
+
 show_status() {
     local zsh_st git_st sec_st node_st
     zsh_st=$(_check_symlink "$HOME/.zshrc")
@@ -109,6 +139,7 @@ show_status() {
     _badge "$git_st"  "git"     "$([[ $git_st  == ok ]] && echo configured || echo "check gitconfig")"
     _badge "$sec_st"  "secrets" "$([[ $sec_st  == ok ]] && echo ok || { [[ $sec_st == warn ]] && echo "bad perms" || echo "missing"; })"
     _badge "$node_st" "node"    "$(command -v node >/dev/null 2>&1 && node --version 2>/dev/null || echo "not found")"
+    _show_module_summary
     echo
 }
 

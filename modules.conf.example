@@ -1,0 +1,21 @@
+# ~/.config/dotfiles/modules.conf
+#
+# Per-machine module enable/disable list. Copy to ~/.config/dotfiles/modules.conf
+# and edit, OR symlink this file to that path.
+#
+# Format: one module name per line.
+#   bare name      → explicitly enable (overrides MODULE_DEFAULT_ENABLED=false)
+#   !name          → explicitly disable (overrides MODULE_DEFAULT_ENABLED=true)
+#   # comment      → ignored
+#
+# See `bootstrap.sh --list` for available modules.
+
+# --- Examples (commented out — uncomment to use) ---
+
+# Enable opt-in modules on this machine:
+# beets
+# secrets
+
+# Disable modules even though they'd default-on:
+# !mcp-servers
+# !skills

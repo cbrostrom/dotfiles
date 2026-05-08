@@ -2,85 +2,89 @@
 set -euo pipefail
 
 DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+export DOTFILES_DIR
+
+# Module-driven install picker.
+. "$DOTFILES_DIR/modules/_lib/log.sh"
+. "$DOTFILES_DIR/modules/_lib/platform.sh"
+. "$DOTFILES_DIR/modules/_lib/config.sh"
+. "$DOTFILES_DIR/modules/_lib/loader.sh"
 
 run_install() {
     echo
     gum style --bold --foreground 220 "INSTALL / SETUP"
 
-    local profile="unknown"
-    if [[ "$(uname -s)" == "Darwin" ]]; then
-        profile="macOS / desktop-full"
-    elif grep -qi microsoft /proc/version 2>/dev/null; then
-        profile="WSL / wsl"
-    elif [[ -f /etc/debian_version ]]; then
-        profile="Linux / desktop-full"
-    fi
-    gum style --foreground 8 "  Detected: $profile"
+    local plat prof
+    plat="$(platform_tag)"
+    prof="$(profile_tag)"
+    gum style --foreground 8 "  Platform: $plat   Profile: $prof"
     echo
 
-    local opts=("Packages (brew / apt)" "Symlinks" "Fonts" "Zed config")
-    [[ "$(uname -s)" == "Darwin" ]] && opts+=("macOS defaults")
+    modules_init
+    modules_discover
+
+    # Build list of pickable modules: exclude platform/profile mismatches.
+    local -a opts=() default_selected=() name action label
+    while IFS= read -r name; do
+        action="$(_decide_module_action "$name")"
+        case "$action" in
+            run|skip-disabled|skip-not-selected)
+                # eligible (state may be off, but user can opt in here)
+                label="$name — ${_MODULES_DESC[$name]}"
+                opts+=("$label")
+                # Pre-select modules that would run by default
+                if [[ "$action" == "run" ]]; then
+                    default_selected+=("$label")
+                fi
+                ;;
+        esac
+    done < <(modules_list_all)
+
+    if [[ ${#opts[@]} -eq 0 ]]; then
+        gum style --foreground 9 "No modules eligible for this platform/profile."
+        return
+    fi
+
+    local sel_csv
+    sel_csv="$(IFS=,; echo "${default_selected[*]}")"
 
     local _tmpsel
     _tmpsel="$(mktemp)"
     gum choose --no-limit \
-        --header "Select components to install:" \
-        --selected "Symlinks,Zed config" \
+        --header "Select modules to install (already-installed will re-run idempotently):" \
+        --selected "$sel_csv" \
         "${opts[@]}" > "$_tmpsel" || true
-    SELECTED=()
+
+    local -a SELECTED=()
     while IFS= read -r line; do
-        [[ -n "$line" ]] && SELECTED+=("$line")
+        [[ -n "$line" ]] && SELECTED+=("${line%% — *}")
     done < "$_tmpsel"
     rm -f "$_tmpsel"
 
     [[ ${#SELECTED[@]} -eq 0 ]] && { echo "Nothing selected."; return; }
 
     echo
-    gum style --foreground 8 "Will install:"
-    for s in "${SELECTED[@]}"; do
-        gum style --foreground 8 "  • $s"
-    done
+    gum style --foreground 8 "Will run:"
+    for s in "${SELECTED[@]}"; do gum style --foreground 8 "  • $s"; done
     echo
+    gum confirm "Proceed?" || return
 
-    gum confirm "Run selected steps?" || return
-
+    # Run each module via bootstrap.sh --only=name.
     local failed=()
-
-    _spin_install() {
-        local title="$1"; shift
-        if gum spin --title "$title" -- "$@"; then
-            gum style --foreground 10 "  ✓ $title"
+    for mod in "${SELECTED[@]}"; do
+        if gum spin --title "Running $mod" -- bash "$DOTFILES_DIR/bootstrap.sh" "--only=$mod"; then
+            gum style --foreground 10 "  ✓ $mod"
         else
-            gum style --foreground 9  "  ✗ $title"
-            failed+=("$title")
+            gum style --foreground 9  "  ✗ $mod"
+            failed+=("$mod")
         fi
-    }
-
-    for step in "${SELECTED[@]}"; do
-        case "$step" in
-            "Packages (brew / apt)")
-                _spin_install "Installing packages" bash "$DOTFILES_DIR/bootstrap.sh" --packages-only
-                gum style --foreground 8 "    brew (macOS) / apt (Linux) — se bootstrap.sh for liste" ;;
-            "Symlinks")
-                _spin_install "Creating symlinks" bash "$DOTFILES_DIR/scripts/install/symlinks.sh"
-                gum style --foreground 8 "    ~/.zshrc, ~/.gitconfig, ~/.zshenv og øvrige dotfiler" ;;
-            "Fonts")
-                _spin_install "Installing fonts" bash "$DOTFILES_DIR/scripts/install/nerd-fonts.sh"
-                gum style --foreground 8 "    Hack Nerd Font Mono → ~/Library/Fonts (mac) / ~/.local/share/fonts (linux)" ;;
-            "Zed config")
-                _spin_install "Setting up Zed" bash "$DOTFILES_DIR/scripts/zed/install-zed-config.sh"
-                gum style --foreground 8 "    settings.json (base→local merge), keymap.json, rules, auto_install_extensions" ;;
-            "macOS defaults")
-                _spin_install "Applying macOS defaults" bash "$DOTFILES_DIR/macos/defaults.sh"
-                gum style --foreground 8 "    Dock, Finder, trackpad, screenshots — se macos/defaults.sh" ;;
-        esac
     done
 
     echo
     if [[ ${#failed[@]} -eq 0 ]]; then
-        gum style --foreground 10 --bold "Setup complete."
+        gum style --foreground 10 --bold "All selected modules complete."
     else
-        gum style --foreground 9 --bold "Completed with issues:"
+        gum style --foreground 9 --bold "Completed with failures:"
         for f in "${failed[@]}"; do gum style --foreground 9 "  • $f"; done
     fi
     echo
