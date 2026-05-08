@@ -2,6 +2,17 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Sync Settings to Dotfiles",
+      "type": "shell",
+      "command": "bash -c 'd=\"${HOME}/dotfiles\"; [ -d \"$d\" ] || d=\"${HOME}/.config/dotfiles\"; bash \"$d/scripts/vscodium/vscodium-update-local.sh\"'",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Claude Commit",
       "type": "shell",
       "command": "claude /commit",

@@ -34,7 +34,7 @@
   "javascript.suggest.autoImports": true,
 
   // ─── UI ───────────────────────────────────────────────────────────────────
-  "editor.minimap.enabled": false,
+  "editor.minimap.enabled": true,
   "breadcrumbs.enabled": false,
   "editor.codeLens": false,
   "window.menuBarVisibility": "classic",
