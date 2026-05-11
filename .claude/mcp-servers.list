@@ -2,26 +2,17 @@
 # Format: name | command | arg1 | arg2 | ...
 # Pipes separate tokens. Spaces within a token are fine.
 # Lines starting with # are comments. Blank lines ignored.
-# Profile tags (optional, comma-separated): profile:desktop-full,wsl
-# Servers without profile tag install on all profiles.
+# Secrets: scripts read env from ~/.local-secrets (sourced by .zshrc).
+# Tailscale-only servers (engram, graphiti, dockhand, docker) will fail silently
+# at first use on machines not enrolled in the tailnet.
+
+# --- Local ---
 
 # GitHub — requires GITHUB_PERSONAL_ACCESS_TOKEN in ~/.local-secrets
 github | npx | -y | @modelcontextprotocol/server-github
 
-# Google Calendar — requires OAuth credentials (~/.config/google-calendar-mcp/)
-# Auth is machine-local: run `npx @cocal/google-calendar-mcp` once per machine to authenticate
-google-calendar | npx | -y | @cocal/google-calendar-mcp
-
 # lean-ctx — token-saving context tool. Requires `cargo install lean-ctx`.
 lean-ctx | ~/.cargo/bin/lean-ctx
-
-# Engram personal vault — all projects (personal + work)
-# Requires: SuperBro reachable via Tailscale SSH
-engram-personal | ssh | superbro | ENGRAM_DATA_DIR=/home/christian/.engram/personal /home/christian/.local/bin/engram mcp
-
-# Engram work vault — stellar-shopify only, safe to share with colleagues
-# Requires: SuperBro reachable via Tailscale SSH
-engram-work | ssh | superbro | ENGRAM_DATA_DIR=/home/christian/.engram/work /home/christian/.local/bin/engram mcp
 
 # Mermaid diagram generator
 mcp-mermaid | npx | -y | mcp-mermaid
@@ -32,29 +23,33 @@ shopify-dev | npx | -y | @shopify/dev-mcp@latest
 # Tailwind CSS — utilities, color palette, component templates
 tailwindcss | npx | -y | tailwindcss-mcp-server
 
-# Atlassian MCP — Fiskars workspace
-# Requires: ATLASSIAN_* env vars in ~/.local-secrets, mcp-atlassian installed via pipx
+# Google Calendar — script wrapper exports OAuth paths then execs @cocal/google-calendar-mcp.
+# First run opens browser for OAuth; token cached at ~/.config/google-calendar-mcp/tokens.json
+google-calendar | ~/.claude/scripts/google-calendar.sh
+
+# Atlassian MCP — Fiskars workspace (script reads ATLASSIAN_FISKARS_* from .local-secrets)
 atlassian-fiskars | ~/.claude/scripts/atlassian-fiskars.sh
 
-# Graphiti — temporal knowledge graph (HTTP transport, runs on superbro:8000)
-# Graphiti — temporal knowledge graph on superbro (Tailscale direct)
-graphiti | http | http://100.100.1.50:8000/mcp
-
-# Dockhand — full Dockhand API for superbro stack management (Tailscale-only)
-mcp-dockhand | http | http://100.100.1.50:8080/mcp
-
-# Dockhand MCP — linuxbro stack management (Tailscale-only)
-mcp-dockhand-linuxbro | http | http://100.100.1.100:8080/mcp
-
-# Docker — remote daemon management via SSH (superbro + linuxbro)
-# Requires: mcp-server-docker (npx), hosts reachable via Tailscale SSH
-docker-superbro | ~/.claude/scripts/docker-superbro.sh
-docker-linuxbro | ~/.claude/scripts/docker-linuxbro.sh
-
-# Atlassian MCP — AKQA workspace
-# Requires: ATLASSIAN_* env vars in ~/.local-secrets, mcp-atlassian installed via pipx
+# Atlassian MCP — AKQA workspace (script reads ATLASSIAN_AKQA_* from .local-secrets)
 atlassian-akqa | ~/.claude/scripts/atlassian-akqa.sh
 
-# Google Calendar — requires gcp-oauth.keys.json at ~/.config/google-calendar-mcp/
-# First run opens browser for OAuth; token cached at tokens.json
-google-calendar | ~/.claude/scripts/google-calendar.sh
+# --- Tailscale-only (require tailnet enrollment) ---
+
+# Engram personal vault — all projects except stellar-shopify
+engram-personal | ssh | superbro | ENGRAM_DATA_DIR=/home/christian/.engram/personal /home/christian/.local/bin/engram mcp
+
+# Engram work vault — stellar-shopify only (safe to share with AKQA colleagues)
+engram-work | ssh | superbro | ENGRAM_DATA_DIR=/home/christian/.engram/work /home/christian/.local/bin/engram mcp
+
+# Graphiti — temporal knowledge graph (Neo4j) on superbro:8000
+graphiti | http | http://100.100.1.50:8000/mcp
+
+# Dockhand — superbro stack management
+mcp-dockhand | http | http://100.100.1.50:8080/mcp
+
+# Dockhand — linuxbro stack management
+mcp-dockhand-linuxbro | http | http://100.100.1.100:8080/mcp
+
+# Docker daemons — remote management via SSH (script wrappers)
+docker-superbro | ~/.claude/scripts/docker-superbro.sh
+docker-linuxbro | ~/.claude/scripts/docker-linuxbro.sh

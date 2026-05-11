@@ -1,6 +1,12 @@
 # External Claude Code skills — installed via `npx skills add <source>`
-# Format: one source per line (npm package, GitHub slug, or full URL)
-# bootstrap.sh reads this and creates ~/.agents/skills/ + ~/.claude/skills/ symlinks.
+# Format: one source per line (npm package, GitHub slug, or full URL).
+# bootstrap.sh reads this and creates ~/.agents/skills/ + symlinks into
+# ~/.claude/skills/ (visible as `caveman`, `find-skills`, `code-overhaul-review`).
+#
+# In-repo skills (committed dirs under ~/dotfiles/.claude/skills/) are NOT
+# listed here — they ship as-is via dotfiles symlink. Currently:
+#   graphify, plannotator-*, seo, shopify-theme-development, style-review,
+#   typescript-advanced-types, vite, writing
 ehmo/caveman-skill
 ehmo/find-skills-skill
 ehmo/code-overhaul-skill
