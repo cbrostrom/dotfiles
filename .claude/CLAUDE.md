@@ -79,6 +79,9 @@ Natural language signals that activate specific tools, MCPs, or modes. Match loo
 | `.recall` | Search both Engram + Graphiti for relevant context |
 | `.docker` | List containers on contextually relevant host |
 | `.stacks` | List stacks via Dockhand MCP (superbro) |
+| `.spec` | Invoke `/ck:spec` — write or amend `SPEC.md` (cavekit) |
+| `.build` | Invoke `/ck:build` — execute against `SPEC.md`, auto-backprop bugs |
+| `.check` | Invoke `/ck:check` — drift report: code vs spec (`§V`, `§I`, `§T`) |
 
 ## Memory routing
 
@@ -129,6 +132,7 @@ Two layers cooperate. Pick author tool by scope; plannotator gates exit automati
 | Trivial scope: ≤ 2 files, single bugfix, one-line change, mechanical rename | No plan. Edit directly. | Planning overhead > work. |
 | Mid scope: 2–3 files, well-scoped feature, clear path | `EnterPlanMode` → outline in chat → `ExitPlanMode` | Quick scope, plannotator catches exit. |
 | Big scope: ≥ 3 files, new feature, refactor, architecture, spec, multi-step with checkpoints | `planning-with-files:plan` skill (writes `task_plan.md`, `findings.md`, `progress.md` next to work) | Persistent file-based plan; reviewable + resumable across sessions. |
+| Component-level spec w/ invariants and bug history that must survive context resets | `/ck:spec` (cavekit) writes single `SPEC.md` w/ §G/§C/§I/§V/§T/§B sections in caveman encoding | Token-cheap spec format; `/ck:check` provides drift detection; `/ck:build` auto-backprops test failures into §B. |
 
 ## Threshold heuristics (auto-pick)
 
@@ -158,6 +162,37 @@ Works regardless of which author tool produced the plan. No manual invocation ne
 | `/plannotator-review` | Visual code review on current diff or PR URL |
 | `/plannotator-annotate <file.md>` | Annotate any markdown file |
 | `/plannotator-last` | Annotate the last assistant message |
+
+# Cavekit (spec-driven, persistent SPEC.md)
+
+Cavekit complements planning-with-files. Use it for component-level specs where invariants + bug history must survive context resets. Three commands, one `SPEC.md`, caveman-encoded sections.
+
+## Commands
+
+| Command | Purpose |
+|---|---|
+| `/ck:spec` | Sole mutator. Write/amend `SPEC.md` (sections: §G goal, §C constraints, §I interfaces, §V invariants, §T tasks, §B bugs). |
+| `/ck:build` | Read `SPEC.md`, plan, execute. Test failure → auto-backprop into §B + new §V invariant. |
+| `/ck:check` | Read-only drift report — flag where code violates §V/§I/§T. |
+
+## When cavekit vs planning-with-files
+
+- planning-with-files = **multi-file project** plan (task_plan.md / findings.md / progress.md split).
+- cavekit = **single-component spec** with durable invariants and bug-class memory.
+- Both can coexist. Big projects: planning-with-files at root, cavekit `SPEC.md` per component dir.
+
+## Mirror backprop into Engram + Graphiti (MANDATORY)
+
+Whenever `/ck:build` or the `backprop` skill writes a new §B entry or §V invariant to `SPEC.md`:
+
+1. Call `mem_save` on the active Engram vault — topic key `bugs/{component}`, body = the §B entry verbatim + the resulting §V invariant.
+2. Call Graphiti `add_memory` — episode body links the bug class to the component node and the commit SHA (if applicable). Group id `claude-code`.
+
+Reason: SPEC.md is per-repo; Engram + Graphiti are cross-session, cross-project. Without the mirror, lessons stay siloed in the repo and don't surface in unrelated work.
+
+## Drift check before commit
+
+Before any `git commit` in a repo containing `SPEC.md`, run `/ck:check`. If drift reported, surface it and ask before staging. Do not commit through unresolved §V violations without explicit user override.
 
 # Security model
 
