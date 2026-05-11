@@ -1,4 +1,15 @@
 #!/usr/bin/env bash
+# Require bash 4+ (we use declare -g, associative arrays, multi-pattern case).
+# macOS ships bash 3.2, so re-exec under Homebrew bash if available.
+if (( BASH_VERSINFO[0] < 4 )); then
+    for _candidate in /opt/homebrew/bin/bash /usr/local/bin/bash /home/linuxbrew/.linuxbrew/bin/bash; do
+        if [[ -x "$_candidate" ]]; then
+            exec "$_candidate" "$0" "$@"
+        fi
+    done
+    echo "Error: bash 4+ required, found $BASH_VERSION. Install: brew install bash" >&2
+    exit 1
+fi
 set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -73,6 +84,21 @@ EOF
     • Per-module status table (clean / dirty / unknown / N/A)
 EOF
             ;;
+        *Devices*)   cat <<EOF
+
+  Devices
+  ───────
+  Cross-device inventory of Claude config state.
+  Each machine writes .claude/devices/<host>.json on update.
+
+  Shows: enabled plugins, MCP servers, skills per host.
+
+  Equivalent CLI:
+    scripts/claude/device-snapshot.sh write
+    scripts/claude/device-snapshot.sh list
+    scripts/claude/device-snapshot.sh show <host>
+EOF
+            ;;
         *Doctor*)    cat <<EOF
 
   Doctor
@@ -114,6 +140,7 @@ main_menu() {
         "  Update"
         "  Modules"
         "  Status"
+        "  Devices"
         "  Doctor"
         "  Quit"
     )
@@ -148,11 +175,15 @@ modules_menu() {
     done < <(
         for n in "${_MODULES_REGISTRY[@]}"; do
             cat="${_MODULES_CATEGORY[$n]:-optional}"
-            case "$cat" in
-                core) prio=1 ;; shell) prio=2 ;; claude) prio=3 ;;
-                editor) prio=4 ;; gui) prio=5 ;; tools) prio=6 ;;
-                optional) prio=7 ;; *) prio=9 ;;
-            esac
+            if   [[ "$cat" == "core"     ]]; then prio=1
+            elif [[ "$cat" == "shell"    ]]; then prio=2
+            elif [[ "$cat" == "claude"   ]]; then prio=3
+            elif [[ "$cat" == "editor"   ]]; then prio=4
+            elif [[ "$cat" == "gui"      ]]; then prio=5
+            elif [[ "$cat" == "tools"    ]]; then prio=6
+            elif [[ "$cat" == "optional" ]]; then prio=7
+            else prio=9
+            fi
             printf "%d %s\n" "$prio" "$n"
         done | sort -k1n -k2 | awk '{print $2}'
     )
@@ -234,6 +265,19 @@ screen_status() {
     read -rsp "Press any key…" -n1; echo
 }
 
+screen_devices() {
+    clear
+    render_banner
+    render_subtitle "Devices"
+    bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" list
+    echo
+    if gum confirm "Refresh this device's snapshot now?"; then
+        bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" write
+    fi
+    echo
+    read -rsp "Press any key…" -n1; echo
+}
+
 screen_doctor() {
     clear
     render_banner
@@ -276,6 +320,7 @@ main() {
         --install) run_install; return ;;
         --doctor)  bash "$DOTFILES_DIR/scripts/doctor.sh"; return ;;
         --status)  show_status; return ;;
+        --devices) bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" list; return ;;
     esac
 
     while true; do
@@ -289,6 +334,7 @@ main() {
             *Update*)  screen_update ;;
             *Modules*) screen_modules ;;
             *Status*)  screen_status ;;
+            *Devices*) screen_devices ;;
             *Doctor*)  screen_doctor ;;
             *Quit*|"") break ;;
         esac

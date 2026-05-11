@@ -102,4 +102,14 @@ chmod +x "$CLAUDE_DIR/hooks/"*.sh 2>/dev/null || true
 log_info "Running claude-sync pull..."
 bash "$SCRIPT_DIR/scripts/claude/claude-sync.sh" pull
 
+# Install / sync plugins declared in settings.local.json
+log_info "Running claude plugin install..."
+bash "$SCRIPT_DIR/scripts/claude/install-claude-plugins.sh" || \
+    log_warning "plugin install reported errors (non-fatal)"
+
+# Snapshot this device's state into .claude/devices/<host>.json
+log_info "Writing device snapshot..."
+bash "$SCRIPT_DIR/scripts/claude/device-snapshot.sh" write || \
+    log_warning "device snapshot failed (non-fatal)"
+
 log_success "Claude config installed."

@@ -32,6 +32,17 @@
 #   one module per line, prefix "!" to disable
 # =============================================================================
 
+# Require bash 4+ (declare -g, associative arrays). macOS ships 3.2.
+if (( BASH_VERSINFO[0] < 4 )); then
+    for _candidate in /opt/homebrew/bin/bash /usr/local/bin/bash /home/linuxbrew/.linuxbrew/bin/bash; do
+        if [[ -x "$_candidate" ]]; then
+            exec "$_candidate" "$0" "$@"
+        fi
+    done
+    echo "Error: bash 4+ required, found $BASH_VERSION. Install: brew install bash" >&2
+    exit 1
+fi
+
 set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

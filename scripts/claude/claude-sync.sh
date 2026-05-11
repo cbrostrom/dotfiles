@@ -2,7 +2,7 @@
 # Syncs Claude memory files and desktop app config across machines.
 set -euo pipefail
 
-DOTFILES="${DOTFILES:-$HOME/.config/dotfiles}"
+DOTFILES="${DOTFILES:-${DOTFILES_DIR:-$HOME/dotfiles}}"
 CLAUDE_PROJECTS="$HOME/.claude/projects"
 MEMORIES_DIR="$DOTFILES/.claude/memories"
 DESKTOP_CONFIG="$DOTFILES/.claude/desktop/claude_desktop_config.json"

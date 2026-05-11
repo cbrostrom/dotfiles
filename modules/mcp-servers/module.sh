@@ -5,6 +5,6 @@ MODULE_CATEGORY="claude"
 MODULE_PLATFORMS="all"
 MODULE_PROFILES="all"
 MODULE_CORE=false
-MODULE_DEPENDS="python-tools"
+MODULE_DEPENDS="python-tools claude-config"
 MODULE_REQUIRES="claude"
 MODULE_DEFAULT_ENABLED=true

@@ -68,7 +68,7 @@ Natural language signals that activate specific tools, MCPs, or modes. Match loo
 
 | Command | Action |
 |---|---|
-| `.plan` | Enter plan mode (`EnterPlanMode`) |
+| `.plan` | Invoke `planning-with-files:plan` skill (file-based: task_plan.md, findings.md, progress.md). For quick in-chat scoping use `EnterPlanMode` directly. |
 | `.review` | Invoke review skill |
 | `.security` | Invoke security-review skill |
 | `.ui` | Invoke frontend-design skill |
@@ -105,7 +105,7 @@ Natural language signals that activate specific tools, MCPs, or modes. Match loo
 |---|---|
 | "be brief", "save tokens", "less words" | Activate caveman mode if not active |
 | "explain in detail", "teach me", "walk me through", "why does" | Drop caveman temporarily, give full explanation |
-| "plan this", "architect", "think through", "let's design" | Enter plan mode (`EnterPlanMode`) |
+| "plan this", "architect", "think through", "let's design", complex multi-step task | Invoke `planning-with-files:plan` skill — writes `task_plan.md`, `findings.md`, `progress.md` next to the work. Use `EnterPlanMode` only for trivial in-chat scoping. |
 | "review this", "check my code", "audit" | Use review/security-review skill |
 | "build UI", "make it look good", "frontend" | Use frontend-design skill |
 | "write a post", "draft article", "help me write" | Use writing skill |

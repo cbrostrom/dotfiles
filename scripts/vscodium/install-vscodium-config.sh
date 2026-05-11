@@ -257,6 +257,110 @@ install_extensions() {
     done < "$ext_file"
 }
 
+# Strip JSONC line comments → stdout. Caveat: also strips // inside string values.
+_strip_jsonc() {
+    sed 's|//.*||g' "$1"
+}
+
+# Union merge: SRC + DEST keybindings, dedupe by (key|command|when|args). Local wins on tie (appended last).
+_merge_keybindings() {
+    local src="$1" dest="$2" tmp_src tmp_dest merged
+    tmp_src="$(mktemp)"; tmp_dest="$(mktemp)"; merged="$(mktemp)"
+    trap "rm -f '$tmp_src' '$tmp_dest' '$merged'" RETURN
+
+    _strip_jsonc "$src"  | jq '.' > "$tmp_src"  || { err "keybindings.json parse fail (SRC)";  return 1; }
+    _strip_jsonc "$dest" | jq '.' > "$tmp_dest" || { err "keybindings.json parse fail (DEST)"; return 1; }
+
+    jq -s '
+        [(.[0] // [])[], (.[1] // [])[]]
+        | group_by("\(.key)|\(.command)|\(.when // "")|\(.args | tostring)")
+        | map(.[-1])
+    ' "$tmp_src" "$tmp_dest" > "$merged" || { err "keybindings.json merge fail"; return 1; }
+
+    cp "$merged" "$dest"
+    ok "Merged keybindings.json (union, $(jq 'length' "$merged") entries)"
+}
+
+# Union merge: SRC + DEST tasks, dedupe by .label. Local wins on tie.
+_merge_tasks() {
+    local src="$1" dest="$2" tmp_src tmp_dest merged
+    tmp_src="$(mktemp)"; tmp_dest="$(mktemp)"; merged="$(mktemp)"
+    trap "rm -f '$tmp_src' '$tmp_dest' '$merged'" RETURN
+
+    _strip_jsonc "$src"  | jq '.' > "$tmp_src"  || { err "tasks.json parse fail (SRC)";  return 1; }
+    _strip_jsonc "$dest" | jq '.' > "$tmp_dest" || { err "tasks.json parse fail (DEST)"; return 1; }
+
+    jq -s '
+        (.[0] // {}) as $a | (.[1] // {}) as $b |
+        ($a * $b) + {
+            tasks: (
+                [($a.tasks // [])[], ($b.tasks // [])[]]
+                | group_by(.label // "")
+                | map(.[-1])
+            )
+        }
+    ' "$tmp_src" "$tmp_dest" > "$merged" || { err "tasks.json merge fail"; return 1; }
+
+    cp "$merged" "$dest"
+    ok "Merged tasks.json (union by label, $(jq '.tasks | length' "$merged") tasks)"
+}
+
+# Merge mode: settings.json overwrite (already merged via base→local), keybindings/tasks union.
+merge_config() {
+    local dest
+    dest="$(_vscodium_user_dir)"
+    [[ -d "$dest" ]] || { warn "VSCodium User dir not found: $dest"; return 1; }
+
+    if ! command -v jq >/dev/null 2>&1; then
+        err "jq required for --merge mode (install jq)"
+        return 1
+    fi
+
+    _merge_settings
+    _ensure_git_enabled
+
+    cp "$SRC/settings.local.json" "$dest/settings.json"
+    _inject_git_path "$dest/settings.json"
+    ok "Wrote settings.json → $dest"
+
+    for f in keybindings.json tasks.json; do
+        if [[ -f "$dest/$f" && -f "$SRC/$f" ]]; then
+            case "$f" in
+                keybindings.json) _merge_keybindings "$SRC/$f" "$dest/$f" ;;
+                tasks.json)       _merge_tasks       "$SRC/$f" "$dest/$f" ;;
+            esac
+        elif [[ -f "$SRC/$f" ]]; then
+            cp "$SRC/$f" "$dest/$f"
+            ok "Copied $f → $dest (no local file existed)"
+        fi
+    done
+}
+
+# Print drift summary and exit nonzero if local edits detected.
+# Used by tui/update.sh to surface diff before overwriting.
+check_drift() {
+    local dest
+    dest="$(_vscodium_user_dir)"
+    [[ -d "$dest" ]] || return 0
+
+    local drifted=()
+    for f in keybindings.json tasks.json; do
+        if [[ -f "$dest/$f" && -f "$SRC/$f" ]]; then
+            diff -q "$SRC/$f" "$dest/$f" >/dev/null 2>&1 || drifted+=("$f")
+        fi
+    done
+
+    [[ ${#drifted[@]} -eq 0 ]] && return 0
+
+    for f in "${drifted[@]}"; do
+        local added removed
+        added=$(diff "$SRC/$f" "$dest/$f" 2>/dev/null | grep -c '^>' || true)
+        removed=$(diff "$SRC/$f" "$dest/$f" 2>/dev/null | grep -c '^<' || true)
+        printf '%s  +%s -%s\n' "$f" "$added" "$removed"
+    done
+    return 1
+}
+
 main() {
     local mode="${1:-config}"
     # Parse flags before mode
@@ -268,10 +372,12 @@ main() {
     case "$mode" in
         --install-extensions|-e) install_extensions ;;
         --config|-c|config)      install_config ;;
+        --merge|-m|merge)        merge_config ;;
         --all|-a)                install_config; install_extensions ;;
+        --check)                 check_drift ;;
         --yes|-y)                install_config ;;  # bare --yes defaults to --config
         *)
-            echo "Usage: $(basename "$0") [--config|--install-extensions|--all] [--yes]"
+            echo "Usage: $(basename "$0") [--config|--merge|--install-extensions|--all|--check] [--yes]"
             exit 1
             ;;
     esac
