@@ -15,7 +15,8 @@
         "code-review@claude-plugins-official": true,
         "skill-creator@claude-plugins-official": true,
         "caveman@caveman": true,
-        "planning-with-files@planning-with-files": true
+        "planning-with-files@planning-with-files": true,
+        "plannotator@plannotator": true
     },
     "extraKnownMarketplaces": {
         "caveman": {
@@ -28,6 +29,12 @@
             "source": {
                 "source": "github",
                 "repo": "OthmanAdi/planning-with-files"
+            }
+        },
+        "plannotator": {
+            "source": {
+                "source": "github",
+                "repo": "backnotprop/plannotator"
             }
         }
     },

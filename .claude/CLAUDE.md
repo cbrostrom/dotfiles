@@ -68,7 +68,7 @@ Natural language signals that activate specific tools, MCPs, or modes. Match loo
 
 | Command | Action |
 |---|---|
-| `.plan` | Invoke `planning-with-files:plan` skill (file-based: task_plan.md, findings.md, progress.md). For quick in-chat scoping use `EnterPlanMode` directly. |
+| `.plan` | Auto-route by scope (see "Planning workflow" below). Big work → `planning-with-files:plan` skill. Mid scope → `EnterPlanMode`. Trivial → no plan. |
 | `.review` | Invoke review skill |
 | `.security` | Invoke security-review skill |
 | `.ui` | Invoke frontend-design skill |
@@ -105,7 +105,7 @@ Natural language signals that activate specific tools, MCPs, or modes. Match loo
 |---|---|
 | "be brief", "save tokens", "less words" | Activate caveman mode if not active |
 | "explain in detail", "teach me", "walk me through", "why does" | Drop caveman temporarily, give full explanation |
-| "plan this", "architect", "think through", "let's design", complex multi-step task | Invoke `planning-with-files:plan` skill — writes `task_plan.md`, `findings.md`, `progress.md` next to the work. Use `EnterPlanMode` only for trivial in-chat scoping. |
+| "plan this", "architect", "think through", "let's design", "spec", "refactor", "redesign" | Auto-pick per threshold heuristics in "Planning workflow" section. Big → `planning-with-files:plan` skill. Mid → `EnterPlanMode`. Plannotator catches the exit either way. |
 | "review this", "check my code", "audit" | Use review/security-review skill |
 | "build UI", "make it look good", "frontend" | Use frontend-design skill |
 | "write a post", "draft article", "help me write" | Use writing skill |
@@ -117,6 +117,47 @@ Natural language signals that activate specific tools, MCPs, or modes. Match loo
 | Shopify, theme, Liquid, sections, blocks | Use shopify-theme-development + liquid-skills |
 | stellar-shopify, Fiskars, AKQA | Switch to `engram-work` vault |
 | "search Jira", "check Confluence", tickets | Use appropriate atlassian MCP (fiskars vs akqa based on context) |
+
+# Planning workflow (planning-with-files + plannotator)
+
+Two layers cooperate. Pick author tool by scope; plannotator gates exit automatically.
+
+## Author layer — pick tool by scope
+
+| Signal | Tool | Why |
+|---|---|---|
+| Trivial scope: ≤ 2 files, single bugfix, one-line change, mechanical rename | No plan. Edit directly. | Planning overhead > work. |
+| Mid scope: 2–3 files, well-scoped feature, clear path | `EnterPlanMode` → outline in chat → `ExitPlanMode` | Quick scope, plannotator catches exit. |
+| Big scope: ≥ 3 files, new feature, refactor, architecture, spec, multi-step with checkpoints | `planning-with-files:plan` skill (writes `task_plan.md`, `findings.md`, `progress.md` next to work) | Persistent file-based plan; reviewable + resumable across sessions. |
+
+## Threshold heuristics (auto-pick)
+
+Use `planning-with-files:plan` when ANY of:
+- Task mentions: architecture, spec, refactor, redesign, migration, multi-step, "approach", "design"
+- Files affected ≥ 3 OR new files needed
+- Crosses package boundaries (apps/web + apps/api + packages/db)
+- DB schema change + API change + frontend change in same task
+- User explicitly says: "plan this", "let's design", `.plan`
+- Work likely spans multiple sessions
+
+Use `EnterPlanMode` otherwise when scope worth confirming.
+Use no plan for obvious single-file fixes.
+
+## Review layer — plannotator (automatic)
+
+Plannotator hooks `ExitPlanMode`. Every plan-mode exit opens a browser UI for visual annotation. User can:
+- Approve as-is → implementation proceeds
+- Annotate → comments piped back, model revises plan, re-exits → plannotator re-opens with diff
+
+Works regardless of which author tool produced the plan. No manual invocation needed.
+
+## Slash commands (plannotator)
+
+| Command | Purpose |
+|---|---|
+| `/plannotator-review` | Visual code review on current diff or PR URL |
+| `/plannotator-annotate <file.md>` | Annotate any markdown file |
+| `/plannotator-last` | Annotate the last assistant message |
 
 # Security model
 

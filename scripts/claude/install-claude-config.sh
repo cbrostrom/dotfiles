@@ -107,6 +107,13 @@ log_info "Running claude plugin install..."
 bash "$SCRIPT_DIR/scripts/claude/install-claude-plugins.sh" || \
     log_warning "plugin install reported errors (non-fatal)"
 
+# Install plannotator CLI binary (used by plannotator plugin hooks)
+if grep -q '"plannotator@plannotator": true' "$LOCAL" 2>/dev/null; then
+    log_info "Installing plannotator binary..."
+    bash "$SCRIPT_DIR/scripts/claude/install-plannotator.sh" || \
+        log_warning "plannotator binary install reported errors (non-fatal)"
+fi
+
 # Snapshot this device's state into .claude/devices/<host>.json
 log_info "Writing device snapshot..."
 bash "$SCRIPT_DIR/scripts/claude/device-snapshot.sh" write || \
