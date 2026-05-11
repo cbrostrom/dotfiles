@@ -77,8 +77,89 @@ link_file() {
     log_success "Linked $label"
 }
 
-link_file "$LOCAL"                          "$CLAUDE_DIR/settings.json"          "settings.json → settings.local.json"
-link_file "$CLAUDE_SRC/CLAUDE.md"           "$CLAUDE_DIR/CLAUDE.md"              "CLAUDE.md"
+# OpenPets opt-in detection.
+# OpenPets refuses to write to symlinked Claude memory + settings files
+# (it lstat-checks for isSymbolicLink and isFile). When enabled, install
+# regular-file shims/copies instead of symlinks for ~/.claude/CLAUDE.md
+# and ~/.claude/settings.json so OpenPets can manage them.
+#
+# Enable via any of:
+#   - env: OPENPETS_ENABLED=1 bash install-claude-config.sh
+#   - marker file: ~/.claude/.openpets-enabled
+#   - app present: /Applications/OpenPets.app
+OPENPETS_ENABLED="${OPENPETS_ENABLED:-}"
+if [[ -z "$OPENPETS_ENABLED" ]]; then
+    if [[ -f "$CLAUDE_DIR/.openpets-enabled" || -d "/Applications/OpenPets.app" ]]; then
+        OPENPETS_ENABLED=1
+    fi
+fi
+
+# --- settings.json install ---
+# Default mode: symlink ~/.claude/settings.json → dotfiles/.claude/settings.local.json.
+# OpenPets mode: copy dotfiles → ~/.claude/settings.json; on re-run, preserve any
+# `--openpets-managed` hook entries already present locally.
+if [[ "$OPENPETS_ENABLED" == "1" ]]; then
+    dst="$CLAUDE_DIR/settings.json"
+    if [[ -L "$dst" ]]; then
+        rm "$dst"
+        log_info "Removed settings.json symlink (OpenPets mode)"
+    fi
+    if [[ -f "$dst" ]] && grep -q -- "--openpets-managed" "$dst" 2>/dev/null; then
+        python3 - "$LOCAL" "$dst" <<'PYEOF'
+import json, sys, os
+src, dst = sys.argv[1], sys.argv[2]
+with open(src) as f: base = json.load(f)
+with open(dst) as f: cur = json.load(f)
+def is_managed(entry):
+    if not isinstance(entry, dict): return False
+    hooks = entry.get("hooks", [])
+    if not isinstance(hooks, list): return False
+    for h in hooks:
+        if isinstance(h, dict) and "--openpets-managed" in (h.get("command", "") or ""):
+            return True
+    return False
+base.setdefault("hooks", {})
+for event, matchers in (cur.get("hooks") or {}).items():
+    if not isinstance(matchers, list): continue
+    managed = [m for m in matchers if is_managed(m)]
+    if not managed: continue
+    existing = base["hooks"].get(event)
+    base["hooks"][event] = (existing if isinstance(existing, list) else []) + managed
+with open(dst, "w") as f:
+    json.dump(base, f, indent=4, ensure_ascii=False)
+PYEOF
+        log_success "Merged settings.json (preserved --openpets-managed hooks)"
+    else
+        cp "$LOCAL" "$dst"
+        log_success "Copied settings.json from dotfiles (OpenPets mode)"
+    fi
+else
+    link_file "$LOCAL"                      "$CLAUDE_DIR/settings.json"          "settings.json → settings.local.json"
+fi
+
+if [[ "$OPENPETS_ENABLED" == "1" ]]; then
+    # Shim: regular file importing dotfiles CLAUDE.md. OpenPets can safely
+    # write its managed `@~/.claude/openpets.md` import line into this file.
+    dst="$CLAUDE_DIR/CLAUDE.md"
+    desired="@$CLAUDE_SRC/CLAUDE.md"
+    if [[ -L "$dst" ]]; then
+        rm "$dst"
+        log_info "Removed existing CLAUDE.md symlink (OpenPets mode)"
+    fi
+    if [[ ! -f "$dst" ]]; then
+        printf '%s\n' "$desired" > "$dst"
+        log_success "Wrote CLAUDE.md shim → $desired"
+    elif ! grep -qxF "$desired" "$dst"; then
+        # Preserve existing content (likely OpenPets managed block); ensure import line present.
+        printf '%s\n%s' "$desired" "$(cat "$dst")" > "$dst.new" && mv "$dst.new" "$dst"
+        log_success "Prepended dotfiles import to existing CLAUDE.md shim"
+    else
+        log_info "CLAUDE.md shim already current"
+    fi
+else
+    link_file "$CLAUDE_SRC/CLAUDE.md"       "$CLAUDE_DIR/CLAUDE.md"              "CLAUDE.md"
+fi
+
 link_file "$CLAUDE_SRC/RTK.md"             "$CLAUDE_DIR/RTK.md"                 "RTK.md"
 link_file "$CLAUDE_SRC/hooks/rtk-rewrite.sh"          "$CLAUDE_DIR/hooks/rtk-rewrite.sh"          "hooks/rtk-rewrite.sh"
 link_file "$CLAUDE_SRC/hooks/entroly-start.sh"        "$CLAUDE_DIR/hooks/entroly-start.sh"        "hooks/entroly-start.sh"
