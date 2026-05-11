@@ -186,6 +186,17 @@ if [[ -x "$SCRIPT_DIR/scripts/zed/install-zed-config.sh" ]]; then
     bash "$SCRIPT_DIR/scripts/zed/install-zed-config.sh"
 fi
 
+# Git hooks for the dotfiles repo itself (pre-commit, pre-push live in hooks/)
+if [[ -d "$SCRIPT_DIR/.git/hooks" && -d "$SCRIPT_DIR/hooks" ]]; then
+    for hook in "$SCRIPT_DIR/hooks/"*; do
+        [[ -f "$hook" ]] || continue
+        name="$(basename "$hook")"
+        ln -sfn "../../hooks/$name" "$SCRIPT_DIR/.git/hooks/$name"
+        chmod +x "$hook" 2>/dev/null || true
+    done
+    log_success "Linked dotfiles git hooks (pre-commit, pre-push)"
+fi
+
 # Add more config directories as needed
 # create_symlink "$SCRIPT_DIR/.config/nvim" "$HOME/.config/nvim" "nvim config"
 # create_symlink "$SCRIPT_DIR/.config/alacritty" "$HOME/.config/alacritty" "alacritty config"
