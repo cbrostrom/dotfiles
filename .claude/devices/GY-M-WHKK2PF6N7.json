@@ -1,0 +1,63 @@
+{
+  "host": "GY-M-WHKK2PF6N7",
+  "os": "macos",
+  "arch": "arm64",
+  "profile": "desktop-full",
+  "last_synced": "2026-05-11T11:19:03Z",
+  "marketplaces": [
+    "caveman",
+    "planning-with-files"
+  ],
+  "enabled_plugins": [
+    "atlassian@claude-plugins-official",
+    "caveman@caveman",
+    "claude-code-setup@claude-plugins-official",
+    "claude-md-management@claude-plugins-official",
+    "code-review@claude-plugins-official",
+    "code-simplifier@claude-plugins-official",
+    "frontend-design@claude-plugins-official",
+    "liquid-lsp@claude-plugins-official",
+    "liquid-skills@claude-plugins-official",
+    "planning-with-files@planning-with-files",
+    "shopify@claude-plugins-official",
+    "skill-creator@claude-plugins-official",
+    "superpowers@claude-plugins-official"
+  ],
+  "disabled_plugins": [
+    "github@claude-plugins-official",
+    "remember@claude-plugins-official"
+  ],
+  "mcp_servers_settings": [
+    "atlassian-akqa",
+    "atlassian-fiskars",
+    "engram-personal",
+    "engram-work",
+    "github",
+    "mcp-mermaid",
+    "shopify-dev",
+    "tailwindcss"
+  ],
+  "mcp_servers_list": [
+    "github",
+    "google-calendar",
+    "lean-ctx",
+    "engram-personal",
+    "engram-work",
+    "mcp-mermaid",
+    "shopify-dev",
+    "tailwindcss",
+    "atlassian-fiskars",
+    "graphiti",
+    "mcp-dockhand",
+    "mcp-dockhand-linuxbro",
+    "docker-superbro",
+    "docker-linuxbro",
+    "atlassian-akqa",
+    "google-calendar"
+  ],
+  "skills": [
+    "ehmo/caveman-skill",
+    "ehmo/find-skills-skill",
+    "ehmo/code-overhaul-skill"
+  ]
+}

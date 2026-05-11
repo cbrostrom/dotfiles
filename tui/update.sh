@@ -32,16 +32,45 @@ run_update() {
         bash "$DOTFILES_DIR/scripts/zed/install-zed-config.sh"
     gum style --foreground 8 "    settings.json (base→local merge), keymap.json, rules, snippets/, themes/"
 
-    _spin "Syncing VSCodium config" \
-        bash "$DOTFILES_DIR/scripts/vscodium/install-vscodium-config.sh" --config
-    gum style --foreground 8 "    settings.json (base→local merge), keybindings.json, tasks.json"
+    local vscodium_script="$DOTFILES_DIR/scripts/vscodium/install-vscodium-config.sh"
+    local drift_out
+    if drift_out="$(bash "$vscodium_script" --check 2>/dev/null)"; then
+        _spin "Syncing VSCodium config" \
+            bash "$vscodium_script" --config --yes
+        gum style --foreground 8 "    settings.json (base→local merge), keybindings.json, tasks.json"
+    else
+        gum style --foreground 220 "  ⚠ VSCodium has local edits:"
+        while IFS= read -r line; do
+            gum style --foreground 8 "    $line"
+        done <<< "$drift_out"
+        local choice
+        choice="$(gum choose --header "Action?" \
+            "Merge (union, local wins on tie)" \
+            "Overwrite (use dotfiles)" \
+            "Skip (keep local)")"
+        case "$choice" in
+            "Merge"*)
+                _spin "Merging VSCodium config" \
+                    bash "$vscodium_script" --merge --yes
+                gum style --foreground 8 "    settings.json (base→local), keybindings.json + tasks.json (union)"
+                ;;
+            "Overwrite"*)
+                _spin "Syncing VSCodium config" \
+                    bash "$vscodium_script" --config --yes
+                gum style --foreground 8 "    settings.json (base→local merge), keybindings.json, tasks.json"
+                ;;
+            *)
+                gum style --foreground 8 "  ⊘ Syncing VSCodium config (skipped — local edits preserved)"
+                ;;
+        esac
+    fi
 
     _spin "Syncing Claude config" \
         bash "$DOTFILES_DIR/scripts/claude/install-claude-config.sh"
     gum style --foreground 8 "    settings.json (base→local merge), CLAUDE.md, RTK.md, hooks"
 
     _spin "Upgrading Python MCP tools" \
-        pipx upgrade mcp-atlassian 2>/dev/null || true
+        bash -c 'pipx upgrade mcp-atlassian >/dev/null 2>&1 || true'
     gum style --foreground 8 "    mcp-atlassian"
 
     _spin "Registering MCP servers" \
