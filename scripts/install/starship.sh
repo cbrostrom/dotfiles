@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Cross-platform Starship and Direnv Installation
-# Installs starship (prompt) and direnv (environment switching) on all platforms
+# Cross-platform Starship Installation
+# Installs starship (prompt) on all platforms
 
 set -e
 
@@ -50,12 +50,12 @@ command_exists() {
 # Function to install starship
 install_starship() {
     log_info "Installing Starship prompt..."
-    
+
     if command_exists starship; then
         log_success "✓ Starship already installed"
         return 0
     fi
-    
+
     if $IS_MACOS; then
         # macOS: Use Homebrew
         if command_exists brew; then
@@ -70,7 +70,7 @@ install_starship() {
         log_info "Installing starship via official installer..."
         curl -sS https://starship.rs/install.sh | sh
     fi
-    
+
     # Verify installation
     if command_exists starship; then
         log_success "Starship installed successfully"
@@ -81,44 +81,10 @@ install_starship() {
     fi
 }
 
-# Function to install direnv
-install_direnv() {
-    log_info "Installing Direnv..."
-    
-    if command_exists direnv; then
-        log_success "✓ Direnv already installed"
-        return 0
-    fi
-    
-    if $IS_MACOS; then
-        # macOS: Use Homebrew
-        if command_exists brew; then
-            log_info "Installing direnv via Homebrew..."
-            brew install direnv
-        else
-            log_warning "Homebrew not found, installing via curl..."
-            curl -sfL https://direnv.net/install.sh | bash
-        fi
-    else
-        # Linux/WSL: Use official installer
-        log_info "Installing direnv via official installer..."
-        curl -sfL https://direnv.net/install.sh | bash
-    fi
-    
-    # Verify installation
-    if command_exists direnv; then
-        log_success "Direnv installed successfully"
-        direnv version
-    else
-        log_error "Failed to install direnv"
-        return 1
-    fi
-}
-
 # Function to setup shell integration
 setup_shell_integration() {
     log_info "Setting up shell integration..."
-    
+
     # Determine shell profile file
     local profile_file
     if [[ "$SHELL" == *"zsh"* ]]; then
@@ -126,7 +92,7 @@ setup_shell_integration() {
     else
         profile_file="$HOME/.bashrc"
     fi
-    
+
     # Add starship initialization
     if ! grep -q "starship init" "$profile_file"; then
         log_info "Adding starship initialization to $profile_file"
@@ -136,27 +102,17 @@ setup_shell_integration() {
     else
         log_success "✓ Starship initialization already configured"
     fi
-    
-    # Add direnv hook
-    if ! grep -q "direnv hook" "$profile_file"; then
-        log_info "Adding direnv hook to $profile_file"
-        echo '' >> "$profile_file"
-        echo '# Direnv for project-specific env vars' >> "$profile_file"
-        echo 'eval "$(direnv hook zsh)"' >> "$profile_file"
-    else
-        log_success "✓ Direnv hook already configured"
-    fi
-    
+
     log_success "Shell integration configured"
 }
 
 # Function to create starship config directory
 setup_starship_config() {
     log_info "Setting up Starship configuration..."
-    
+
     # Create config directory
     mkdir -p "$HOME/.config"
-    
+
     # Check if starship config exists
     if [[ -f "$HOME/.config/starship.toml" ]]; then
         log_success "✓ Starship config already exists"
@@ -246,7 +202,7 @@ EOF
 # Function to test installations
 test_installations() {
     log_info "Testing installations..."
-    
+
     # Test starship
     if command_exists starship; then
         log_success "✓ Starship is working"
@@ -254,15 +210,7 @@ test_installations() {
     else
         log_error "✗ Starship not found"
     fi
-    
-    # Test direnv
-    if command_exists direnv; then
-        log_success "✓ Direnv is working"
-        direnv version
-    else
-        log_error "✗ Direnv not found"
-    fi
-    
+
     # Test shell integration
     if grep -q "starship init" "$HOME/.zshrc" 2>/dev/null || grep -q "starship init" "$HOME/.bashrc" 2>/dev/null; then
         log_success "✓ Shell integration configured"
@@ -273,23 +221,20 @@ test_installations() {
 
 # Main installation function
 main_installation() {
-    log_info "=== Cross-platform Starship & Direnv Installation ==="
+    log_info "=== Cross-platform Starship Installation ==="
     log_info "Detected OS: $OS_NAME ($(uname -s) $(uname -r))"
     log_info "Shell: $SHELL"
-    
+
     # Install starship
     install_starship
-    
-    # Install direnv
-    install_direnv
-    
+
     # Setup configuration
     setup_starship_config
     setup_shell_integration
-    
+
     # Test installations
     test_installations
-    
+
     log_success "=== Installation Complete! ==="
     log_info "Please restart your shell or run:"
     log_info "  source ~/.zshrc  # or source ~/.bashrc"
@@ -298,4 +243,4 @@ main_installation() {
 }
 
 # Run installation
-main_installation 
+main_installation
