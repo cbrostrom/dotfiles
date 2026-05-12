@@ -368,3 +368,4 @@ if [[ "$(uname -s)" == "Linux" ]]; then
     fi
 fi
 
+alias pod='podman'

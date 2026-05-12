@@ -16,6 +16,8 @@
 #   ./bootstrap.sh --skip=mod1,mod2      # run all except these
 #   ./bootstrap.sh --doctor [--fix]      # diagnostic only, no changes
 #   ./bootstrap.sh --profile=NAME        # override detected profile
+#   ./bootstrap.sh --reset [--dry-run]   # remove dotfiles-owned symlinks/state
+#   ./bootstrap.sh --reset=m1,m2         # reset only listed modules
 #
 # Backward-compat (legacy flags):
 #   --link-only      → --only=symlinks
@@ -66,12 +68,14 @@ unset _brew_bin
 # -----------------------------------------------------------------------------
 # Argument parsing
 # -----------------------------------------------------------------------------
-MODE="full"           # full | update | list | doctor | info | diff
+MODE="full"           # full | update | list | doctor | info | diff | reset
 FIX_FLAG=""
 ONLY=""
 SKIP=""
 INFO_TARGET=""
 DIFF_TARGET=""
+RESET_TARGETS=""      # comma list (empty == every module with an uninstall.sh)
+DRY_RUN=""
 
 # Legacy aliases collected here so we can apply them after parsing.
 _LEGACY_ONLY=""
@@ -89,6 +93,9 @@ for arg in "$@"; do
         --diff=*)           MODE="diff"; DIFF_TARGET="${arg#--diff=}" ;;
         --doctor)           MODE="doctor" ;;
         --fix)              FIX_FLAG="--fix" ;;
+        --reset)            MODE="reset" ;;
+        --reset=*)          MODE="reset"; RESET_TARGETS="${arg#--reset=}" ;;
+        --dry-run)          DRY_RUN="1" ;;
         --only=*)           ONLY="${arg#--only=}" ;;
         --skip=*)           SKIP="${arg#--skip=}" ;;
         --link-only)        _LEGACY_ONLY="symlinks" ;;
@@ -108,6 +115,7 @@ fi
 [[ -n "$ONLY" ]] && export _DOTFILES_CLI_ONLY="$ONLY"
 [[ -n "$SKIP" ]] && export _DOTFILES_CLI_SKIP="$SKIP"
 [[ "$MODE" == "update" ]] && export _DOTFILES_RUN_MODE="update"
+[[ -n "$DRY_RUN" ]] && export UNLINK_DRY_RUN=1
 
 # -----------------------------------------------------------------------------
 # Run
@@ -132,6 +140,20 @@ case "$MODE" in
             warn "scripts/doctor.sh not present"
             exit 1
         fi
+        ;;
+    reset)
+        if [[ -n "$DRY_RUN" ]]; then
+            log "RESET (dry-run) — no changes will be made"
+        else
+            log "RESET — removing dotfiles-owned state"
+        fi
+        if [[ -n "$RESET_TARGETS" ]]; then
+            IFS=',' read -ra _targets <<< "$RESET_TARGETS"
+            modules_reset "${_targets[@]}"
+        else
+            modules_reset
+        fi
+        ok "reset complete"
         ;;
     update)
         log "git pull --rebase --autostash …"

@@ -153,6 +153,21 @@ EOF
     scripts/doctor.sh --fix
 EOF
             ;;
+        *Reset*)     cat <<EOF
+
+  Reset
+  ─────
+  Remove dotfiles-owned state: symlinks pointing into \$DOTFILES_DIR,
+  registered MCP servers, installed Claude plugins. Third-party files
+  are never touched. Backups (\\*.backup.\\*) are restored if found.
+
+  Multi-select per module. Dry-run is offered before execute.
+
+  Equivalent CLI:
+    bootstrap.sh --reset [--dry-run]
+    bootstrap.sh --reset=mod1,mod2
+EOF
+            ;;
         *Quit*)      cat <<EOF
 
   Quit
@@ -185,6 +200,7 @@ main_menu() {
         "  Status"
         "  Devices"
         "  Doctor"
+        "  Reset"
         "  Quit"
     )
     printf "%s\n" "${actions[@]}" | fzf \
@@ -348,6 +364,13 @@ screen_update() {
     run_update
 }
 
+screen_reset() {
+    clear
+    render_banner
+    render_subtitle "Reset"
+    run_reset
+}
+
 # --- Main ---
 
 main() {
@@ -356,11 +379,13 @@ main() {
     source "$DOTFILES_DIR/tui/status.sh"
     source "$DOTFILES_DIR/tui/update.sh"
     source "$DOTFILES_DIR/tui/install.sh"
+    source "$DOTFILES_DIR/tui/reset.sh"
 
     # Direct mode flags
     case "${1:-}" in
         --update)  run_update;  return ;;
         --install) run_install; return ;;
+        --reset)   run_reset;   return ;;
         --doctor)  bash "$DOTFILES_DIR/scripts/doctor.sh"; return ;;
         --status)  show_status; return ;;
         --devices) bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" list; return ;;
@@ -379,6 +404,7 @@ main() {
             *Status*)  screen_status ;;
             *Devices*) screen_devices ;;
             *Doctor*)  screen_doctor ;;
+            *Reset*)   screen_reset ;;
             *Quit*|"") break ;;
         esac
     done

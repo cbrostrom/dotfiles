@@ -26,6 +26,7 @@ if [[ "$OSTYPE" == "Darwin" ]]; then
         
         if [[ -n "$brew_path" ]]; then
             "$brew_path" shellenv > "$BREW_CACHE_FILE"
+            zcompile -R "$BREW_CACHE_FILE" 2>/dev/null
         fi
     }
     
@@ -63,9 +64,10 @@ _cached_eval() {
     if [[ ! -f "$cache_file" ]] || [[ $(find "$cache_file" -mtime +1 2>/dev/null) ]]; then
         # Regenerate cache
         eval "$init_command" > "$cache_file" 2>/dev/null
+        zcompile -R "$cache_file" 2>/dev/null
     fi
-    
-    # Source cached output
+
+    # Source cached output (zsh auto-picks .zwc if newer)
     if [[ -f "$cache_file" ]]; then
         source "$cache_file"
     else
@@ -73,6 +75,26 @@ _cached_eval() {
         eval "$init_command"
     fi
 }
+
+# =============================================================================
+# ZWC BYTECODE — auto-recompile stale .zwc for rc files & modules
+# =============================================================================
+# zsh's `source` transparently picks the .zwc bytecode if it exists and is
+# newer than the .zsh source. Compile takes ~5ms per file, runs in background.
+_zsh_recompile_if_stale() {
+    local f
+    for f in \
+        ~/.zshenv ~/.zshrc \
+        ~/dotfiles/.zshenv ~/dotfiles/.zshrc \
+        ~/dotfiles/zsh/*.zsh
+    do
+        [[ -f "$f" ]] || continue
+        if [[ ! -f "${f}.zwc" ]] || [[ "$f" -nt "${f}.zwc" ]]; then
+            zcompile -R "$f" 2>/dev/null &!
+        fi
+    done
+}
+_zsh_recompile_if_stale
 
 # Note: _cached_eval is auto-available in subsequent sourced modules within
 # the same shell — no `export -f` needed (zsh doesn't support it anyway).
