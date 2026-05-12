@@ -1,3 +1,5 @@
+# shellcheck shell=bash disable=SC1073,SC1036,SC1072
+# (zsh glob qualifiers like (#qNmh+24) are valid zsh but unknown to shellcheck)
 # =============================================================================
 # PLUGIN MANAGEMENT
 # =============================================================================

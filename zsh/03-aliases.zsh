@@ -140,8 +140,8 @@ alias gwtr='git worktree remove'
 if command -v fzf &>/dev/null; then
     alias gcof='git checkout $(git branch | fzf)'
     alias gbf='git checkout $(git branch | fzf)'
-    alias gcf='git commit --fixup $(git log --oneline | fzf | awk "{print \$1}")'
-    alias gpick='git cherry-pick $(git log --oneline | fzf | awk "{print \$1}")'
+    gcf()    { git commit --fixup "$(git log --oneline | fzf | awk '{print $1}')"; }
+    gpick()  { git cherry-pick "$(git log --oneline | fzf | awk '{print $1}')"; }
     alias gdf='git diff $(git branch | fzf)'
 fi
 

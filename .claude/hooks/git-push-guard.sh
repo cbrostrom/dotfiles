@@ -60,6 +60,7 @@ if [[ -f "$WHITELIST" ]]; then
         line="${line%"${line##*[![:space:]]}"}"
         [[ -z "$line" ]] && continue
         # Expand ~ → $HOME without invoking eval.
+        # shellcheck disable=SC2088
         case "$line" in
             "~") expanded="$HOME" ;;
             "~/"*) expanded="$HOME/${line#"~/"}" ;;
