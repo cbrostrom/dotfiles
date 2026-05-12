@@ -1,0 +1,21 @@
+# Claude Code plugins — installed via `claude plugin install` on bootstrap
+# Format: plugin@marketplace = repo_or_source
+# - marketplace added (idempotent) before install
+# - lines starting with # are comments, blank lines ignored
+
+# Official Anthropic marketplace
+frontend-design@claude-plugins-official      = anthropics/claude-plugins-official
+superpowers@claude-plugins-official          = anthropics/claude-plugins-official
+code-simplifier@claude-plugins-official      = anthropics/claude-plugins-official
+github@claude-plugins-official               = anthropics/claude-plugins-official
+claude-md-management@claude-plugins-official = anthropics/claude-plugins-official
+claude-code-setup@claude-plugins-official    = anthropics/claude-plugins-official
+atlassian@claude-plugins-official            = anthropics/claude-plugins-official
+remember@claude-plugins-official             = anthropics/claude-plugins-official
+shopify@claude-plugins-official              = anthropics/claude-plugins-official
+liquid-skills@claude-plugins-official        = anthropics/claude-plugins-official
+liquid-lsp@claude-plugins-official           = anthropics/claude-plugins-official
+
+# Third-party
+caveman@caveman                              = juliusbrussee/caveman
+plannotator@plannotator                      = backnotprop/plannotator

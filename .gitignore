@@ -51,6 +51,9 @@ gaming/config/launch.log
 *.vscdb
 .backups/
 
+# Zellij compiled plugin binaries (downloaded at runtime)
+.config/zellij/plugins/*.wasm
+
 # Zed machine-specific settings (merged into settings.json per machine)
 .config/zed/settings.local.json
 # Zed sync state (machine-local timestamp)
@@ -58,6 +61,14 @@ gaming/config/launch.log
 
 # Claude machine-specific settings (merged into settings.json per machine)
 .claude/settings.local.json
+# Claude auto-approved permissions (machine-local, generated at runtime)
+.claude/settings.json
+
+# lean-ctx local graph state (runtime cache, not portable)
+.lean-ctx/
+
+# Codex (not used)
+.codex/
 
 # VSCodium machine-specific settings (merged into settings.json per machine)
 .config/vscodium/settings.local.json
