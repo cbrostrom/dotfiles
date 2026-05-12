@@ -158,4 +158,3 @@ if [[ -n "$_lean_ctx_bin" ]] && [ -z "${LEAN_CTX_ACTIVE:-}" ] \
     lean-ctx-on >/dev/null
 fi
 # lean-ctx shell hook — end
-export PATH="$(fnm exec --using=default env | grep PATH | cut -d= -f2-):$PATH"
