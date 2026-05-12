@@ -127,8 +127,7 @@ main_status() {
     check_tool "bat" "bat (modern cat)"
     check_tool "ripgrep" "ripgrep (rg)"
     check_tool "fzf" "fzf (fuzzy finder)"
-    check_tool "direnv" "direnv"
-    
+
     echo
     log_info "=== Development Tools ==="
     

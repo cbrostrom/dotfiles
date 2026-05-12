@@ -1,7 +1,6 @@
 # =============================================================================
 # WORKFLOW PLUGINS — zsh-abbr + optional TUI aliases
 # =============================================================================
-# Trimmed: atuin/mise/direnv/carapace removed (not in use).
 # All hooks are guarded by `command -v` so missing tools never break startup.
 # =============================================================================
 

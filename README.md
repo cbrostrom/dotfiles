@@ -60,7 +60,7 @@ See `modules/README.md` for module authoring details.
 ## Key Components
 
 - **zsh** – Modular config with zinit, starship, fzf, zoxide
-- **fnm** – Node.js version manager (replaces nvm)
+- **fnm** – Node.js version manager
 - **Cursor** – Settings/keybindings synced via scripts/cursor/
 - **Gaming** – Optional. gamelaunch script for Steam (prompted on install; skipped on WSL)
 - **.local-config** – Machine-specific (git-ignored); copy from .local-config.example
