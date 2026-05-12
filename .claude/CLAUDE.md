@@ -82,6 +82,7 @@ Natural language signals that activate specific tools, MCPs, or modes. Match loo
 | `.spec` | Invoke `/ck:spec` — write or amend `SPEC.md` (cavekit) |
 | `.build` | Invoke `/ck:build` — execute against `SPEC.md`, auto-backprop bugs |
 | `.check` | Invoke `/ck:check` — drift report: code vs spec (`§V`, `§I`, `§T`) |
+| `.worklog <period>` | Invoke `/worklog` — Apple Calendar → hours/client for hour-registration |
 
 ## Memory routing
 
@@ -120,6 +121,12 @@ Natural language signals that activate specific tools, MCPs, or modes. Match loo
 | Shopify, theme, Liquid, sections, blocks | Use shopify-theme-development + liquid-skills |
 | stellar-shopify, Fiskars, AKQA | Switch to `engram-work` vault |
 | "search Jira", "check Confluence", tickets | Use appropriate atlassian MCP (fiskars vs akqa based on context) |
+
+## Work-hour registration
+
+| Keywords / intent | Action |
+|---|---|
+| "give me my work for X", "what did I work on X", "hours for X", "worklog X", "log hours X", "registration for X" | Invoke `/worklog` slash command with `X` as period arg. Pulls Apple Calendar, groups by client (Fiskars / Georg Jensen / NAVI / WPP / AKQA Internal), totals hours, flags unassigned. |
 
 # Planning workflow (planning-with-files + plannotator)
 
