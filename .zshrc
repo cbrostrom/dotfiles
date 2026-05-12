@@ -83,8 +83,11 @@ if [[ -d "$ZSH_MODULES_DIR" ]]; then
     # 06 - Auto-update notification (background fetch + tiered notify)
     [[ -f "$ZSH_MODULES_DIR/06-autoupdate.zsh" ]] && source "$ZSH_MODULES_DIR/06-autoupdate.zsh"
 
-    # 08 - Workflow plugins (atuin, mise, direnv, carapace, abbr) — guarded
+    # 08 - Workflow plugins (zsh-abbr + optional TUI aliases) — guarded
     [[ -f "$ZSH_MODULES_DIR/08-workflow.zsh" ]] && source "$ZSH_MODULES_DIR/08-workflow.zsh"
+
+    # 09 - cmux sidebar status integration (only active inside cmux)
+    [[ -f "$ZSH_MODULES_DIR/09-cmux.zsh" ]] && source "$ZSH_MODULES_DIR/09-cmux.zsh"
 
     # Per-host overrides BEFORE Zellij auto-attach so a host can opt out
     [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
