@@ -16,20 +16,63 @@ DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export DOTFILES_DIR
 
 # --- gum detection ---
+# Cross-platform: download static binary from GitHub releases via curl.
+# No sudo, no package manager, no snap. Works on macOS + Linux (x86_64/arm64).
+GUM_VERSION="${GUM_VERSION:-0.14.5}"
 ensure_gum() {
     command -v gum >/dev/null 2>&1 && return 0
-    echo "gum not found — required for this TUI."
-    if [[ "$(uname -s)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
-        echo "Install via: brew install gum"
-        read -rp "Auto-install now? [y/N] " ans
-        [[ "$ans" =~ ^[Yy]$ ]] && brew install gum && return 0
-    elif [[ -f /etc/debian_version ]]; then
-        echo "Install via: sudo apt install gum"
-        read -rp "Auto-install now? [y/N] " ans
-        [[ "$ans" =~ ^[Yy]$ ]] && sudo apt install -y gum && return 0
+    echo "gum not found — installing static binary from GitHub releases…"
+
+    local os arch
+    case "$(uname -s)" in
+        Darwin) os="Darwin" ;;
+        Linux)  os="Linux" ;;
+        *) echo "Unsupported OS: $(uname -s)" >&2; exit 1 ;;
+    esac
+    case "$(uname -m)" in
+        x86_64|amd64)   arch="x86_64" ;;
+        arm64|aarch64)  arch="arm64" ;;
+        *) echo "Unsupported arch: $(uname -m)" >&2; exit 1 ;;
+    esac
+
+    if ! command -v curl >/dev/null 2>&1; then
+        echo "curl is required to install gum. Install curl and retry." >&2
+        exit 1
     fi
-    echo "Please install gum and re-run. Exiting."
-    exit 1
+
+    local url="https://github.com/charmbracelet/gum/releases/download/v${GUM_VERSION}/gum_${GUM_VERSION}_${os}_${arch}.tar.gz"
+    local bindir="$HOME/.local/bin"
+    local tmp
+    tmp="$(mktemp -d)"
+    mkdir -p "$bindir"
+
+    if ! curl -fsSL "$url" | tar -xz -C "$tmp"; then
+        rm -rf "$tmp"
+        echo "Failed to download gum from $url" >&2
+        exit 1
+    fi
+
+    local src
+    src="$(find "$tmp" -type f -name gum | head -1)"
+    if [[ -z "$src" ]]; then
+        rm -rf "$tmp"
+        echo "gum binary not found in archive" >&2
+        exit 1
+    fi
+
+    install -m 755 "$src" "$bindir/gum"
+    rm -rf "$tmp"
+
+    case ":$PATH:" in
+        *":$bindir:"*) ;;
+        *) export PATH="$bindir:$PATH" ;;
+    esac
+
+    if ! command -v gum >/dev/null 2>&1; then
+        echo "gum install failed (binary not on PATH after install to $bindir)" >&2
+        exit 1
+    fi
+    echo "gum v${GUM_VERSION} installed to $bindir/gum"
 }
 
 # Used by fzf --preview to show contextual help for each top-level action.
