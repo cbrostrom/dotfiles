@@ -22,7 +22,7 @@ if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
         OMZP::git \
         OMZP::npm
 
-    # Note: Node.js managed by fnm (Fast Node Manager) for better .nvmrc support
+    # Note: Node.js managed by fnm (Fast Node Manager)
 
     # Load fzf-tab for visual completion
     zinit light Aloxaf/fzf-tab
@@ -68,7 +68,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git --exclude node_modules --exclude .cache'
 
 # FZF keybindings and completion
-if command -v fzf &>/dev/null; then
+if (( $+commands[fzf] )); then
     # Load fzf integration immediately (no wait) to register widgets before syntax highlighting
     zinit lucid for \
         https://github.com/junegunn/fzf/raw/master/shell/{'completion','key-bindings'}.zsh
@@ -123,11 +123,9 @@ fi
 # =============================================================================
 # ZOXIDE SETUP (Smart Directory Navigation)
 # =============================================================================
-if command -v zoxide &>/dev/null; then
+if (( $+commands[zoxide] )); then
     # Unalias zi if it exists to prevent conflict with zinit
-    if alias zi >/dev/null 2>&1; then
-        unalias zi
-    fi
+    (( $+aliases[zi] )) && unalias zi
 
     # Use cached eval if available, otherwise run directly
     if typeset -f _cached_eval >/dev/null; then
@@ -162,7 +160,7 @@ if command -v zoxide &>/dev/null; then
     alias projects='cd ~/Projects && ls'
 
     # Git repository navigation with fzf
-    if command -v fzf &>/dev/null; then
+    if (( $+commands[fzf] )); then
         # Find and jump to any git repository
         grepo() {
             local repo=$(find ~/Projects ~/Work ~/.config -name ".git" -type d 2>/dev/null | sed 's/\/.git//' | fzf --preview 'eza --tree --level=2 --icons {} 2>/dev/null || ls -la {}')
@@ -250,7 +248,7 @@ fi
 # PROMPT SETUP
 # =============================================================================
 # Starship prompt (if available) - cached for performance
-if command -v starship &>/dev/null; then
+if (( $+commands[starship] )); then
     if typeset -f _cached_eval >/dev/null; then
         _cached_eval "starship" "starship init zsh"
     else
@@ -261,7 +259,7 @@ fi
 # =============================================================================
 # FNM (Fast Node Manager) - Primary Node.js Version Manager
 # =============================================================================
-if command -v fnm &>/dev/null; then
+if (( $+commands[fnm] )); then
     export FNM_COREPACK_ENABLED=true
     
     # Use cached eval if available, otherwise run directly
@@ -270,9 +268,6 @@ if command -v fnm &>/dev/null; then
     else
         eval "$(fnm env --use-on-cd)"
     fi
-
-    # Alias fnm as nvm for compatibility
-    alias nvm='fnm'
 
     # Quick Node.js version switching aliases
     alias node16='fnm use 16'
@@ -292,10 +287,15 @@ fi
 # =============================================================================
 # GREPAI (Semantic Code Search)
 # =============================================================================
-if command -v grepai &>/dev/null; then
-    if typeset -f _cached_eval >/dev/null; then
-        _cached_eval "grepai" "grepai completion zsh"
-    else
-        eval "$(grepai completion zsh)"
-    fi
+if (( $+commands[grepai] )); then
+    _grepai() {
+        unfunction _grepai
+        if typeset -f _cached_eval >/dev/null; then
+            _cached_eval "grepai" "grepai completion zsh"
+        else
+            eval "$(grepai completion zsh)"
+        fi
+        _grepai "$@"
+    }
+    compdef _grepai grepai
 fi
