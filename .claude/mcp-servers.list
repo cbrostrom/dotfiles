@@ -17,8 +17,7 @@ lean-ctx | ~/.cargo/bin/lean-ctx
 # Mermaid diagram generator
 mcp-mermaid | npx | -y | mcp-mermaid
 
-# Shopify dev tools — docs, GraphQL, theme validation
-shopify-dev | npx | -y | @shopify/dev-mcp@latest
+# Shopify dev tools — provided by shopify-plugin (shopify-mcp). Manual entry removed to avoid duplicate.
 
 # Tailwind CSS — utilities, color palette, component templates
 tailwindcss | npx | -y | tailwindcss-mcp-server
