@@ -3,7 +3,7 @@
   "os": "macos",
   "arch": "arm64",
   "profile": "desktop-full",
-  "last_synced": "2026-05-11T20:17:04Z",
+  "last_synced": "2026-05-12T08:42:47Z",
   "marketplaces": [
     "cavekit-marketplace",
     "caveman",
@@ -31,7 +31,13 @@
     "github@claude-plugins-official",
     "remember@claude-plugins-official"
   ],
-  "mcp_servers_settings": [],
+  "mcp_servers_settings": [
+    "atlassian-akqa",
+    "atlassian-fiskars",
+    "engram-personal",
+    "engram-work",
+    "github"
+  ],
   "mcp_servers_list": [
     "github",
     "lean-ctx",

@@ -158,7 +158,7 @@ check_claude_link "$claude_dir/settings.json" "~/.claude/settings.json" \
 check_claude_link "$claude_dir/CLAUDE.md" "~/.claude/CLAUDE.md" \
     "bash $DOTFILES_DIR/scripts/claude/install-claude-config.sh"
 
-for hook in rtk-rewrite.sh entroly-start.sh claude-session-check.sh; do
+for hook in rtk-rewrite.sh entroly-start.sh claude-session-check.sh effort-classifier.sh; do
     hpath="$claude_dir/hooks/$hook"
     if [[ -L "$hpath" ]]; then
         if [[ -x "$hpath" ]]; then
@@ -188,19 +188,23 @@ fi
 # spawning every stdio server for health checks (engram MCPs trigger SSH
 # host-key prompts when superbro is not yet trusted).
 hdr "MCP drift (mcp-servers.list vs ~/.claude.json)"
-mcp_list_file="$DOTFILES_DIR/.claude/mcp-servers.list"
+mcp_list_files=("$DOTFILES_DIR/.claude/mcp-servers.list")
+case "$(uname -s)" in
+    Darwin) mcp_list_files+=("$DOTFILES_DIR/.claude/mcp-servers.darwin.list") ;;
+    Linux)  mcp_list_files+=("$DOTFILES_DIR/.claude/mcp-servers.linux.list") ;;
+esac
 claude_json="$HOME/.claude.json"
 if [[ ! -f "$claude_json" ]]; then
     warn "$claude_json missing — skipping MCP drift check"
 elif ! command -v jq >/dev/null 2>&1; then
     warn "jq not found — skipping MCP drift check (install jq to enable)"
-elif [[ ! -f "$mcp_list_file" ]]; then
-    warn "$mcp_list_file missing — skipping MCP drift check"
+elif [[ ! -f "${mcp_list_files[0]}" ]]; then
+    warn "${mcp_list_files[0]} missing — skipping MCP drift check"
 else
-    declared="$(awk -F'|' '
+    declared="$(for f in "${mcp_list_files[@]}"; do [[ -f "$f" ]] && cat "$f"; done | awk -F'|' '
         /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
         { gsub(/[[:space:]]/, "", $1); if ($1 != "") print $1 }
-    ' "$mcp_list_file" | sort -u)"
+    ' | sort -u)"
 
     registered="$(jq -r '.mcpServers // {} | keys[]' "$claude_json" 2>/dev/null | sort -u)"
 

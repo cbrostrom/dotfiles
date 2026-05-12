@@ -166,6 +166,7 @@ link_file "$CLAUDE_SRC/hooks/entroly-start.sh"        "$CLAUDE_DIR/hooks/entroly
 link_file "$CLAUDE_SRC/hooks/claude-session-check.sh" "$CLAUDE_DIR/hooks/claude-session-check.sh" "hooks/claude-session-check.sh"
 link_file "$CLAUDE_SRC/hooks/statusline.sh"           "$CLAUDE_DIR/hooks/statusline.sh"           "hooks/statusline.sh"
 link_file "$CLAUDE_SRC/hooks/git-push-guard.sh"       "$CLAUDE_DIR/hooks/git-push-guard.sh"       "hooks/git-push-guard.sh"
+link_file "$CLAUDE_SRC/hooks/effort-classifier.sh"    "$CLAUDE_DIR/hooks/effort-classifier.sh"    "hooks/effort-classifier.sh"
 link_file "$CLAUDE_SRC/push-whitelist.txt"            "$CLAUDE_DIR/push-whitelist.txt"            "push-whitelist.txt"
 
 # Skills directory — symlinked so new installs are auto-tracked in dotfiles
