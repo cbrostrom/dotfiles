@@ -17,9 +17,20 @@ PLATFORM="linux"
 # PROFILE — drives bootstrap.sh package selection + Zellij behavior
 # -----------------------------------------------------------------------------
 # Options:
-#   desktop-full     mac, linuxbro     — full GUI + dev stack
-#   server-headless  superbro VPS      — no GUI, security baseline, no auto-zellij
-#   wsl              monsterbro WSL    — TUI + Windows interop
+#   desktop-full     mac, dev workstation — full GUI + dev stack
+#   server-headless  VPS / homelab        — no GUI, lean Claude set, no auto-zellij
+#   wsl              monsterbro WSL       — TUI + Windows interop
+#
+# Resolution order (highest first):
+#   1. PROFILE env / `bootstrap.sh --profile=NAME`
+#   2. this file's PROFILE= line
+#   3. known-host map: hostname `linuxbro` or `superbro` → server-headless
+#   4. heuristic (DISPLAY present → desktop-full, else server-headless)
+#
+# Profile also drives Claude overlay files in .claude/:
+#   plugins.<profile>.list, mcp-servers.<profile>.list, skills/skills.<profile>.list
+#   plugins.host-<hostname>.list (per-host opt-in/out)
+# Lines prefixed '!' in any overlay disable a matching entry from base.
 PROFILE="desktop-full"
 
 # -----------------------------------------------------------------------------

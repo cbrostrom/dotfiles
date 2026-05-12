@@ -1,22 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 . "$DOTFILES_DIR/modules/_lib/log.sh"
+. "$DOTFILES_DIR/modules/_lib/lists.sh"
 
-list="$DOTFILES_DIR/.claude/plugins.list"
-[[ -f "$list" ]] || { warn "plugins.list not found at $list"; exit 0; }
+base="$DOTFILES_DIR/.claude/plugins.list"
+[[ -f "$base" ]] || { warn "plugins.list not found at $base"; exit 0; }
 
-log "installing Claude Code plugins from $list …"
+overlays="$(lists_active_paths "$base" | xargs -n1 basename 2>/dev/null | tr '\n' ' ')"
+log "installing Claude Code plugins (layers: ${overlays})…"
 
 # Cache marketplace + installed plugin lists once
 mkts="$(claude plugin marketplace list 2>/dev/null || true)"
 plugs="$(claude plugin list 2>/dev/null || true)"
 
 while IFS= read -r line || [[ -n "$line" ]]; do
-    line="${line%%#*}"
-    line="${line#"${line%%[![:space:]]*}"}"
-    line="${line%"${line##*[![:space:]]}"}"
-    [[ -z "$line" ]] && continue
-
     plugin_ref="${line%%=*}"
     source_ref="${line#*=}"
     plugin_ref="${plugin_ref//[[:space:]]/}"
@@ -46,4 +43,4 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     else
         warn "plugin install failed: $plugin_ref"
     fi
-done < "$list"
+done < <(lists_merge "$base")

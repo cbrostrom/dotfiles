@@ -1,0 +1,15 @@
+# Claude Code skills overlay for the `server-headless` profile.
+# Active on hosts where profile_tag == server-headless (e.g. linuxbro, superbro).
+#
+# Format (same as skills.list): one skill source per line. Disable inherited
+# skill from base with: !skill-source
+#
+# Lines starting with '#' are comments. Blank lines ignored.
+
+# --- examples (commented out — uncomment as needed) ---
+# Disable dev-heavy skills inherited from base:
+# !github:anthropic/skills/frontend-design
+# !github:anthropic/skills/shopify-theme-development
+
+# Add server-specific skills:
+# github:myorg/server-skills/log-triage
