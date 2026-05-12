@@ -110,7 +110,6 @@ lists_merge() {
     for f in "${paths[@]}"; do
         [[ -f "$f" ]] || continue
         while IFS= read -r line || [[ -n "$line" ]]; do
-            local raw="$line"
             line="${line%%#*}"
             line="${line#"${line%%[![:space:]]*}"}"
             line="${line%"${line##*[![:space:]]}"}"
