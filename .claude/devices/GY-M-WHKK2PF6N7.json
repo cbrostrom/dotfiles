@@ -3,7 +3,7 @@
   "os": "macos",
   "arch": "arm64",
   "profile": "desktop-full",
-  "last_synced": "2026-05-12T11:22:00Z",
+  "last_synced": "2026-05-12T21:49:48Z",
   "marketplaces": [
     "cavekit-marketplace",
     "caveman",
@@ -42,7 +42,6 @@
     "github",
     "lean-ctx",
     "mcp-mermaid",
-    "shopify-dev",
     "tailwindcss",
     "google-calendar",
     "atlassian-fiskars",

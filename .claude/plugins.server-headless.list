@@ -1,0 +1,18 @@
+# Claude Code plugins overlay for the `server-headless` profile.
+# Active on hosts where profile_tag == server-headless (e.g. linuxbro, superbro).
+#
+# Format (same as plugins.list):
+#   plugin-name@marketplace=marketplace-source
+#
+# Disable a plugin enabled by the base plugins.list with:
+#   !plugin-name@marketplace
+#
+# Lines starting with '#' are comments. Blank lines ignored.
+
+# --- examples (commented out — uncomment as needed) ---
+# Disable dev-only plugins inherited from the base list:
+# !frontend-design@anthropic-skills
+# !plannotator@cbrostrom-plugins
+
+# Add server-only plugins:
+# observability-mcp@my-marketplace=cbrostrom/my-marketplace

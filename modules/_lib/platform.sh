@@ -36,8 +36,23 @@ platform_tag() {
     fi
 }
 
+# Hosts that are always treated as headless servers (VPS / homelab).
+# Override via $PROFILE env or ~/.local-config PROFILE= line.
+_HEADLESS_HOSTS_REGEX='^(linuxbro|superbro)$'
+
+# Echo a short host slug suitable for overlay file names (e.g. plugins.host-<slug>.list).
+# Strips domain, lowercases, replaces non-alnum with '-'.
+host_slug() {
+    local h
+    h="$(hostname -s 2>/dev/null || hostname 2>/dev/null || echo unknown)"
+    h="${h%%.*}"
+    h="$(echo "$h" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9-' '-')"
+    h="${h%-}"
+    echo "${h:-unknown}"
+}
+
 # Echo the current profile (desktop-full | server-headless | wsl).
-# Order: explicit env > ~/.local-config > heuristic.
+# Order: explicit env > ~/.local-config > known-host map > heuristic.
 profile_tag() {
     if [[ -n "${PROFILE:-}" ]]; then
         echo "$PROFILE"
@@ -51,6 +66,14 @@ profile_tag() {
             echo "$p"
             return
         fi
+    fi
+    # Known-host map: linuxbro/superbro = server, regardless of $DISPLAY.
+    # Prevents SSH X11 forwarding from misclassifying a server as desktop.
+    local _h
+    _h="$(host_slug)"
+    if [[ "$_h" =~ $_HEADLESS_HOSTS_REGEX ]]; then
+        echo "server-headless"
+        return
     fi
     if is_wsl; then echo "wsl"
     elif is_macos; then echo "desktop-full"
