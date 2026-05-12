@@ -439,6 +439,64 @@ modules_run_all() {
     fi
 }
 
+# ---------- Reset / uninstall ----------
+
+# Run a module's uninstall.sh if it has one. Honors UNLINK_DRY_RUN env.
+_uninstall_one() {
+    local name="$1"
+    local d="${_MODULES_DIR[$name]}"
+    if [[ ! -f "$d/uninstall.sh" ]]; then
+        skip "[$name] no uninstall.sh — leaving alone"
+        return 0
+    fi
+    hdr "$name — reset"
+    if (
+        export DOTFILES_DIR
+        export MODULE_DIR="$d"
+        export MODULE_NAME="$name"
+        cd "$DOTFILES_DIR"
+        bash "$d/uninstall.sh"
+    ); then
+        ok "[$name] reset done"
+        return 0
+    else
+        err "[$name] reset failed"
+        return 1
+    fi
+}
+
+# modules_reset [name ...]
+# With no args: reset every discovered module that has an uninstall.sh, in
+# REVERSE topological order (dependents before dependencies).
+# With args: reset only those modules (still reverse topo of the union).
+modules_reset() {
+    local -a roots=()
+    if [[ $# -gt 0 ]]; then
+        roots=("$@")
+    else
+        roots=("${_MODULES_REGISTRY[@]}")
+    fi
+    local ordered
+    if ! ordered="$(_modules_topo_order "${roots[@]}")"; then
+        return 1
+    fi
+    # Reverse the topo order.
+    local -a reversed=()
+    while IFS= read -r m; do
+        [[ -n "$m" ]] && reversed=("$m" "${reversed[@]}")
+    done <<< "$ordered"
+
+    local fail_count=0 n
+    for n in "${reversed[@]}"; do
+        _uninstall_one "$n" || ((fail_count++)) || true
+    done
+    if [[ $fail_count -gt 0 ]]; then
+        err "$fail_count module(s) failed to reset"
+        return 1
+    fi
+    return 0
+}
+
 modules_run() {
     local -a roots=("$@")
     if [[ ${#roots[@]} -eq 0 ]]; then

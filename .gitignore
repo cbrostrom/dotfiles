@@ -74,3 +74,4 @@ gaming/config/launch.log
 .config/vscodium/settings.local.json
 .superpowers/
 .remember/
+*.zwc

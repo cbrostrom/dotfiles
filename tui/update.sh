@@ -1,104 +1,112 @@
 #!/usr/bin/env bash
+# Profile- and host-aware Update screen.
+#
+# Discovers modules, filters to those applicable on this host (platform +
+# profile + user config), lets the user multi-select which to update, then
+# delegates to `bootstrap.sh --update --only=...` so the run reuses topo,
+# dependency, and state-recording logic.
+
 set -euo pipefail
 
 DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+
+. "$DOTFILES_DIR/modules/_lib/log.sh"
+. "$DOTFILES_DIR/modules/_lib/platform.sh"
+. "$DOTFILES_DIR/modules/_lib/config.sh"
+. "$DOTFILES_DIR/modules/_lib/loader.sh"
+
+# Echo names of modules eligible to run on this host (platform + profile +
+# user config + required commands present).
+_update_eligible_modules() {
+    DOTFILES_QUIET=1 modules_init >/dev/null 2>&1
+    DOTFILES_QUIET=1 modules_discover >/dev/null 2>&1
+    local name action
+    for name in "${_MODULES_REGISTRY[@]}"; do
+        action="$(_decide_module_action "$name")"
+        [[ "$action" == "run" ]] || continue
+        printf '%s\n' "$name"
+    done
+}
+
+_update_label() {
+    local name="$1"
+    printf '%-18s — %s' "$name" "${_MODULES_DESC[$name]:-}"
+}
 
 run_update() {
     echo
     gum style --bold --foreground 220 "UPDATE"
     echo
 
-    local failed=()
+    gum style --foreground 8 \
+        "  Host: $(hostname -s 2>/dev/null || hostname)   Platform: $(platform_tag)   Profile: $(profile_tag)"
+    echo
 
-    _spin() {
-        local title="$1"; shift
-        if gum spin --title "$title" -- "$@"; then
-            gum style --foreground 10 "  ✓ $title"
-        else
-            gum style --foreground 9  "  ✗ $title"
-            failed+=("$title")
-        fi
-    }
-
-    _spin "Pulling latest from git" \
-        git -C "$DOTFILES_DIR" pull --rebase --autostash
-    gum style --foreground 8 "    zsh, git, scripts, dotfiles"
-
-    _spin "Updating symlinks" \
-        bash "$DOTFILES_DIR/scripts/install/symlinks.sh"
-    gum style --foreground 8 "    ~/.zshrc, ~/.gitconfig, ~/.zshenv og øvrige dotfiler"
-
-    _spin "Syncing Zed config" \
-        bash "$DOTFILES_DIR/scripts/zed/install-zed-config.sh"
-    gum style --foreground 8 "    settings.json (base→local merge), keymap.json, rules, snippets/, themes/"
-
-    local vscodium_script="$DOTFILES_DIR/scripts/vscodium/install-vscodium-config.sh"
-    local drift_out
-    if drift_out="$(bash "$vscodium_script" --check 2>/dev/null)"; then
-        _spin "Syncing VSCodium config" \
-            bash "$vscodium_script" --config --yes
-        gum style --foreground 8 "    settings.json (base→local merge), keybindings.json, tasks.json"
+    # 1. Pull latest first — always.
+    if gum spin --title "Pulling latest from git" -- \
+           git -C "$DOTFILES_DIR" pull --rebase --autostash; then
+        gum style --foreground 10 "  ✓ Pulled latest from git"
     else
-        gum style --foreground 220 "  ⚠ VSCodium has local edits:"
-        while IFS= read -r line; do
-            gum style --foreground 8 "    $line"
-        done <<< "$drift_out"
-        local choice
-        choice="$(gum choose --header "Action?" \
-            "Merge (union, local wins on tie)" \
-            "Overwrite (use dotfiles)" \
-            "Skip (keep local)")"
-        case "$choice" in
-            "Merge"*)
-                _spin "Merging VSCodium config" \
-                    bash "$vscodium_script" --merge --yes
-                gum style --foreground 8 "    settings.json (base→local), keybindings.json + tasks.json (union)"
-                ;;
-            "Overwrite"*)
-                _spin "Syncing VSCodium config" \
-                    bash "$vscodium_script" --config --yes
-                gum style --foreground 8 "    settings.json (base→local merge), keybindings.json, tasks.json"
-                ;;
-            *)
-                gum style --foreground 8 "  ⊘ Syncing VSCodium config (skipped — local edits preserved)"
-                ;;
-        esac
+        gum style --foreground 9 "  ✗ git pull failed (continuing with local copy)"
+    fi
+    echo
+
+    # 2. Enumerate eligible modules.
+    local -a names=()
+    while IFS= read -r n; do names+=("$n"); done < <(_update_eligible_modules)
+
+    if [[ ${#names[@]} -eq 0 ]]; then
+        gum style --foreground 220 "  No applicable modules for this host."
+        echo
+        read -rsp "Press any key to return…" -n1
+        return
     fi
 
-    _spin "Syncing Claude config" \
-        bash "$DOTFILES_DIR/scripts/claude/install-claude-config.sh"
-    gum style --foreground 8 "    settings.json (base→local merge), CLAUDE.md, RTK.md, hooks"
+    # 3. Multi-select labels.
+    local -a labels=()
+    local n
+    for n in "${names[@]}"; do
+        labels+=("$(_update_label "$n")")
+    done
 
-    _spin "Upgrading Python MCP tools" \
-        bash -c 'pipx upgrade mcp-atlassian >/dev/null 2>&1 || true'
-    gum style --foreground 8 "    mcp-atlassian"
+    gum style --foreground 8 "  Pick what to update. Space toggles, Enter confirms."
+    local picked
+    picked="$(printf '%s\n' "${labels[@]}" | \
+        gum choose --no-limit \
+            --header "applicable on this host (all pre-selected)" \
+            --selected="$(IFS=,; echo "${labels[*]}")" )" || picked=""
 
-    _spin "Registering MCP servers" \
-        bash "$DOTFILES_DIR/bootstrap.sh" --mcp-only
-    gum style --foreground 8 "    github, shopify-dev, engram-personal/work, atlassian-fiskars/akqa, …"
-
-    echo
-    gum style --foreground 8 "  Running doctor…"
-    if bash "$DOTFILES_DIR/scripts/doctor.sh"; then
-        gum style --foreground 10 "  ✓ Running doctor"
-    else
-        gum style --foreground 9  "  ✗ Running doctor"
-        failed+=("Running doctor")
+    if [[ -z "$picked" ]]; then
+        gum style --foreground 220 "  Nothing selected — aborting."
+        echo
+        read -rsp "Press any key to return…" -n1
+        return
     fi
 
+    # 4. Extract module names from selected labels.
+    local -a sel_names=()
+    while IFS= read -r label; do
+        [[ -z "$label" ]] && continue
+        local mod="${label%% *}"
+        sel_names+=("$mod")
+    done <<< "$picked"
+
+    local sel_csv
+    sel_csv="$(IFS=,; echo "${sel_names[*]}")"
+
     echo
-    if [[ ${#failed[@]} -eq 0 ]]; then
-        gum style --foreground 10 --bold "All done."
+    gum style --foreground 8 "  Updating: $sel_csv"
+    echo
+
+    # 5. Delegate to bootstrap.sh (handles topo, deps, state recording).
+    local failed=0
+    if bash "$DOTFILES_DIR/bootstrap.sh" --update --only="$sel_csv"; then
+        gum style --foreground 10 --bold "  ✓ Update complete"
     else
-        gum style --foreground 9 --bold "Completed with issues:"
-        for f in "${failed[@]}"; do
-            gum style --foreground 9 "  • $f"
-        done
+        gum style --foreground 9 --bold "  ✗ Update finished with errors"
+        failed=1
     fi
     echo
     read -rsp "Press any key to return…" -n1
+    return $failed
 }
-
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    run_update
-fi

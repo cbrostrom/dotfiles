@@ -6,6 +6,7 @@
 # The hook denies push by default; a missing entry == blocked.
 
 ~/.config/dotfiles
+~/dotfiles
 ~/.claude
 ~/Projects/Private
 ~/Projects/huskr
