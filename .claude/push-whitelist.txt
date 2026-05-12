@@ -5,7 +5,6 @@
 # Customer / work projects must NEVER be added here without thinking twice.
 # The hook denies push by default; a missing entry == blocked.
 
-~/dotfiles
 ~/.config/dotfiles
 ~/.claude
 ~/Projects/Private

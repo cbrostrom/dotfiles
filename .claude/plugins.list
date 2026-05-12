@@ -7,10 +7,7 @@
 frontend-design@claude-plugins-official      = anthropics/claude-plugins-official
 superpowers@claude-plugins-official          = anthropics/claude-plugins-official
 code-simplifier@claude-plugins-official      = anthropics/claude-plugins-official
-github@claude-plugins-official               = anthropics/claude-plugins-official
 claude-md-management@claude-plugins-official = anthropics/claude-plugins-official
-claude-code-setup@claude-plugins-official    = anthropics/claude-plugins-official
-atlassian@claude-plugins-official            = anthropics/claude-plugins-official
 remember@claude-plugins-official             = anthropics/claude-plugins-official
 shopify@claude-plugins-official              = anthropics/claude-plugins-official
 liquid-skills@claude-plugins-official        = anthropics/claude-plugins-official
