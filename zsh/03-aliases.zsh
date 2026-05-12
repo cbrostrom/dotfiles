@@ -294,10 +294,26 @@ fi
 # CLAUDE CODE LAUNCHERS
 # =============================================================================
 # Core
-alias cc='claude'                                  # plain launch
-alias ccc='claude --continue'                      # continue most recent in cwd
+# cc/ccc auto-route through `cmux claude-teams` when inside cmux so spawned
+# subagents become native cmux splits with sidebar metadata. Falls back to
+# plain `claude` outside cmux.
+cc() {
+  if [[ -n "$CMUX_WORKSPACE_ID" ]]; then
+    command cmux claude-teams "$@"
+  else
+    command claude "$@"
+  fi
+}
+ccc() {
+  if [[ -n "$CMUX_WORKSPACE_ID" ]]; then
+    command cmux claude-teams --continue "$@"
+  else
+    command claude --continue "$@"
+  fi
+}
 alias ccr='claude --resume'                        # built-in resume picker
 alias ccf='claude --continue --fork-session'       # fork most recent into new session
+alias cct='cmux claude-teams'                      # explicit teams launcher (any context)
 
 # Custom pickers (~/.local/bin)
 alias ccp='claude-pick'                            # fuzzy-pick project to start in
