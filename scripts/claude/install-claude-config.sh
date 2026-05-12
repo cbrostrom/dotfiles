@@ -69,7 +69,7 @@ link_file() {
     [[ ! -e "$src" ]] && { log_warning "Source missing, skipping: $src"; return 0; }
     [[ -L "$dst" ]] && rm "$dst"
     if [[ -e "$dst" ]]; then
-        local bak="${dst}.backup.$(date +%Y%m%d_%H%M%S)"
+        local bak; bak="${dst}.backup.$(date +%Y%m%d_%H%M%S)"
         log_warning "Backing up: $dst → $bak"
         mv "$dst" "$bak"
     fi

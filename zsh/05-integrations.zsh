@@ -17,7 +17,7 @@ _find_windows_user_home() {
 
 _setup_cursor_integration() {
     if $IS_WSL; then
-        local win_home=$(_find_windows_user_home)
+        local win_home; win_home=$(_find_windows_user_home)
         if [[ -n "$win_home" ]]; then
             local cursor_exe="$win_home/AppData/Local/Programs/cursor/Cursor.exe"
             if [[ -x "$cursor_exe" ]]; then
@@ -39,6 +39,7 @@ _setup_cursor_integration() {
         fi
     elif $IS_LINUX; then
         if [[ -x "$HOME/.local/bin/cursor" ]]; then
+            # shellcheck disable=SC2139
             alias cursor="$HOME/.local/bin/cursor"
         elif [[ -x /usr/local/bin/cursor ]]; then
             alias cursor=/usr/local/bin/cursor

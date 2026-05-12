@@ -1,3 +1,5 @@
+# shellcheck shell=bash disable=SC1073,SC1027,SC1072
+# (zsh numeric glob <-> is valid zsh but unknown to shellcheck)
 # =============================================================================
 # DOTFILES AUTO-UPDATE NOTIFICATION
 # =============================================================================

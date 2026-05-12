@@ -1,3 +1,5 @@
+# shellcheck shell=bash disable=SC1073,SC1035,SC1072
+# (&! background-no-wait is valid zsh but unknown to shellcheck)
 # =============================================================================
 # CMUX — sidebar status integration + helpers (loads only inside cmux)
 # =============================================================================

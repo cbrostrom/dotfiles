@@ -51,7 +51,7 @@ dotfiles() {
     # Search in git repositories
     elif command -v git >/dev/null 2>&1; then
         # Find git root and check for dotfiles.sh
-        local git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+        local git_root; git_root=$(git rev-parse --show-toplevel 2>/dev/null)
         if [[ -n "$git_root" ]] && [[ -f "$git_root/dotfiles.sh" ]]; then
             dotfiles_path="$git_root/dotfiles.sh"
         fi
@@ -145,7 +145,7 @@ mkcd() {
         echo "Usage: mkcd <directory>"
         return 1
     fi
-    mkdir -p "$1" && cd "$1"
+    mkdir -p "$1" && cd "$1" || return
 }
 
 # extract - Universal archive extractor
@@ -184,7 +184,7 @@ backup() {
         return 1
     fi
     
-    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local timestamp; timestamp=$(date +%Y%m%d_%H%M%S)
     local backup_name="${1}.backup_${timestamp}"
     
     cp -r "$1" "$backup_name"
@@ -215,7 +215,7 @@ gcl() {
         return 1
     fi
     
-    git clone "$@" && cd "$(basename "$1" .git)"
+    git clone "$@" && cd "$(basename "$1" .git)" || return
 }
 
 # Find and kill process by name
@@ -225,7 +225,7 @@ killport() {
         return 1
     fi
     
-    local pid=$(lsof -ti:$1)
+    local pid; pid=$(lsof -ti:"$1")
     if [ -n "$pid" ]; then
         echo "Killing process $pid on port $1"
         kill -9 $pid
@@ -284,23 +284,23 @@ _detect_pm() {
     echo "bun"
 }
 
-ni()   { local pm=$(_detect_pm); "$pm" install "$@"; }
-na()   { local pm=$(_detect_pm); case $pm in npm) npm install "$@";; yarn) yarn add "$@";; *) "$pm" add "$@";; esac; }
-nr()   { local pm=$(_detect_pm); "$pm" run "$@"; }
-ns()   { local pm=$(_detect_pm); case $pm in yarn) yarn start "$@";; *) "$pm" run start "$@";; esac; }
-nb()   { local pm=$(_detect_pm); "$pm" run build "$@"; }
-nd()   { local pm=$(_detect_pm); "$pm" run dev "$@"; }
-nt()   { local pm=$(_detect_pm); "$pm" run test "$@"; }
-nup()  { local pm=$(_detect_pm); case $pm in yarn) yarn upgrade "$@";; *) "$pm" update "$@";; esac; }
-nout() { local pm=$(_detect_pm); case $pm in bun) bun outdated "$@";; *) "$pm" outdated "$@";; esac; }
-nls()  { local pm=$(_detect_pm); case $pm in bun) bun pm ls "$@";; *) "$pm" list "$@";; esac; }
-nx()   { local pm=$(_detect_pm); case $pm in npm) npx "$@";; bun) bunx "$@";; pnpm) pnpm dlx "$@";; yarn) yarn dlx "$@";; esac; }
-nrm()  { local pm=$(_detect_pm); case $pm in npm) npm uninstall "$@";; yarn) yarn remove "$@";; *) "$pm" remove "$@";; esac; }
+ni()   { local pm; pm=$(_detect_pm); "$pm" install "$@"; }
+na()   { local pm; pm=$(_detect_pm); case $pm in npm) npm install "$@";; yarn) yarn add "$@";; *) "$pm" add "$@";; esac; }
+nr()   { local pm; pm=$(_detect_pm); "$pm" run "$@"; }
+ns()   { local pm; pm=$(_detect_pm); case $pm in yarn) yarn start "$@";; *) "$pm" run start "$@";; esac; }
+nb()   { local pm; pm=$(_detect_pm); "$pm" run build "$@"; }
+nd()   { local pm; pm=$(_detect_pm); "$pm" run dev "$@"; }
+nt()   { local pm; pm=$(_detect_pm); "$pm" run test "$@"; }
+nup()  { local pm; pm=$(_detect_pm); case $pm in yarn) yarn upgrade "$@";; *) "$pm" update "$@";; esac; }
+nout() { local pm; pm=$(_detect_pm); case $pm in bun) bun outdated "$@";; *) "$pm" outdated "$@";; esac; }
+nls()  { local pm; pm=$(_detect_pm); case $pm in bun) bun pm ls "$@";; *) "$pm" list "$@";; esac; }
+nx()   { local pm; pm=$(_detect_pm); case $pm in npm) npx "$@";; bun) bunx "$@";; pnpm) pnpm dlx "$@";; yarn) yarn dlx "$@";; esac; }
+nrm()  { local pm; pm=$(_detect_pm); case $pm in npm) npm uninstall "$@";; yarn) yarn remove "$@";; *) "$pm" remove "$@";; esac; }
 
 pm() {
     case "${1:-}" in
         which)
-            local pm=$(_detect_pm)
+            local pm; pm=$(_detect_pm)
             echo "$pm (detected from lockfile)"
             local check="$PWD"
             while [[ "$check" != "/" ]]; do
@@ -343,7 +343,7 @@ gwtnew() {
     fi
     
     local branch_name="$1"
-    local current_dir=$(basename $(pwd))
+    local current_dir; current_dir=$(basename "$(pwd)")
     local worktree_path="../${current_dir}-${branch_name}"
     
     echo "Creating worktree: $worktree_path"
@@ -365,20 +365,20 @@ gwtgo() {
         return 1
     fi
     
-    local worktrees=$(git worktree list 2>/dev/null)
+    local worktrees; worktrees=$(git worktree list 2>/dev/null)
     if [[ -z "$worktrees" ]]; then
         echo "No git worktrees found"
         return 1
     fi
     
-    local selection=$(echo "$worktrees" | fzf --height 40% --reverse --border \
+    local selection; selection=$(echo "$worktrees" | fzf --height 40% --reverse --border \
         --preview 'echo {} | awk "{print \$1}" | xargs ls -la' \
         --preview-window=right:50%)
     
     if [[ -n "$selection" ]]; then
-        local worktree_path=$(echo "$selection" | awk '{print $1}')
+        local worktree_path; worktree_path=$(echo "$selection" | awk '{print $1}')
         echo "Switching to: $worktree_path"
-        cd "$worktree_path"
+        cd "$worktree_path" || return
     fi
 }
 

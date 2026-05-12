@@ -1,0 +1,12 @@
+# ShellCheck configuration for dotfiles
+# https://www.shellcheck.net/wiki/Ignore
+
+# SC2034 — variable appears unused: false positive for cross-file vars
+#          (IS_WSL, SAVEHIST, BREW_CACHE_VALID etc. read by other files/zsh)
+disable=SC2034
+
+# SC1090 — can't follow non-constant source: unavoidable with dynamic paths
+disable=SC1090
+
+# SC1094 — parsing of sourced file failed: loader.sh sources dynamic paths
+disable=SC1094
