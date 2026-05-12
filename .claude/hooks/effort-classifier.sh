@@ -15,7 +15,6 @@ PROMPT="$(printf '%s' "$INPUT" | jq -r '.prompt // empty' 2>/dev/null || true)"
 
 LEN=${#PROMPT}
 LOWER="$(printf '%s' "$PROMPT" | tr '[:upper:]' '[:lower:]')"
-WORDS=$(printf '%s' "$PROMPT" | wc -w | tr -d ' ')
 
 tier=""
 reason=""
