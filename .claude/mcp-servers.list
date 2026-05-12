@@ -19,9 +19,6 @@ mcp-mermaid | npx | -y | mcp-mermaid
 
 # Shopify dev tools — provided by shopify-plugin (shopify-mcp). Manual entry removed to avoid duplicate.
 
-# Tailwind CSS — utilities, color palette, component templates
-tailwindcss | npx | -y | tailwindcss-mcp-server
-
 # Google Calendar — script wrapper exports OAuth paths then execs @cocal/google-calendar-mcp.
 # First run opens browser for OAuth; token cached at ~/.config/google-calendar-mcp/tokens.json
 google-calendar | ~/.claude/scripts/google-calendar.sh
