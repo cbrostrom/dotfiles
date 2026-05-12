@@ -8,7 +8,6 @@ frontend-design@claude-plugins-official      = anthropics/claude-plugins-officia
 superpowers@claude-plugins-official          = anthropics/claude-plugins-official
 code-simplifier@claude-plugins-official      = anthropics/claude-plugins-official
 claude-md-management@claude-plugins-official = anthropics/claude-plugins-official
-remember@claude-plugins-official             = anthropics/claude-plugins-official
 shopify@claude-plugins-official              = anthropics/claude-plugins-official
 liquid-skills@claude-plugins-official        = anthropics/claude-plugins-official
 liquid-lsp@claude-plugins-official           = anthropics/claude-plugins-official
