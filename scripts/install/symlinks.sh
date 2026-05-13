@@ -201,5 +201,9 @@ fi
 # create_symlink "$SCRIPT_DIR/.config/nvim" "$HOME/.config/nvim" "nvim config"
 # create_symlink "$SCRIPT_DIR/.config/alacritty" "$HOME/.config/alacritty" "alacritty config"
 
+# dotfetch command
+mkdir -p "$HOME/.local/bin"
+create_symlink "$SCRIPT_DIR/scripts/dotfetch.sh" "$HOME/.local/bin/dotfetch" "dotfetch command"
+
 log_success "All symlinks installed successfully!"
 log_info "You may need to restart your shell or run: source ~/.zshrc"
