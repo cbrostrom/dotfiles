@@ -92,6 +92,7 @@ if command -v git >/dev/null 2>&1; then
         if $git_stale; then
             is_dirty=0
             git diff --quiet 2>/dev/null && git diff --cached --quiet 2>/dev/null || is_dirty=1
+            # shellcheck disable=SC1083
             read -r ahead behind < <(git rev-list --left-right --count HEAD...@{upstream} 2>/dev/null || echo "0 0")
             printf '%s|%s|%s|%s' "$branch" "$is_dirty" "${ahead:-0}" "${behind:-0}" > "$git_cache"
         fi
