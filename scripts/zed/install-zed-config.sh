@@ -47,8 +47,8 @@ log_info "Source : $ZED_SOURCE"
 log_info "Target : $ZED_TARGET"
 
 if [[ ! -d "$ZED_TARGET" ]]; then
-    log_warning "Zed config dir not found: $ZED_TARGET — is Zed installed?"
-    exit 1
+    log_warning "Zed config dir not found: $ZED_TARGET — is Zed installed? (skipping)"
+    exit 0
 fi
 
 # --- settings.local.json: create or update ---

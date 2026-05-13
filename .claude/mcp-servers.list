@@ -11,8 +11,8 @@
 # GitHub — requires GITHUB_PERSONAL_ACCESS_TOKEN in ~/.local-secrets
 github | npx | -y | @modelcontextprotocol/server-github
 
-# lean-ctx — token-saving context tool. Requires `cargo install lean-ctx`.
-lean-ctx | ~/.cargo/bin/lean-ctx
+# lean-ctx — token-saving context tool.
+lean-ctx | ~/.local/bin/lean-ctx
 
 # Mermaid diagram generator
 mcp-mermaid | npx | -y | mcp-mermaid

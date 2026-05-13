@@ -10,7 +10,7 @@
 #
 # Lines starting with '#' are comments. Blank lines ignored.
 
-# --- examples (commented out — uncomment as needed) ---
-# Disable dev-only MCPs inherited from the base list:
-# !shopify-dev
-# !tailwindcss
+# Disable desktop/dev-only MCPs
+!google-calendar
+!atlassian-fiskars
+!atlassian-akqa

@@ -137,4 +137,5 @@ lists_active_paths() {
     while IFS= read -r p; do
         [[ -f "$p" ]] && echo "$p"
     done < <(_lists_paths "$base")
+    return 0
 }

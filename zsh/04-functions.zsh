@@ -3,32 +3,6 @@
 # =============================================================================
 # Utility functions and custom commands
 
-# =============================================================================
-# ZELLIJ WRAPPER (zj <layout>)
-# =============================================================================
-# zj           — attach to host-named session with default layout
-# zj dev       — attach (or create) host-named session with the 'dev' layout
-# zj ls        — list sessions
-# zj kill      — kill the host session
-zj() {
-    command -v zellij >/dev/null 2>&1 || { echo "zellij not installed"; return 1; }
-    local session layout
-    session="$(hostname -s 2>/dev/null || echo main)"
-    case "$session" in
-        AKQABro|mac|Macbook*|*macbook*) layout="dev" ;;
-        linuxbro|cloudbro)              layout="ops" ;;
-        superbro)                       layout="vps" ;;
-        monsterbro|*WSL*|*wsl*)         layout="dev" ;;
-        *)                              layout="default" ;;
-    esac
-    layout="${ZJ_DEFAULT_LAYOUT:-$layout}"
-    case "${1:-}" in
-        ls|list)  zellij list-sessions ;;
-        kill)     zellij kill-session "$session" ;;
-        "")       zellij --layout "$layout" attach -c "$session" ;;
-        *)        zellij --layout "$1" attach -c "${session}-$1" ;;
-    esac
-}
 
 # =============================================================================
 # DOTFILES FUNCTION
