@@ -86,7 +86,7 @@ _zsh_recompile_if_stale() {
     for f in \
         ~/.zshenv ~/.zshrc \
         ~/dotfiles/.zshenv ~/dotfiles/.zshrc \
-        ~/dotfiles/zsh/*.zsh
+        ~/dotfiles/zsh/*.zsh(N)
     do
         [[ -f "$f" ]] || continue
         if [[ ! -f "${f}.zwc" ]] || [[ "$f" -nt "${f}.zwc" ]]; then
