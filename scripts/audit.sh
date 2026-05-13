@@ -28,6 +28,7 @@ if [[ -f "${DOTFILES_DIR}/modules.conf" ]]; then
     [[ -z "$line" ]] && continue
     local_name="${line#\!}"
     local_name="${local_name#"${local_name%%[![:space:]]*}"}"
+    local_name="${local_name%"${local_name##*[![:space:]]}"}"
     if [[ ! -d "${DOTFILES_DIR}/modules/${local_name}" ]]; then
       _tag "stale" "modules.conf: '${line}' → no dir modules/${local_name}/"
       _found=1
@@ -46,6 +47,7 @@ if [[ -f "${DOTFILES_DIR}/modules.conf" ]]; then
     [[ "$line" =~ ^\! ]] || continue
     local_name="${line#\!}"
     local_name="${local_name#"${local_name%%[![:space:]]*}"}"
+    local_name="${local_name%"${local_name##*[![:space:]]}"}"
     if [[ -d "${DOTFILES_DIR}/modules/${local_name}" ]]; then
       _tag "unused" "!${local_name} — disabled in modules.conf but dir still present"
       _found=1
@@ -60,18 +62,19 @@ _found=0
 while IFS= read -r f; do
   printf "${YEL}  %s${C0}\n" "$f"
   _found=1
-done < <(grep -rl --include="*.sh" --include="*.zsh" \
-  'zed' "${DOTFILES_DIR}" 2>/dev/null \
+done < <(grep -rlE --include="*.sh" --include="*.zsh" \
+  '\bzed\b' "${DOTFILES_DIR}" 2>/dev/null \
   | grep -v '\.git' \
   | grep -v "${DOTFILES_DIR}/modules/zed/" \
   | grep -v "${DOTFILES_DIR}/scripts/zed/" \
   | grep -v "${DOTFILES_DIR}/tui/tools/zed.sh" \
-  | grep -v "${DOTFILES_DIR}/scripts/audit.sh" \
+  | grep -v "${BASH_SOURCE[0]}" \
   | sort)
 if (( _found == 0 )); then echo "  none"; fi
 
 # ── 4. dead symlinks on disk (targets missing) ────────────────────────────────
 printf "\n${BOLD}4. broken symlinks on disk (~/)${C0}\n"
+# Note: scanning up to maxdepth 5 — may be slow on large home dirs
 _found=0
 while IFS= read -r link; do
   [[ -e "$link" ]] && continue
@@ -92,7 +95,7 @@ while IFS= read -r script; do
     | grep -v '\.git' || true)"
   if [[ -z "$callers" ]]; then
     relative="${script#"${DOTFILES_DIR}/"}"
-    _tag "unused" "${relative} — no callers found"
+    _tag "maybe" "${relative} — no callers found (basename-only check)"
     _found=1
   fi
 done < <(find "${DOTFILES_DIR}/scripts" -name "*.sh" -not -path '*/.git/*' 2>/dev/null | sort)
