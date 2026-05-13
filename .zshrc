@@ -158,3 +158,5 @@ if [[ -n "$_lean_ctx_bin" ]] && [ -z "${LEAN_CTX_ACTIVE:-}" ] \
     lean-ctx-on >/dev/null
 fi
 # lean-ctx shell hook — end
+
+unset MAILCHECK
