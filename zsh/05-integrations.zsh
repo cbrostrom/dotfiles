@@ -55,3 +55,15 @@ unset -f _setup_cursor_integration
 # Note: Zellij auto-attach moved to 07-zellij.zsh so it runs AFTER 06-autoupdate.zsh.
 # Otherwise `exec zellij` replaces the shell before autoupdate can register hooks.
 
+# =============================================================================
+# DOTFETCH ON INTERACTIVE START
+# =============================================================================
+# Runs dotfetch on interactive terminal start (skip in non-interactive, CI, or dumb terminals)
+
+if [[ -o interactive && "${TERM:-}" != "dumb" && -z "${CI:-}" ]]; then
+  if command -v dotfetch >/dev/null 2>&1; then
+    dotfetch
+  elif [[ -x "${DOTFILES_DIR:-$HOME/.config/dotfiles}/scripts/dotfetch.sh" ]]; then
+    bash "${DOTFILES_DIR:-$HOME/.config/dotfiles}/scripts/dotfetch.sh"
+  fi
+fi
