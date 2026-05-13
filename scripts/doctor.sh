@@ -96,7 +96,7 @@ done
 # ----- expected tools -----
 hdr "Tools"
 need_core=(zsh git curl)
-need_modern=(starship zoxide fzf bat eza rg fd zellij)
+need_modern=(starship zoxide fzf bat eza rg fd)
 need_workflow=(lazygit gh)
 
 for cmd in "${need_core[@]}"; do

@@ -52,8 +52,6 @@ _setup_cursor_integration
 unset -f _find_windows_user_home
 unset -f _setup_cursor_integration
 
-# Note: Zellij auto-attach moved to 07-zellij.zsh so it runs AFTER 06-autoupdate.zsh.
-# Otherwise `exec zellij` replaces the shell before autoupdate can register hooks.
 
 # =============================================================================
 # DOTFETCH ON INTERACTIVE START
