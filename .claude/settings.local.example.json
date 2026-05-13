@@ -18,6 +18,15 @@
                         "command": "HOME_PLACEHOLDER/.claude/hooks/claude-session-check.sh"
                     }
                 ]
+            },
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash HOME_PLACEHOLDER/.config/dotfiles/scripts/claude/device-snapshot.sh write",
+                        "async": true
+                    }
+                ]
             }
         ],
         "PreToolUse": [
