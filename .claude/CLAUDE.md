@@ -31,6 +31,12 @@ Rules:
 - Call `mem_session_summary` before ending a session.
 - Prefer `mem_save` over writing to CLAUDE.md files for session-specific facts.
 
+## Device state sync
+
+At session start, read `~/.config/dotfiles/.claude/devices/<hostname>.json` (hostname = output of `hostname -s`) if it exists. Call `mem_save` (engram-personal) with `topic_key=devices/<hostname>`, summarising the snapshot in plain text (host, os, profile, plugin count + list, mcp list, skills). This keeps Engram as the source-of-truth for Claude config across machines. The JSON file is written by a `SessionStart` hook on every session — just sync it to Engram.
+
+Also save to Engram proactively whenever the user installs/removes plugins, adds MCP servers, or changes skills — don't wait for next session start.
+
 ## Graphiti — knowledge graph (temporal, relational)
 
 Temporal knowledge graph on SuperBro (Neo4j + OpenAI embeddings). HTTP MCP at `http://100.100.1.50:8000/mcp`.
