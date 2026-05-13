@@ -63,6 +63,8 @@ gaming/config/launch.log
 .claude/settings.local.json
 # Claude auto-approved permissions (machine-local, generated at runtime)
 .claude/settings.json
+# Claude device snapshots — stored in Engram, not git
+.claude/devices/
 
 # lean-ctx local graph state (runtime cache, not portable)
 .lean-ctx/
