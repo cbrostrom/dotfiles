@@ -11,3 +11,4 @@
 ~/Projects/Private
 ~/Projects/huskr
 ~/Projects/laesr
+/home/christian/dotfiles
