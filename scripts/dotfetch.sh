@@ -2,7 +2,18 @@
 # dotfetch — neofetch-style dotfiles info display
 set -euo pipefail
 
-DOTFETCH_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+_df_script_real_dir() {
+  local src="${BASH_SOURCE[0]}"
+  local dir
+  while [[ -L "$src" ]]; do
+    dir="$(cd -P "$(dirname "$src")" && pwd)"
+    src="$(readlink "$src")"
+    [[ "$src" != /* ]] && src="${dir}/${src}"
+  done
+  cd -P "$(dirname "$src")" && pwd
+}
+DOTFETCH_DIR="$(cd "$(_df_script_real_dir)/.." && pwd)"
+unset -f _df_script_real_dir
 
 # ── colors ────────────────────────────────────────────────────────────────────
 _df_setup_colors() {
@@ -127,7 +138,7 @@ _df_get_modules() {
   total=0
   for d in "${DOTFETCH_DIR}/modules"/*/; do
     [[ -f "${d}module.sh" ]] || continue
-    (( total++ ))
+    (( total++ )) || true
   done
   disabled=0
   if [[ -f "${DOTFETCH_DIR}/modules.conf" ]]; then
@@ -139,7 +150,7 @@ _df_get_modules() {
 
 _df_get_symlinks_fast() {
   local count
-  count="$(grep -c 'create_symlink' "${DOTFETCH_DIR}/scripts/install/symlinks.sh" 2>/dev/null || echo '?')"
+  count="$(grep -c 'create_symlink ' "${DOTFETCH_DIR}/scripts/install/symlinks.sh" 2>/dev/null || echo '?')"
   echo "${count} defined"
 }
 
