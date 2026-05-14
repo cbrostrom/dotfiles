@@ -20,7 +20,6 @@
 # =============================================================================
 tap "felixkratz/formulae"            # borders
 tap "gentleman-programming/tap"      # engram
-tap "jandedobbeleer/oh-my-posh"      # oh-my-posh (FIXME: dup of starship)
 tap "muhammadhananasghar/tap"        # wormhole
 tap "tomanthony/brews"               # itermocil
 tap "yoanbernabeu/tap"               # grepai
@@ -53,47 +52,35 @@ brew "pinentry-mac"
 # Dev / Languages / Toolchains
 # =============================================================================
 brew "actionlint"
-brew "asdf"
 brew "autoconf"
 brew "bash"
 brew "cmake"
 brew "dotnet@6"
 brew "go"
 brew "m4"
-brew "node"
-brew "nvm"                            # FIXME: dup of fnm — pick one
+brew "node"                           # kept: some tools need a global node
 brew "openjdk"
 brew "pipx"
-brew "powerlevel10k"                  # FIXME: dup of starship (+ oh-my-posh)
-brew "pyenv"
 brew "python-setuptools"
-brew "python@3.10"                    # FIXME: 3 python versions, trim to needed
-brew "python@3.13"
 brew "python@3.14"
 brew "ruby"
 brew "shellcheck"
 brew "vercel-cli"
 
 # =============================================================================
-# Containers / Virtualization / Network (FIXME: heavy stack — used locally?)
+# Containers / Virtualization / Network
 # =============================================================================
 brew "caddy"
 brew "cloudflared"
-brew "colima"
 brew "docker"
 brew "docker-buildx"
 brew "docker-completion"
 brew "docker-compose"
 brew "docker-credential-helper"
-brew "docker-machine"
-brew "lima"
-brew "lima-additional-guestagents"
 brew "mtr"
 brew "podman"
-brew "qemu"
 brew "socat"
 brew "unbound"
-brew "vde"
 
 # =============================================================================
 # System / Utilities (macOS)
@@ -129,7 +116,6 @@ brew "zsh-syntax-highlighting"
 # =============================================================================
 brew "felixkratz/formulae/borders"
 brew "gentleman-programming/tap/engram"
-brew "jandedobbeleer/oh-my-posh/oh-my-posh"   # FIXME: see prompt dup
 brew "muhammadhananasghar/tap/wormhole"
 brew "tomanthony/brews/itermocil"
 brew "yoanbernabeu/tap/grepai"
