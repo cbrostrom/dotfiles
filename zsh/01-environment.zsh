@@ -83,6 +83,14 @@ if $IS_LINUX; then
     fi
 fi
 
+# Skip the implicit `brew update` before every install — saves 20-60s per
+# command. Schedule explicit `brew update` via cron / launchd if desired.
+export HOMEBREW_NO_AUTO_UPDATE=1
+# Skip post-install cleanup of old versions. Run `brew cleanup` weekly.
+export HOMEBREW_NO_INSTALL_CLEANUP=1
+# Let bare `brew bundle` / `brew bundle check` work from any cwd.
+export HOMEBREW_BUNDLE_FILE="$HOME/dotfiles/Brewfile"
+
 # =============================================================================
 # NODE / BUN / FNM (cross-platform, $HOME-based)
 # =============================================================================
