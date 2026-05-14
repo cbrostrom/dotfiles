@@ -190,7 +190,7 @@ fi
 hdr "MCP drift (mcp-servers.list vs ~/.claude.json)"
 mcp_list_files=("$DOTFILES_DIR/.claude/mcp-servers.list")
 case "$(uname -s)" in
-    Darwin) mcp_list_files+=("$DOTFILES_DIR/.claude/mcp-servers.darwin.list") ;;
+    Darwin) mcp_list_files+=("$DOTFILES_DIR/.claude/mcp-servers.macos.list") ;;
     Linux)  mcp_list_files+=("$DOTFILES_DIR/.claude/mcp-servers.linux.list") ;;
 esac
 claude_json="$HOME/.claude.json"

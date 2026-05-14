@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-exec env DOCKER_HOST="ssh://linuxbro" /home/christian/.local/bin/uvx mcp-server-docker
+UVX="${UVX:-$(command -v uvx || echo "$HOME/.local/bin/uvx")}"
+exec env DOCKER_HOST="ssh://linuxbro" "$UVX" --with paramiko mcp-server-docker

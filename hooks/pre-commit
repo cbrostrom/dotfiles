@@ -58,7 +58,7 @@ if [[ -x "$snapshot_script" ]] && grep -q "^\.claude/" <<< "$changed"; then
     if bash "$snapshot_script" write >/dev/null 2>&1; then
         # Stage only if the snapshot actually changed (avoids empty diffs).
         if ! git diff --quiet -- "$snapshot_file" 2>/dev/null; then
-            git add "$snapshot_file"
+            git add -f "$snapshot_file"
             echo "[pre-commit] refreshed device snapshot for $host"
         fi
     else
