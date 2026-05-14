@@ -2,35 +2,31 @@
 # Source of truth for `brew bundle install` AND `brew bundle cleanup`.
 # WARNING: anything NOT listed here will be removed by `brew bundle cleanup --force`.
 #
-# Trim policy (vs. previous state):
-#   removed: neovim, git-delta, procs, lazydocker (+ tap jesseduffield/lazydocker)
-#   kept:    everything else that was installed prior to 2026-04-21
+# Trim policy:
+#   - Removed 13 unused taps (no formula referenced).
+#   - Removed entire "library deps" section: those are transitive deps
+#     of imagemagick / llama.cpp / qemu / docker / etc. brew bundle cleanup
+#     does NOT remove formulae that are deps of installed parents, so
+#     explicit pinning was unnecessary noise.
+#   - Removed zellij (already dropped per commit bb316c4).
+#   - Removed casks dbgate, dotnet-sdk, syncthing-app, voicemod
+#     (not installed on current host; re-add if needed elsewhere).
+#
+# FIXME comments mark personal-choice duplicates (e.g. 3 prompts, 2 node
+# version managers, 3 python versions). Pick one and drop the rest.
 
 # =============================================================================
 # Taps
 # =============================================================================
-tap "asmvik/formulae"
-tap "barutsrb/tap"
-tap "cloudflare/cloudflare"
-tap "cmacrae/formulae"
-tap "domt4/autoupdate"
-tap "felixkratz/formulae"
-tap "gentleman-programming/tap"
-tap "jandedobbeleer/oh-my-posh"
-tap "joshmedeski/sesh"
-tap "koekeishiya/formulae"
-tap "muhammadhananasghar/tap"
-tap "nikitabobko/tap"
-tap "shopify/shopify"
-tap "silverstein/tap"
-tap "tomanthony/brews"
-tap "vishalveerareddy123/lynkr"
-tap "wxtsky/tap"
-tap "xpipe-io/tap"
-tap "yoanbernabeu/tap"
+tap "felixkratz/formulae"            # borders
+tap "gentleman-programming/tap"      # engram
+tap "jandedobbeleer/oh-my-posh"      # oh-my-posh (FIXME: dup of starship)
+tap "muhammadhananasghar/tap"        # wormhole
+tap "tomanthony/brews"               # itermocil
+tap "yoanbernabeu/tap"               # grepai
 
 # =============================================================================
-# Core CLI (modern terminal essentials — kept from trim)
+# Core CLI (modern terminal essentials)
 # =============================================================================
 brew "git"
 brew "zsh"
@@ -47,7 +43,6 @@ brew "zoxide"
 brew "starship"
 brew "tealdeer"
 brew "micro"
-brew "zellij"
 brew "lazygit"
 brew "gh"
 brew "fnm"
@@ -66,13 +61,13 @@ brew "dotnet@6"
 brew "go"
 brew "m4"
 brew "node"
-brew "nvm"
+brew "nvm"                            # FIXME: dup of fnm — pick one
 brew "openjdk"
 brew "pipx"
-brew "powerlevel10k"
+brew "powerlevel10k"                  # FIXME: dup of starship (+ oh-my-posh)
 brew "pyenv"
 brew "python-setuptools"
-brew "python@3.10"
+brew "python@3.10"                    # FIXME: 3 python versions, trim to needed
 brew "python@3.13"
 brew "python@3.14"
 brew "ruby"
@@ -80,7 +75,7 @@ brew "shellcheck"
 brew "vercel-cli"
 
 # =============================================================================
-# Containers / Virtualization / Network
+# Containers / Virtualization / Network (FIXME: heavy stack — used locally?)
 # =============================================================================
 brew "caddy"
 brew "cloudflared"
@@ -117,7 +112,7 @@ brew "switchaudio-osx"
 brew "syncthing"
 
 # =============================================================================
-# Media / Imaging
+# Media / Imaging / Local ML
 # =============================================================================
 brew "ggml"
 brew "imagemagick"
@@ -134,78 +129,10 @@ brew "zsh-syntax-highlighting"
 # =============================================================================
 brew "felixkratz/formulae/borders"
 brew "gentleman-programming/tap/engram"
-brew "jandedobbeleer/oh-my-posh/oh-my-posh"
+brew "jandedobbeleer/oh-my-posh/oh-my-posh"   # FIXME: see prompt dup
 brew "muhammadhananasghar/tap/wormhole"
 brew "tomanthony/brews/itermocil"
 brew "yoanbernabeu/tap/grepai"
-
-# =============================================================================
-# Library deps (kept explicit so `bundle cleanup` won't nuke them)
-# =============================================================================
-brew "ada-url"
-brew "aom"
-brew "c-ares"
-brew "cairo"
-brew "capstone"
-brew "dtc"
-brew "fmt"
-brew "fontconfig"
-brew "freetype"
-brew "gdbm"
-brew "giflib"
-brew "glib"
-brew "gmp"
-brew "gnutls"
-brew "graphite2"
-brew "harfbuzz"
-brew "hdrhistogram_c"
-brew "icu4c@77"
-brew "icu4c@78"
-brew "jansson"
-brew "jpeg-turbo"
-brew "libarchive"
-brew "libb2"
-brew "libde265"
-brew "libevent"
-brew "libheif"
-brew "libomp"
-brew "libpng"
-brew "libslirp"
-brew "libssh"
-brew "libtasn1"
-brew "libtiff"
-brew "libtool"
-brew "libusb"
-brew "libuv"
-brew "libvmaf"
-brew "libx11"
-brew "libxau"
-brew "libxcb"
-brew "libxdmcp"
-brew "libxext"
-brew "libxrender"
-brew "libyaml"
-brew "little-cms2"
-brew "llhttp"
-brew "lzo"
-brew "merve"
-brew "mpdecimal"
-brew "nbytes"
-brew "nettle"
-brew "p11-kit"
-brew "pixman"
-brew "pkgconf"
-brew "readline"
-brew "rtk"
-brew "simdjson"
-brew "simdutf"
-brew "snappy"
-brew "sqlite"
-brew "uvwasi"
-brew "webp"
-brew "x265"
-brew "xorgproto"
-brew "yyjson"
 
 # =============================================================================
 # Casks — Apps
@@ -217,8 +144,6 @@ cask "claude"
 cask "codeisland"
 cask "cursor"
 cask "vscodium"
-cask "dbgate"
-cask "dotnet-sdk"
 cask "dropbox"
 cask "elgato-stream-deck"
 cask "figma"
@@ -239,10 +164,8 @@ cask "setapp"
 cask "slack"
 cask "spotify"
 cask "steam"
-cask "syncthing-app"
 cask "the-unarchiver"
 cask "vivaldi"
-cask "voicemod"
 cask "zoom"
 
 # =============================================================================
