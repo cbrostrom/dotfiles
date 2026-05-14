@@ -14,6 +14,13 @@
 # #6272a4 time
 
 # =============================================================================
+# GLOBAL
+# =============================================================================
+# Bump default 500ms — fnm multishell node shims add startup latency and
+# can blow past the default, producing "command timed out" warnings.
+command_timeout = 2000
+
+# =============================================================================
 # PROMPT CHARACTER
 # =============================================================================
 [character]
@@ -60,7 +67,7 @@ deleted = "🗑$count "
 format = '\[ [$symbol$version ]($style)\] '
 symbol = "󰎙 "
 style = "#4c566a bold"
-detect_extensions = ["js", "mjs", "cjs", "ts", "jsx", "tsx", "json"]
+detect_extensions = ["js", "mjs", "cjs", "ts", "jsx", "tsx"]
 detect_files = ["package.json", "node_modules", ".nvmrc", ".node-version"]
 
 [package]
