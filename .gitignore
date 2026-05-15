@@ -77,3 +77,7 @@ gaming/config/launch.log
 .superpowers/
 .remember/
 *.zwc
+
+# Claude settings (3-layer merge)
+.claude/settings.override.json
+.claude/.settings-attestation
