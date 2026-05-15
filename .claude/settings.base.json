@@ -1,133 +1,54 @@
 {
-    "$schema": "https://json.schemastore.org/claude-code-settings.json",
-    "enabledPlugins": {
-        "frontend-design@claude-plugins-official": true,
-        "superpowers@claude-plugins-official": true,
-        "code-simplifier@claude-plugins-official": false,
-        "github@claude-plugins-official": true,
-        "claude-md-management@claude-plugins-official": true,
-        "claude-code-setup@claude-plugins-official": false,
-        "atlassian@claude-plugins-official": true,
-        "remember@claude-plugins-official": false,
-        "shopify@claude-plugins-official": true,
-        "liquid-skills@claude-plugins-official": true,
-        "liquid-lsp@claude-plugins-official": true,
-        "code-review@claude-plugins-official": false,
-        "skill-creator@claude-plugins-official": false,
-        "caveman@caveman": true,
-        "planning-with-files@planning-with-files": true,
-        "plannotator@plannotator": true,
-        "ck@cavekit-marketplace": true
-    },
-    "extraKnownMarketplaces": {
-        "caveman": {
-            "source": {
-                "source": "github",
-                "repo": "juliusbrussee/caveman"
-            }
-        },
-        "planning-with-files": {
-            "source": {
-                "source": "github",
-                "repo": "OthmanAdi/planning-with-files"
-            }
-        },
-        "plannotator": {
-            "source": {
-                "source": "github",
-                "repo": "backnotprop/plannotator"
-            }
-        },
-        "cavekit-marketplace": {
-            "source": {
-                "source": "github",
-                "repo": "juliusbrussee/cavekit"
-            }
-        }
-    },
-    "language": "english",
-    "effortLevel": "medium",
-    "autoUpdatesChannel": "stable",
-    "editorMode": "normal",
-    "spinnerVerbs": {
-        "mode": "replace",
-        "verbs": ["Thinking", "Processing", "Working"]
-    },
-    "permissions": {
-        "defaultMode": "default",
-        "allow": [
-            "Bash(git status)",
-            "Bash(git diff:*)",
-            "Bash(git log:*)",
-            "Bash(git add:*)",
-            "Bash(git commit:*)",
-            "Bash(git checkout:*)",
-            "Bash(git branch:*)",
-            "Bash(git fetch:*)",
-            "Bash(git pull:*)",
-            "Bash(npm run:*)",
-            "Bash(npx:*)",
-            "Bash(bun run:*)",
-            "Bash(bun add:*)"
-        ],
-        "ask": [
-            "Bash(git push:*)",
-            "Bash(npm publish:*)"
-        ],
-        "deny": [
-            "Bash(rm -rf:*)",
-            "Read(.env)",
-            "Read(.env.*)"
-        ]
-    },
-    "env": {
-        "CLAUDE_CODE_ENABLE_TELEMETRY": "0"
-    },
-    "mcpServers": {
-        "github": {
-            "command": "npx",
-            "args": ["-y", "@modelcontextprotocol/server-github"],
-            "env": {
-                "GITHUB_PERSONAL_ACCESS_TOKEN": "$GITHUB_PERSONAL_ACCESS_TOKEN"
-            }
-        },
-        "engram-personal": {
-            "command": "ssh",
-            "args": [
-                "superbro",
-                "ENGRAM_DATA_DIR=/home/christian/.engram/personal /home/christian/.local/bin/engram mcp"
-            ]
-        },
-        "engram-work": {
-            "command": "ssh",
-            "args": [
-                "superbro",
-                "ENGRAM_DATA_DIR=/home/christian/.engram/work /home/christian/.local/bin/engram mcp"
-            ]
-        },
-        "atlassian-fiskars": {
-            "command": "mcp-atlassian",
-            "args": [],
-            "env": {
-                "JIRA_URL": "$ATLASSIAN_FISKARS_JIRA_URL",
-                "JIRA_USERNAME": "$ATLASSIAN_USERNAME",
-                "JIRA_API_TOKEN": "$ATLASSIAN_API_TOKEN",
-                "CONFLUENCE_URL": "$ATLASSIAN_FISKARS_CONFLUENCE_URL",
-                "CONFLUENCE_USERNAME": "$ATLASSIAN_USERNAME",
-                "CONFLUENCE_API_TOKEN": "$ATLASSIAN_API_TOKEN"
-            }
-        },
-        "atlassian-akqa": {
-            "command": "mcp-atlassian",
-            "args": [],
-            "env": {
-                "JIRA_URL": "$ATLASSIAN_AKQA_JIRA_URL",
-                "JIRA_USERNAME": "$ATLASSIAN_USERNAME",
-                "JIRA_API_TOKEN": "$ATLASSIAN_API_TOKEN",
-                "CONFLUENCE_URL": "$ATLASSIAN_AKQA_CONFLUENCE_URL",
-                "CONFLUENCE_USERNAME": "$ATLASSIAN_USERNAME",
-                "CONFLUENCE_API_TOKEN": "$ATLASSIAN_API_TOKEN"
-            }
-        }
-    }
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": false,
+    "github@claude-plugins-official": false,
+    "claude-md-management@claude-plugins-official": true,
+    "claude-code-setup@claude-plugins-official": false,
+    "atlassian@claude-plugins-official": true,
+    "remember@claude-plugins-official": false,
+    "shopify@claude-plugins-official": true,
+    "liquid-skills@claude-plugins-official": true,
+    "liquid-lsp@claude-plugins-official": true,
+    "code-review@claude-plugins-official": false,
+    "skill-creator@claude-plugins-official": false,
+    "caveman@caveman": true,
+    "planning-with-files@planning-with-files": true,
+    "plannotator@plannotator": true,
+    "ck@cavekit-marketplace": true
+  },
+  "extraKnownMarketplaces": {
+    "caveman":             { "source": { "source": "github", "repo": "juliusbrussee/caveman" } },
+    "planning-with-files": { "source": { "source": "github", "repo": "OthmanAdi/planning-with-files" } },
+    "plannotator":         { "source": { "source": "github", "repo": "backnotprop/plannotator" } },
+    "cavekit-marketplace": { "source": { "source": "github", "repo": "juliusbrussee/cavekit" } }
+  },
+  "language": "english",
+  "effortLevel": "high",
+  "autoUpdatesChannel": "stable",
+  "editorMode": "normal",
+  "spinnerVerbs": { "mode": "replace", "verbs": ["Thinking", "Processing", "Working"] },
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Bash(git status)", "Bash(git diff:*)", "Bash(git log:*)",
+      "Bash(git add:*)", "Bash(git commit:*)", "Bash(git checkout:*)",
+      "Bash(git branch:*)", "Bash(git fetch:*)", "Bash(git pull:*)",
+      "Bash(npm run:*)", "Bash(npx:*)", "Bash(bun run:*)", "Bash(bun add:*)"
+    ],
+    "ask": ["Bash(git push:*)", "Bash(npm publish:*)"],
+    "deny": ["Bash(rm -rf:*)", "Read(.env)", "Read(.env.*)"]
+  },
+  "env": { "CLAUDE_CODE_ENABLE_TELEMETRY": "0" },
+  "outputStyle": "default",
+  "spinnerTipsEnabled": true,
+  "awaySummaryEnabled": false,
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "preferredNotifChannel": "notifications_disabled",
+  "remoteControlAtStartup": false,
+  "skipAutoPermissionPrompt": true,
+  "useAutoModeDuringPlan": true
 }
