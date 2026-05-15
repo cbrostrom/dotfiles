@@ -22,3 +22,15 @@ def deep_merge_by_key(base; overlay):
          then .[$k] = (.[$k] * $o[$k])
          else .[$k] = $o[$k]
          end);
+
+# Helper: top-level entry has a "hooks" array of command objects.
+# Identity = the command path inside the first hook (Claude Code's hook shape).
+def _hook_id_command(entry): entry.hooks[0].command;
+
+# replace_by_command: take entries from base whose hook command does NOT
+# appear in overlay; then append all overlay entries. Overlay wins on
+# collision; new ones added at end.
+def replace_by_command(base; overlay):
+    (overlay | map(_hook_id_command(.))) as $owned
+    | (base | map(select(_hook_id_command(.) as $id | $owned | index([$id]) | not)))
+      + overlay;

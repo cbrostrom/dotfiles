@@ -30,3 +30,11 @@ setup() {
     expected=$(cat "$FIXTURES/deep-merge-by-key-expected.json")
     [ "$(echo "$actual" | jq -S .)" = "$(echo "$expected" | jq -S .)" ]
 }
+
+@test "replace-by:command: overlay hook replaces same-command entry" {
+    actual=$(jq -n --slurpfile a "$FIXTURES/replace-by-command-base.json" \
+                   --slurpfile b "$FIXTURES/replace-by-command-overlay.json" \
+                   "include \"strategies\" {search: \"$MOD_DIR/lib\"}; replace_by_command(\$a[0]; \$b[0])")
+    expected=$(cat "$FIXTURES/replace-by-command-expected.json")
+    [ "$(echo "$actual" | jq -S .)" = "$(echo "$expected" | jq -S .)" ]
+}
