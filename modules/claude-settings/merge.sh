@@ -55,20 +55,14 @@ else
 fi
 rm -f "$PHASE1"
 
-# Step 3: envsubst (skip if MERGE_SKIP_ENVSUBST=1)
-if [ "${MERGE_SKIP_ENVSUBST:-0}" != "1" ]; then
-    if command -v envsubst >/dev/null 2>&1; then
-        envsubst < "$TMP" > "${TMP}.env" && mv "${TMP}.env" "$TMP"
-    else
-        echo "[merge] warning: envsubst missing; literal vars kept" >&2
-    fi
-fi
-
-# Step 4: atomic write
+# Step 3: atomic write
+# Note: no env-var substitution — Claude Code resolves $VAR in settings.json
+# itself at runtime. Substituting here would expand secrets to disk AND
+# destroy the `$schema` key.
 mv "$TMP" "$OUT"
 trap - EXIT
 
-# Step 5: attestation (SHA of inputs)
+# Step 4: attestation (SHA of inputs)
 {
     sha256sum "$BASE" "$PLATFORM_FILE" "$RULES" 2>/dev/null \
       || shasum -a 256 "$BASE" "$PLATFORM_FILE" "$RULES" 2>/dev/null
