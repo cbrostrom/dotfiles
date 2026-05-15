@@ -34,3 +34,21 @@ def replace_by_command(base; overlay):
     (overlay | map(_hook_id_command(.))) as $owned
     | (base | map(select(_hook_id_command(.) as $id | $owned | index([$id]) | not)))
       + overlay;
+
+# _merge_inner_hooks: concat-dedupe by command, keep first occurrence.
+def _merge_inner_hooks(a; b):
+    reduce (a + b)[] as $h ([];
+        if any(.[]; .command == $h.command) then . else . + [$h] end);
+
+# replace_by_matcher_command: outer entries identified by matcher.
+# Same matcher → merge inner hooks by command. New matcher → append.
+def replace_by_matcher_command(base; overlay):
+    (base | map(.matcher)) as $base_matchers
+    | (base
+       | map(. as $b
+             | (overlay | map(select(.matcher == $b.matcher))) as $o
+             | if ($o | length) > 0
+               then $b | .hooks = _merge_inner_hooks($b.hooks; $o[0].hooks)
+               else $b
+               end))
+      + (overlay | map(select(.matcher as $m | $base_matchers | index([$m]) | not)));

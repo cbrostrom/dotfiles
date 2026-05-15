@@ -38,3 +38,11 @@ setup() {
     expected=$(cat "$FIXTURES/replace-by-command-expected.json")
     [ "$(echo "$actual" | jq -S .)" = "$(echo "$expected" | jq -S .)" ]
 }
+
+@test "replace-by:matcher+command: identity by matcher AND command" {
+    actual=$(jq -n --slurpfile a "$FIXTURES/replace-by-matcher-command-base.json" \
+                   --slurpfile b "$FIXTURES/replace-by-matcher-command-overlay.json" \
+                   "include \"strategies\" {search: \"$MOD_DIR/lib\"}; replace_by_matcher_command(\$a[0]; \$b[0])")
+    expected=$(cat "$FIXTURES/replace-by-matcher-command-expected.json")
+    [ "$(echo "$actual" | jq -S .)" = "$(echo "$expected" | jq -S .)" ]
+}
