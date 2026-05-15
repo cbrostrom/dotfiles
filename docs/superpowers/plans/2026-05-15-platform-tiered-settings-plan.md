@@ -6,7 +6,7 @@
 
 **Architecture:** Three tracked JSON fragments are merged in order (`base → settings.{darwin,linux,wsl}.json → settings.override.json`) by a jq-based shell merger using a `_merge-config.json` rules table. Output is written atomically to `settings.local.json`. A SessionStart hook regenerates on input-mtime change; a bootstrap doctor reports drift and offers `--fix`.
 
-**Tech Stack:** Bash 5, jq 1.7+, gettext (`envsubst`), bats-core for tests, existing `bootstrap.sh` module system, GitHub-flavored Markdown for docs.
+**Tech Stack:** Bash 5, jq 1.7+, bats-core for tests, existing `bootstrap.sh` module system, GitHub-flavored Markdown for docs. (No `envsubst` — Claude Code resolves `$VAR` itself at runtime; see Task 8.5.)
 
 **Reference spec:** `docs/superpowers/specs/2026-05-15-platform-tiered-settings-design.md`
 
@@ -19,7 +19,7 @@
 | Path | Responsibility |
 |---|---|
 | `.claude/settings.base.json` | Shared rules across all hosts: `enabledPlugins`, `language`, `editorMode`, `env`, core `permissions`, `extraKnownMarketplaces`, model selection. |
-| `.claude/settings.darwin.json` | Mac-only: hooks with `$HOME/.claude/hooks/...` paths (envsubst expands), Mac-only MCPs (apple-mcp, atlassian-fiskars/akqa, google-calendar), `statusLine`. |
+| `.claude/settings.darwin.json` | Mac-only: hooks with `$HOME/.claude/hooks/...` paths (literal `$HOME`; Claude Code resolves at runtime), Mac-only MCPs (apple-mcp, atlassian-fiskars/akqa, google-calendar), `statusLine`. |
 | `.claude/settings.linux.json` | Linux-only: hooks with `$HOME/.claude/hooks/...` paths, tailnet-only MCPs (engram-personal/work, graphiti, dockhand, docker-superbro/linuxbro). |
 | `.claude/settings.wsl.json` | WSL-only: stub today. Extends linux semantics; Windows path bridges go here later. |
 | `.claude/settings.override.example.json` | Documented empty template. Users copy to `settings.override.json`. |
@@ -964,7 +964,7 @@ teardown() { rm -rf "$TMPDIR"; }
 }
 ```
 
-Note: `$HOME` stays literal in fixtures because tests do NOT envsubst (faster, deterministic). The real merge does envsubst — covered by manual smoke test in Task 9.
+Note: `$HOME` stays literal in fixtures **and** in the real output. Claude Code expands env vars in `settings.json` at runtime — the merger writes literals. See Task 8.5 for why envsubst was dropped.
 
 - [ ] **Step 3: Run — expect failure**
 
@@ -1036,18 +1036,14 @@ else
 fi
 rm -f "$PHASE1"
 
-# Step 3: envsubst (best-effort) — replace $HOME, $HOSTNAME, etc.
-if command -v envsubst >/dev/null 2>&1; then
-    envsubst < "$TMP" > "${TMP}.env" && mv "${TMP}.env" "$TMP"
-else
-    echo "[merge] warning: envsubst missing; literal vars kept" >&2
-fi
-
-# Step 4: atomic write
+# Step 3: atomic write
+# Note: no env-var substitution — Claude Code resolves $VAR in settings.json
+# itself at runtime. Substituting here would expand secrets to disk AND
+# destroy the `$schema` key.
 mv "$TMP" "$OUT"
 trap - EXIT
 
-# Step 5: attestation (input hashes)
+# Step 4: attestation (input hashes)
 { sha256sum "$BASE" "$PLATFORM_FILE" "$RULES" 2>/dev/null \
     || shasum -a 256 "$BASE" "$PLATFORM_FILE" "$RULES" 2>/dev/null
   [ -f "$OVERRIDE" ] && {
@@ -1079,6 +1075,28 @@ chmod +x modules/claude-settings/merge.sh
 git update-index --chmod=+x modules/claude-settings/merge.sh
 git commit -m "feat(claude-settings): merge.sh pipeline + e2e tests"
 ```
+
+---
+
+### Task 8.5: Plan revision — envsubst dropped
+
+**Status:** post-hoc revision applied on 2026-05-16 after Task 14 smoke test surfaced the bug.
+
+**Why:** the original pipeline ran `envsubst` as Step 3 of `merge.sh`. Three problems showed up the first time a real `settings.base.json` containing `$GITHUB_PERSONAL_ACCESS_TOKEN` ran through it:
+
+1. **Secrets expanded to disk.** `envsubst` replaced the literal `$GITHUB_PERSONAL_ACCESS_TOKEN` reference (intended as a runtime placeholder Claude Code resolves) with the actual token value. The generated `settings.local.json` then contained the cleartext credential.
+2. **`$schema` key destroyed.** `envsubst` saw `$schema` as a shell variable, found nothing in the environment, and replaced it with the empty string — silently corrupting the JSON document's schema reference.
+3. **Unset vars wiped.** Any reference to an unset env var (e.g. `$ATLASSIAN_*` on a host that hadn't sourced them) was replaced with empty string instead of being preserved.
+
+**Resolution:** Claude Code resolves `$VAR` references in `settings.json` itself at runtime. The merger has no business doing it too. The envsubst block is removed entirely; tracked fragments use literal `$HOME`, `$HOSTNAME`, `$VAR_NAME` strings and Claude expands them when reading the file.
+
+**Files changed (see commit before Task 9):**
+- `modules/claude-settings/merge.sh` — envsubst block removed; pipeline is now `validate → phase1 merge → phase2 merge → atomic write → attestation`.
+- `modules/claude-settings/tests/test_merge.bats` — `MERGE_SKIP_ENVSUBST=1` removed from setup() and every test invocation (the gate no longer exists).
+- `docs/superpowers/specs/2026-05-15-platform-tiered-settings-design.md` — envsubst step removed from the Merge engine pipeline; new "Out of scope" entry explains the decision; the `envsubst missing` failure-mode line is gone.
+- This plan, Task 8 Step 4 — envsubst block removed from the merge.sh snippet so anyone replaying the plan does not reintroduce the bug.
+
+**Tests:** `bats modules/claude-settings/tests/test_merge.bats` still 5/5 green. `bats modules/claude-settings/tests/test_strategies.bats` still 6/6 green.
 
 ---
 
@@ -2124,7 +2142,7 @@ git push origin master
 | File layout (base, darwin, linux, wsl, override, _merge-config, local, attestation) | Tasks 9–13 (sources); 8 (merge engine writes local + attestation) | ✓ |
 | Merge engine pipeline + strategies | Tasks 2–8 | ✓ |
 | Per-key strategy table | Task 13 | ✓ |
-| Platform detection + envsubst + atomic write + failure modes | Task 1 (detect), Task 8 (envsubst, atomic, failure) | ✓ |
+| Platform detection + atomic write + failure modes | Task 1 (detect), Task 8 (atomic, failure), Task 8.5 (envsubst dropped) | ✓ |
 | SessionStart hook (mtime-gated, async, never blocks) | Task 14 | ✓ |
 | Doctor + `--fix` | Task 15 | ✓ |
 | Migration path D (snapshot + rebuild + diff) | Tasks 16–22 | ✓ |
