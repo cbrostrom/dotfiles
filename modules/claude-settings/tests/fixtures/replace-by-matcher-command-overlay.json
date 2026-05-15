@@ -1,0 +1,9 @@
+[
+  {
+    "matcher": "Bash",
+    "hooks": [
+      { "type": "command", "command": "/Users/X/.claude/hooks/rtk-rewrite.sh" },
+      { "type": "command", "command": "/Users/X/.claude/hooks/new-bash-hook.sh" }
+    ]
+  }
+]
