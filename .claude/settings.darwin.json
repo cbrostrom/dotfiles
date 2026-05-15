@@ -10,7 +10,8 @@
   },
   "hooks": {
     "SessionStart": [
-      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/entroly-start.sh", "async": true }] }
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/entroly-start.sh", "async": true }] },
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/claude-settings-merge.sh", "async": true }] }
     ],
     "PreToolUse": [
       {
