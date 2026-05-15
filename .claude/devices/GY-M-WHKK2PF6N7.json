@@ -3,7 +3,7 @@
   "os": "macos",
   "arch": "arm64",
   "profile": "desktop-full",
-  "last_synced": "2026-05-15T21:56:42Z",
+  "last_synced": "2026-05-15T22:05:43Z",
   "marketplaces": [
     "cavekit-marketplace",
     "caveman",
@@ -32,6 +32,7 @@
     "skill-creator@claude-plugins-official"
   ],
   "mcp_servers_settings": [
+    "apple-mcp",
     "atlassian-akqa",
     "atlassian-fiskars",
     "engram-personal",
