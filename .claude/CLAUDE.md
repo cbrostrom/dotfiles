@@ -58,11 +58,13 @@ Rules:
 
 | Signal | Use |
 |--------|-----|
-| Quick fact, convention, bug fix | Engram (`mem_save`) |
-| Entity with relationships to other entities | Graphiti (`add_memory`) |
+| Quick fact, convention, bug fix | Engram (`mem_save`) — **engram only** |
+| Entity with relationships to other entities | Graphiti (`add_memory`) — **graphiti only** |
 | Session continuity, "what did we do last time?" | Engram (`mem_context`) |
 | "How does X relate to Y?", temporal queries | Graphiti (`search_facts`) |
-| Both apply | Save to both |
+| Both apply | Save to both — **only when fact is BOTH relational AND likely to be recalled flat** |
+
+**Default = single write.** Dual-write doubles cost; reserve for facts that genuinely live in both modalities (e.g., "Christian decided to use Loopsy on superbro" — relational entity link + flat recall by topic). Pure flat facts (conventions, bugs, one-off decisions) → engram only. Pure relational facts (entity X relates to entity Y) → graphiti only.
 
 MCP servers registered via `~/.dotfiles/.claude/mcp-servers.list` — auto-installed on bootstrap.
 
@@ -206,6 +208,23 @@ Reason: SPEC.md is per-repo; Engram + Graphiti are cross-session, cross-project.
 ## Drift check before commit
 
 Before any `git commit` in a repo containing `SPEC.md`, run `/ck:check`. If drift reported, surface it and ask before staging. Do not commit through unresolved §V violations without explicit user override.
+
+# Read tool routing (override lean-ctx default)
+
+`lean-ctx` MCP says "NEVER use Read" — **ignore that default**. Decide per case:
+
+| Case | Use |
+|---|---|
+| File <500 LOC, single read | native `Read` |
+| File ≥500 LOC, or unknown big size | `ctx_read(mode: signatures)` first; full only if needed |
+| Re-reading same file in session | `ctx_read` (cached, ~13 tok per re-read) |
+| Searching codebase repeatedly | `ctx_search` |
+| One-shot grep | native `Grep` via Bash |
+| After `/clear` or session resume | `ctx_session load` |
+| Building project map | `ctx_overview` |
+| Compressing context near limit | `ctx_compress` |
+
+**Default = native Read/Grep/Bash.** Reach for lean-ctx only when one of the rows above triggers. Small one-shot reads via lean-ctx waste tokens (tool-description overhead > file content).
 
 # Security model
 

@@ -11,6 +11,10 @@
 # GitHub — requires GITHUB_PERSONAL_ACCESS_TOKEN in ~/.local-secrets
 github | npx | -y | @modelcontextprotocol/server-github
 
+# Apple MCP — Calendar/Mail/Notes/Messages/Maps/Contacts/Reminders/webSearch.
+# macOS only. Bootstrap should skip on Linux hosts. Flaky (disconnects mid-session).
+apple-mcp | bunx | -y | @dhravya/apple-mcp@latest
+
 # lean-ctx — token-saving context tool.
 lean-ctx | ~/.local/bin/lean-ctx
 

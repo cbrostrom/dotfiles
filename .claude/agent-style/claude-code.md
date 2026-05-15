@@ -5,7 +5,7 @@
 
 # agent-style v0.3.5 — Claude Code adapter
 
-agent-style is a literature-backed English technical-prose writing ruleset for AI agents. This adapter is import-capable: Claude Code resolves `@RULES.md` at launch and loads the 21 full rule bodies into the active context. This file carries only the handshake, load statement, rule-name index, and escape hatch; the full rule text is expected to be imported.
+agent-style is a literature-backed English technical-prose writing ruleset for AI agents. This adapter is **load-on-demand**: only the rule-name index below is in context by default. Full rule bodies (`~/.claude/agent-style/RULES.md`, ~800 lines) are loaded via `Read` only when actively writing user-facing prose (writing skill, blog post, docs, PR description). For caveman/code/commit-message contexts, the rule names alone are sufficient.
 
 ## Self-Verification Handshake
 
@@ -13,7 +13,12 @@ When asked "is agent-style active?" or "what writing rules apply here?", answer:
 
 ## Load Statement
 
-Full rule bodies are imported from `~/.claude/agent-style/RULES.md` via the Claude Code `@path` directive. If that file is missing (the user ran the manual curl without the import line, or has not run `agent-style enable claude-code`), only the rule-name index below has reached context; the full directive text, BAD/GOOD examples, and rationale have not.
+Full rule bodies live at `~/.claude/agent-style/RULES.md` (~800 lines, ~6,300 tokens). They are **not** auto-imported. Read the file explicitly when:
+- Drafting prose users will read (blog, docs, PR body, marketing, UI text)
+- The `writing` skill is active
+- A user asks "what does RULE-X say in detail?"
+
+For all other contexts (caveman mode, code comments, commit messages, terse replies, internal notes), the rule-name index below is enough.
 
 ## The 21 Rules (Names; Full Bodies via Import)
 
@@ -50,5 +55,5 @@ Field-observed (maintainer observation of LLM output, 2022-2026):
 
 ## Full Rule Bodies (Canonical)
 
-- Imported: `@RULES.md`
+- Local: `~/.claude/agent-style/RULES.md` (load on demand via Read)
 - Pinned upstream: https://raw.githubusercontent.com/yzhao062/agent-style/v0.3.5/RULES.md
