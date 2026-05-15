@@ -94,11 +94,13 @@ esac
 1. Read `settings.base.json`.
 2. Apply `settings.{platform}.json` using per-key strategy from `_merge-config.json`.
 3. Apply `settings.override.json` (treat missing file as `{}`).
-4. `envsubst` to expand `$HOME`, `$HOSTNAME`, and any other vars used in tracked
-   fragments. Tracked files **must not** contain hardcoded paths like
-   `/Users/...` or `/home/...`.
-5. Write to `settings.local.json` atomically (write to `.tmp`, then rename).
-6. Update `.settings-attestation` with SHA of all inputs.
+4. Write to `settings.local.json` atomically (write to `.tmp`, then rename).
+5. Update `.settings-attestation` with SHA of all inputs.
+
+Note: literal `$VAR` strings in tracked fragments are **preserved verbatim**.
+Claude Code resolves env vars in `settings.json` at runtime. Substituting at
+merge time would expand secrets to disk and destroy the `$schema` key — see
+"Out of scope" below.
 
 **Per-key strategy** (defined in `_merge-config.json`):
 
@@ -123,7 +125,6 @@ esac
 - Invalid JSON in any input → exit 1, do not touch `settings.local.json`, print
   offending file and parse error line.
 - Unknown strategy in `_merge-config.json` → exit 1.
-- `envsubst` missing → warn, skip substitution, continue. Better than break.
 - Merge succeeds but write fails (disk full, permissions) → previous
   `settings.local.json` left intact.
 
@@ -207,8 +208,9 @@ A new "Settings architecture" section in `~/dotfiles/.claude/CLAUDE.md` codifies
 3. Adding a platform-specific rule → edit `settings.{platform}.json`.
 4. Adding a per-host one-off → edit that host's `settings.override.json`.
    Never commit.
-5. Tracked fragments must not contain hardcoded paths. Use `$HOME` and
-   `$HOSTNAME`; the merger expands.
+5. Tracked fragments must not contain hardcoded host paths. Use `$HOME` and
+   `$HOSTNAME` as literal strings — Claude Code resolves them at runtime. The
+   merger does not substitute env vars.
 6. After editing any tracked layer, run
    `./bootstrap.sh --only=claude-settings --fix` or wait for SessionStart.
 7. If drift is reported by `--doctor`, do not paper over it. Reconcile via
@@ -234,7 +236,10 @@ entry: **RULE-J: Settings layer discipline** — short reminder that
 ## Out of scope
 
 - Encrypted secrets in settings (stay in `~/.local-secrets`, referenced via
-  `$VAR` substitution).
+  literal `$VAR` strings that Claude Code expands at runtime).
+- Env-var substitution in settings JSON — Claude Code resolves `$VAR` itself at
+  runtime. The merger writes literal `$VAR` strings. Substituting at merge time
+  would expand secrets to disk and destroy the `$schema` key.
 - Migration of `~/.claude/hooks/*.sh` contents (only their references in
   settings move; the scripts themselves continue to live in the existing
   `claude` module).
