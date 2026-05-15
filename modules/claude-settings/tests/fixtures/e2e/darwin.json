@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "apple-mcp": { "command": "bunx", "args": ["-y", "@dhravya/apple-mcp@latest"] }
+  },
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/entroly-start.sh", "async": true }] }
+    ]
+  },
+  "statusLine": { "type": "command", "command": "bash \"$HOME/.claude/hooks/statusline.sh\"" }
+}

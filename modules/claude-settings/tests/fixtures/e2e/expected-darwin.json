@@ -1,0 +1,19 @@
+{
+  "language": "english",
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": false
+  },
+  "permissions": { "allow": ["Bash(git status)", "Bash(git diff:*)", "Bash(bq:*)"] },
+  "env": { "CLAUDE_CODE_ENABLE_TELEMETRY": "0" },
+  "mcpServers": {
+    "apple-mcp": { "command": "bunx", "args": ["-y", "@dhravya/apple-mcp@latest"] }
+  },
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/entroly-start.sh", "async": true }] }
+    ]
+  },
+  "statusLine": { "type": "command", "command": "bash \"$HOME/.claude/hooks/statusline.sh\"" }
+}
