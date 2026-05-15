@@ -81,3 +81,4 @@ gaming/config/launch.log
 # Claude settings (3-layer merge)
 .claude/settings.override.json
 .claude/.settings-attestation
+.attic/
