@@ -1,0 +1,4 @@
+{
+  "github": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-github"] },
+  "engram-personal": { "command": "ssh", "args": ["superbro", "old"] }
+}
