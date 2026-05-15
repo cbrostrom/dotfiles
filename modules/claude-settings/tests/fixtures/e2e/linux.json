@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "engram-personal": { "command": "ssh", "args": ["superbro", "engram mcp"] }
+  },
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/entroly-start.sh", "async": true }] }
+    ]
+  }
+}
