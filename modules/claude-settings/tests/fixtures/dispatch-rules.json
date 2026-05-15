@@ -1,0 +1,7 @@
+{
+  "permissions.allow": "concat-dedupe",
+  "enabledPlugins": "shallow-merge",
+  "mcpServers": "deep-merge-by-key",
+  "hooks.SessionStart": "replace-by:command",
+  "hooks.PreToolUse": "replace-by:matcher+command"
+}

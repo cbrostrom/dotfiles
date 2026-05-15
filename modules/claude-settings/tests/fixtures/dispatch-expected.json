@@ -1,0 +1,7 @@
+{
+  "language": "danish",
+  "enabledPlugins": { "p1": true, "p2": false, "p3": true },
+  "permissions": { "allow": ["A", "B", "C"] },
+  "mcpServers": { "x": { "command": "new" }, "y": { "command": "yy" } },
+  "hooks": { "SessionStart": [{ "hooks": [{ "command": "/h1.sh" }, { "command": "/h2.sh" }] }] }
+}

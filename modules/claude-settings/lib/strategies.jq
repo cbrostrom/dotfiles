@@ -52,3 +52,39 @@ def replace_by_matcher_command(base; overlay):
                else $b
                end))
       + (overlay | map(select(.matcher as $m | $base_matchers | index([$m]) | not)));
+
+# get_at: read a value at a dotted path. Returns null if missing.
+def get_at(path_str):
+    (path_str | split(".")) as $segs
+    | reduce $segs[] as $seg (.; if . == null then null else .[$seg] end);
+
+# set_at: assign value at a dotted path. Creates intermediate objects.
+def set_at(path_str; value):
+    (path_str | split(".")) as $segs
+    | setpath($segs; value);
+
+# apply_strategy: dispatch by name. Default for unknown name is "replace".
+def apply_strategy(strategy; base_val; overlay_val):
+    if   strategy == "shallow-merge"              then shallow_merge(base_val; overlay_val)
+    elif strategy == "concat-dedupe"              then concat_dedupe(base_val; overlay_val)
+    elif strategy == "deep-merge-by-key"          then deep_merge_by_key(base_val; overlay_val)
+    elif strategy == "replace-by:command"         then replace_by_command(base_val; overlay_val)
+    elif strategy == "replace-by:matcher+command" then replace_by_matcher_command(base_val; overlay_val)
+    else overlay_val   # default: replace
+    end;
+
+# merge_with_rules: starts from `base * overlay` (shallow object spread,
+# overlay wins). Then for each rule, recompute the value at the rule's
+# path using the named strategy applied to base[path] and overlay[path].
+def merge_with_rules(base; overlay; rules):
+    reduce (rules | to_entries[]) as $rule
+        (base * overlay;
+         ($rule.key) as $path
+         | ($rule.value) as $strategy
+         | (base | get_at($path)) as $bv
+         | (overlay | get_at($path)) as $ov
+         | if $bv == null and $ov == null then .
+           elif $bv == null then .
+           elif $ov == null then set_at($path; $bv)
+           else set_at($path; apply_strategy($strategy; $bv; $ov))
+           end);
