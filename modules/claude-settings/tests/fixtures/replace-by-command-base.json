@@ -1,0 +1,3 @@
+[
+  { "hooks": [{ "type": "command", "command": "/Users/X/.claude/hooks/entroly-start.sh", "async": true }] }
+]
