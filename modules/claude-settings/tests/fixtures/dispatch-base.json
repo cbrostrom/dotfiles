@@ -1,0 +1,7 @@
+{
+  "language": "english",
+  "enabledPlugins": { "p1": true, "p2": true },
+  "permissions": { "allow": ["A", "B"] },
+  "mcpServers": { "x": { "command": "old" } },
+  "hooks": { "SessionStart": [{ "hooks": [{ "command": "/h1.sh" }] }] }
+}
