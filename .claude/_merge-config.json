@@ -1,0 +1,13 @@
+{
+  "permissions.allow":                 "concat-dedupe",
+  "permissions.ask":                   "concat-dedupe",
+  "permissions.deny":                  "concat-dedupe",
+  "permissions.additionalDirectories": "concat-dedupe",
+  "mcpServers":                        "deep-merge-by-key",
+  "extraKnownMarketplaces":            "deep-merge-by-key",
+  "enabledPlugins":                    "shallow-merge",
+  "hooks.SessionStart":                "replace-by:command",
+  "hooks.PreToolUse":                  "replace-by:matcher+command",
+  "hooks.UserPromptSubmit":            "replace-by:command",
+  "hooks.Notification":                "replace-by:command"
+}
