@@ -54,7 +54,7 @@ section at all — superbro never had a hook pipeline).
 | `mcpServers.engram-personal` | ssh to superbro + ENGRAM_DATA_DIR=/home/christian/.engram/personal | _absent_ from computed | **override** | Engram MCP is per-host (data dir path varies, ssh target varies). Belongs in override. (Note: on superbro itself, "ssh superbro" is a loopback ssh — a bit wasteful; flagged for user review.) |
 | `mcpServers.engram-work` | ssh to superbro + ENGRAM_DATA_DIR=/home/christian/.engram/work | _absent_ from computed | **override** | Same as engram-personal. |
 | `mcpServers.github` | npx + GITHUB_PERSONAL_ACCESS_TOKEN env | present in computed | (no diff — already platform=linux) | Already in `settings.linux.json`. No action. |
-| `statusLine.command` | `bash "/home/christian/.claude/hooks/statusline.sh"` | _absent_ from computed | **override** (or **platform**) | Currently absent from computed output. Hardcoded `/home/christian/` path is stale. **Flagged for user review** — promote to linux platform with `$HOME/.claude/hooks/statusline.sh` if user wants it cross-linux, otherwise drop. |
+| `statusLine.command` | `bash "/home/christian/.claude/hooks/statusline.sh"` | _absent_ from computed | **platform** (linux) — **RESOLVED Q1=A (2026-05-16)** | User chose option A: promote to `settings.linux.json` with `$HOME` literal. Cross-linux statusline now baseline. |
 | `skipAutoPermissionPrompt` | `true` | `true` (already in base) | (no diff) | Already in base. |
 
 ## linuxbro (platform=linux)
@@ -75,14 +75,14 @@ superbro: same plugins, same MCPs, plus hooks).
 | `hooks.PreToolUse[Bash].git-push-guard.sh` | `/home/christian/.claude/hooks/git-push-guard.sh` | `$HOME/.claude/hooks/git-push-guard.sh` | **platform** (linux) | Same command, path normalised to `$HOME`. Already in `settings.linux.json`. Pure value change, no decision beyond accepting `$HOME` form. |
 | `hooks.PreToolUse[Bash].rtk-rewrite.sh` | `/home/christian/.claude/hooks/rtk-rewrite.sh` | `$HOME/.claude/hooks/rtk-rewrite.sh` | **platform** (linux) | Same — path normalisation. |
 | `hooks.SessionStart.entroly-start.sh` | `/home/christian/.claude/hooks/entroly-start.sh` (async) | `$HOME/.claude/hooks/entroly-start.sh` (async) | **platform** (linux) | Same — path normalisation. |
-| `hooks.SessionStart.claude-session-check.sh` | `/home/christian/.claude/hooks/claude-session-check.sh` | _absent_ from computed | **drop** | Hook not present in current `settings.linux.json`. Per Task 7 audit findings (referenced from progress.md), this hook was either consolidated into entroly-start or retired. Drop. **Flagged for user review** — if the user still wants session-check, promote to linux platform; otherwise this confirms the drop. |
+| `hooks.SessionStart.claude-session-check.sh` | `/home/christian/.claude/hooks/claude-session-check.sh` | _absent_ from computed | **drop** — **RESOLVED Q2=B (2026-05-16)** | User chose option B: drop. Hook retired/consolidated into entroly-start. No action needed (already absent from computed merge). |
 | `hooks.UserPromptSubmit.effort-classifier.sh` | `/home/christian/.claude/hooks/effort-classifier.sh` | `$HOME/.claude/hooks/effort-classifier.sh` (timeout 5) | **platform** (linux) | Same — path normalisation. Already in `settings.linux.json` with timeout. |
 | `mcpServers.atlassian-akqa` | full block | _absent_ from computed | **override** | Same as superbro — per-host work creds. |
 | `mcpServers.atlassian-fiskars` | full block | _absent_ from computed | **override** | Same as superbro. |
 | `mcpServers.engram-personal` | ssh superbro + ENGRAM_DATA_DIR=/home/christian/.engram/personal | _absent_ from computed | **override** | Per-host MCP. linuxbro SSHes to superbro for engram (uses superbro as engram host) — that's a legitimate per-host wiring choice, must live in linuxbro override. |
 | `mcpServers.engram-work` | ssh superbro + ENGRAM_DATA_DIR=/home/christian/.engram/work | _absent_ from computed | **override** | Same. |
 | `mcpServers.github` | full block | present in computed | (no diff) | Already in `settings.linux.json`. |
-| `statusLine.command` | `bash "/home/christian/.claude/hooks/statusline.sh"` | _absent_ from computed | **override** (or **platform**) | Same flagging as superbro — promote to linux platform with `$HOME` form or drop. |
+| `statusLine.command` | `bash "/home/christian/.claude/hooks/statusline.sh"` | _absent_ from computed | **platform** (linux) — **RESOLVED Q1=A (2026-05-16)** | Same as superbro — promoted to `settings.linux.json` with `$HOME` literal. |
 | `skipAutoPermissionPrompt` | `true` | `true` | (no diff) | Already in base. |
 
 ## Summary
@@ -94,10 +94,36 @@ superbro: same plugins, same MCPs, plus hooks).
 By decision:
 
 - **base**: 6 — `effortLevel`, `awaySummaryEnabled`, `enabledPlugins.ck`, `enabledPlugins.github`, `extraKnownMarketplaces.cavekit-marketplace`, `spinnerVerbs`
-- **platform** (linux): 7 — `permissions.additionalDirectories`, `hooks.Notification`, `hooks.PreToolUse[Bash].git-push-guard.sh`, `hooks.PreToolUse[Bash].rtk-rewrite.sh`, `hooks.SessionStart.entroly-start.sh`, `hooks.UserPromptSubmit.effort-classifier.sh`, `mcpServers.github`
+- **platform** (linux): 8 — `permissions.additionalDirectories`, `hooks.Notification`, `hooks.PreToolUse[Bash].git-push-guard.sh`, `hooks.PreToolUse[Bash].rtk-rewrite.sh`, `hooks.SessionStart.entroly-start.sh`, `hooks.UserPromptSubmit.effort-classifier.sh`, `mcpServers.github`, `statusLine` (Q1=A)
 - **override**: 4 — `mcpServers.atlassian-akqa`, `mcpServers.atlassian-fiskars`, `mcpServers.engram-personal`, `mcpServers.engram-work`
-- **drop**: 1 — `hooks.SessionStart.claude-session-check.sh`
-- **flagged for user review**: 2 — `statusLine.command` (promote vs drop), `claude-session-check.sh` (confirm drop)
+- **drop**: 1 — `hooks.SessionStart.claude-session-check.sh` (Q2=B confirmed)
+- ~~**flagged for user review**~~: 0 — both resolved on 2026-05-16 (Q1=A, Q2=B)
+
+## Override keys to add post-cutover (Tasks 20-22)
+
+These keys are per-host and must be written to each host's `settings.override.json`
+during cutover. They are intentionally NOT in any tracked settings file to avoid
+credential leak and per-host wiring contamination.
+
+### superbro `settings.override.json`
+
+- `mcpServers.atlassian-akqa` — full block with `JIRA_URL`, `JIRA_USERNAME`,
+  `JIRA_API_TOKEN`, `CONFLUENCE_URL`, `CONFLUENCE_USERNAME`, `CONFLUENCE_API_TOKEN`
+  env vars (read from `$ATLASSIAN_AKQA_*` / `$ATLASSIAN_*`).
+- `mcpServers.atlassian-fiskars` — same shape, Fiskars URLs.
+- `mcpServers.engram-personal` — `ssh superbro` + `ENGRAM_DATA_DIR=/home/christian/.engram/personal`.
+  Note: loopback ssh on superbro itself; consider replacing with direct exec
+  during cutover (out of scope here).
+- `mcpServers.engram-work` — `ssh superbro` + `ENGRAM_DATA_DIR=/home/christian/.engram/work`.
+  Same loopback note.
+
+### linuxbro `settings.override.json`
+
+- `mcpServers.atlassian-akqa` — same as superbro.
+- `mcpServers.atlassian-fiskars` — same as superbro.
+- `mcpServers.engram-personal` — `ssh superbro` + `ENGRAM_DATA_DIR=/home/christian/.engram/personal`.
+  Genuine cross-host ssh; linuxbro doesn't run engram locally.
+- `mcpServers.engram-work` — `ssh superbro` + `ENGRAM_DATA_DIR=/home/christian/.engram/work`.
 
 ### Notes / risk flags
 
