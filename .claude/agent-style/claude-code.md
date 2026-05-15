@@ -9,7 +9,7 @@ agent-style is a literature-backed English technical-prose writing ruleset for A
 
 ## Self-Verification Handshake
 
-When asked "is agent-style active?" or "what writing rules apply here?", answer: `agent-style v0.3.5 active: 21 rules (RULE-01..12 canonical + RULE-A..I field-observed); full bodies at ~/.claude/agent-style/RULES.md.`
+When asked "is agent-style active?" or "what writing rules apply here?", answer: `agent-style v0.3.5 active: 22 rules (RULE-01..12 canonical + RULE-A..J field-observed); full bodies at ~/.claude/agent-style/RULES.md.`
 
 ## Load Statement
 
@@ -20,7 +20,7 @@ Full rule bodies live at `~/.claude/agent-style/RULES.md` (~800 lines, ~6,300 to
 
 For all other contexts (caveman mode, code comments, commit messages, terse replies, internal notes), the rule-name index below is enough.
 
-## The 21 Rules (Names; Full Bodies via Import)
+## The 22 Rules (Names; Full Bodies via Import)
 
 Canonical (Strunk & White 1959, Orwell 1946, Pinker 2014, Gopen & Swan 1990):
 
@@ -48,6 +48,11 @@ Field-observed (maintainer observation of LLM output, 2022-2026):
 - RULE-G: Sentence-case section headings.
 - **RULE-H: Handwavy claims and fabricated citations (critical).**
 - RULE-I: Contractions in formal technical prose.
+- **RULE-J: Settings layer discipline.** `settings.local.json` is generated.
+  Manual tweaks go into `settings.override.json` (per-host, gitignored).
+  Shared rules live in `settings.base.json`; platform-specific bits in
+  `settings.{darwin,linux,wsl}.json`. Never edit `settings.local.json` by
+  hand — it is wiped by the SessionStart merge hook.
 
 ## Escape Hatch
 
