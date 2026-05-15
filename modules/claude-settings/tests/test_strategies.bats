@@ -22,3 +22,11 @@ setup() {
     expected=$(cat "$FIXTURES/concat-dedupe-expected.json")
     [ "$(echo "$actual" | jq -S .)" = "$(echo "$expected" | jq -S .)" ]
 }
+
+@test "deep-merge-by-key: per-server config merges, overlay wins keys" {
+    actual=$(jq -n --slurpfile a "$FIXTURES/deep-merge-by-key-base.json" \
+                   --slurpfile b "$FIXTURES/deep-merge-by-key-overlay.json" \
+                   "include \"strategies\" {search: \"$MOD_DIR/lib\"}; deep_merge_by_key(\$a[0]; \$b[0])")
+    expected=$(cat "$FIXTURES/deep-merge-by-key-expected.json")
+    [ "$(echo "$actual" | jq -S .)" = "$(echo "$expected" | jq -S .)" ]
+}

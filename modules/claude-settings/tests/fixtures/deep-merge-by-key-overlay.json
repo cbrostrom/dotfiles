@@ -1,0 +1,4 @@
+{
+  "engram-personal": { "args": ["superbro", "new"] },
+  "graphiti": { "command": "http", "args": ["http://100.100.1.50:8000/mcp"] }
+}
