@@ -3,20 +3,21 @@
     "enabledPlugins": {
         "frontend-design@claude-plugins-official": true,
         "superpowers@claude-plugins-official": true,
-        "code-simplifier@claude-plugins-official": true,
+        "code-simplifier@claude-plugins-official": false,
         "github@claude-plugins-official": true,
         "claude-md-management@claude-plugins-official": true,
-        "claude-code-setup@claude-plugins-official": true,
+        "claude-code-setup@claude-plugins-official": false,
         "atlassian@claude-plugins-official": true,
         "remember@claude-plugins-official": false,
         "shopify@claude-plugins-official": true,
         "liquid-skills@claude-plugins-official": true,
         "liquid-lsp@claude-plugins-official": true,
-        "code-review@claude-plugins-official": true,
-        "skill-creator@claude-plugins-official": true,
+        "code-review@claude-plugins-official": false,
+        "skill-creator@claude-plugins-official": false,
         "caveman@caveman": true,
         "planning-with-files@planning-with-files": true,
-        "plannotator@plannotator": true
+        "plannotator@plannotator": true,
+        "ck@cavekit-marketplace": true
     },
     "extraKnownMarketplaces": {
         "caveman": {
@@ -36,12 +37,22 @@
                 "source": "github",
                 "repo": "backnotprop/plannotator"
             }
+        },
+        "cavekit-marketplace": {
+            "source": {
+                "source": "github",
+                "repo": "juliusbrussee/cavekit"
+            }
         }
     },
     "language": "english",
     "effortLevel": "medium",
     "autoUpdatesChannel": "stable",
     "editorMode": "normal",
+    "spinnerVerbs": {
+        "mode": "replace",
+        "verbs": ["Thinking", "Processing", "Working"]
+    },
     "permissions": {
         "defaultMode": "default",
         "allow": [
