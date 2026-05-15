@@ -226,6 +226,48 @@ Before any `git commit` in a repo containing `SPEC.md`, run `/ck:check`. If drif
 
 **Default = native Read/Grep/Bash.** Reach for lean-ctx only when one of the rows above triggers. Small one-shot reads via lean-ctx waste tokens (tool-description overhead > file content).
 
+# Settings architecture (3-layer merge)
+
+`~/.claude/settings.json` symlinks to `dotfiles/.claude/settings.local.json`,
+which is **generated** by `modules/claude-settings/merge.sh` from three
+tracked layers plus one per-host override:
+
+| Layer | File | Tracked? | Purpose |
+|---|---|---|---|
+| Base | `settings.base.json` | yes | Shared rules: plugin enablement, language, env, core permissions, memory model, marketplaces |
+| Platform | `settings.{darwin,linux,wsl}.json` | yes | OS-specific: hook paths, platform-only MCPs, statusLine |
+| Override | `settings.override.json` | gitignored | Per-host manual tweaks. Empty by default |
+| Generated | `settings.local.json` | gitignored | Output. **Never hand-edit.** |
+
+Merge precedence: `base → platform → override` (later wins).
+Per-key merge strategy lives in `_merge-config.json`
+(`concat-dedupe` / `replace-by:command` / `replace-by:matcher+command` /
+`deep-merge-by-key` / `shallow-merge`).
+Path env-substitution: tracked fragments keep `$VAR` literal; Claude Code
+resolves env vars in settings.json at runtime.
+
+## Rules for Claude when editing settings
+
+1. **NEVER edit `settings.local.json` directly.** It is generated. Edits are
+   wiped on the next SessionStart.
+2. Adding a shared rule (plugin enable/disable, new permission allowlist entry,
+   memory rule) → edit `settings.base.json`.
+3. Adding a platform-specific rule → edit `settings.{platform}.json`.
+4. Adding a per-host one-off → edit that host's `settings.override.json`.
+   Never commit.
+5. Tracked fragments keep `$VAR` strings literal — DO NOT pre-expand to
+   `/Users/...` or `/home/...`. Claude resolves env vars at use time.
+6. After editing any tracked layer, run
+   `./modules/claude-settings/doctor.sh --fix` or wait for the next
+   SessionStart hook.
+7. If drift is reported by doctor, decide which layer the drifted value
+   belongs in, then `--fix`. Do not paper over it by hand-editing
+   `settings.local.json`.
+8. Cross-host changes flow `base → platform → override`. Edit, commit, push;
+   other hosts pull and regenerate on next session.
+
+When in doubt, `./modules/claude-settings/doctor.sh` first.
+
 # Security model
 
 Tailscale is the primary security layer. All self-hosted MCPs (Engram, Graphiti, mcp-dockhand, docker-linuxbro) are only reachable via Tailscale CGNAT IPs (100.64.0.0/10). A machine must be enrolled in the tailnet to connect. No public exposure, no VPN needed beyond Tailscale.
