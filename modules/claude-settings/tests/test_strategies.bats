@@ -14,3 +14,11 @@ setup() {
     expected=$(cat "$FIXTURES/shallow-merge-expected.json")
     [ "$(echo "$actual" | jq -S .)" = "$(echo "$expected" | jq -S .)" ]
 }
+
+@test "concat-dedupe: array append + dedupe" {
+    actual=$(jq -n --slurpfile a "$FIXTURES/concat-dedupe-base.json" \
+                   --slurpfile b "$FIXTURES/concat-dedupe-overlay.json" \
+                   "include \"strategies\" {search: \"$MOD_DIR/lib\"}; concat_dedupe(\$a[0]; \$b[0])")
+    expected=$(cat "$FIXTURES/concat-dedupe-expected.json")
+    [ "$(echo "$actual" | jq -S .)" = "$(echo "$expected" | jq -S .)" ]
+}
