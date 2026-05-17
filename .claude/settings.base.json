@@ -8,7 +8,6 @@
     "claude-md-management@claude-plugins-official": true,
     "claude-code-setup@claude-plugins-official": false,
     "atlassian@claude-plugins-official": true,
-    "remember@claude-plugins-official": false,
     "shopify@claude-plugins-official": true,
     "liquid-skills@claude-plugins-official": true,
     "liquid-lsp@claude-plugins-official": true,
@@ -19,6 +18,25 @@
     "plannotator@plannotator": true,
     "ck@cavekit-marketplace": true
   },
+  "deniedMcpServers": [
+    { "serverUrl": "https://mcp.adobeaemcloud.com/adobe/mcp/aem" },
+    { "serverUrl": "https://adobe-creativity.adobe.io/mcp" },
+    { "serverUrl": "https://mcp.airtable.com/mcp" },
+    { "serverUrl": "https://mcp.atlassian.com/v1/mcp" },
+    { "serverUrl": "https://asset-management.mcp.cloudinary.com/sse" },
+    { "serverUrl": "https://mcp.figma.com/mcp" },
+    { "serverUrl": "https://calendarmcp.googleapis.com/mcp/v1" },
+    { "serverUrl": "https://drivemcp.googleapis.com/mcp/v1" },
+    { "serverUrl": "https://mcp.hubspot.com/anthropic" },
+    { "serverUrl": "https://microsoft365.mcp.claude.com/mcp" },
+    { "serverUrl": "https://mcp.notion.com/mcp" },
+    { "serverUrl": "https://api.peec.ai/mcp" },
+    { "serverUrl": "https://mcp.postman.com/minimal" },
+    { "serverUrl": "https://mcp.slack.com/mcp" },
+    { "serverUrl": "https://mcp.supabase.com/mcp" },
+    { "serverUrl": "https://mcp.vercel.com" },
+    { "serverUrl": "https://mcp.monday.com/mcp" }
+  ],
   "extraKnownMarketplaces": {
     "caveman":             { "source": { "source": "github", "repo": "juliusbrussee/caveman" } },
     "planning-with-files": { "source": { "source": "github", "repo": "OthmanAdi/planning-with-files" } },

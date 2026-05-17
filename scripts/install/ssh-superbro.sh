@@ -32,19 +32,30 @@ chmod 600 "$ssh_config"
 marker_begin="# >>> dotfiles:superbro >>>"
 marker_end="# <<< dotfiles:superbro <<<"
 
-if grep -qF "$marker_begin" "$ssh_config"; then
-    log "SSH config block for superbro already present"
-else
-    log "adding SSH config block for superbro"
+write_hardened_block() {
+    local host="$1" begin="$2" end="$3"
+    if grep -qF "$begin" "$ssh_config"; then
+        log "SSH config block for $host already present"
+        return
+    fi
+    log "adding hardened SSH config block for $host"
     {
         echo ""
-        echo "$marker_begin"
-        echo "Host superbro"
+        echo "$begin"
+        echo "Host $host"
         echo "    StrictHostKeyChecking accept-new"
         echo "    ServerAliveInterval 30"
-        echo "$marker_end"
+        echo "    ServerAliveCountMax 6"
+        echo "    TCPKeepAlive yes"
+        echo "    ControlMaster auto"
+        echo "    ControlPath ~/.ssh/cm-%C"
+        echo "    ControlPersist 10m"
+        echo "$end"
     } >> "$ssh_config"
-fi
+}
+
+write_hardened_block superbro "$marker_begin" "$marker_end"
+write_hardened_block linuxbro "# >>> dotfiles:linuxbro >>>" "# <<< dotfiles:linuxbro <<<"
 
 known_hosts="$HOME/.ssh/known_hosts"
 touch "$known_hosts"
