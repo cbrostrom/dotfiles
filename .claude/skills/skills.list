@@ -1,12 +1,13 @@
 # External Claude Code skills — installed via `npx skills add <source>`
 # Format: one source per line (npm package, GitHub slug, or full URL).
 # bootstrap.sh reads this and creates ~/.agents/skills/ + symlinks into
-# ~/.claude/skills/ (visible as `caveman`, `find-skills`, `code-overhaul-review`).
+# ~/.claude/skills/ (visible as `find-skills`, `code-overhaul-review`).
+# caveman retired 2026-05-17 — vendor `caveman:*` plugin is strictly broader.
+# Old dir parked under ~/.agents/.retired-skills/caveman-20260517/.
 #
 # In-repo skills (committed dirs under ~/dotfiles/.claude/skills/) are NOT
 # listed here — they ship as-is via dotfiles symlink. Currently:
-#   graphify, plannotator-*, seo, shopify-theme-development, style-review,
-#   typescript-advanced-types, vite, writing
-ehmo/caveman-skill
+#   graphify, plannotator-*, seo, style-review, typescript-advanced-types,
+#   vite, writing. (shopify-theme-development moved to Fiskars project skills.)
 ehmo/find-skills-skill
 ehmo/code-overhaul-skill
