@@ -76,9 +76,9 @@ scrollback-limit = 100000
 confirm-close-surface = false
 quit-after-last-window-closed = false
 
-# Send Option as Alt/ESC so terminal apps (Zellij, Vim) receive Alt+key
-# left = Alt for keybinds, right = composed chars (æ, ø, å) still work
-macos-option-as-alt = left
+# Both Options native — Danish layout needs Option for @ ~ $ { } [ ] | \
+# cmux was hijacking right Option → wrapping line via zsh quote-line (^[')
+macos-option-as-alt = false
 macos-non-native-fullscreen = visible-menu
 
 # Quake-style drop-down
