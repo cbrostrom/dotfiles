@@ -3,7 +3,7 @@
   "os": "macos",
   "arch": "arm64",
   "profile": "desktop-full",
-  "last_synced": "2026-05-15T22:25:47Z",
+  "last_synced": "2026-05-17T07:15:20Z",
   "marketplaces": [
     "cavekit-marketplace",
     "caveman",
@@ -28,7 +28,6 @@
     "code-review@claude-plugins-official",
     "code-simplifier@claude-plugins-official",
     "github@claude-plugins-official",
-    "remember@claude-plugins-official",
     "skill-creator@claude-plugins-official"
   ],
   "mcp_servers_settings": [
@@ -57,7 +56,6 @@
     "docker-linuxbro"
   ],
   "skills": [
-    "ehmo/caveman-skill",
     "ehmo/find-skills-skill",
     "ehmo/code-overhaul-skill"
   ]
