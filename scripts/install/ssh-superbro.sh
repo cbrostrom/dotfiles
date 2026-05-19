@@ -34,24 +34,38 @@ marker_end="# <<< dotfiles:superbro <<<"
 
 write_hardened_block() {
     local host="$1" begin="$2" end="$3"
+    local block
+    block="$(cat <<EOF
+
+$begin
+Host $host
+    StrictHostKeyChecking accept-new
+    ServerAliveInterval 15
+    ServerAliveCountMax 2
+    TCPKeepAlive yes
+    ControlMaster auto
+    ControlPath ~/.ssh/cm-%C
+    ControlPersist 60
+$end
+EOF
+)"
     if grep -qF "$begin" "$ssh_config"; then
-        log "SSH config block for $host already present"
-        return
+        log "refreshing hardened SSH config block for $host"
+        # Strip existing block (BSD/GNU sed compatible), then append fresh copy.
+        local tmp
+        tmp="$(mktemp)"
+        awk -v b="$begin" -v e="$end" '
+            $0 == b { skip=1; next }
+            skip && $0 == e { skip=0; next }
+            !skip { print }
+        ' "$ssh_config" > "$tmp"
+        cat "$tmp" > "$ssh_config"
+        rm -f "$tmp"
+    else
+        log "adding hardened SSH config block for $host"
     fi
-    log "adding hardened SSH config block for $host"
-    {
-        echo ""
-        echo "$begin"
-        echo "Host $host"
-        echo "    StrictHostKeyChecking accept-new"
-        echo "    ServerAliveInterval 30"
-        echo "    ServerAliveCountMax 6"
-        echo "    TCPKeepAlive yes"
-        echo "    ControlMaster auto"
-        echo "    ControlPath ~/.ssh/cm-%C"
-        echo "    ControlPersist 10m"
-        echo "$end"
-    } >> "$ssh_config"
+    printf '%s\n' "$block" >> "$ssh_config"
+    chmod 600 "$ssh_config"
 }
 
 write_hardened_block superbro "$marker_begin" "$marker_end"
