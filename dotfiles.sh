@@ -153,6 +153,25 @@ EOF
     scripts/doctor.sh --fix
 EOF
             ;;
+        *Engram*)    cat <<EOF
+
+  Engram Sync
+  ───────────
+  Force an on-demand sync of the local engram vaults
+  (~/.engram/personal + ~/.engram/work) to the private
+  GitHub repo cbrostrom/engram.
+
+  Reactive sync runs automatically via launchd whenever
+  a vault is written to (WatchPaths on engram.db-wal),
+  plus a hourly safety net. This entry is for manual
+  on-demand triggering and inspecting recent activity.
+
+  Equivalent CLI:
+    bash modules/engram/sync.sh
+    tail ~/Library/Logs/engram-sync.log              # macOS
+    tail ${XDG_STATE_HOME:-~/.local/state}/engram-sync.log   # Linux/WSL
+EOF
+            ;;
         *Reset*)     cat <<EOF
 
   Reset
@@ -199,6 +218,7 @@ main_menu() {
         "  Modules"
         "  Status"
         "  Devices"
+        "  Engram Sync"
         "  Doctor"
         "  Reset"
         "  Quit"
@@ -350,6 +370,35 @@ screen_doctor() {
     read -rsp "Press any key…" -n1; echo
 }
 
+screen_engram_sync() {
+    clear
+    render_banner
+    render_subtitle "Engram Sync"
+
+    local log_file
+    case "$(uname -s)" in
+        Darwin) log_file="$HOME/Library/Logs/engram-sync.log" ;;
+        *)      log_file="${XDG_STATE_HOME:-$HOME/.local/state}/engram-sync.log" ;;
+    esac
+    if [[ -f "$log_file" ]]; then
+        gum style --bold "Recent activity:"
+        tail -n 20 "$log_file"
+        echo
+    else
+        dim "no log yet at $log_file"
+        echo
+    fi
+
+    if gum confirm "Trigger a sync now?"; then
+        bash "$DOTFILES_DIR/modules/engram/sync.sh" || true
+        echo
+        gum style --bold "Last 10 log lines:"
+        tail -n 10 "$log_file" 2>/dev/null
+    fi
+    echo
+    read -rsp "Press any key…" -n1; echo
+}
+
 screen_install() {
     clear
     render_banner
@@ -403,6 +452,7 @@ main() {
             *Modules*) screen_modules ;;
             *Status*)  screen_status ;;
             *Devices*) screen_devices ;;
+            *Engram*)  screen_engram_sync ;;
             *Doctor*)  screen_doctor ;;
             *Reset*)   screen_reset ;;
             *Quit*|"") break ;;
