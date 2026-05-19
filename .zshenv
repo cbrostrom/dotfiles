@@ -38,3 +38,7 @@ fi
 [[ -d "$HOME/.local/share/fnm" ]] && path=("$HOME/.local/share/fnm" $path)
 
 export PATH
+
+# Bitwarden-injected env vars (rbw module) — silent no-op if rbw not installed
+[[ -r "$HOME/dotfiles/modules/rbw/env-secrets.zsh" ]] \
+    && source "$HOME/dotfiles/modules/rbw/env-secrets.zsh"

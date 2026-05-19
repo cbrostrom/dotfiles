@@ -1,5 +1,6 @@
 @RTK.md
 @agent-style/claude-code.md
+@engram-graphiti.md
 
 # Default mode: caveman (full)
 Always respond in caveman mode (full intensity) unless user says "stop caveman", "normal mode", or `.normal`. This is the default for every session, every project. No need to activate — it's always on. Drop articles, filler, pleasantries, hedging. Fragments OK. Technical terms exact. Code/commits/security: write normal.
@@ -15,56 +16,8 @@ Always respond in caveman mode (full intensity) unless user says "stop caveman",
 
 # Memory (Engram + Graphiti)
 
-Two complementary memory systems on SuperBro VPS, both accessed via Tailscale MCP. Use both proactively in every session.
-
-## Engram — session memory (key-value, fast recall)
-
-Two vaults accessed via SSH MCP:
-
-- `engram-personal` — all projects (personal + work). Default vault.
-- `engram-work` — `stellar-shopify` only. Safe to share with AKQA colleagues.
-
-Rules:
-- Call `mem_context` at session start to load prior context.
-- Use `mem_save` proactively — decisions, bugs, conventions, discoveries. Do not wait to be asked.
-- Use `engram-work` tools when cwd is inside the stellar-shopify project. Use `engram-personal` everywhere else.
-- Call `mem_session_summary` before ending a session.
-- Prefer `mem_save` over writing to CLAUDE.md files for session-specific facts.
-
-## Device state sync
-
-At session start, read `~/.config/dotfiles/.claude/devices/<hostname>.json` (hostname = output of `hostname -s`) if it exists. Call `mem_save` (engram-personal) with `topic_key=devices/<hostname>`, summarising the snapshot in plain text (host, os, profile, plugin count + list, mcp list, skills). This keeps Engram as the source-of-truth for Claude config across machines. The JSON file is written by a `SessionStart` hook on every session — just sync it to Engram.
-
-Also save to Engram proactively whenever the user installs/removes plugins, adds MCP servers, or changes skills — don't wait for next session start.
-
-## Graphiti — knowledge graph (temporal, relational)
-
-Temporal knowledge graph on SuperBro (Neo4j + OpenAI embeddings). HTTP MCP at `http://100.100.1.50:8000/mcp`.
-
-Use Graphiti for:
-- Relationships between entities (people, projects, services, tools, preferences).
-- Facts that change over time (Graphiti tracks when facts were true and when they expired).
-- Cross-project knowledge that benefits from graph traversal (e.g., "what tools does Christian use for X?", "how do these projects relate?").
-- Structured data and richer context than Engram's key-value model.
-
-Rules:
-- Save to Graphiti when information involves entities + relationships (not just flat facts).
-- Use `add_memory` tool to ingest episodes (text, messages, JSON).
-- Use `search_nodes` and `search_facts` to query the graph before making assumptions.
-- Group ID is `claude-code` — shared across all sessions.
-- Graphiti complements Engram; save to both when appropriate. Engram for quick recall, Graphiti for relational/temporal depth.
-
-## When to use which
-
-| Signal | Use |
-|--------|-----|
-| Quick fact, convention, bug fix | Engram (`mem_save`) — **engram only** |
-| Entity with relationships to other entities | Graphiti (`add_memory`) — **graphiti only** |
-| Session continuity, "what did we do last time?" | Engram (`mem_context`) |
-| "How does X relate to Y?", temporal queries | Graphiti (`search_facts`) |
-| Both apply | Save to both — **only when fact is BOTH relational AND likely to be recalled flat** |
-
-**Default = single write.** Dual-write doubles cost; reserve for facts that genuinely live in both modalities (e.g., "Christian decided to use Loopsy on superbro" — relational entity link + flat recall by topic). Pure flat facts (conventions, bugs, one-off decisions) → engram only. Pure relational facts (entity X relates to entity Y) → graphiti only.
+Routing rules live in `engram-graphiti.md` (included at top of this file via
+`@engram-graphiti.md`). Canonical source: `dotfiles/.shared-rules/engram-graphiti.md`.
 
 MCP servers registered via `~/.dotfiles/.claude/mcp-servers.list` — auto-installed on bootstrap.
 
