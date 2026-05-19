@@ -389,6 +389,111 @@ else
     skip "engram version check skipped (superbro unreachable)"
 fi
 
+# ----- engram local + sync diagnostic -----
+hdr "engram local + git sync"
+if command -v engram >/dev/null 2>&1; then
+    ok "engram on PATH: $(command -v engram) ($(engram version 2>/dev/null | head -1))"
+else
+    case "$(uname -s)" in
+        Darwin) warn "engram not on PATH — Fix: brew install gentleman-programming/tap/engram" ;;
+        Linux)  warn "engram not on PATH — Fix: bash $DOTFILES_DIR/scripts/install/engram.sh (cargo install)" ;;
+        *)      warn "engram not on PATH — see https://github.com/Gentleman-Programming/engram" ;;
+    esac
+fi
+for vault in personal work; do
+    vault_dir="$HOME/.engram/$vault"
+    if [[ -f "$vault_dir/engram.db" ]]; then
+        ok "vault $vault: $vault_dir/engram.db"
+    else
+        warn "vault $vault missing — Fix: rsync from superbro or restore backup"
+    fi
+done
+sync_repo="$HOME/engram-sync"
+if [[ -d "$sync_repo/.git" ]]; then
+    remote="$(git -C "$sync_repo" remote get-url origin 2>/dev/null || echo none)"
+    if [[ "$remote" == "git@github.com:cbrostrom/engram.git" ]]; then
+        ok "$sync_repo origin → cbrostrom/engram"
+    else
+        warn "$sync_repo origin: $remote (expected git@github.com:cbrostrom/engram.git)"
+    fi
+    if git -C "$sync_repo" rev-parse '@{u}' >/dev/null 2>&1; then
+        pending="$(git -C "$sync_repo" log '@{u}..HEAD' --oneline 2>/dev/null | wc -l | tr -d ' ')"
+        if (( pending > 0 )); then
+            warn "$pending unpushed commit(s) in $sync_repo — Fix: cd $sync_repo && git push"
+        else
+            ok "$sync_repo in sync with origin"
+        fi
+    else
+        local_commits="$(git -C "$sync_repo" log --oneline 2>/dev/null | wc -l | tr -d ' ')"
+        warn "$sync_repo has no upstream tracking ($local_commits local commit(s) never pushed) — Fix: cd $sync_repo && git push -u origin main"
+    fi
+else
+    warn "$sync_repo not a git repo — Fix: bash $DOTFILES_DIR/scripts/install/engram.sh"
+fi
+case "$(uname -s)" in
+    Darwin)
+        plist="$HOME/Library/LaunchAgents/dk.brostrom.engram-sync.plist"
+        if launchctl list dk.brostrom.engram-sync >/dev/null 2>&1; then
+            last_exit="$(launchctl list dk.brostrom.engram-sync 2>/dev/null | awk '/LastExitStatus/{print $3}' | tr -d ';"')"
+            if [[ "$last_exit" == "0" || -z "$last_exit" ]]; then
+                ok "launchd dk.brostrom.engram-sync loaded (last exit: ${last_exit:-not yet run})"
+            else
+                warn "launchd dk.brostrom.engram-sync last exit=$last_exit — Fix: tail ~/Library/Logs/engram-sync.log"
+            fi
+        elif [[ -f "$plist" ]]; then
+            warn "launchd plist exists but not loaded — Fix: launchctl load $plist"
+        else
+            warn "launchd plist missing — Fix: bash $DOTFILES_DIR/scripts/install/engram.sh"
+        fi
+        log_file="$HOME/Library/Logs/engram-sync.log"
+        ;;
+    Linux)
+        if systemctl --user is-enabled engram-sync.timer >/dev/null 2>&1; then
+            timer_state="$(systemctl --user is-active engram-sync.timer 2>/dev/null)"
+            path_state="$(systemctl --user is-active engram-sync.path 2>/dev/null)"
+            if [[ "$timer_state" == "active" && "$path_state" == "active" ]]; then
+                ok "systemd-user engram-sync.{timer,path} active"
+            else
+                warn "systemd-user units not fully active (timer=$timer_state, path=$path_state) — Fix: systemctl --user start engram-sync.timer engram-sync.path"
+            fi
+            last_exit="$(systemctl --user show engram-sync.service -p ExecMainStatus --value 2>/dev/null)"
+            [[ -n "$last_exit" && "$last_exit" != "0" ]] && warn "engram-sync.service last exit=$last_exit — Fix: journalctl --user -u engram-sync.service -n 30"
+            if ! loginctl show-user "$USER" 2>/dev/null | grep -q "Linger=yes"; then
+                warn "linger NOT enabled — timers stop on logout. Fix: sudo loginctl enable-linger $USER"
+            fi
+        elif command -v systemctl >/dev/null 2>&1; then
+            warn "engram-sync systemd-user units not enabled — Fix: bash $DOTFILES_DIR/scripts/install/engram.sh"
+        else
+            warn "systemctl not found — WSL? Enable systemd in /etc/wsl.conf, then wsl --shutdown"
+        fi
+        log_file="${XDG_STATE_HOME:-$HOME/.local/state}/engram-sync.log"
+        ;;
+esac
+if [[ -n "${log_file:-}" && -f "$log_file" ]]; then
+    last_line="$(tail -1 "$log_file" 2>/dev/null)"
+    last_mtime="$(stat -f '%Sm' -t '%Y-%m-%d %H:%M:%S' "$log_file" 2>/dev/null \
+                || stat -c '%y' "$log_file" 2>/dev/null | cut -d'.' -f1)"
+    echo "  last sync log: $last_mtime"
+    [[ -n "$last_line" ]] && echo "    $last_line"
+fi
+
+# ----- graphiti remote health -----
+hdr "graphiti remote (HTTP MCP over Tailscale)"
+graphiti_url="${GRAPHITI_HEALTH_URL:-http://100.100.1.50:8000/health}"
+if command -v curl >/dev/null 2>&1; then
+    if resp="$(curl -fsS --max-time 3 "$graphiti_url" 2>/dev/null)"; then
+        if echo "$resp" | grep -q '"status":"healthy"'; then
+            ok "graphiti reachable: $graphiti_url ($resp)"
+        else
+            warn "graphiti reachable but unexpected response: $resp"
+        fi
+    else
+        warn "graphiti unreachable at $graphiti_url — Fix: ssh superbro 'docker compose -f /path/to/graphiti/docker-compose.yml restart' (or check tailscale)"
+    fi
+else
+    warn "curl not installed — cannot probe graphiti"
+fi
+
 # ----- MCP staleness diagnostic -----
 # Reports last-modified time on MCP config files vs running engram-related
 # processes. Useful when "MCP updates aren't coming through" — usually it's

@@ -1,0 +1,23 @@
+[Unit]
+Description=Engram git-based sync (oneshot)
+Documentation=https://github.com/Gentleman-Programming/engram
+# Don't run if previous unit is still active (matches launchd ThrottleInterval semantics)
+RefuseManualStart=no
+
+[Service]
+Type=oneshot
+# Renderer in scripts/install/engram.sh substitutes __SYNC_SH__ with absolute path
+ExecStart=__SYNC_SH__
+# Throttle bursts (similar to launchd ThrottleInterval=60). systemd will reject
+# rapid restarts within this window, coalescing reactive triggers.
+StartLimitIntervalSec=60
+StartLimitBurst=3
+# Reasonable resource caps — sync is git+small files only
+MemoryHigh=200M
+TimeoutStartSec=120s
+# Capture stdout/stderr to journal AND the log file (sync.sh handles file write)
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
