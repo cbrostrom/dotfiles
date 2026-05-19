@@ -226,6 +226,118 @@ else
     fi
 fi
 
+# ----- shared rules (cross-tool: Claude + Cursor) -----
+hdr "Shared rules (Claude + Cursor)"
+shared_rules_dir="$DOTFILES_DIR/.shared-rules"
+canonical_engram="$shared_rules_dir/engram-graphiti.md"
+cursor_marker="$shared_rules_dir/.cursor-synced"
+
+if [[ ! -f "$canonical_engram" ]]; then
+    bad "canonical $canonical_engram missing — Fix: re-pull dotfiles or run shared-rules setup"
+else
+    ok "canonical engram-graphiti.md present"
+fi
+
+claude_engram_link="$HOME/.claude/engram-graphiti.md"
+if [[ -L "$claude_engram_link" ]]; then
+    if [[ "$(readlink -f "$claude_engram_link" 2>/dev/null || realpath "$claude_engram_link" 2>/dev/null)" == "$canonical_engram" ]]; then
+        ok "~/.claude/engram-graphiti.md → canonical (Claude @-includes via CLAUDE.md)"
+    else
+        warn "~/.claude/engram-graphiti.md points elsewhere — Fix: ln -sfn $canonical_engram $claude_engram_link"
+    fi
+elif [[ -e "$claude_engram_link" ]]; then
+    warn "~/.claude/engram-graphiti.md is not a symlink — Fix: rm + ln -sfn"
+else
+    bad "~/.claude/engram-graphiti.md missing — Fix: ln -sfn $canonical_engram $claude_engram_link"
+fi
+
+# Drift: warn if canonical is newer than the cursor-synced marker.
+# User pastes content into Cursor cloud User Rules manually, then `touch .cursor-synced`.
+if [[ -f "$canonical_engram" && -f "$cursor_marker" ]]; then
+    if [[ "$canonical_engram" -nt "$cursor_marker" ]]; then
+        warn "engram-graphiti.md edited after last Cursor sync — re-paste into Cursor cloud User Rules, then: touch $cursor_marker"
+    else
+        ok "Cursor User Rules in sync with canonical (per marker)"
+    fi
+elif [[ -f "$canonical_engram" && ! -f "$cursor_marker" ]]; then
+    warn "no .cursor-synced marker yet — paste canonical into Cursor cloud User Rules, then: touch $cursor_marker"
+fi
+
+# ----- rbw (Bitwarden CLI) module -----
+hdr "rbw (Bitwarden CLI module)"
+rbw_env_script="$DOTFILES_DIR/modules/rbw/env-secrets.zsh"
+rbw_config="$HOME/.config/rbw/config.json"
+
+if command -v rbw >/dev/null 2>&1; then
+    rbw_ver="$(rbw --version 2>/dev/null | head -1 || echo unknown)"
+    ok "rbw installed: $rbw_ver"
+    if rbw status 2>/dev/null | grep -q -i "locked"; then
+        warn "rbw vault locked — Fix: rbw unlock (then restart shells / Cursor / Claude to refresh env)"
+    elif rbw status 2>/dev/null | grep -q -i "unlocked"; then
+        ok "rbw vault unlocked"
+    fi
+else
+    skip "rbw not installed (module is opt-in via modules.conf)"
+fi
+
+if [[ -f "$rbw_config" ]]; then
+    rbw_perms="$(stat -c '%a' "$rbw_config" 2>/dev/null || stat -f '%Lp' "$rbw_config" 2>/dev/null)"
+    if [[ "$rbw_perms" == "600" ]]; then
+        ok "$rbw_config (chmod 600)"
+    else
+        warn "$rbw_config has perms $rbw_perms — should be 600"
+        $FIX_MODE && chmod 600 "$rbw_config" && ok "  → fixed (chmod 600)"
+    fi
+fi
+
+if [[ -f "$rbw_env_script" ]]; then
+    if grep -q "modules/rbw/env-secrets.zsh" "$DOTFILES_DIR/.zshenv" 2>/dev/null; then
+        ok ".zshenv sources env-secrets.zsh"
+    else
+        bad ".zshenv does NOT source modules/rbw/env-secrets.zsh — Fix: see modules/rbw/install.sh"
+    fi
+fi
+
+# ----- Cursor MCP drift (~/.cursor/mcp.json vs ~/.claude.json) -----
+# Goal: keep Cursor and Claude in lock-step on MCP servers. User explicitly
+# wants alignment; this surfaces drift fast.
+hdr "Cursor MCP parity (vs Claude)"
+cursor_json="$HOME/.cursor/mcp.json"
+if [[ ! -f "$cursor_json" ]]; then
+    skip "$cursor_json missing — Cursor MCP not configured on this host"
+elif ! command -v jq >/dev/null 2>&1; then
+    warn "jq not found — skipping Cursor MCP parity check"
+elif [[ ! -f "$claude_json" ]]; then
+    skip "$claude_json missing — cannot compare"
+else
+    cursor_keys="$(jq -r '.mcpServers // {} | keys[]' "$cursor_json" 2>/dev/null | sort -u)"
+    claude_keys="$(jq -r '.mcpServers // {} | keys[]' "$claude_json" 2>/dev/null | sort -u)"
+
+    only_claude="$(comm -23 <(echo "$claude_keys") <(echo "$cursor_keys"))"
+    only_cursor="$(comm -13 <(echo "$claude_keys") <(echo "$cursor_keys"))"
+
+    if [[ -z "$only_claude" && -z "$only_cursor" ]]; then
+        ok "Cursor MCP matches Claude ($(echo "$cursor_keys" | wc -l | tr -d ' ') servers)"
+    fi
+    if [[ -n "$only_claude" ]]; then
+        while IFS= read -r n; do
+            [[ -n "$n" ]] && warn "MCP in Claude but not Cursor: $n — Fix: add to ~/.cursor/mcp.json"
+        done <<< "$only_claude"
+    fi
+    if [[ -n "$only_cursor" ]]; then
+        while IFS= read -r n; do
+            [[ -n "$n" ]] && warn "MCP in Cursor but not Claude: $n — Fix: add to ~/.claude.json"
+        done <<< "$only_cursor"
+    fi
+
+    # Check Cursor has no inline tokens in env (security)
+    if jq -e '.mcpServers | to_entries[] | select(.value.env? | (objects | values[]?) | tostring | test("^(ghp_|gho_|ghs_|sk-|xoxb-|atlas)"; "i"))' "$cursor_json" >/dev/null 2>&1; then
+        bad "Cursor mcp.json contains likely inline secret in env — Fix: move to env var sourced from .zshenv (rbw)"
+    else
+        ok "Cursor mcp.json has no obvious inline tokens"
+    fi
+fi
+
 # ----- engram SSH reachability -----
 # Engram MCPs spawn `ssh superbro …` at runtime. If superbro's host key is
 # not in known_hosts under that alias, SSH blocks on a yes/no prompt and the
@@ -247,6 +359,61 @@ else
         warn "ssh superbro unreachable (Tailscale up? host alias defined?)"
     else
         warn "ssh superbro probe failed: $(echo "$ssh_probe" | head -1)"
+    fi
+fi
+
+# ----- engram version (on superbro) -----
+# Skipped if SSH probe above failed.
+hdr "Engram version (superbro)"
+ENGRAM_MIN_VERSION="1.15.9"
+if command -v ssh >/dev/null 2>&1 && ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=3 superbro 'true' 2>/dev/null; then
+    # Use absolute path — non-interactive SSH doesn't load ~/.local/bin
+    engram_ver_raw="$(ssh -o BatchMode=yes -o ConnectTimeout=3 superbro '/home/christian/.local/bin/engram --version 2>/dev/null || /home/christian/.local/bin/engram version 2>/dev/null' 2>/dev/null | head -1)"
+    if [[ -z "$engram_ver_raw" ]]; then
+        warn "could not determine engram version on superbro — Fix: ssh superbro engram --version"
+    else
+        engram_ver="$(echo "$engram_ver_raw" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+        if [[ -z "$engram_ver" ]]; then
+            warn "engram version output unrecognised: $engram_ver_raw"
+        else
+            # Compare semver: lowest of (current, min) should be min for current >= min
+            min_first="$(printf '%s\n%s\n' "$engram_ver" "$ENGRAM_MIN_VERSION" | sort -V | head -1)"
+            if [[ "$min_first" == "$ENGRAM_MIN_VERSION" || "$engram_ver" == "$ENGRAM_MIN_VERSION" ]]; then
+                ok "engram v$engram_ver (>= $ENGRAM_MIN_VERSION)"
+            else
+                warn "engram v$engram_ver < $ENGRAM_MIN_VERSION — Fix: ssh superbro and update engram binary"
+            fi
+        fi
+    fi
+else
+    skip "engram version check skipped (superbro unreachable)"
+fi
+
+# ----- MCP staleness diagnostic -----
+# Reports last-modified time on MCP config files vs running engram-related
+# processes. Useful when "MCP updates aren't coming through" — usually it's
+# because Cursor / Claude need a session restart.
+hdr "MCP config freshness"
+for cfg in "$HOME/.cursor/mcp.json" "$HOME/.claude.json"; do
+    if [[ -f "$cfg" ]]; then
+        mtime="$(stat -f '%Sm' -t '%Y-%m-%d %H:%M:%S' "$cfg" 2>/dev/null \
+              || stat -c '%y' "$cfg" 2>/dev/null | cut -d'.' -f1)"
+        echo "  $cfg  (modified: $mtime)"
+    fi
+done
+# Portable across macOS/Linux: ps + grep. Exclude grep itself + own process.
+running_mcp="$(ps -A -o pid,command 2>/dev/null \
+    | grep -E 'engram mcp|graphiti|mcp-mermaid|tailwindcss-mcp|shopify.*dev-mcp|apple-mcp|@modelcontextprotocol/server-github' \
+    | grep -v 'grep -E' \
+    | wc -l | tr -d ' ')"
+echo "  Running MCP-related processes (this host): $running_mcp"
+if (( running_mcp == 0 )); then
+    warn "No MCP processes running. Cursor/Claude load mcp.json at session start — restart the agent after editing config."
+else
+    if (( running_mcp > 30 )); then
+        warn "Unusually high MCP process count ($running_mcp). Possible leaked processes from previous agent sessions — Fix: pkill -f 'engram mcp|graphiti|mcp-mermaid|tailwindcss-mcp|shopify.*dev-mcp|apple-mcp|server-github' (then relaunch agent)"
+    else
+        echo "  If a recently-edited server isn't responding, restart the agent fully (Cmd+Q for IDE, exit/reopen for CLI)."
     fi
 fi
 
