@@ -18,10 +18,10 @@ unset -f _df_script_real_dir
 # ── colors ────────────────────────────────────────────────────────────────────
 _df_setup_colors() {
   if [[ -t 1 ]]; then
-    C0='\e[0m'
-    C1='\e[36m'
-    BOLD='\e[1m'
-    DIM='\e[2m'
+    C0=$'\e[0m'
+    C1=$'\e[36m'
+    BOLD=$'\e[1m'
+    DIM=$'\e[2m'
   else
     C0=''; C1=''; BOLD=''; DIM=''
   fi
