@@ -25,6 +25,19 @@ else
     _dotfiles_bw_timeout=""
 fi
 
+# Guard: only proceed if vault is actually unlocked.
+# rbw status does NOT trigger pinentry — safe to call in any context.
+# rbw list / rbw get with a locked vault spawns pinentry-curses via rbw-agent;
+# when the caller has no TTY the timeout kills the caller but orphans pinentry,
+# causing a CPU storm. Check status first, bail on anything other than Unlocked.
+_rbw_vault_status="$(command ${=_dotfiles_bw_timeout} rbw status 2>/dev/null || true)"
+if ! printf '%s' "$_rbw_vault_status" | grep -qi "unlocked"; then
+    [[ -o interactive ]] && printf '[rbw] vault locked — run: rbw unlock\n' >&2
+    unset _rbw_vault_status _dotfiles_bw_timeout
+    return 0
+fi
+unset _rbw_vault_status
+
 # Helper: timeout-wrapped lookup. Returns empty string on lock / miss / error.
 # Uses `command` to dodge any user alias.
 _dotfiles_bw_get() {
