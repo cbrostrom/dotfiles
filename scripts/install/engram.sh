@@ -53,7 +53,7 @@ fi
 
 # ── vault path per platform ──────────────────────────────────────────────────
 if $IS_WSL; then
-    WIN_HOME="$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r\n')")"
+    WIN_HOME="/mnt/c/Users/${USER}"
     SYNC_REPO="${WIN_HOME}/.engram"
 else
     SYNC_REPO="${HOME}/.engram"
@@ -219,7 +219,7 @@ print_summary() {
     info "vault:     ${VAULT_DIR}  (live SQLite, gitignored)"
     info "remote:    ${GIT_REMOTE}"
     if $IS_WSL; then
-        info "binary:    ${WIN_HOME}/go/bin/engram.exe  (install from PowerShell)"
+        info "binary:    /mnt/c/Users/\${USER}/go/bin/engram.exe  (install from PowerShell)"
     else
         info "binary:    $(command -v engram 2>/dev/null || echo 'not found — ensure ~/go/bin on PATH')"
     fi
