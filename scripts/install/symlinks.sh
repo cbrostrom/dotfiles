@@ -122,6 +122,10 @@ create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
 create_symlink "$SCRIPT_DIR/.config/procs" "$HOME/.config/procs" "procs config"
 create_symlink "$SCRIPT_DIR/.config/zellij" "$HOME/.config/zellij" "zellij config"
 
+# WezTerm: lives at $SCRIPT_DIR/wezterm/ (not under .config/) so the Windows-side
+# symlink under "Windows Terminal" block can target it via UNC consistently.
+create_symlink "$SCRIPT_DIR/wezterm" "$HOME/.config/wezterm" "wezterm config"
+
 # Codex CLI config
 create_symlink "$SCRIPT_DIR/.codex" "$HOME/.codex" "codex config"
 
@@ -178,6 +182,32 @@ if [[ "$IS_WSL" == "true" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cy
     if [[ "$WINDOWS_TERMINAL_FOUND" == "false" ]]; then
         log_warning "Windows Terminal directory not found, skipping Windows Terminal config"
         log_info "Searched in: ${WINDOWS_TERMINAL_PATHS[*]}"
+    fi
+
+    # WezTerm: Windows dir symlink → WSL dotfiles via \\wsl$\Debian UNC path.
+    # Uses PowerShell New-Item SymbolicLink (requires Developer Mode — already enabled).
+    # Distro hardcoded to Debian (single-machine, won't change).
+    WIN_USER="${USERNAME:-christian}"
+    WEZTERM_WIN="C:\\Users\\${WIN_USER}\\.config\\wezterm"
+    WEZTERM_UNC="\\\\wsl\$\\Debian\\home\\christian\\.config\\dotfiles\\wezterm"
+    if powershell.exe -NoProfile -NonInteractive -Command "
+        \$t = '${WEZTERM_WIN}'
+        \$u = '${WEZTERM_UNC}'
+        if (Test-Path \$t) {
+            \$item = Get-Item \$t -ErrorAction SilentlyContinue
+            if (\$item.LinkType -eq 'SymbolicLink' -and \$item.Target -like '*dotfiles*wezterm*') {
+                Write-Output 'ok: wezterm symlink already correct'
+                exit 0
+            }
+            Write-Output 'removing existing wezterm dir/link'
+            Remove-Item \$t -Recurse -Force
+        }
+        New-Item -ItemType SymbolicLink -Path \$t -Target \$u | Out-Null
+        Write-Output 'created: wezterm symlink'
+    " 2>/dev/null; then
+        log_success "WezTerm: Windows → WSL dotfiles symlink active"
+    else
+        log_warning "WezTerm: failed to create Windows symlink (check Developer Mode)"
     fi
 fi
 
