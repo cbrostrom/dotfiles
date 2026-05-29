@@ -16,7 +16,9 @@ set -euo pipefail
 if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
     WIN_HOME="$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r\n')")"
     ENGRAM_BIN="${WIN_HOME}/go/bin/engram.exe"
+    # WSLENV with /p flag translates the Linux path to Windows format for engram.exe
     export ENGRAM_DATA_DIR="${WIN_HOME}/.engram/personal"
+    export WSLENV="ENGRAM_DATA_DIR/p${WSLENV:+:${WSLENV}}"
 else
     ENGRAM_BIN="${HOME}/go/bin/engram"
     export ENGRAM_DATA_DIR="${HOME}/.engram/personal"
