@@ -22,7 +22,7 @@ else:
 
 payload = {
     "engram": {
-        "tool": "mcp__engram-personal__mem_save",
+        "tool": "mcp__engram__mem_save",
         "args": {
             "topic_key": topic,
             "summary": body,
