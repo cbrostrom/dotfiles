@@ -6,6 +6,7 @@
 # Autostart opt-in:   add "herdr-autostart" to ~/.config/dotfiles/modules.conf
 # =============================================================================
 set -euo pipefail
+DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 . "$DOTFILES_DIR/modules/_lib/log.sh"
 . "$DOTFILES_DIR/modules/_lib/config.sh"
 . "$DOTFILES_DIR/modules/_lib/platform.sh"
