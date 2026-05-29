@@ -56,7 +56,7 @@ if [[ -d "$HERDR_CONFIG_SRC" ]]; then
             if [[ -z "$(ls -A "$HERDR_CONFIG_DST" 2>/dev/null)" ]]; then
                 rmdir "$HERDR_CONFIG_DST"
             else
-                warn "~/.config/herdr has existing files — skipping symlink (manual config preserved)"
+                warn "$HOME/.config/herdr has existing files — skipping symlink (manual config preserved)"
                 HERDR_CONFIG_SRC=""  # prevent symlink below
             fi
         fi
