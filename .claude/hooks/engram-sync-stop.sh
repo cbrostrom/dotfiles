@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
-# Stop hook: export new engram observations as sync chunks and push to git.
-# Silent no-op if git repo not yet initialised in ~/.engram.
+# Stop hook: export engram vault as sync chunks and push to git.
+# Vault:     ~/.engram/personal   (live SQLite — not git-tracked)
+# Sync repo: ~/engram-sync        (exported text chunks — git-tracked)
+# Silent no-op if sync repo not yet cloned or engram binary missing.
 set -uo pipefail
 
-ENGRAM_DIR="${HOME}/.engram"
-[[ -d "${ENGRAM_DIR}/.git" ]] || exit 0
+SYNC_REPO="${HOME}/engram-sync"
+[[ -d "${SYNC_REPO}/.git" ]] || exit 0
+command -v engram >/dev/null 2>&1 || exit 0
 
-ENGRAM_DATA_DIR="${ENGRAM_DIR}/personal" engram sync 2>/dev/null || exit 0
+ENGRAM_DATA_DIR="${HOME}/.engram/personal" ENGRAM_SYNC_REPO="${SYNC_REPO}" \
+    engram sync 2>/dev/null || exit 0
 
-cd "${ENGRAM_DIR}"
-if [[ -n "$(git status --porcelain 2>/dev/null)" ]]; then
-    git add .
-    git commit -m "sync: $(date '+%Y-%m-%d %H:%M')" --quiet
-    git push --quiet 2>/dev/null || true
+if [[ -n "$(git -C "${SYNC_REPO}" status --porcelain 2>/dev/null)" ]]; then
+    git -C "${SYNC_REPO}" add .
+    git -C "${SYNC_REPO}" commit -m "sync: $(date '+%Y-%m-%d %H:%M')" --quiet
+    git -C "${SYNC_REPO}" push --quiet 2>/dev/null || true
 fi
