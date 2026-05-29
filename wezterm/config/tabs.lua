@@ -73,23 +73,50 @@ local function badge_for(pane_info)
   return ICON.TERMINAL, colors.subtext0
 end
 
-function M.apply(config)
-  config.use_fancy_tab_bar = false
+-- Map agent-deck color names to the Catppuccin palette
+local AGENT_DOT_COLORS = {
+  working  = '#a6e3a1',  -- green   — agent processing
+  waiting  = '#f9e2af',  -- yellow  — needs user input
+  idle     = '#89b4fa',  -- blue    — ready
+  inactive = nil,        -- no dot when no agent
+}
+
+function M.apply(config, agent_deck)
+  -- Fancy tab bar = native widget with real vertical padding (easier to click),
+  -- and we get window_frame styling control.
+  config.use_fancy_tab_bar = true
   config.tab_bar_at_bottom = false
   config.hide_tab_bar_if_only_one_tab = false
   config.show_new_tab_button_in_tab_bar = true
   config.tab_max_width = 40
   config.show_tab_index_in_tab_bar = false
 
+  config.window_frame = {
+    font = require('wezterm').font_with_fallback({
+      { family = 'JetBrainsMono NFM',       weight = 'Regular' },
+      { family = 'JetBrainsMono Nerd Font', weight = 'Regular' },  -- macOS name
+      'Symbols Nerd Font Mono',
+    }),
+    -- Fancy tab bar already adds vertical padding; keep the font smaller
+    -- than the terminal so tabs don't feel oversized.
+    font_size = 10.5,
+    active_titlebar_bg   = colors.crust,
+    inactive_titlebar_bg = colors.crust,
+    -- Bottom hairline under the whole tab bar (separates from pane).
+    active_titlebar_border_bottom   = colors.surface0,
+    inactive_titlebar_border_bottom = colors.surface0,
+    button_bg       = colors.crust,
+    button_fg       = colors.overlay0,
+    button_hover_bg = colors.surface0,
+    button_hover_fg = colors.text,
+  }
+
   config.colors = config.colors or {}
   config.colors.tab_bar = {
-    background = colors.crust,
+    background    = colors.crust,
     new_tab       = { bg_color = colors.crust,    fg_color = colors.overlay0 },
     new_tab_hover = { bg_color = colors.surface0, fg_color = colors.text },
   }
-
-  local LEFT_ROUND  = utf8.char(0xe0b6)  --
-  local RIGHT_ROUND = utf8.char(0xe0b4)  --
 
   wezterm.on('format-tab-title', function(tab, tabs, panes, conf, hover, max_width)
     local idx = tab.tab_index + 1
@@ -102,32 +129,68 @@ function M.apply(config)
     local icon, accent = badge_for(tab.active_pane)
     local is_active = tab.is_active
 
-    -- Inactive tabs blend into the bar; active tabs lift on surface1
-    -- with shell-coloured rounded edges. No coloured number pill — too noisy.
-    local bg   = is_active and colors.surface1 or colors.mantle
-    local fg   = is_active and colors.text     or colors.subtext0
-    local edge = is_active and accent          or colors.mantle
+    local bg = is_active and colors.surface1 or colors.mantle
+    local fg = is_active and colors.text     or colors.subtext0
 
     local pane_marker = ''
     if #tab.panes > 1 then
       pane_marker = '  ' .. utf8.char(0xf0c9) .. #tab.panes
     end
 
-    return {
-      { Background = { Color = colors.crust } },
-      { Foreground = { Color = edge } },
-      { Text = LEFT_ROUND },
+    -- Zoom indicator (Leader+z toggles a single pane to fullscreen within tab).
+    -- nf-fa-search_plus
+    local zoom_marker = ''
+    if tab.active_pane.is_zoomed then
+      zoom_marker = ' ' .. utf8.char(0xf00e)
+    end
+
+    -- Agent status dot (Claude Code, OpenCode, Aider, ...). Only shown
+    -- when the agent-deck plugin reports an active agent in this pane.
+    local agent_dot = nil
+    if agent_deck then
+      local state = agent_deck.get_agent_state(tab.active_pane.pane_id)
+      if state then
+        agent_dot = AGENT_DOT_COLORS[state.status]
+      end
+    end
+
+    -- Active tab stands out via:
+    --   - brighter bg (surface1)
+    --   - bold title in the shell accent colour
+    --   - "Double" attribute underline (renders as a 2px line at the bottom of the title cells)
+    -- Inactive tabs are dim and plain.
+    local title_fg     = is_active and accent or fg
+    local title_weight = is_active and 'Bold' or 'Normal'
+    local underline    = is_active and 'Double' or 'None'
+
+    local elements = {
       { Background = { Color = bg } },
-      { Foreground = { Color = accent } },
-      { Text = ' ' .. icon .. ' ' },
-      { Foreground = { Color = colors.overlay0 } },
-      { Text = idx .. ' ' },
-      { Foreground = { Color = fg } },
-      { Text = title .. pane_marker .. ' ' },
-      { Background = { Color = colors.crust } },
-      { Foreground = { Color = edge } },
-      { Text = RIGHT_ROUND },
     }
+
+    -- Leading agent dot (if any) — sits just inside the left padding
+    if agent_dot then
+      table.insert(elements, { Foreground = { Color = agent_dot } })
+      table.insert(elements, { Text = ' ● ' })
+    else
+      table.insert(elements, { Text = ' ' })
+    end
+
+    table.insert(elements, { Foreground = { Color = accent } })
+    table.insert(elements, { Text = ' ' .. icon .. '  ' })
+    table.insert(elements, { Foreground = { Color = colors.overlay0 } })
+    table.insert(elements, { Text = idx .. ' ' })
+    table.insert(elements, { Attribute = { Intensity = title_weight } })
+    table.insert(elements, { Attribute = { Underline = underline } })
+    table.insert(elements, { Foreground = { Color = title_fg } })
+    table.insert(elements, { Text = title .. pane_marker })
+    if zoom_marker ~= '' then
+      table.insert(elements, { Foreground = { Color = colors.peach } })
+      table.insert(elements, { Text = zoom_marker })
+    end
+    table.insert(elements, { Foreground = { Color = title_fg } })
+    table.insert(elements, { Text = '  ' })
+
+    return elements
   end)
 
   -- Right status: gradient powerline (workspace, time, host)
@@ -143,6 +206,19 @@ function M.apply(config)
   end
 
   wezterm.on('update-status', function(window, _pane)
+    -- Leader indicator on the LEFT of the tab bar. Renders a bright pill
+    -- when leader (Ctrl+b) is awaiting the next key, and clears otherwise.
+    if window:leader_is_active() then
+      window:set_left_status(wezterm.format {
+        { Background = { Color = colors.peach } },
+        { Foreground = { Color = colors.crust } },
+        { Attribute = { Intensity = 'Bold' } },
+        { Text = '  ' .. utf8.char(0xf12a) .. '  LEADER  ' },  -- nf-fa-bolt
+      })
+    else
+      window:set_left_status('')
+    end
+
     local segments = segments_for_status(window)
     local palette = window:effective_config().resolved_palette
     local bg = wezterm.color.parse(palette.background or colors.base)

@@ -15,21 +15,11 @@ function M.apply(config)
     -- Each becomes selectable as 'WSL:<DistroName>' in the launcher.
     config.wsl_domains = wezterm.default_wsl_domains()
 
-    -- Pick a sane default shell: prefer pwsh (PS7) if installed, else PS5.
-    local function exists(cmd)
-      local ok = wezterm.run_child_process({ 'where.exe', cmd })
-      return ok
-    end
-
-    if exists('pwsh.exe') then
-      config.default_prog = { 'pwsh.exe', '-NoLogo' }
-    else
-      config.default_prog = { 'powershell.exe', '-NoLogo' }
-    end
-
-    -- Default new tabs/windows to Debian WSL.
-    -- (default_prog above is the fallback for when no domain applies.)
+    -- Default new tabs/windows/the + button to Debian WSL.
+    -- default_prog wins over default_domain when the mux is active, so point
+    -- it explicitly at WSL. PowerShell still reachable via launch menu (Leader+s).
     config.default_domain = 'WSL:Debian'
+    config.default_prog = { 'wsl.exe', '--distribution', 'Debian', '--cd', '~' }
 
     config.launch_menu = {
       { label = 'PowerShell',           args = { 'powershell.exe', '-NoLogo' } },
@@ -43,9 +33,9 @@ function M.apply(config)
 
     config.front_end = 'WebGpu'
     config.webgpu_power_preference = 'HighPerformance'
-    config.prefer_egl = true
+    -- prefer_egl is a Linux/X11 hint; harmless on Windows but unused.
     config.max_fps = 120
-    config.animation_fps = 60
+    config.animation_fps = 1
   end
 
   if is_macos() then
