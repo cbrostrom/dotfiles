@@ -3,15 +3,18 @@ local act = wezterm.action
 local projects = require('config.projects')
 local M = {}
 
-function M.apply(config)
-  -- Leader: Ctrl+a (tmux-style), 1.5s window
-  config.leader = { key = 'a', mods = 'CTRL', timeout_milliseconds = 1500 }
+function M.apply(config, plugins)
+  plugins = plugins or {}
+  local chord = plugins.chord
+
+  -- Leader: Ctrl+b (tmux default; frees Ctrl+a for shell start-of-line).
+  config.leader = { key = 'b', mods = 'CTRL', timeout_milliseconds = 1500 }
 
   config.disable_default_key_bindings = false
 
   config.keys = {
-    -- Send literal Ctrl+a
-    { key = 'a', mods = 'LEADER|CTRL', action = act.SendKey { key = 'a', mods = 'CTRL' } },
+    -- Send literal Ctrl+b
+    { key = 'b', mods = 'LEADER|CTRL', action = act.SendKey { key = 'b', mods = 'CTRL' } },
 
     -- Splits
     { key = '|', mods = 'LEADER|SHIFT', action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
@@ -43,6 +46,12 @@ function M.apply(config)
     { key = 'n', mods = 'LEADER', action = act.ActivateTabRelative(1) },
     { key = 'p', mods = 'LEADER', action = act.ActivateTabRelative(-1) },
     { key = '&', mods = 'LEADER|SHIFT', action = act.CloseCurrentTab { confirm = true } },
+    { key = ',', mods = 'LEADER', action = act.PromptInputLine {
+        description = 'Rename tab',
+        action = wezterm.action_callback(function(window, _, line)
+          if line then window:active_tab():set_title(line) end
+        end),
+      } },
 
     -- Tab number jumps
     { key = '1', mods = 'LEADER', action = act.ActivateTab(0) },
@@ -56,19 +65,12 @@ function M.apply(config)
     { key = '9', mods = 'LEADER', action = act.ActivateTab(8) },
 
     -- Workspaces
-    { key = 's', mods = 'LEADER',
-      action = act.ShowLauncherArgs { flags = 'FUZZY|WORKSPACES' } },
     -- Project workspace launcher (fuzzy pick from ~/Projects/*)
     { key = 'f', mods = 'LEADER', action = projects.choose_project() },
     { key = 'w', mods = 'LEADER',
-      action = act.PromptInputLine {
-        description = 'Create / switch to workspace',
-        action = wezterm.action_callback(function(window, pane, line)
-          if line and line ~= '' then
-            window:perform_action(act.SwitchToWorkspace { name = line }, pane)
-          end
-        end),
-      } },
+      action = act.ShowLauncherArgs { flags = 'FUZZY|WORKSPACES' } },
+    { key = 's', mods = 'LEADER',
+      action = act.ShowLauncherArgs { flags = 'FUZZY|WORKSPACES' } },
     { key = '[', mods = 'LEADER', action = act.SwitchWorkspaceRelative(-1) },
     { key = ']', mods = 'LEADER', action = act.SwitchWorkspaceRelative(1) },
 
@@ -83,8 +85,8 @@ function M.apply(config)
     { key = 'F', mods = 'LEADER|SHIFT', action = act.ToggleFullScreen },
     { key = 'L', mods = 'CTRL',   action = act.ClearScrollback 'ScrollbackAndViewport' },
 
-    -- Quick spawn launcher menu
-    { key = 'Space', mods = 'LEADER', action = act.ShowLauncher },
+    -- (Leader+Space is taken by chord's command picker — see chord setup below.
+    -- Use Leader+s for the wezterm launcher / workspace switcher.)
 
     -- Clipboard — system-standard Ctrl+C / Ctrl+V (Windows convention).
     -- Ctrl+C is smart: copies if there's a selection, otherwise falls through
@@ -175,6 +177,50 @@ function M.apply(config)
       action = act.OpenLinkAtMouseCursor,
     },
   }
+
+  -- Chord: registered commands, command picker, and help overlay.
+  -- Discoverability layer over the native keymap above.
+  if chord then
+    chord.setup {
+      aliases = {
+        CR = 'Enter',
+        ESC = 'Escape',
+      },
+      hints = { separator = '  ·  ' },
+    }
+
+    chord.command.register_many {
+      { id = 'reload-config', label = 'Reload config',
+        action = act.ReloadConfiguration },
+      { id = 'debug-overlay', label = 'Debug overlay',
+        action = act.ShowDebugOverlay },
+      { id = 'launcher', label = 'Launcher (workspaces / spawn)',
+        action = act.ShowLauncher },
+      { id = 'fullscreen', label = 'Toggle fullscreen',
+        action = act.ToggleFullScreen },
+      { id = 'clear-scrollback', label = 'Clear scrollback',
+        action = act.ClearScrollback 'ScrollbackAndViewport' },
+      { id = 'cmd-palette', label = 'WezTerm command palette',
+        action = act.ActivateCommandPalette },
+    }
+
+    chord.command.apply(config, {
+      key = '<leader><Space>',
+      title = 'Commands',
+      sources = { 'registered', 'keys', 'key_table' },
+    })
+
+    chord.overlay.apply(config, {
+      key = '<leader>?',
+      title = 'Leader keys',
+      sources = { 'keys', 'key_table' },
+    })
+
+    -- Surface duplicate bindings on reload (no behavior change).
+    for _, conflict in ipairs(chord.conflicts(config)) do
+      wezterm.log_warn(('chord conflict in %s: %s'):format(conflict.scope, conflict.lhs))
+    end
+  end
 end
 
 return M

@@ -4,18 +4,25 @@ local M = {}
 function M.apply(config)
   config.color_scheme = 'Catppuccin Mocha'
 
+  -- JetBrainsMono NFM = "Nerd Font Mono" variant: monospace cells for icons.
+  -- (Older docs call it "JetBrainsMono Nerd Font Mono" but the registered
+  -- Windows family name is "JetBrainsMono NFM".)
   config.font = wezterm.font_with_fallback({
-    { family = 'JetBrainsMono Nerd Font', weight = 'Regular' },
+    { family = 'JetBrainsMono NFM',       weight = 'Regular' },
+    { family = 'JetBrainsMono Nerd Font', weight = 'Regular' },  -- macOS name
     { family = 'JetBrains Mono',          weight = 'Regular' },
     { family = 'Cascadia Code',           weight = 'Regular' },
     'Symbols Nerd Font Mono',
   })
-  config.font_size = 12.5
+  config.font_size = 11.0
   config.line_height = 1.1
   config.cell_width = 1.0
   config.harfbuzz_features = { 'calt=1', 'clig=1', 'liga=1' }
 
-  config.window_decorations = 'RESIZE'
+  -- RESIZE|INTEGRATED_BUTTONS = resize border + min/max/close buttons
+  -- embedded in the tab bar (right side). No native title bar.
+  config.window_decorations = 'RESIZE|INTEGRATED_BUTTONS'
+  config.integrated_title_button_style = 'Windows'
   config.window_padding = { left = 10, right = 10, top = 8, bottom = 4 }
 
   -- Transparency strategy:
@@ -44,10 +51,10 @@ function M.apply(config)
     fade_out_duration_ms = 0,
   }
 
-  config.cursor_blink_rate = 500
-  config.default_cursor_style = 'BlinkingBar'
-  config.cursor_blink_ease_in = 'EaseOut'
-  config.cursor_blink_ease_out = 'EaseIn'
+  -- Steady cursor — blinking + easing triggers constant repaints, which
+  -- on Windows + WebGpu can show up as input-latency jitter.
+  config.cursor_blink_rate = 0
+  config.default_cursor_style = 'SteadyBar'
 
   config.inactive_pane_hsb = {
     saturation = 0.85,

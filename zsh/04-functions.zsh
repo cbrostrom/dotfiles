@@ -383,6 +383,51 @@ code() {
 alias vs='code'
 
 # =============================================================================
+# DIRECTORY LOCK
+# =============================================================================
+# lock    pin current dir; cd is blocked from leaving the tree
+# unlock  remove the lock
+# ret     cd back to the locked root
+# cd      overrides builtin to enforce the lock (ZSH functions beat builtins)
+
+typeset -g _LOCK_DIR=''
+
+lock() {
+    _LOCK_DIR="$PWD"
+    echo "Locked to $_LOCK_DIR"
+}
+
+unlock() {
+    _LOCK_DIR=''
+    echo "Unlocked"
+}
+
+ret() {
+    [[ -z "$_LOCK_DIR" ]] && { echo "ret: no lock set — run lock first" >&2; return 1; }
+    builtin cd "$_LOCK_DIR"
+}
+
+cd() {
+    if [[ -n "$_LOCK_DIR" ]]; then
+        if (( $# == 0 )); then
+            builtin cd "$_LOCK_DIR"
+            return
+        fi
+        local target
+        if [[ "$1" == "-" ]]; then
+            target="${OLDPWD:-$_LOCK_DIR}"
+        else
+            target="${1:a}"  # ZSH :a resolves to absolute path, handles .. and ~
+        fi
+        if [[ "$target" != "$_LOCK_DIR" && "$target" != "$_LOCK_DIR/"* ]]; then
+            echo "cd: blocked — locked to $_LOCK_DIR" >&2
+            return 1
+        fi
+    fi
+    builtin cd "$@"
+}
+
+# =============================================================================
 # CLIPIMG (WSL-only) — save Windows clipboard image to /tmp, print path
 # =============================================================================
 # Usage:
