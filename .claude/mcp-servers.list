@@ -36,13 +36,12 @@ atlassian-fiskars | ~/.claude/scripts/atlassian-fiskars.sh
 # Atlassian MCP — AKQA workspace (script reads ATLASSIAN_AKQA_* from .local-secrets)
 atlassian-akqa | ~/.claude/scripts/atlassian-akqa.sh
 
+# --- Local (no Tailscale needed) ---
+
+# Engram — local binary, single vault, git-synced across machines
+engram-personal | engram | mcp
+
 # --- Tailscale-only (require tailnet enrollment) ---
-
-# Engram personal vault — all projects except stellar-shopify
-engram-personal | ssh | superbro | ENGRAM_DATA_DIR=/home/christian/.engram/personal /home/christian/.local/bin/engram mcp
-
-# Engram work vault — stellar-shopify only (safe to share with AKQA colleagues)
-engram-work | ssh | superbro | ENGRAM_DATA_DIR=/home/christian/.engram/work /home/christian/.local/bin/engram mcp
 
 # Graphiti — temporal knowledge graph (Neo4j) on superbro:8000
 graphiti | http | http://100.100.1.50:8000/mcp

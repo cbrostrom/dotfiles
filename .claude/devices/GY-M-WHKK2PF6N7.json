@@ -3,7 +3,7 @@
   "os": "macos",
   "arch": "arm64",
   "profile": "desktop-full",
-  "last_synced": "2026-05-19T09:30:21Z",
+  "last_synced": "2026-05-29T07:11:39Z",
   "marketplaces": [
     "cavekit-marketplace",
     "caveman",
@@ -35,7 +35,6 @@
     "atlassian-akqa",
     "atlassian-fiskars",
     "engram-personal",
-    "engram-work",
     "github"
   ],
   "mcp_servers_list": [
@@ -48,7 +47,6 @@
     "atlassian-fiskars",
     "atlassian-akqa",
     "engram-personal",
-    "engram-work",
     "graphiti",
     "mcp-dockhand",
     "mcp-dockhand-linuxbro",

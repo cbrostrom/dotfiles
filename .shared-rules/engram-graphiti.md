@@ -4,22 +4,16 @@ Canonical source for both Claude Code and Cursor. Edit only this file. Claude
 includes via `@engram-graphiti.md`; Cursor reads from cloud User Rules (paste
 content of this file there once, re-paste when this file changes).
 
-Two complementary memory systems on SuperBro VPS, both reachable over
-Tailscale. Use both proactively in every session — do not wait to be asked.
+Two complementary memory systems. Use both proactively in every session — do not wait to be asked.
 
 ## Engram — flat memory (key-value + FTS5, fast recall)
 
-Yvgude's Engram (Go binary, SQLite + FTS5). NOT engram.fyi (different
-product, npm-based, name collision). Current version on superbro: v1.15.9.
+Gentleman-Programming Engram (Go binary, SQLite + FTS5). NOT engram.fyi (different product, npm-based, name collision). Local binary at `~/.engram/`, git-synced across machines. No Tailscale required.
 
-Two vaults, accessed via SSH-stdio MCP from this machine:
-
-- `engram-personal` — all projects (personal + work). Default vault.
-- `engram-work` — `stellar-shopify` only. Safe to share with AKQA colleagues.
+Single vault: `engram-personal` — all projects (personal + work).
 
 MCP tool names are prefixed by server name and have `mem_*` action suffix
-(e.g. `engram-personal-mem_save`, `engram-work-mem_search`). Rules apply to
-whichever vault is active for the current cwd.
+(e.g. `mcp__engram-personal__mem_save`). Always use `engram-personal` tools.
 
 ### When to call which tool
 
@@ -33,24 +27,24 @@ whichever vault is active for the current cwd.
 | End-of-session summary | `mem_session_summary` | Before saying "done" or wrapping up |
 | Conflict surfacing | `mem_compare` / `mem_judge` | When a new observation contradicts an existing one |
 
-### Vault routing (cwd-based)
-
-- Inside `~/Projects/Shopify/Fiskars/stellar-shopify` → `engram-work` tools
-- Anywhere else → `engram-personal` tools
 
 ### Token + speed optimization
 
 - Use `type` filter on `mem_search` when scope is known (decision / architecture / bugfix / config / pattern / discovery / learning)
 - Prefer `topic_key` upserts over creating duplicate observations
 - Use `mem_context` (~400 tok) instead of broad search at session start
-- Engram tools have SSH spawn overhead; batch related saves into one call when possible
 
-### Local UI / inspection (no extra infra needed)
+### Local UI / inspection
 
-- `ssh -t superbro engram tui` — interactive terminal UI for browsing observations
-- `ssh superbro engram stats` — totals across vaults
-- `ssh superbro engram search '<query>'` — CLI search with same FTS engine
-- `ssh superbro engram doctor` — vault diagnostics
+- `engram tui` — interactive terminal UI for browsing + deleting observations
+- `engram stats` — vault totals
+- `engram search '<query>'` — CLI search
+- `engram doctor` — vault diagnostics
+- `engram sync --status` — git sync status
+
+### Vault routing
+
+Always use `engram-personal`. No vault switching needed.
 
 ### Device state sync (Claude Code only — irrelevant for Cursor)
 

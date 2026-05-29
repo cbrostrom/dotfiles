@@ -9,5 +9,6 @@
   "hooks.SessionStart":                "replace-by:command",
   "hooks.PreToolUse":                  "replace-by:matcher+command",
   "hooks.UserPromptSubmit":            "replace-by:command",
-  "hooks.Notification":                "replace-by:command"
+  "hooks.Notification":                "replace-by:command",
+  "hooks.Stop":                        "replace-by:command"
 }
