@@ -1,0 +1,26 @@
+{
+  "model": {
+    "cursor_model_id": "claude-4.6-sonnet-medium-thinking",
+    "display_name": "Sonnet 4.6 Medium Thinking",
+    "aliases": [
+      "sonnet-4.6-medium-thinking",
+      "claude-sonnet-4-6-thinking"
+    ]
+  },
+  "language": "english",
+  "cursor": {
+    "defaults": {
+      "approvalMode": "allowlist",
+      "sandboxMode": "disabled",
+      "sandboxNetworkAccess": "user_config_with_defaults",
+      "vimMode": false,
+      "hints": true,
+      "notifications": true,
+      "suggestNextPrompt": false,
+      "rewind": false
+    }
+  },
+  "mcp": {
+    "base_list": ".claude/mcp-servers.list"
+  }
+}

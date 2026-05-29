@@ -72,3 +72,13 @@ trap - EXIT
 } | { sha256sum 2>/dev/null || shasum -a 256; } | awk '{print $1}' > "$ATTEST"
 
 echo "[merge] wrote $OUT (platform=$PLATFORM)"
+
+# Best-effort Cursor alignment from shared agent-core.
+SYNC_SCRIPT="$DOTFILES_DIR/scripts/agent-core-sync.sh"
+if [ -x "$SYNC_SCRIPT" ]; then
+    if "$SYNC_SCRIPT" --quiet; then
+        echo "[merge] synced Cursor agent core"
+    else
+        echo "[merge] warn: agent-core-sync failed (continuing)" >&2
+    fi
+fi
