@@ -1,5 +1,4 @@
 {
-  "model": "opus[1m]",
   "permissions": {
     "additionalDirectories": [
       "$HOME/Projects/Private/vscodium-settings",
@@ -11,7 +10,8 @@
   "hooks": {
     "SessionStart": [
       { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/entroly-start.sh", "async": true }] },
-      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/claude-settings-merge.sh", "async": true }] }
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/claude-settings-merge.sh", "async": true }] },
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/engram-sync-start.sh", "async": true }] }
     ],
     "PreToolUse": [
       {
@@ -22,9 +22,14 @@
         ]
       }
     ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/engram-on-stop.sh", "async": true }] },
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/engram-sync-stop.sh", "async": true }] }
+    ],
     "Notification": [],
     "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/effort-classifier.sh", "timeout": 5 }] }
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/effort-classifier.sh", "timeout": 5 }] },
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/engram-on-prompt.sh" }] }
     ]
   },
   "statusLine": {
@@ -63,12 +68,9 @@
       }
     },
     "engram-personal": {
-      "command": "ssh",
-      "args": ["superbro", "ENGRAM_DATA_DIR=/home/christian/.engram/personal /home/christian/.local/bin/engram mcp"]
-    },
-    "engram-work": {
-      "command": "ssh",
-      "args": ["superbro", "ENGRAM_DATA_DIR=/home/christian/.engram/work /home/christian/.local/bin/engram mcp"]
+      "command": "engram",
+      "args": ["mcp"],
+      "env": { "ENGRAM_DATA_DIR": "$HOME/.engram/personal" }
     }
   }
 }
