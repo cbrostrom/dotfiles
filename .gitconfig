@@ -25,3 +25,5 @@
 # Created from .gitconfig.local.example by install script.
 [include]
 	path = ~/.gitconfig.local
+[safe]
+	directory = /mnt/c/Users/christian/.engram

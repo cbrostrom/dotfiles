@@ -1,8 +1,5 @@
 # wsl profile — Debian 12 under WSL2 on monsterbro
 
-# Windows interop helpers
-wslu
-
 # Clipboard bridge to Windows
 x11-xserver-utils
 

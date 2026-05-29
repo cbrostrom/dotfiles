@@ -40,7 +40,7 @@ atlassian-akqa | ~/.claude/scripts/atlassian-akqa.sh
 # Install: (Windows/PowerShell) go install github.com/Gentleman-Programming/engram/cmd/engram@latest
 #          (macOS/Linux)        go install github.com/Gentleman-Programming/engram/cmd/engram@latest
 # Vault init: bash scripts/install/engram.sh  (idempotent)
-engram-personal | ~/.claude/scripts/engram-personal.sh
+engram | ~/.claude/scripts/engram.sh
 
 # --- Tailscale-only (require tailnet enrollment) ---
 

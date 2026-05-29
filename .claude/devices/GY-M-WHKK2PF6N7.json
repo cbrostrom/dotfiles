@@ -34,7 +34,7 @@
     "apple-mcp",
     "atlassian-akqa",
     "atlassian-fiskars",
-    "engram-personal",
+    "engram",
     "github"
   ],
   "mcp_servers_list": [
@@ -46,7 +46,7 @@
     "google-calendar",
     "atlassian-fiskars",
     "atlassian-akqa",
-    "engram-personal",
+    "engram",
     "graphiti",
     "mcp-dockhand",
     "mcp-dockhand-linuxbro",

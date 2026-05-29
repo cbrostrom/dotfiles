@@ -2,7 +2,7 @@
 # Loaded in addition to mcp-servers.list on Windows hosts.
 # Bootstrap for Windows: TODO (PowerShell script not yet implemented).
 # Until then, register manually:
-#   claude mcp add engram-personal -- engram mcp
+#   claude mcp add engram -- engram mcp
 
 # Override base entry: native Windows binary (on PATH after go install)
-engram-personal | engram | mcp
+engram | engram | mcp
