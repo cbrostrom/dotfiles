@@ -10,7 +10,7 @@
 set -uo pipefail
 
 if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-    WIN_HOME="$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r\n')")"
+    WIN_HOME="/mnt/c/Users/${USER}"
     ENGRAM_BIN="${WIN_HOME}/go/bin/engram.exe"
     SYNC_REPO="${WIN_HOME}/.engram"
     VAULT_DIR="${SYNC_REPO}/personal"
