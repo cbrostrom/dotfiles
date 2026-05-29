@@ -14,6 +14,7 @@ if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/nu
     ENGRAM_BIN="${WIN_HOME}/go/bin/engram.exe"
     SYNC_REPO="${WIN_HOME}/.engram"
     VAULT_DIR="${SYNC_REPO}/personal"
+    export WSLENV="ENGRAM_DATA_DIR/p${WSLENV:+:${WSLENV}}"
 else
     ENGRAM_BIN="${HOME}/go/bin/engram"
     SYNC_REPO="${HOME}/.engram"
