@@ -54,10 +54,12 @@ fi
 # ── vault path per platform ──────────────────────────────────────────────────
 if $IS_WSL; then
     WIN_HOME="$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r\n')")"
-    VAULT_DIR="${WIN_HOME}/.engram"
+    SYNC_REPO="${WIN_HOME}/.engram"
 else
-    VAULT_DIR="${HOME}/.engram"
+    SYNC_REPO="${HOME}/.engram"
 fi
+# Vault = personal sub-vault within the sync repo
+VAULT_DIR="${SYNC_REPO}/personal"
 
 # ── 1) binary ────────────────────────────────────────────────────────────────
 install_binary() {
@@ -90,19 +92,32 @@ install_binary() {
     fi
 }
 
-# ── 2) vault git init ────────────────────────────────────────────────────────
+# ── 2) sync repo + vault dirs init ──────────────────────────────────────────
 init_vault() {
-    mkdir -p "${VAULT_DIR}"
+    # sync repo = parent dir; vault subdirs live inside it
+    mkdir -p "${SYNC_REPO}/personal" "${SYNC_REPO}/work"
 
-    # .gitignore — track only chunk files, never the live DB
-    local gitignore="${VAULT_DIR}/.gitignore"
+    # .gitignore at sync repo root — exclude live DBs, track only chunks
+    local gitignore="${SYNC_REPO}/.gitignore"
     if [[ ! -f "${gitignore}" ]]; then
         cat > "${gitignore}" <<'EOF'
-# Engram live database — never commit
-engram.db
-engram.db-wal
-engram.db-shm
+# SQLite ephemera — never sync
+*.db-wal
+*.db-shm
+*.db-journal
+*.db
+*.sqlite
+*.sqlite3
+
+# Lock files / temp
 *.lock
+.DS_Store
+.tmp/
+*.tmp
+
+# Sync local state
+.last-sync
+sync.log
 EOF
         ok "Created ${gitignore}"
     else
@@ -110,27 +125,27 @@ EOF
     fi
 
     # .gitattributes — force LF for cross-platform consistency
-    local gitattrs="${VAULT_DIR}/.gitattributes"
+    local gitattrs="${SYNC_REPO}/.gitattributes"
     if [[ ! -f "${gitattrs}" ]]; then
         echo '* text=auto eol=lf' > "${gitattrs}"
         ok "Created ${gitattrs}"
     fi
 
-    if [[ -d "${VAULT_DIR}/.git" ]]; then
-        ok "Vault already a git repo: ${VAULT_DIR}"
+    if [[ -d "${SYNC_REPO}/.git" ]]; then
+        ok "Sync repo already initialised: ${SYNC_REPO}"
     else
-        log "Initialising git repo in vault: ${VAULT_DIR} …"
+        log "Initialising git repo: ${SYNC_REPO} …"
         # safe.directory needed on WSL (NTFS mount shows 0777 perms)
-        git config --global --add safe.directory "${VAULT_DIR}" 2>/dev/null || true
-        git -C "${VAULT_DIR}" init -b main >/dev/null
+        git config --global --add safe.directory "${SYNC_REPO}" 2>/dev/null || true
+        git -C "${SYNC_REPO}" init -b main >/dev/null
         ok "git init done"
     fi
 
     # remote
     local current_remote
-    current_remote="$(git -C "${VAULT_DIR}" remote get-url origin 2>/dev/null || echo "")"
+    current_remote="$(git -C "${SYNC_REPO}" remote get-url origin 2>/dev/null || echo "")"
     if [[ -z "${current_remote}" ]]; then
-        git -C "${VAULT_DIR}" remote add origin "${GIT_REMOTE}"
+        git -C "${SYNC_REPO}" remote add origin "${GIT_REMOTE}"
         ok "Remote set: ${GIT_REMOTE}"
     elif [[ "${current_remote}" != "${GIT_REMOTE}" ]]; then
         warn "Remote mismatch (got: ${current_remote}, expected: ${GIT_REMOTE}) — leaving as-is"
@@ -138,11 +153,16 @@ EOF
         ok "Remote already set: ${GIT_REMOTE}"
     fi
 
-    # initial commit if empty
-    if [[ -z "$(git -C "${VAULT_DIR}" log --oneline 2>/dev/null | head -1)" ]]; then
-        git -C "${VAULT_DIR}" add .gitignore .gitattributes
-        git -C "${VAULT_DIR}" commit -m "chore: init engram vault sync repo" --quiet
-        ok "Initial commit created"
+    # initial commit if empty (pull first if remote exists)
+    if [[ -z "$(git -C "${SYNC_REPO}" log --oneline 2>/dev/null | head -1)" ]]; then
+        git -C "${SYNC_REPO}" fetch origin main 2>/dev/null \
+            && git -C "${SYNC_REPO}" reset --hard origin/main \
+            && ok "Pulled existing sync history from remote" \
+            || {
+                git -C "${SYNC_REPO}" add .gitignore .gitattributes
+                git -C "${SYNC_REPO}" commit -m "chore: init engram vault sync repo" --quiet
+                ok "Initial commit created"
+            }
     fi
 }
 
@@ -195,16 +215,17 @@ _install_systemd() {
 print_summary() {
     echo ""
     log "Engram setup complete"
-    info "vault:    ${VAULT_DIR}"
-    info "remote:   ${GIT_REMOTE}"
+    info "sync repo: ${SYNC_REPO}  (git-tracked, chunks only)"
+    info "vault:     ${VAULT_DIR}  (live SQLite, gitignored)"
+    info "remote:    ${GIT_REMOTE}"
     if $IS_WSL; then
-        info "binary:   ${WIN_HOME}/go/bin/engram.exe  (install from PowerShell)"
+        info "binary:    ${WIN_HOME}/go/bin/engram.exe  (install from PowerShell)"
     else
-        info "binary:   $(command -v engram 2>/dev/null || echo 'not found — ensure ~/go/bin on PATH')"
+        info "binary:    $(command -v engram 2>/dev/null || echo 'not found — ensure ~/go/bin on PATH')"
     fi
     echo ""
-    info "First push (after binary installed):  git -C ${VAULT_DIR} push -u origin main"
-    info "Manual sync:                           ENGRAM_DATA_DIR=${VAULT_DIR} engram sync"
+    info "First push:   git -C ${SYNC_REPO} push -u origin main"
+    info "Manual sync:  ENGRAM_DATA_DIR=${VAULT_DIR} engram sync"
 }
 
 # ── main ──────────────────────────────────────────────────────────────────────

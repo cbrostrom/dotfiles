@@ -12,19 +12,21 @@ set -uo pipefail
 if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
     WIN_HOME="$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r\n')")"
     ENGRAM_BIN="${WIN_HOME}/go/bin/engram.exe"
-    VAULT_DIR="${WIN_HOME}/.engram"
+    SYNC_REPO="${WIN_HOME}/.engram"
+    VAULT_DIR="${SYNC_REPO}/personal"
 else
     ENGRAM_BIN="${HOME}/go/bin/engram"
-    VAULT_DIR="${HOME}/.engram"
+    SYNC_REPO="${HOME}/.engram"
+    VAULT_DIR="${SYNC_REPO}/personal"
 fi
 
-[[ -d "${VAULT_DIR}/.git" ]] || exit 0
-[[ -x "${ENGRAM_BIN}" ]]    || exit 0
+[[ -d "${SYNC_REPO}/.git" ]] || exit 0
+[[ -x "${ENGRAM_BIN}" ]]     || exit 0
 
 ENGRAM_DATA_DIR="${VAULT_DIR}" "${ENGRAM_BIN}" sync 2>/dev/null || exit 0
 
-if [[ -n "$(git -C "${VAULT_DIR}" status --porcelain 2>/dev/null)" ]]; then
-    git -C "${VAULT_DIR}" add .
-    git -C "${VAULT_DIR}" commit -m "sync: $(date '+%Y-%m-%d %H:%M')" --quiet
-    git -C "${VAULT_DIR}" push --quiet 2>/dev/null || true
+if [[ -n "$(git -C "${SYNC_REPO}" status --porcelain 2>/dev/null)" ]]; then
+    git -C "${SYNC_REPO}" add .
+    git -C "${SYNC_REPO}" commit -m "sync: $(date '+%Y-%m-%d %H:%M')" --quiet
+    git -C "${SYNC_REPO}" push --quiet 2>/dev/null || true
 fi

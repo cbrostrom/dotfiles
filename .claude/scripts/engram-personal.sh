@@ -16,10 +16,10 @@ set -euo pipefail
 if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
     WIN_HOME="$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r\n')")"
     ENGRAM_BIN="${WIN_HOME}/go/bin/engram.exe"
-    export ENGRAM_DATA_DIR="${WIN_HOME}/.engram"
+    export ENGRAM_DATA_DIR="${WIN_HOME}/.engram/personal"
 else
     ENGRAM_BIN="${HOME}/go/bin/engram"
-    export ENGRAM_DATA_DIR="${HOME}/.engram"
+    export ENGRAM_DATA_DIR="${HOME}/.engram/personal"
 fi
 
 if [[ ! -x "${ENGRAM_BIN}" ]]; then
