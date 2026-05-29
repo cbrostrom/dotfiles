@@ -1,191 +1,214 @@
 #!/usr/bin/env bash
 # =============================================================================
-# scripts/install/engram.sh — install engram + wire up local stdio + git sync
+# scripts/install/engram.sh — install engram binary + initialise vault git repo
 # =============================================================================
-# Idempotent. Cross-platform (macOS launchd + Linux/WSL systemd-user). Steps:
-#   1) Ensure `engram` binary present
-#       - Darwin: brew tap install
-#       - Linux:  cargo install --git (no prebuilt linux releases yet)
-#   2) Ensure ~/engram-sync clone exists with correct remote
-#   3) Render & install scheduler:
-#       - Darwin: LaunchAgent (WatchPaths + StartInterval)
-#       - Linux:  systemd-user .service + .timer + .path
-#   4) Load/enable the scheduler
+# Idempotent. Run on each machine after cloning dotfiles.
 #
-# Re-running is safe.
+# What this does:
+#   1) Check/install engram binary via `go install`
+#   2) Init vault dir as a git repo (if not already)
+#   3) Add .gitignore (exclude live DB; track chunk files only)
+#   4) Set git remote (git@github.com:cbrostrom/engram.git)
+#
+# Platform notes:
+#   WSL     — binary must be installed from Windows PowerShell, not WSL.
+#             This script prints instructions and skips binary install.
+#             Vault at %USERPROFILE%\.engram (= /mnt/c/Users/<user>/.engram from WSL).
+#   macOS   — go install runs natively; binary at ~/go/bin/engram.
+#   Linux   — go install runs natively; binary at ~/go/bin/engram.
+#
+# Background sync (optional, separate from Claude Code hooks):
+#   macOS   : launchd agent via modules/engram/dk.brostrom.engram-sync.plist
+#   Linux   : systemd-user units via modules/engram/engram-sync.{service,timer,path}
+#   WSL     : systemd requires /etc/wsl.conf [boot] systemd=true
 # =============================================================================
 
 set -euo pipefail
 
-. "${DOTFILES_DIR:-$HOME/dotfiles}/modules/_lib/log.sh"
+DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+GIT_REMOTE="git@github.com:cbrostrom/engram.git"
+ENGRAM_PKG="github.com/Gentleman-Programming/engram/cmd/engram@latest"
 
-DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
-SYNC_REPO="$HOME/engram-sync"
-GIT_URL="git@github.com:cbrostrom/engram.git"
-SYNC_SH="$DOTFILES_DIR/modules/engram/sync.sh"
-OS="$(uname -s)"
+# ── colour helpers ──────────────────────────────────────────────────────────
+if [[ -t 1 ]]; then
+    ok()   { echo -e "\033[32m ✓\033[0m $*"; }
+    log()  { echo -e "\033[34m →\033[0m $*"; }
+    warn() { echo -e "\033[33m !\033[0m $*"; }
+    info() { echo    "   $*"; }
+else
+    ok()   { echo "OK: $*"; }
+    log()  { echo "→  $*"; }
+    warn() { echo "!  $*"; }
+    info() { echo "   $*"; }
+fi
 
-# -------- 1) binary --------
-install_engram_binary() {
+# ── platform detection ───────────────────────────────────────────────────────
+IS_WSL=false
+IS_MACOS=false
+if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+    IS_WSL=true
+elif [[ "$(uname -s)" == "Darwin" ]]; then
+    IS_MACOS=true
+fi
+
+# ── vault path per platform ──────────────────────────────────────────────────
+if $IS_WSL; then
+    WIN_HOME="$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r\n')")"
+    VAULT_DIR="${WIN_HOME}/.engram"
+else
+    VAULT_DIR="${HOME}/.engram"
+fi
+
+# ── 1) binary ────────────────────────────────────────────────────────────────
+install_binary() {
+    if $IS_WSL; then
+        warn "WSL detected — engram binary must be installed from Windows PowerShell."
+        info "Run in PowerShell:  go install ${ENGRAM_PKG}"
+        info "Binary lands at:   %USERPROFILE%\\go\\bin\\engram.exe"
+        info "Skipping binary install here (this is the Linux side)."
+        return 0
+    fi
+
     if command -v engram >/dev/null 2>&1; then
         ok "engram already on PATH: $(command -v engram) ($(engram version 2>/dev/null | head -1))"
         return 0
     fi
 
-    case "$OS" in
-        Darwin)
-            if command -v brew >/dev/null 2>&1; then
-                log "installing engram via Homebrew tap …"
-                brew install gentleman-programming/tap/engram || warn "brew install engram failed"
-            else
-                warn "Homebrew not found — install engram manually: https://github.com/Gentleman-Programming/engram"
-            fi
-            ;;
-        Linux)
-            if command -v cargo >/dev/null 2>&1; then
-                log "installing engram via cargo install --git …"
-                log "(no prebuilt Linux binaries yet — building from source, takes ~5min)"
-                cargo install --git https://github.com/Gentleman-Programming/engram engram \
-                    || warn "cargo install engram failed — check network and rust toolchain"
-            else
-                warn "cargo not found. Install rustup first:"
-                warn "  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
-                warn "  then re-run: bash $DOTFILES_DIR/scripts/install/engram.sh"
-            fi
-            ;;
-        *)
-            warn "unsupported platform $OS — install engram manually"
-            ;;
-    esac
+    if ! command -v go >/dev/null 2>&1; then
+        warn "go not found — install Go first: https://go.dev/dl/"
+        warn "Then rerun: bash ${DOTFILES_DIR}/scripts/install/engram.sh"
+        return 1
+    fi
+
+    log "Installing engram via go install …"
+    go install "${ENGRAM_PKG}"
 
     if command -v engram >/dev/null 2>&1; then
-        ok "engram available: $(command -v engram) ($(engram version 2>/dev/null | head -1))"
+        ok "engram installed: $(command -v engram) ($(engram version 2>/dev/null | head -1))"
     else
-        warn "engram still not on PATH — module will be partially configured"
+        warn "engram not found after install — ensure $(go env GOPATH)/bin is on PATH"
     fi
 }
 
-# -------- 2) ~/engram-sync repo --------
-setup_sync_repo() {
-    if [[ -d "$SYNC_REPO/.git" ]]; then
-        local current_remote
-        current_remote="$(git -C "$SYNC_REPO" remote get-url origin 2>/dev/null || echo "")"
-        if [[ "$current_remote" != "$GIT_URL" ]]; then
-            warn "$SYNC_REPO origin mismatch (got $current_remote, expected $GIT_URL) — leaving as-is"
+# ── 2) vault git init ────────────────────────────────────────────────────────
+init_vault() {
+    mkdir -p "${VAULT_DIR}"
+
+    # .gitignore — track only chunk files, never the live DB
+    local gitignore="${VAULT_DIR}/.gitignore"
+    if [[ ! -f "${gitignore}" ]]; then
+        cat > "${gitignore}" <<'EOF'
+# Engram live database — never commit
+engram.db
+engram.db-wal
+engram.db-shm
+*.lock
+EOF
+        ok "Created ${gitignore}"
+    else
+        ok ".gitignore already present"
+    fi
+
+    # .gitattributes — force LF for cross-platform consistency
+    local gitattrs="${VAULT_DIR}/.gitattributes"
+    if [[ ! -f "${gitattrs}" ]]; then
+        echo '* text=auto eol=lf' > "${gitattrs}"
+        ok "Created ${gitattrs}"
+    fi
+
+    if [[ -d "${VAULT_DIR}/.git" ]]; then
+        ok "Vault already a git repo: ${VAULT_DIR}"
+    else
+        log "Initialising git repo in vault: ${VAULT_DIR} …"
+        # safe.directory needed on WSL (NTFS mount shows 0777 perms)
+        git config --global --add safe.directory "${VAULT_DIR}" 2>/dev/null || true
+        git -C "${VAULT_DIR}" init -b main >/dev/null
+        ok "git init done"
+    fi
+
+    # remote
+    local current_remote
+    current_remote="$(git -C "${VAULT_DIR}" remote get-url origin 2>/dev/null || echo "")"
+    if [[ -z "${current_remote}" ]]; then
+        git -C "${VAULT_DIR}" remote add origin "${GIT_REMOTE}"
+        ok "Remote set: ${GIT_REMOTE}"
+    elif [[ "${current_remote}" != "${GIT_REMOTE}" ]]; then
+        warn "Remote mismatch (got: ${current_remote}, expected: ${GIT_REMOTE}) — leaving as-is"
+    else
+        ok "Remote already set: ${GIT_REMOTE}"
+    fi
+
+    # initial commit if empty
+    if [[ -z "$(git -C "${VAULT_DIR}" log --oneline 2>/dev/null | head -1)" ]]; then
+        git -C "${VAULT_DIR}" add .gitignore .gitattributes
+        git -C "${VAULT_DIR}" commit -m "chore: init engram vault sync repo" --quiet
+        ok "Initial commit created"
+    fi
+}
+
+# ── 3) background sync scheduler (optional) ─────────────────────────────────
+install_scheduler() {
+    local sync_sh="${DOTFILES_DIR}/modules/engram/sync.sh"
+    [[ -f "${sync_sh}" ]] || { warn "sync.sh not found, skipping scheduler setup"; return 0; }
+    chmod +x "${sync_sh}"
+
+    if $IS_MACOS; then
+        local plist_src="${DOTFILES_DIR}/modules/engram/dk.brostrom.engram-sync.plist"
+        local plist_dst="${HOME}/Library/LaunchAgents/dk.brostrom.engram-sync.plist"
+        [[ -f "${plist_src}" ]] || { warn "plist not found, skipping launchd setup"; return 0; }
+        mkdir -p "$(dirname "${plist_dst}")" "${HOME}/Library/Logs"
+        sed -e "s#__HOME__#${HOME}#g" -e "s#__SYNC_SH__#${sync_sh}#g" \
+            "${plist_src}" > "${plist_dst}"
+        launchctl unload "${plist_dst}" 2>/dev/null || true
+        launchctl load "${plist_dst}" && ok "LaunchAgent loaded" || warn "launchctl load failed"
+
+    elif $IS_WSL; then
+        warn "WSL: systemd scheduler requires [boot] systemd=true in /etc/wsl.conf"
+        warn "     After enabling: rerun this script to install systemd units."
+        if command -v systemctl >/dev/null 2>&1 && systemctl --user status >/dev/null 2>&1; then
+            _install_systemd "${sync_sh}"
         else
-            ok "$SYNC_REPO already initialized"
+            info "Skipping systemd setup (not available)."
         fi
+
     else
-        log "cloning $GIT_URL → $SYNC_REPO …"
-        if ! git clone "$GIT_URL" "$SYNC_REPO" 2>&1; then
-            warn "clone failed — initializing empty repo (push later when ready)"
-            mkdir -p "$SYNC_REPO/personal" "$SYNC_REPO/work"
-            git -C "$SYNC_REPO" init -b main >/dev/null
-            git -C "$SYNC_REPO" remote add origin "$GIT_URL" 2>/dev/null || true
-        fi
-    fi
-
-    git -C "$SYNC_REPO" config push.autoSetupRemote true
-}
-
-# -------- 3a) macOS LaunchAgent --------
-install_launchd_agent() {
-    local plist_src="$DOTFILES_DIR/modules/engram/dk.brostrom.engram-sync.plist"
-    local plist_dst="$HOME/Library/LaunchAgents/dk.brostrom.engram-sync.plist"
-    local label="dk.brostrom.engram-sync"
-
-    [[ -f "$plist_src" ]] || { err "plist template missing: $plist_src"; return 1; }
-    [[ -x "$SYNC_SH" ]] || chmod +x "$SYNC_SH"
-
-    mkdir -p "$(dirname "$plist_dst")" "$HOME/Library/Logs" "$HOME/Library/Caches"
-
-    sed -e "s#__HOME__#$HOME#g" \
-        -e "s#__SYNC_SH__#$SYNC_SH#g" \
-        "$plist_src" > "$plist_dst"
-    ok "rendered $plist_dst"
-
-    if launchctl list "$label" >/dev/null 2>&1; then
-        log "reloading existing LaunchAgent $label …"
-        launchctl unload "$plist_dst" 2>/dev/null || true
-    fi
-    if launchctl load "$plist_dst" 2>&1; then
-        ok "LaunchAgent loaded — reactive (WatchPaths) + hourly safety-net active"
-    else
-        warn "launchctl load failed — fix and rerun: launchctl load $plist_dst"
+        _install_systemd "${sync_sh}"
     fi
 }
 
-# -------- 3b) Linux systemd-user units --------
-install_systemd_user() {
-    local unit_src_dir="$DOTFILES_DIR/modules/engram/"
-    local unit_dst_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
-    local units=(engram-sync.service engram-sync.timer engram-sync.path)
-
-    if ! command -v systemctl >/dev/null 2>&1; then
-        warn "systemctl not found — engram sync scheduler not installed"
-        warn "  WSL? Enable systemd: edit /etc/wsl.conf → [boot]\\nsystemd=true → wsl --shutdown"
-        return 1
-    fi
-
-    if ! systemctl --user status >/dev/null 2>&1; then
-        warn "systemd --user not available. On WSL: enable systemd in /etc/wsl.conf, then wsl --shutdown"
-        warn "  also: loginctl enable-linger \$USER  (so timers run after logout)"
-        return 1
-    fi
-
-    [[ -x "$SYNC_SH" ]] || chmod +x "$SYNC_SH"
-    mkdir -p "$unit_dst_dir"
-
-    for unit in "${units[@]}"; do
-        local src="$unit_src_dir/$unit"
-        local dst="$unit_dst_dir/$unit"
-        [[ -f "$src" ]] || { err "unit template missing: $src"; return 1; }
-        sed -e "s#__SYNC_SH__#$SYNC_SH#g" "$src" > "$dst"
-        ok "rendered $dst"
+_install_systemd() {
+    local sync_sh="$1"
+    local unit_src="${DOTFILES_DIR}/modules/engram"
+    local unit_dst="${XDG_CONFIG_HOME:-${HOME}/.config}/systemd/user"
+    mkdir -p "${unit_dst}"
+    for unit in engram-sync.service engram-sync.timer engram-sync.path; do
+        [[ -f "${unit_src}/${unit}" ]] || continue
+        sed "s#__SYNC_SH__#${sync_sh}#g" "${unit_src}/${unit}" > "${unit_dst}/${unit}"
     done
-
-    log "reloading systemd-user daemon …"
     systemctl --user daemon-reload
-
-    # Enable timer (for hourly safety net) + path (for reactive trigger).
-    # Service is triggered by the others, not enabled directly.
-    systemctl --user enable --now engram-sync.timer engram-sync.path
-    ok "systemd-user units enabled — reactive (.path) + hourly (.timer) active"
-
-    # Linger reminder
-    if ! loginctl show-user "$USER" 2>/dev/null | grep -q "Linger=yes"; then
-        warn "linger NOT enabled — timers stop when you log out. Fix:"
-        warn "  sudo loginctl enable-linger $USER"
-    fi
+    systemctl --user enable --now engram-sync.timer engram-sync.path 2>/dev/null \
+        && ok "systemd-user units enabled" \
+        || warn "systemd enable failed"
 }
 
-# -------- 4) summary --------
+# ── summary ───────────────────────────────────────────────────────────────────
 print_summary() {
-    log "engram setup complete"
-    info "  binary      : $(command -v engram 2>/dev/null || echo 'not found')"
-    info "  data dirs   : ~/.engram/{personal,work}"
-    info "  sync repo   : $SYNC_REPO"
-    case "$OS" in
-        Darwin)
-            info "  scheduler   : launchd (dk.brostrom.engram-sync)"
-            info "  log file    : ~/Library/Logs/engram-sync.log"
-            ;;
-        Linux)
-            info "  scheduler   : systemd-user (engram-sync.{service,timer,path})"
-            info "  log file    : ${XDG_STATE_HOME:-~/.local/state}/engram-sync.log"
-            info "  inspect     : systemctl --user status engram-sync.timer engram-sync.path"
-            info "  journal     : journalctl --user -u engram-sync.service"
-            ;;
-    esac
-    info "  manual sync : dotfiles → menu → 'Engram Sync', or bash $SYNC_SH"
+    echo ""
+    log "Engram setup complete"
+    info "vault:    ${VAULT_DIR}"
+    info "remote:   ${GIT_REMOTE}"
+    if $IS_WSL; then
+        info "binary:   ${WIN_HOME}/go/bin/engram.exe  (install from PowerShell)"
+    else
+        info "binary:   $(command -v engram 2>/dev/null || echo 'not found — ensure ~/go/bin on PATH')"
+    fi
+    echo ""
+    info "First push (after binary installed):  git -C ${VAULT_DIR} push -u origin main"
+    info "Manual sync:                           ENGRAM_DATA_DIR=${VAULT_DIR} engram sync"
 }
 
-# -------- main --------
-install_engram_binary
-setup_sync_repo
-case "$OS" in
-    Darwin) install_launchd_agent ;;
-    Linux)  install_systemd_user  ;;
-    *)      warn "unsupported OS $OS — only binary install attempted" ;;
-esac
+# ── main ──────────────────────────────────────────────────────────────────────
+install_binary
+init_vault
+install_scheduler
 print_summary

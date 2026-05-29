@@ -35,10 +35,12 @@ atlassian-akqa | ~/.claude/scripts/atlassian-akqa.sh
 
 # --- Local (no Tailscale needed) ---
 
-# Engram — local binary, vault at ~/.engram/personal, git-synced across machines.
+# Engram — cross-platform wrapper: WSL uses Windows binary + vault, others use native.
 # Sync: SessionStart hook pulls + imports; Stop hook exports + pushes.
-# Vault repo must be initialised: git init ~/.engram && git remote add origin <repo>.
-engram-personal | engram | mcp
+# Install: (Windows/PowerShell) go install github.com/Gentleman-Programming/engram/cmd/engram@latest
+#          (macOS/Linux)        go install github.com/Gentleman-Programming/engram/cmd/engram@latest
+# Vault init: bash scripts/install/engram.sh  (idempotent)
+engram-personal | ~/.claude/scripts/engram-personal.sh
 
 # --- Tailscale-only (require tailnet enrollment) ---
 
