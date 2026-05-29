@@ -160,3 +160,6 @@ fi
 # lean-ctx shell hook — end
 
 unset MAILCHECK
+
+# opencode
+export PATH=/home/christian/.opencode/bin:$PATH

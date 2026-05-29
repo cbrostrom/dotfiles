@@ -89,6 +89,62 @@ if [ -f "$CLAUDE_DIR/settings.local.json" ]; then
     rm -f "$CURRENT"
 fi
 
+# 5. Cursor alignment drift (agent-core -> ~/.cursor)
+SYNC_SCRIPT="$DOTFILES_DIR/scripts/agent-core-sync.sh"
+AGENT_CORE="$CLAUDE_DIR/agent-core.json"
+CURSOR_DIR="${CURSOR_DIR:-$HOME/.cursor}"
+CURSOR_CLI="$CURSOR_DIR/cli-config.json"
+CURSOR_MCP="$CURSOR_DIR/mcp.json"
+
+if [ -f "$AGENT_CORE" ] && [ -x "$SYNC_SCRIPT" ]; then
+    if [ ! -d "$CURSOR_DIR" ]; then
+        ok "Cursor dir missing — skipping cursor drift check"
+    else
+        before_cli="$(mktemp)"
+        before_mcp="$(mktemp)"
+        had_cli=0
+        had_mcp=0
+        if [ -f "$CURSOR_CLI" ]; then cp "$CURSOR_CLI" "$before_cli"; had_cli=1; fi
+        if [ -f "$CURSOR_MCP" ]; then cp "$CURSOR_MCP" "$before_mcp"; had_mcp=1; fi
+
+        if "$SYNC_SCRIPT" --quiet; then
+            cli_changed=0
+            mcp_changed=0
+
+            if [ "$had_cli" -eq 1 ]; then
+                cmp -s "$before_cli" "$CURSOR_CLI" || cli_changed=1
+            elif [ -f "$CURSOR_CLI" ]; then
+                cli_changed=1
+            fi
+
+            if [ "$had_mcp" -eq 1 ]; then
+                cmp -s "$before_mcp" "$CURSOR_MCP" || mcp_changed=1
+            elif [ -f "$CURSOR_MCP" ]; then
+                mcp_changed=1
+            fi
+
+            if [ "$cli_changed" -eq 1 ] || [ "$mcp_changed" -eq 1 ]; then
+                warn "cursor drift detected (agent-core sync needed)"
+                if [ "$FIX" -ne 1 ]; then
+                    if [ "$had_cli" -eq 1 ]; then cp "$before_cli" "$CURSOR_CLI"; else rm -f "$CURSOR_CLI"; fi
+                    if [ "$had_mcp" -eq 1 ]; then cp "$before_mcp" "$CURSOR_MCP"; else rm -f "$CURSOR_MCP"; fi
+                    say "  (use --fix to apply cursor sync)"
+                else
+                    ok "applied: synced Cursor from agent-core"
+                fi
+            else
+                ok "no cursor drift (agent-core aligned)"
+            fi
+        else
+            warn "agent-core-sync failed during cursor drift check"
+            if [ "$had_cli" -eq 1 ]; then cp "$before_cli" "$CURSOR_CLI"; else rm -f "$CURSOR_CLI"; fi
+            if [ "$had_mcp" -eq 1 ]; then cp "$before_mcp" "$CURSOR_MCP"; else rm -f "$CURSOR_MCP"; fi
+        fi
+
+        rm -f "$before_cli" "$before_mcp"
+    fi
+fi
+
 say ""
 if [ "$issues" -eq 0 ]; then
     ok "doctor clean."

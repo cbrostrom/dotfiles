@@ -19,9 +19,11 @@
 | `modules/claude-settings/doctor.sh --fix` | Reconcile drift |
 | `modules/claude-settings/snapshot-hosts.sh` | Migration snapshot (Mac + superbro + linuxbro) |
 | `modules/claude-settings/migrate-diff.sh` | Migration diff: snapshot vs computed |
+| `scripts/agent-core-sync.sh` | Sync Cursor model/language/MCP from `.claude/agent-core.json` |
 | `bats modules/claude-settings/tests/` | Run test suite (strategies + e2e) |
 
 The SessionStart hook at `~/.claude/hooks/claude-settings-merge.sh` runs `merge.sh` automatically when any tracked input is newer than the last attestation. Async — never blocks Claude startup.
+`merge.sh` also runs `scripts/agent-core-sync.sh` best-effort to keep Cursor aligned with the same model/language/MCP defaults.
 
 ## Strategies (see `_merge-config.json`)
 
