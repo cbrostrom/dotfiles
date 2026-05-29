@@ -3,17 +3,13 @@
 # Pipes separate tokens. Spaces within a token are fine.
 # Lines starting with # are comments. Blank lines ignored.
 # Secrets: scripts read env from ~/.local-secrets (sourced by .zshrc).
-# Tailscale-only servers (engram, graphiti, dockhand, docker) will fail silently
+# Tailscale-only servers (graphiti, dockhand) will fail silently
 # at first use on machines not enrolled in the tailnet.
 
 # --- Local ---
 
 # GitHub — requires GITHUB_PERSONAL_ACCESS_TOKEN in ~/.local-secrets
 github | npx | -y | @modelcontextprotocol/server-github
-
-# Apple MCP — Calendar/Mail/Notes/Messages/Maps/Contacts/Reminders/webSearch.
-# macOS only. Bootstrap should skip on Linux hosts. Flaky (disconnects mid-session).
-apple-mcp | bunx | -y | @dhravya/apple-mcp@latest
 
 # lean-ctx — token-saving context tool.
 lean-ctx | ~/.local/bin/lean-ctx
@@ -26,8 +22,9 @@ mcp-mermaid | npx | -y | mcp-mermaid
 # Tailwind CSS — utilities, color palette, component templates
 tailwindcss | npx | -y | tailwindcss-mcp-server
 
-# Google Calendar — script wrapper exports OAuth paths then execs @cocal/google-calendar-mcp.
-# First run opens browser for OAuth; token cached at ~/.config/google-calendar-mcp/tokens.json
+# Google Calendar — optional; first run opens browser for OAuth.
+# Token cached at ~/.config/google-calendar-mcp/tokens.json.
+# Skip if no Google account configured — bootstrap treats failure as non-fatal.
 google-calendar | ~/.claude/scripts/google-calendar.sh
 
 # Atlassian MCP — Fiskars workspace (script reads ATLASSIAN_FISKARS_* from .local-secrets)
@@ -38,7 +35,9 @@ atlassian-akqa | ~/.claude/scripts/atlassian-akqa.sh
 
 # --- Local (no Tailscale needed) ---
 
-# Engram — local binary, single vault, git-synced across machines
+# Engram — local binary, vault at ~/.engram/personal, git-synced across machines.
+# Sync: SessionStart hook pulls + imports; Stop hook exports + pushes.
+# Vault repo must be initialised: git init ~/.engram && git remote add origin <repo>.
 engram-personal | engram | mcp
 
 # --- Tailscale-only (require tailnet enrollment) ---
@@ -49,9 +48,5 @@ graphiti | http | http://100.100.1.50:8000/mcp
 # Dockhand — superbro stack management
 mcp-dockhand | http | http://100.100.1.50:8080/mcp
 
-# Dockhand — linuxbro stack management
-mcp-dockhand-linuxbro | http | http://100.100.1.100:8080/mcp
-
-# Docker daemons — remote management via SSH (script wrappers)
-docker-superbro | ~/.claude/scripts/docker-superbro.sh
-docker-linuxbro | ~/.claude/scripts/docker-linuxbro.sh
+# Dockhand — linuxbro: add when installed on linuxbro
+# mcp-dockhand-linuxbro | http | http://100.100.1.100:8080/mcp
