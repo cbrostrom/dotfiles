@@ -12,14 +12,16 @@ set -uo pipefail
 if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
     WIN_HOME="$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r\n')")"
     ENGRAM_BIN="${WIN_HOME}/go/bin/engram.exe"
-    VAULT_DIR="${WIN_HOME}/.engram"
+    SYNC_REPO="${WIN_HOME}/.engram"
+    VAULT_DIR="${SYNC_REPO}/personal"
 else
     ENGRAM_BIN="${HOME}/go/bin/engram"
-    VAULT_DIR="${HOME}/.engram"
+    SYNC_REPO="${HOME}/.engram"
+    VAULT_DIR="${SYNC_REPO}/personal"
 fi
 
-[[ -d "${VAULT_DIR}/.git" ]] || exit 0
-[[ -x "${ENGRAM_BIN}" ]]    || exit 0
+[[ -d "${SYNC_REPO}/.git" ]] || exit 0
+[[ -x "${ENGRAM_BIN}" ]]     || exit 0
 
-git -C "${VAULT_DIR}" pull --quiet --ff-only 2>/dev/null || true
+git -C "${SYNC_REPO}" pull --quiet --ff-only 2>/dev/null || true
 ENGRAM_DATA_DIR="${VAULT_DIR}" "${ENGRAM_BIN}" sync --import 2>/dev/null || true
