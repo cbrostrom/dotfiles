@@ -86,8 +86,8 @@ lists_merge() {
     local p
     while IFS= read -r p; do paths+=("$p"); done < <(_lists_paths "$base")
 
-    local -A disabled=()
-    local -A seen=()
+    local disabled_keys=""
+    local seen_keys=""
     local -a entries=()
 
     # First pass: collect disables.
@@ -101,7 +101,7 @@ lists_merge() {
             [[ -z "$line" ]] && continue
             if [[ "$line" == "!"* ]]; then
                 key="$(_lists_key "${line#!}")"
-                [[ -n "$key" ]] && disabled["$key"]=1
+                [[ -n "$key" ]] && disabled_keys="$disabled_keys:$key:"
             fi
         done < "$f"
     done
@@ -117,9 +117,9 @@ lists_merge() {
             [[ "$line" == "!"* ]] && continue
             key="$(_lists_key "$line")"
             [[ -z "$key" ]] && continue
-            [[ -n "${disabled[$key]:-}" ]] && continue
-            [[ -n "${seen[$key]:-}" ]] && continue
-            seen["$key"]=1
+            [[ "$disabled_keys" == *":$key:"* ]] && continue
+            [[ "$seen_keys" == *":$key:"* ]] && continue
+            seen_keys="$seen_keys:$key:"
             entries+=("$line")
         done < "$f"
     done

@@ -65,7 +65,7 @@ while IFS='|' read -r name command args_rest || [[ -n "${name:-}" ]]; do
 
     IFS='|' read -ra raw_args <<< "${args_rest:-}"
     args=()
-    for t in "${raw_args[@]}"; do
+    for t in "${raw_args[@]+"${raw_args[@]}"}"; do
         t="$(echo "$t" | xargs)"
         [[ -n "$t" ]] && args+=("$t")
     done
@@ -75,7 +75,7 @@ while IFS='|' read -r name command args_rest || [[ -n "${name:-}" ]]; do
         url="${args[0]}"
         servers="$(jq -c --arg n "$name" --arg u "$url" '. + {($n): {url: $u}}' <<<"$servers")"
     else
-        args_json="$(jq -nc --args '$ARGS.positional' -- "${args[@]}")"
+        args_json="$(jq -nc --args '$ARGS.positional' -- "${args[@]+"${args[@]}"}")"
         servers="$(jq -c --arg n "$name" --arg c "$command" --argjson a "$args_json" '. + {($n): {command: $c, args: $a}}' <<<"$servers")"
     fi
 done < <(lists_merge "$mcp_base")

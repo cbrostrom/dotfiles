@@ -3,7 +3,7 @@
   "os": "macos",
   "arch": "arm64",
   "profile": "desktop-full",
-  "last_synced": "2026-05-29T07:11:39Z",
+  "last_synced": "2026-05-30T22:59:21Z",
   "marketplaces": [
     "cavekit-marketplace",
     "caveman",
@@ -34,12 +34,12 @@
     "apple-mcp",
     "atlassian-akqa",
     "atlassian-fiskars",
-    "engram",
-    "github"
+    "engram-personal",
+    "github",
+    "obsidian"
   ],
   "mcp_servers_list": [
     "github",
-    "apple-mcp",
     "lean-ctx",
     "mcp-mermaid",
     "tailwindcss",
@@ -48,10 +48,7 @@
     "atlassian-akqa",
     "engram",
     "graphiti",
-    "mcp-dockhand",
-    "mcp-dockhand-linuxbro",
-    "docker-superbro",
-    "docker-linuxbro"
+    "mcp-dockhand"
   ],
   "skills": [
     "ehmo/find-skills-skill",
