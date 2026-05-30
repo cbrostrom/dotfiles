@@ -45,7 +45,7 @@
     "cavekit-marketplace": { "source": { "source": "github", "repo": "juliusbrussee/cavekit" } }
   },
   "language": "english",
-  "effortLevel": "high",
+  "effortLevel": "medium",
   "autoUpdatesChannel": "stable",
   "editorMode": "normal",
   "spinnerVerbs": { "mode": "replace", "verbs": ["Thinking", "Processing", "Working"] },
