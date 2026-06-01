@@ -1,5 +1,10 @@
 {
   "$comment": "WSL stub. Populate when monsterbro-wsl SSH auth is fixed. Until then, this file exists so merge.sh does not abort on platform=wsl.",
   "permissions": { "additionalDirectories": ["$HOME/dotfiles/.claude"] },
-  "mcpServers": {}
+  "mcpServers": {
+    "obsidian": {
+      "command": "npx",
+      "args": ["-y", "mcp-obsidian", "$HOME/Vaults/Christian"]
+    }
+  }
 }
