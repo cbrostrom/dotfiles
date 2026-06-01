@@ -45,9 +45,11 @@ Routing rules: `@engram-graphiti.md`. MCPs: `~/.dotfiles/.claude/mcp-servers.lis
 | "how does X relate to Y/connections/timeline" | Graphiti `search_facts`/`search_nodes` |
 | "what do you know about X/recall/search memory" | both: `mem_search` + `search_nodes` |
 | "we're done/wrapping up/end of session" | `mem_session_summary` + Graphiti highlights |
-| "what do I have on X/find my notes on X" | `obsidian_search` |
-| "capture this/add to inbox/note this in vault" | `obsidian_create_or_update_file` → Inbox/ |
+| "what do I have on X/find my notes on X" | `ob search <query>` via Bash |
+| "capture this/add to inbox/note this in vault" | `ob inbox <text>` or `ob append` via Bash |
+| "read my note on X / show note" | `ob read <path>` via Bash |
 Engram vs Obsidian — not redundant. Engram = Claude's observations about user. Obsidian = user's own notes.
+`ob` = `~/.local/bin/ob` (Obsidian REST API CLI, no MCP schema overhead).
 
 ## Infrastructure
 | Signal | Action |
