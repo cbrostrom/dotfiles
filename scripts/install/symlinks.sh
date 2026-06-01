@@ -250,5 +250,8 @@ fi
 mkdir -p "$HOME/.local/bin"
 create_symlink "$SCRIPT_DIR/scripts/dotfetch.sh" "$HOME/.local/bin/dotfetch" "dotfetch command"
 
+# ob — Obsidian REST API CLI
+create_symlink "$SCRIPT_DIR/scripts/ob" "$HOME/.local/bin/ob" "ob (Obsidian CLI)"
+
 log_success "All symlinks installed successfully!"
 log_info "You may need to restart your shell or run: source ~/.zshrc"
