@@ -45,11 +45,21 @@ Routing rules: `@engram-graphiti.md`. MCPs: `~/.dotfiles/.claude/mcp-servers.lis
 | "how does X relate to Y/connections/timeline" | Graphiti `search_facts`/`search_nodes` |
 | "what do you know about X/recall/search memory" | both: `mem_search` + `search_nodes` |
 | "we're done/wrapping up/end of session" | `mem_session_summary` + Graphiti highlights |
-| "what do I have on X/find my notes on X" | `ob search <query>` via Bash |
-| "capture this/add to inbox/note this in vault" | `ob inbox <text>` or `ob append` via Bash |
-| "read my note on X / show note" | `ob read <path>` via Bash |
+| "what do I have on X/find my notes on X" | `grep -r -l "<query>" $VAULT --include="*.md"` then Read matching files |
+| "capture this/add to inbox/note this in vault" | append to `$VAULT/Inbox/Inbox.md` via Write tool |
+| "read my note on X / show note" | native `Read` on `$VAULT/<path>` |
+| "open this note in Obsidian" | `ob open <path>` via Bash (only case needing REST API) |
 Engram vs Obsidian — not redundant. Engram = Claude's observations about user. Obsidian = user's own notes.
-`ob` = `~/.local/bin/ob` (Obsidian REST API CLI, no MCP schema overhead).
+
+## Vault paths (direct file access — no REST API needed for read/write/search)
+| Platform | Path |
+|---|---|
+| WSL | `/mnt/c/Users/christian/Obsidian/Christian` |
+| macOS | `~/Vaults/Christian` |
+| Linux | N/A |
+
+Use `$VAULT` as shorthand. Detect platform: WSL = `/proc/version` contains "microsoft"; macOS = `uname` = Darwin.
+`ob open <path>` still uses REST API — only for "open in Obsidian UI" actions.
 
 ## Infrastructure
 | Signal | Action |
