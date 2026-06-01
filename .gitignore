@@ -82,3 +82,8 @@ gaming/config/launch.log
 .claude/settings.override.json
 .claude/.settings-attestation
 .attic/
+
+# Herdr runtime state (generated, machine-local)
+.config/herdr/session.json
+.config/herdr/session-history.json
+.config/herdr/release-notes.json

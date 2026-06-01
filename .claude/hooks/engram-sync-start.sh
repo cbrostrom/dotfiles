@@ -25,4 +25,6 @@ fi
 [[ -x "${ENGRAM_BIN}" ]]     || exit 0
 
 git -C "${SYNC_REPO}" pull --quiet --ff-only 2>/dev/null || true
+pushd "${VAULT_DIR}" >/dev/null
 ENGRAM_DATA_DIR="${VAULT_DIR}" "${ENGRAM_BIN}" sync --import 2>/dev/null || true
+popd >/dev/null

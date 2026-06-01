@@ -50,5 +50,5 @@ graphiti | http | http://100.100.1.50:8000/mcp
 # Dockhand — superbro stack management
 mcp-dockhand | http | http://100.100.1.50:8080/mcp
 
-# Dockhand — linuxbro: add when installed on linuxbro
+# Dockhand — linuxbro: add when dockhand installed on linuxbro
 # mcp-dockhand-linuxbro | http | http://100.100.1.100:8080/mcp

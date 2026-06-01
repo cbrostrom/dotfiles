@@ -24,7 +24,9 @@ fi
 [[ -d "${SYNC_REPO}/.git" ]] || exit 0
 [[ -x "${ENGRAM_BIN}" ]]     || exit 0
 
-ENGRAM_DATA_DIR="${VAULT_DIR}" "${ENGRAM_BIN}" sync 2>/dev/null || exit 0
+pushd "${VAULT_DIR}" >/dev/null
+ENGRAM_DATA_DIR="${VAULT_DIR}" "${ENGRAM_BIN}" sync 2>/dev/null || { popd >/dev/null; exit 0; }
+popd >/dev/null
 
 if [[ -n "$(git -C "${SYNC_REPO}" status --porcelain 2>/dev/null)" ]]; then
     git -C "${SYNC_REPO}" add .

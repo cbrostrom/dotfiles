@@ -17,10 +17,30 @@
 
 set -euo pipefail
 
-ENGRAM_SYNC_REPO="${ENGRAM_SYNC_REPO:-$HOME/engram-sync}"
 ENGRAM_SYNC_VAULTS="${ENGRAM_SYNC_VAULTS:-personal work}"
 ENGRAM_SYNC_PUSH="${ENGRAM_SYNC_PUSH:-1}"
-ENGRAM_BIN="${ENGRAM_BIN:-$(command -v engram || echo /opt/homebrew/bin/engram)}"
+
+# Platform-specific binary, vault root, and sync repo defaults.
+if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+    _win_home="/mnt/c/Users/${USER}"
+    _default_bin="${_win_home}/go/bin/engram.exe"
+    _default_vault_root="${_win_home}/.engram"
+    # On WSL the vault dir IS the sync repo (git init'd by install/engram.sh)
+    _default_sync_repo="${_default_vault_root}"
+else
+    _default_bin="$(command -v engram 2>/dev/null || true)"
+    if [[ -z "$_default_bin" ]]; then
+        for _p in "$HOME/go/bin/engram" /opt/homebrew/bin/engram /usr/local/bin/engram; do
+            [[ -x "$_p" ]] && { _default_bin="$_p"; break; }
+        done
+    fi
+    _default_vault_root="$HOME/.engram"
+    _default_sync_repo="$HOME/engram-sync"
+fi
+ENGRAM_BIN="${ENGRAM_BIN:-${_default_bin}}"
+ENGRAM_VAULT_ROOT="${ENGRAM_VAULT_ROOT:-${_default_vault_root}}"
+ENGRAM_SYNC_REPO="${ENGRAM_SYNC_REPO:-${_default_sync_repo}}"
+unset _win_home _default_bin _default_vault_root _default_sync_repo _p
 
 # Platform-specific log/lock locations.
 # macOS: ~/Library/* (canonical)
@@ -93,7 +113,7 @@ start_sha="$(git rev-parse HEAD 2>/dev/null || echo init)"
 total_chunks=0
 
 for vault in $ENGRAM_SYNC_VAULTS; do
-    data_dir="$HOME/.engram/$vault"
+    data_dir="${ENGRAM_VAULT_ROOT}/$vault"
     sub_dir="$ENGRAM_SYNC_REPO/$vault"
 
     if [[ ! -d "$data_dir" ]]; then
