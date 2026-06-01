@@ -1,4 +1,4 @@
 {
-  "$comment": "WSL stub. Obsidian access via 'ob' CLI (REST API) instead of MCP — no token overhead.",
+  "$comment": "WSL stub. Obsidian: direct file access to /mnt/c/Users/christian/Obsidian/Christian. REST API (ob) only for 'open in Obsidian UI'.",
   "permissions": { "additionalDirectories": ["$HOME/dotfiles/.claude"] }
 }
