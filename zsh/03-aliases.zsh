@@ -339,6 +339,18 @@ alias ccauth='claude auth'
 alias ccpr='claude --from-pr'
 
 # =============================================================================
+# WORKFLOW LAUNCHERS
+# =============================================================================
+if command -v herdr &>/dev/null; then
+    alias work='herdr'
+fi
+
+# WSL: engram binary is a Windows .exe — needs explicit path
+if [[ -n "${WSL_DISTRO_NAME:-}" ]] && [[ -x "/mnt/c/Users/${USER}/go/bin/engram.exe" ]]; then
+    alias engram='/mnt/c/Users/${USER}/go/bin/engram.exe'
+fi
+
+# =============================================================================
 # SYSTEM UPDATE ALIASES
 # =============================================================================
 if [[ "$(uname -s)" == "Linux" ]]; then
