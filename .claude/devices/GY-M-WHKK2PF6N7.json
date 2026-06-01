@@ -3,7 +3,7 @@
   "os": "macos",
   "arch": "arm64",
   "profile": "desktop-full",
-  "last_synced": "2026-06-01T08:36:40Z",
+  "last_synced": "2026-06-01T09:12:11Z",
   "marketplaces": [
     "cavekit-marketplace",
     "caveman",
@@ -35,8 +35,7 @@
     "atlassian-akqa",
     "atlassian-fiskars",
     "engram-personal",
-    "github",
-    "obsidian"
+    "github"
   ],
   "mcp_servers_list": [
     "github",

@@ -1,35 +1,42 @@
 #!/usr/bin/env bash
 # Stop hook: export engram vault as sync chunks and push to git.
 #
-# Architecture:
-#   Vault dir = git repo (engram.db gitignored; chunk files tracked).
-#   WSL:   vault at %USERPROFILE%\.engram, binary at %USERPROFILE%\go\bin\engram.exe
-#   macOS/Linux: vault at ~/.engram, binary at ~/go/bin/engram
-#
-# Silent no-op if vault not yet git-initialised or binary missing.
+# SYNC_REPO (git repo with chunks) is separate from VAULT_DIR (local engram.db).
+# Path override: echo /path/to/repo > ~/.engram/sync-repo
+# Default: ~/engram-sync on all platforms
 set -uo pipefail
 
-if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-    WIN_HOME="/mnt/c/Users/${USER}"
-    ENGRAM_BIN="${WIN_HOME}/go/bin/engram.exe"
-    SYNC_REPO="${WIN_HOME}/.engram"
-    VAULT_DIR="${SYNC_REPO}/personal"
-    export WSLENV="ENGRAM_DATA_DIR/p${WSLENV:+:${WSLENV}}"
-else
-    ENGRAM_BIN="${HOME}/go/bin/engram"
-    SYNC_REPO="${HOME}/.engram"
-    VAULT_DIR="${SYNC_REPO}/personal"
+# --- Binary ---
+ENGRAM_BIN="${HOME}/go/bin/engram"
+if [[ ! -x "${ENGRAM_BIN}" ]] && { [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; }; then
+    ENGRAM_BIN="/mnt/c/Users/${USER}/go/bin/engram.exe"
 fi
 
+# --- Paths ---
+if [[ -f "${HOME}/.engram/sync-repo" ]]; then
+    SYNC_REPO="$(cat "${HOME}/.engram/sync-repo")"
+else
+    SYNC_REPO="${HOME}/engram-sync"
+fi
+VAULT_DIR="${HOME}/.engram/personal"
+
+# --- Guards ---
 [[ -d "${SYNC_REPO}/.git" ]] || exit 0
 [[ -x "${ENGRAM_BIN}" ]]     || exit 0
+[[ -d "${VAULT_DIR}" ]]      || exit 0
 
-pushd "${VAULT_DIR}" >/dev/null
-ENGRAM_DATA_DIR="${VAULT_DIR}" "${ENGRAM_BIN}" sync 2>/dev/null || { popd >/dev/null; exit 0; }
-popd >/dev/null
+# --- Export chunks from vault (5s max) ---
+timeout 5 ENGRAM_DATA_DIR="${VAULT_DIR}" "${ENGRAM_BIN}" sync 2>/dev/null || exit 0
 
+# --- Copy chunks into sync repo ---
+if [[ -d "${VAULT_DIR}/.engram" ]]; then
+    mkdir -p "${SYNC_REPO}/personal/.engram"
+    rsync -a --quiet "${VAULT_DIR}/.engram/" "${SYNC_REPO}/personal/.engram/" 2>/dev/null || true
+fi
+
+# --- Commit and push if changed (15s max) ---
 if [[ -n "$(git -C "${SYNC_REPO}" status --porcelain 2>/dev/null)" ]]; then
     git -C "${SYNC_REPO}" add .
-    git -C "${SYNC_REPO}" commit -m "sync: $(date '+%Y-%m-%d %H:%M')" --quiet
-    git -C "${SYNC_REPO}" push --quiet 2>/dev/null || true
+    timeout 5 git -C "${SYNC_REPO}" commit -m "sync: $(date '+%Y-%m-%d %H:%M')" --quiet
+    timeout 10 git -C "${SYNC_REPO}" push --quiet 2>/dev/null || true
 fi
