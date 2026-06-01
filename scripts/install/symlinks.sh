@@ -131,7 +131,20 @@ create_symlink "$SCRIPT_DIR/wezterm" "$HOME/.config/wezterm" "wezterm config"
 # Codex CLI config
 create_symlink "$SCRIPT_DIR/.codex" "$HOME/.codex" "codex config"
 
-# Claude Code MCP wrapper scripts
+# Claude Code config — CLAUDE.md, skills dir, hooks, MCP wrapper scripts
+mkdir -p "$HOME/.claude"
+create_symlink "$SCRIPT_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md" "claude CLAUDE.md"
+create_symlink "$SCRIPT_DIR/.claude/skills" "$HOME/.claude/skills" "claude skills dir"
+
+if [[ -d "$SCRIPT_DIR/.claude/hooks" ]]; then
+    mkdir -p "$HOME/.claude/hooks"
+    for hook in "$SCRIPT_DIR/.claude/hooks/"*.sh; do
+        [[ -f "$hook" ]] || continue
+        chmod +x "$hook"
+        create_symlink "$hook" "$HOME/.claude/hooks/$(basename "$hook")" "claude hook: $(basename "$hook")"
+    done
+fi
+
 if [[ -d "$SCRIPT_DIR/.claude/scripts" ]]; then
     mkdir -p "$HOME/.claude/scripts"
     for script in "$SCRIPT_DIR/.claude/scripts/"*.sh; do

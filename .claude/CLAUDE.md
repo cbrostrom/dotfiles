@@ -35,6 +35,7 @@ Routing rules: `@engram-graphiti.md`. MCPs: `~/.dotfiles/.claude/mcp-servers.lis
 | `.stacks` | Dockhand MCP (superbro) |
 | `.spec` / `.build` / `.check` | `/ck:spec` / `/ck:build` / `/ck:check` |
 | `.worklog <period>` | `/worklog` |
+| `.bye` / `.wrap` | `session-wrap` skill — save session to Engram + update next steps |
 
 ## Memory routing
 | Signal | Action |
@@ -44,6 +45,9 @@ Routing rules: `@engram-graphiti.md`. MCPs: `~/.dotfiles/.claude/mcp-servers.lis
 | "how does X relate to Y/connections/timeline" | Graphiti `search_facts`/`search_nodes` |
 | "what do you know about X/recall/search memory" | both: `mem_search` + `search_nodes` |
 | "we're done/wrapping up/end of session" | `mem_session_summary` + Graphiti highlights |
+| "what do I have on X/find my notes on X" | `obsidian_search` |
+| "capture this/add to inbox/note this in vault" | `obsidian_create_or_update_file` → Inbox/ |
+Engram vs Obsidian — not redundant. Engram = Claude's observations about user. Obsidian = user's own notes.
 
 ## Infrastructure
 | Signal | Action |

@@ -41,11 +41,11 @@ $begin
 Host $host
     StrictHostKeyChecking accept-new
     ServerAliveInterval 15
-    ServerAliveCountMax 2
+    ServerAliveCountMax 6
     TCPKeepAlive yes
     ControlMaster auto
     ControlPath ~/.ssh/cm-%C
-    ControlPersist 60
+    ControlPersist 600
 $end
 EOF
 )"
