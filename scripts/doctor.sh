@@ -35,6 +35,7 @@ ok()   { printf "${G}✓${N} %s\n" "$*"; }
 warn() { printf "${Y}⚠${N} %s\n" "$*"; }
 bad()  { printf "${R}✗${N} %s\n" "$*"; }
 hdr()  { printf "\n${B}━━ %s ━━${N}\n" "$*"; }
+skip() { printf "${N}⊘ %s\n" "$*"; }
 
 is_macos()  { [[ "$(uname -s)" == "Darwin" ]]; }
 is_linux()  { [[ "$(uname -s)" == "Linux"  ]]; }
@@ -185,23 +186,22 @@ fi
 
 # ----- MCP drift -----
 # Reads ~/.claude.json directly instead of `claude mcp list` to avoid
-# spawning every stdio server for health checks (engram MCPs trigger SSH
-# host-key prompts when superbro is not yet trusted).
+# spawning every stdio server for health checks.
+# Uses lists_merge for proper platform/profile/host overlay resolution.
 hdr "MCP drift (mcp-servers.list vs ~/.claude.json)"
-mcp_list_files=("$DOTFILES_DIR/.claude/mcp-servers.list")
-case "$(uname -s)" in
-    Darwin) mcp_list_files+=("$DOTFILES_DIR/.claude/mcp-servers.macos.list") ;;
-    Linux)  mcp_list_files+=("$DOTFILES_DIR/.claude/mcp-servers.linux.list") ;;
-esac
+mcp_base="$DOTFILES_DIR/.claude/mcp-servers.list"
 claude_json="$HOME/.claude.json"
 if [[ ! -f "$claude_json" ]]; then
     warn "$claude_json missing — skipping MCP drift check"
 elif ! command -v jq >/dev/null 2>&1; then
     warn "jq not found — skipping MCP drift check (install jq to enable)"
-elif [[ ! -f "${mcp_list_files[0]}" ]]; then
-    warn "${mcp_list_files[0]} missing — skipping MCP drift check"
+elif [[ ! -f "$mcp_base" ]]; then
+    warn "$mcp_base missing — skipping MCP drift check"
 else
-    declared="$(for f in "${mcp_list_files[@]}"; do [[ -f "$f" ]] && cat "$f"; done | awk -F'|' '
+    . "$DOTFILES_DIR/modules/_lib/platform.sh"
+    . "$DOTFILES_DIR/modules/_lib/lists.sh"
+
+    declared="$(lists_merge "$mcp_base" | awk -F'|' '
         /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
         { gsub(/[[:space:]]/, "", $1); if ($1 != "") print $1 }
     ' | sort -u)"
@@ -338,77 +338,44 @@ else
     fi
 fi
 
-# ----- engram SSH reachability -----
-# Engram MCPs spawn `ssh superbro …` at runtime. If superbro's host key is
-# not in known_hosts under that alias, SSH blocks on a yes/no prompt and the
-# MCP server never starts. Probe non-interactively so doctor never blocks.
-hdr "Engram SSH (superbro)"
-if ! command -v ssh >/dev/null 2>&1; then
-    warn "ssh not installed — engram MCPs will not work"
-else
-    ssh_probe="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=yes \
-                     -o ConnectTimeout=3 -o ServerAliveInterval=2 \
-                     superbro 'echo ok' 2>&1)"
-    if [[ "$ssh_probe" == "ok" ]]; then
-        ok "ssh superbro reachable"
-    elif grep -q "host key.* not.* known\|authenticity\|Host key verification failed" <<< "$ssh_probe"; then
-        warn "ssh superbro host key not trusted under alias 'superbro' — Fix: ssh superbro (accept once) or add HostKeyAlias to ~/.ssh/config"
-    elif grep -q "Permission denied" <<< "$ssh_probe"; then
-        warn "ssh superbro auth failed — check ~/.ssh/id_* and authorized_keys on superbro"
-    elif grep -q "Could not resolve\|Name or service not known\|No route to host\|[Cc]onnection.*timed out\|Connection refused" <<< "$ssh_probe"; then
-        warn "ssh superbro unreachable (Tailscale up? host alias defined?)"
-    else
-        warn "ssh superbro probe failed: $(echo "$ssh_probe" | head -1)"
-    fi
-fi
-
-# ----- engram version (on superbro) -----
-# Skipped if SSH probe above failed.
-hdr "Engram version (superbro)"
-ENGRAM_MIN_VERSION="1.15.9"
-if command -v ssh >/dev/null 2>&1 && ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=3 superbro 'true' 2>/dev/null; then
-    # Use absolute path — non-interactive SSH doesn't load ~/.local/bin
-    engram_ver_raw="$(ssh -o BatchMode=yes -o ConnectTimeout=3 superbro '/home/christian/.local/bin/engram --version 2>/dev/null || /home/christian/.local/bin/engram version 2>/dev/null' 2>/dev/null | head -1)"
-    if [[ -z "$engram_ver_raw" ]]; then
-        warn "could not determine engram version on superbro — Fix: ssh superbro engram --version"
-    else
-        engram_ver="$(echo "$engram_ver_raw" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
-        if [[ -z "$engram_ver" ]]; then
-            warn "engram version output unrecognised: $engram_ver_raw"
-        else
-            # Compare semver: lowest of (current, min) should be min for current >= min
-            min_first="$(printf '%s\n%s\n' "$engram_ver" "$ENGRAM_MIN_VERSION" | sort -V | head -1)"
-            if [[ "$min_first" == "$ENGRAM_MIN_VERSION" || "$engram_ver" == "$ENGRAM_MIN_VERSION" ]]; then
-                ok "engram v$engram_ver (>= $ENGRAM_MIN_VERSION)"
-            else
-                warn "engram v$engram_ver < $ENGRAM_MIN_VERSION — Fix: ssh superbro and update engram binary"
-            fi
-        fi
-    fi
-else
-    skip "engram version check skipped (superbro unreachable)"
-fi
 
 # ----- engram local + sync diagnostic -----
 hdr "engram local + git sync"
-if command -v engram >/dev/null 2>&1; then
+if is_wsl; then
+    WIN_HOME="/mnt/c/Users/${USER}"
+    ENGRAM_BIN="${WIN_HOME}/go/bin/engram.exe"
+    ENGRAM_ROOT="${WIN_HOME}/.engram"
+    if [[ -x "$ENGRAM_BIN" ]]; then
+        ok "engram (WSL→Windows): $ENGRAM_BIN ($("$ENGRAM_BIN" version 2>/dev/null | head -1 || echo '?'))"
+    else
+        warn "engram Windows binary missing: $ENGRAM_BIN — Fix: (PowerShell) go install github.com/Gentleman-Programming/engram/cmd/engram@latest"
+    fi
+elif command -v engram >/dev/null 2>&1; then
     ok "engram on PATH: $(command -v engram) ($(engram version 2>/dev/null | head -1))"
 else
     case "$(uname -s)" in
-        Darwin) warn "engram not on PATH — Fix: brew install gentleman-programming/tap/engram" ;;
-        Linux)  warn "engram not on PATH — Fix: bash $DOTFILES_DIR/scripts/install/engram.sh (cargo install)" ;;
+        Darwin) warn "engram not on PATH — Fix: go install github.com/Gentleman-Programming/engram/cmd/engram@latest" ;;
+        Linux)  warn "engram not on PATH — Fix: go install github.com/Gentleman-Programming/engram/cmd/engram@latest" ;;
         *)      warn "engram not on PATH — see https://github.com/Gentleman-Programming/engram" ;;
     esac
 fi
 for vault in personal work; do
-    vault_dir="$HOME/.engram/$vault"
-    if [[ -f "$vault_dir/engram.db" ]]; then
-        ok "vault $vault: $vault_dir/engram.db"
+    if is_wsl; then
+        vault_dir="${ENGRAM_ROOT:-/mnt/c/Users/${USER}/.engram}/$vault"
     else
-        warn "vault $vault missing — Fix: rsync from superbro or restore backup"
+        vault_dir="$HOME/.engram/$vault"
+    fi
+    if [[ -d "$vault_dir" ]]; then
+        ok "vault $vault: $vault_dir"
+    else
+        warn "vault $vault missing: $vault_dir"
     fi
 done
-sync_repo="$HOME/engram-sync"
+if is_wsl; then
+    sync_repo="/mnt/c/Users/${USER}/.engram"
+else
+    sync_repo="$HOME/engram-sync"
+fi
 if [[ -d "$sync_repo/.git" ]]; then
     remote="$(git -C "$sync_repo" remote get-url origin 2>/dev/null || echo none)"
     if [[ "$remote" == "git@github.com:cbrostrom/engram.git" ]]; then

@@ -1,3 +1,4 @@
+onboarding = false
 default_shell = "/bin/zsh"
 new_cwd       = "follow"
 
@@ -9,7 +10,7 @@ mouse_capture                    = true
 confirm_close                    = true
 mobile_width_threshold           = 80
 show_agent_labels_on_pane_borders = true
-agent_panel_scope                = "all"
+agent_panel_scope = "all"
 
 [theme]
 name = "catppuccin"
@@ -17,3 +18,12 @@ name = "catppuccin"
 [advanced]
 pane_history           = true
 scrollback_limit_bytes = 20971520  # 20 MB
+
+[ui.toast]
+delivery = "terminal"
+
+[ui.sound]
+enabled = false
+
+[experimental]
+pane_history = true

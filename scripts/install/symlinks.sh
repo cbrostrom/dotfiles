@@ -104,6 +104,7 @@ create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc" ".zshrc"
 create_symlink "$SCRIPT_DIR/.zshenv" "$HOME/.zshenv" ".zshenv"
 create_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig" ".gitconfig"
 create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global" ".gitignore_global"
+create_symlink "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf" "tmux config"
 
 # Per-machine git overrides (signing keys etc., not tracked in git)
 if [[ ! -f "$HOME/.gitconfig.local" ]]; then
