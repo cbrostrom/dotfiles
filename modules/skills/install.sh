@@ -21,19 +21,25 @@ overlays="$(lists_active_paths "$base" | xargs -n1 basename 2>/dev/null | tr '\n
 log "installing Claude Code skills (layers: ${overlays})…"
 
 while IFS= read -r source || [[ -n "$source" ]]; do
+    skill_name="$(basename "$source" | sed 's/-skill$//')"
+    agents_dir="$HOME/.agents/skills/$skill_name"
+
     if grep -qxF "$source" "$manifest" 2>/dev/null; then
         ok "skill already installed: $source"
+    elif [[ -d "$agents_dir" ]]; then
+        # Already present on disk (e.g. installed on another machine via dotfiles sync)
+        echo "$source" >> "$manifest"
+        ok "skill found on disk, recorded: $source"
     else
         log "installing skill: $source"
-        if npx --yes skills add "$source" --agent "Claude Code" --scope global --non-interactive 2>/dev/null; then
+        if timeout 60 npx --yes skills add "$source" --agent "Claude Code" --scope global --non-interactive 2>/dev/null; then
             echo "$source" >> "$manifest"
         else
-            warn "skill install failed: $source"
+            warn "skill install failed or timed out: $source"
         fi
     fi
     # Re-link in case ~/.agents/skills/ was cleared or link is stale.
-    skill_name="$(basename "$source" | sed 's/-skill$//')"
-    target="$HOME/.agents/skills/$skill_name"
+    target="$agents_dir"
     link="$skills_dir/$skill_name"
     if [[ -d "$target" && (! -L "$link" || "$(readlink -f "$link" 2>/dev/null)" != "$target") ]]; then
         ln -sf "$target" "$link"
