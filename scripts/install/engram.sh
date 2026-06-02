@@ -55,11 +55,15 @@ fi
 if $IS_WSL; then
     WIN_HOME="/mnt/c/Users/${USER}"
     SYNC_REPO="${WIN_HOME}/.engram"
+    ENGRAM_VAULT_ROOT="${WIN_HOME}/.engram"
 else
-    SYNC_REPO="${HOME}/.engram"
+    # Sync repo (git-tracked) separate from live vault root (SQLite, gitignored).
+    # Matches the default in modules/engram/sync.sh (ENGRAM_SYNC_REPO=~/engram-sync).
+    SYNC_REPO="${HOME}/engram-sync"
+    ENGRAM_VAULT_ROOT="${HOME}/.engram"
 fi
-# Vault = personal sub-vault within the sync repo
-VAULT_DIR="${SYNC_REPO}/personal"
+# Vault = personal sub-vault within the live vault root
+VAULT_DIR="${ENGRAM_VAULT_ROOT}/personal"
 
 # ── 1) binary ────────────────────────────────────────────────────────────────
 install_binary() {
@@ -228,8 +232,146 @@ print_summary() {
     info "Manual sync:  ENGRAM_DATA_DIR=${VAULT_DIR} engram sync"
 }
 
+# ── check mode (read-only) ────────────────────────────────────────────────────
+check_status() {
+    local pass fail warn_s
+    if [[ -t 1 ]]; then
+        pass="\033[32m ✓\033[0m"
+        fail="\033[31m ✗\033[0m"
+        warn_s="\033[33m !\033[0m"
+    else
+        pass=" ✓"; fail=" ✗"; warn_s=" !"
+    fi
+    _p() { echo -e "${pass} $*"; }
+    _f() { echo -e "${fail} $*"; }
+    _w() { echo -e "${warn_s} $*"; }
+
+    local needs_action=0
+    echo
+    echo "  Engram setup check — $(uname -s)$(${IS_WSL} && echo '/WSL')"
+    echo "  ──────────────────────────────────────────────────"
+
+    # 1) binary
+    if $IS_WSL; then
+        local win_bin="/mnt/c/Users/${USER}/go/bin/engram.exe"
+        if [[ -x "$win_bin" ]]; then
+            _p "binary   $win_bin"
+        else
+            _f "binary   not found at $win_bin"
+            echo "   → In PowerShell: go install ${ENGRAM_PKG}"
+            needs_action=1
+        fi
+    else
+        local bin
+        bin="$(command -v engram 2>/dev/null || true)"
+        if [[ -n "$bin" ]]; then
+            local ver; ver="$(engram version 2>/dev/null | head -1 || echo '?')"
+            _p "binary   $bin  ($ver)"
+        else
+            _f "binary   not on PATH"
+            if command -v go >/dev/null 2>&1; then
+                echo "   → Run: go install ${ENGRAM_PKG}"
+            else
+                echo "   → Install Go first: https://go.dev/dl/"
+                echo "     Then: go install ${ENGRAM_PKG}"
+            fi
+            needs_action=1
+        fi
+    fi
+
+    # 2) vault dirs
+    for v in personal work; do
+        local d="${SYNC_REPO}/$v"
+        if [[ -d "$d" ]]; then
+            _p "vault    $d"
+        else
+            _f "vault    $d missing"
+            echo "   → Run: bash $DOTFILES_DIR/scripts/install/engram.sh"
+            needs_action=1
+        fi
+    done
+
+    # 3) git repo
+    if [[ -d "${SYNC_REPO}/.git" ]]; then
+        _p "git repo ${SYNC_REPO}"
+    else
+        _f "git repo ${SYNC_REPO} not initialised"
+        echo "   → Run: bash $DOTFILES_DIR/scripts/install/engram.sh"
+        needs_action=1
+    fi
+
+    # 4) remote
+    if [[ -d "${SYNC_REPO}/.git" ]]; then
+        local remote; remote="$(git -C "${SYNC_REPO}" remote get-url origin 2>/dev/null || echo '')"
+        if [[ "$remote" == "${GIT_REMOTE}" ]]; then
+            _p "remote   $remote"
+        elif [[ -n "$remote" ]]; then
+            _w "remote   $remote  (expected ${GIT_REMOTE})"
+        else
+            _f "remote   not set"
+            echo "   → Run: git -C ${SYNC_REPO} remote add origin ${GIT_REMOTE}"
+            needs_action=1
+        fi
+    fi
+
+    # 5) scheduler
+    if $IS_MACOS; then
+        local plist="${HOME}/Library/LaunchAgents/dk.brostrom.engram-sync.plist"
+        if launchctl list dk.brostrom.engram-sync &>/dev/null; then
+            _p "launchd  dk.brostrom.engram-sync loaded"
+        elif [[ -f "$plist" ]]; then
+            _w "launchd  plist present but not loaded"
+            echo "   → Run: launchctl load $plist"
+            needs_action=1
+        else
+            _f "launchd  not installed"
+            echo "   → Run: bash $DOTFILES_DIR/scripts/install/engram.sh"
+            needs_action=1
+        fi
+    elif command -v systemctl &>/dev/null && systemctl --user status &>/dev/null 2>&1; then
+        if systemctl --user is-active engram-sync.timer &>/dev/null; then
+            _p "systemd  engram-sync.timer active"
+        else
+            _f "systemd  engram-sync.timer not active"
+            echo "   → Run: bash $DOTFILES_DIR/scripts/install/engram.sh"
+            needs_action=1
+        fi
+    else
+        _w "scheduler  systemd not available (WSL: enable in /etc/wsl.conf)"
+    fi
+
+    # 6) last sync log
+    local log_file
+    case "$(uname -s)" in
+        Darwin) log_file="$HOME/Library/Logs/engram-sync.log" ;;
+        *)      log_file="${XDG_STATE_HOME:-$HOME/.local/state}/engram-sync.log" ;;
+    esac
+    if [[ -f "$log_file" ]]; then
+        local last; last="$(tail -1 "$log_file" 2>/dev/null || echo '?')"
+        _p "last log $last"
+    else
+        _w "log      no log yet at $log_file"
+    fi
+
+    echo
+    if [[ $needs_action -eq 0 ]]; then
+        echo "  All good. Manual sync: bash $DOTFILES_DIR/modules/engram/sync.sh"
+    else
+        echo "  Fix above, then re-check: bash $DOTFILES_DIR/scripts/install/engram.sh --check"
+    fi
+    echo
+    return $needs_action
+}
+
 # ── main ──────────────────────────────────────────────────────────────────────
-install_binary
-init_vault
-install_scheduler
-print_summary
+case "${1:-}" in
+    --check|-c)
+        check_status
+        ;;
+    *)
+        install_binary
+        init_vault
+        install_scheduler
+        print_summary
+        ;;
+esac
