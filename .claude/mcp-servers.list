@@ -52,3 +52,8 @@ mcp-dockhand | http | http://100.100.1.50:8080/mcp
 
 # Dockhand — linuxbro: add when dockhand installed on linuxbro
 # mcp-dockhand-linuxbro | http | http://100.100.1.100:8080/mcp
+
+# Home Assistant — linuxbro (100.100.1.100:8123). Streamable HTTP MCP (not SSE).
+# Token: HA_MCP_TOKEN in ~/.local-secrets. Bootstrap registers via claude mcp add --transport http.
+# NOTE: http type in this list does NOT support headers — handled by post-bootstrap hook or manual add.
+# homeassistant | http | http://100.100.1.100:8123/api/mcp

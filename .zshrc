@@ -170,3 +170,4 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 else
   export OBSIDIAN_API_KEY="$(rbw get "🔐 SuperBro Vault" --field Token-Windows 2>/dev/null)"
 fi
+export PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"
