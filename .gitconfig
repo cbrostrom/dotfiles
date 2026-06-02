@@ -27,3 +27,4 @@
 	path = ~/.gitconfig.local
 [safe]
 	directory = /mnt/c/Users/christian/.engram
+	directory = /home/christian/engram-sync
