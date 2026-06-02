@@ -1,9 +1,8 @@
 #!/bin/sh
 # installed by herdr
-# managed by herdr; reinstalling or updating the integration overwrites this file.
-# add custom hooks beside this file instead of editing it.
+# safe to edit. this hook only activates inside herdr-managed panes.
 # HERDR_INTEGRATION_ID=claude
-# HERDR_INTEGRATION_VERSION=4
+# HERDR_INTEGRATION_VERSION=3
 
 set -eu
 
@@ -61,8 +60,6 @@ if is_subagent and action in ("idle", "release"):
 
 request_id = f"{source}:{int(time.time() * 1000)}:{random.randrange(1_000_000):06d}"
 report_seq = time.time_ns()
-session_id = hook_input.get("session_id")
-agent_session_id = session_id if isinstance(session_id, str) and session_id else None
 if action == "release":
     request = {
         "id": request_id,
@@ -86,8 +83,6 @@ else:
             "seq": report_seq,
         },
     }
-    if agent_session_id:
-        request["params"]["agent_session_id"] = agent_session_id
 
 try:
     client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
