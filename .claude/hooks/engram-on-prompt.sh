@@ -1,12 +1,22 @@
 #!/usr/bin/env bash
-# UserPromptSubmit hook: if there are queued commits from previous turns,
-# inject a system-reminder so Claude saves them to Engram before responding.
-#
-# Output goes to stdout — the harness wraps it as additional context for the model.
-# Errors / debug go to stderr (suppressed).
+# UserPromptSubmit hook: inject queued commits for the current scope only.
+# Work sessions see work queue; personal sessions see personal queue.
+# Output goes to stdout — harness wraps it as additional context for the model.
 set -uo pipefail
 
-queue="${XDG_STATE_HOME:-$HOME/.local/state}/claude-code/engram-pending.txt"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/claude-code"
+
+# Detect scope from $PWD.
+if [[ "$PWD" == "$HOME/Projects/Shopify"* ]] || \
+   [[ "$PWD" == "$HOME/Projects/Clients"* ]] || \
+   [[ "$PWD" == "$HOME/Projects/Internal"* ]] || \
+   [[ "$PWD" == "$HOME/Work"* ]]; then
+    queue="$state_dir/engram-pending-work.txt"
+    engram_tool="engram-work"
+else
+    queue="$state_dir/engram-pending-personal.txt"
+    engram_tool="engram"
+fi
 
 [[ -f "$queue" ]] || exit 0
 [[ -s "$queue" ]] || exit 0

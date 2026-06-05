@@ -2,20 +2,17 @@
 # Stop-event hook: detect git commits made during the last turn and queue them
 # so the next UserPromptSubmit can remind Claude to save them to Engram.
 #
-# Strategy:
-#   1. For the current working dir (if it's a git repo), record HEAD.
-#   2. Compare to last-recorded HEAD for that repo.
-#   3. If HEAD moved, append new commit list to the pending queue.
+# Queues are scoped by work vs personal to prevent cross-project injection:
+#   engram-pending-work.txt     — Shopify/Clients/Internal/Work repos
+#   engram-pending-personal.txt — everything else
 #
 # State files (under XDG_STATE_HOME):
-#   claude-code/engram-pending.txt        human-readable queue, read by UserPromptSubmit
+#   claude-code/engram-pending-{work,personal}.txt
 #   claude-code/last-head-<repo-hash>     last HEAD per repo (one file per repo seen)
 set -uo pipefail
 
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/claude-code"
 mkdir -p "$state_dir" 2>/dev/null || exit 0
-
-queue="$state_dir/engram-pending.txt"
 
 # Find the git toplevel for $PWD; bail if not in a repo.
 repo=""
@@ -23,6 +20,16 @@ if git -C "$PWD" rev-parse --show-toplevel >/dev/null 2>&1; then
     repo="$(git -C "$PWD" rev-parse --show-toplevel)"
 fi
 [[ -z "$repo" ]] && exit 0
+
+# Scope queue by work vs personal based on repo path.
+if [[ "$repo" == "$HOME/Projects/Shopify"* ]] || \
+   [[ "$repo" == "$HOME/Projects/Clients"* ]] || \
+   [[ "$repo" == "$HOME/Projects/Internal"* ]] || \
+   [[ "$repo" == "$HOME/Work"* ]]; then
+    queue="$state_dir/engram-pending-work.txt"
+else
+    queue="$state_dir/engram-pending-personal.txt"
+fi
 
 # Per-repo state file (sha1 of toplevel path).
 repo_hash="$(printf '%s' "$repo" | sha1sum | cut -c1-12)"

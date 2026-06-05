@@ -14,3 +14,4 @@
 /home/christian/dotfiles
 /Users/Christian.Brostrom/Projects/Private/lommr
 /tmp/mcp-dockhand
+/Users/Christian.Brostrom/Projects/Private/tessera-descent

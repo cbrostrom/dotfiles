@@ -356,11 +356,12 @@ gwtgo() {
     fi
 }
 
-# code / vs — open VSCodium with file or directory
-# WSL: invokes Windows codium.exe, converts Linux paths via wslpath -w
-# Linux/Mac: uses native `codium`; mac falls back to `open -a VSCodium`
+# code / vs — open Zed (primary); VSCodium fallback on non-mac or if Zed missing
+# WSL: Zed not available — falls back to codium.exe path conversion
 code() {
-    if is_wsl && command -v codium.exe >/dev/null 2>&1; then
+    if is_macos && command -v zed >/dev/null 2>&1; then
+        zed "${@:-.}"
+    elif is_wsl && command -v codium.exe >/dev/null 2>&1; then
         local -a converted=()
         local arg
         for arg in "$@"; do
@@ -376,7 +377,7 @@ code() {
     elif is_macos && [[ -d /Applications/VSCodium.app ]]; then
         open -a VSCodium "$@"
     else
-        echo "code: VSCodium not found on PATH" >&2
+        echo "code: Zed/VSCodium not found" >&2
         return 127
     fi
 }

@@ -20,10 +20,10 @@ pane_history           = true
 scrollback_limit_bytes = 20971520  # 20 MB
 
 [ui.toast]
-delivery = "terminal"
+delivery = "system"
 
 [ui.sound]
 enabled = false
 
 [experimental]
-pane_history = true
+pane_history = false

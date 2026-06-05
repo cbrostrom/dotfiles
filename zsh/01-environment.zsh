@@ -56,8 +56,13 @@ export PATH="$GOPATH/bin:$PATH"
 # =============================================================================
 # EDITOR CONFIGURATION
 # =============================================================================
-# Set micro as default editor for all commands (including sudo)
-if command -v micro >/dev/null 2>&1; then
+# Zed primary, micro fallback (micro handles terminal-only contexts like git rebase)
+if command -v zed >/dev/null 2>&1; then
+    export EDITOR="zed --wait"
+    export VISUAL="zed --wait"
+    export GIT_EDITOR="zed --wait"
+    export SUDO_EDITOR="micro"  # sudo keeps terminal editor
+elif command -v micro >/dev/null 2>&1; then
     export EDITOR="micro"
     export VISUAL="micro"
     export SUDO_EDITOR="micro"
