@@ -58,10 +58,4 @@ unset -f _setup_cursor_integration
 # =============================================================================
 # Runs dotfetch on interactive terminal start (skip in non-interactive, CI, or dumb terminals)
 
-if [[ -o interactive && "${TERM:-}" != "dumb" && -z "${CI:-}" ]]; then
-  if command -v dotfetch >/dev/null 2>&1; then
-    dotfetch
-  elif [[ -x "${DOTFILES_DIR:-$HOME/.config/dotfiles}/scripts/dotfetch.sh" ]]; then
-    bash "${DOTFILES_DIR:-$HOME/.config/dotfiles}/scripts/dotfetch.sh"
-  fi
-fi
+# dotfetch removed — costs ~0.8s per terminal open. Run manually: dotfetch

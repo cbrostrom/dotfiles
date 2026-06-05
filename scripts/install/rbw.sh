@@ -17,9 +17,15 @@ set -euo pipefail
 . "$DOTFILES_DIR/modules/_lib/log.sh"
 . "$DOTFILES_DIR/modules/_lib/platform.sh"
 
-RBW_EMAIL_DEFAULT="christian.brostrom@akqa.com"
-RBW_LOCK_TIMEOUT_DEFAULT="86400"
-RBW_CONFIG_DIR="$HOME/.config/rbw"
+RBW_EMAIL_DEFAULT="signup@christianbrostrom.com"
+RBW_BASE_URL_DEFAULT="https://vault.superbro.dk"
+RBW_LOCK_TIMEOUT_DEFAULT="3600"
+# macOS rbw ignores XDG — uses platform data dir
+if is_macos; then
+    RBW_CONFIG_DIR="$HOME/Library/Application Support/rbw"
+else
+    RBW_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/rbw"
+fi
 RBW_CONFIG_FILE="$RBW_CONFIG_DIR/config.json"
 
 install_rbw() {
@@ -34,6 +40,7 @@ install_rbw() {
             # coreutils provides `gtimeout` — env-secrets.zsh wraps rbw calls
             # in a 1s timeout to prevent shell-startup hang on locked vaults.
             brew install rbw pinentry-mac coreutils || warn "brew install rbw failed"
+            brew install jorgelbg/tap/pinentry-touchid 2>/dev/null || warn "pinentry-touchid install failed (non-fatal)"
             return 0
         fi
     fi
@@ -92,7 +99,11 @@ write_default_config() {
 
     local pinentry_program
     if is_macos; then
-        pinentry_program="pinentry-mac"
+        if has pinentry-touchid; then
+            pinentry_program="pinentry-touchid"
+        else
+            pinentry_program="pinentry-mac"
+        fi
     elif has pinentry-tty; then
         pinentry_program="pinentry-tty"
     elif has pinentry-curses; then
@@ -107,6 +118,7 @@ write_default_config() {
     cat > "$RBW_CONFIG_FILE" <<EOF
 {
     "email": "$RBW_EMAIL_DEFAULT",
+    "base_url": "$RBW_BASE_URL_DEFAULT",
     "lock_timeout": $RBW_LOCK_TIMEOUT_DEFAULT,
     "sync_interval": 3600,
     "pinentry": "$pinentry_program",

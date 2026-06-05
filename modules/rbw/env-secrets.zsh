@@ -15,6 +15,18 @@
 # Bail early if rbw is not installed — keeps non-rbw machines silent.
 command -v rbw >/dev/null 2>&1 || return 0
 
+# Fast path 1: already in env (subshell/script inheriting from parent shell)
+[[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN+set}" ]] && return 0
+
+# Fast path 2: source from cache file written on last unlock (survives new terminal windows)
+_RBW_ENV_CACHE="${XDG_RUNTIME_DIR:-/tmp}/rbw-env-$UID.zsh"
+if [[ -f "$_RBW_ENV_CACHE" ]] && [[ $(find "$_RBW_ENV_CACHE" -mmin -480 2>/dev/null) ]]; then
+    source "$_RBW_ENV_CACHE"
+    unset _RBW_ENV_CACHE
+    return 0
+fi
+unset _RBW_ENV_CACHE
+
 # Pick a timeout impl. macOS has no `timeout` by default; coreutils brings
 # `gtimeout`. Falls back to bare rbw (no hang protection) if neither exists.
 if command -v timeout >/dev/null 2>&1; then
@@ -67,6 +79,20 @@ export ATLASSIAN_AKQA_CONFLUENCE_URL="https://akqa-denmark.atlassian.net/wiki"
 
 # export OPENAI_API_KEY="$(_dotfiles_bw_get 'OpenAI API Key')"
 # export ANTHROPIC_API_KEY="$(_dotfiles_bw_get 'Anthropic API Key')"
+
+# Write cache for next terminal window (8h TTL, /tmp cleared on reboot)
+_RBW_ENV_CACHE="${XDG_RUNTIME_DIR:-/tmp}/rbw-env-$UID.zsh"
+{
+    printf 'export GITHUB_PERSONAL_ACCESS_TOKEN=%q\n' "$GITHUB_PERSONAL_ACCESS_TOKEN"
+    printf 'export ATLASSIAN_USERNAME=%q\n' "$ATLASSIAN_USERNAME"
+    printf 'export ATLASSIAN_API_TOKEN=%q\n' "$ATLASSIAN_API_TOKEN"
+    printf 'export ATLASSIAN_FISKARS_JIRA_URL=%q\n' "$ATLASSIAN_FISKARS_JIRA_URL"
+    printf 'export ATLASSIAN_FISKARS_CONFLUENCE_URL=%q\n' "$ATLASSIAN_FISKARS_CONFLUENCE_URL"
+    printf 'export ATLASSIAN_AKQA_JIRA_URL=%q\n' "$ATLASSIAN_AKQA_JIRA_URL"
+    printf 'export ATLASSIAN_AKQA_CONFLUENCE_URL=%q\n' "$ATLASSIAN_AKQA_CONFLUENCE_URL"
+} > "$_RBW_ENV_CACHE"
+chmod 600 "$_RBW_ENV_CACHE"
+unset _RBW_ENV_CACHE
 
 unset -f _dotfiles_bw_get _dotfiles_bw_get_field
 unset _dotfiles_bw_timeout

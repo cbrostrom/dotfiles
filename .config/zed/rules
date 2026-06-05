@@ -24,6 +24,26 @@ After approval: patch + DK explanation. Unclear scope -> mark proposal, wait.
 
 ---
 
+## Commit Messages
+
+Conventional Commits format. English always (regardless of language default).
+
+Subject: `<type>(<scope>): <imperative summary>`
+- Types: feat fix refactor perf docs test chore build ci style revert
+- Imperative mood: "add" not "added"/"adds"
+- ≤50 chars preferred, hard cap 72. No trailing period.
+
+Body: only when subject insufficient — non-obvious *why*, breaking changes, migration notes.
+- Wrap at 72 chars. Bullets `-` not `*`.
+
+Never include:
+- "This commit does X", "now", "currently", "I", "we"
+- AI attribution ("Generated with...", "Co-Authored-By: Claude" etc.)
+- Emoji (unless project already uses them)
+- Restating file names when scope covers it
+
+---
+
 ## Forbidden
 
 Never execute: git push, force push, deployments, builds, npm publish,

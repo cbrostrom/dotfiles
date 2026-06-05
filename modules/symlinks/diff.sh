@@ -13,7 +13,6 @@ declare -A LINKS=(
     [".config/lazygit"]="$HOME/.config/lazygit"
     [".config/bat"]="$HOME/.config/bat"
     [".config/procs"]="$HOME/.config/procs"
-    [".config/zellij"]="$HOME/.config/zellij"
     [".codex"]="$HOME/.codex"
 )
 

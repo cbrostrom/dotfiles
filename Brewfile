@@ -22,6 +22,9 @@ tap "felixkratz/formulae"            # borders
 tap "gentleman-programming/tap"      # engram
 tap "muhammadhananasghar/tap"        # wormhole
 tap "tomanthony/brews"               # itermocil
+tap "oven-sh/bun"                    # bun (not yet in homebrew core)
+tap "shopify/shopify"                # shopify-cli
+tap "wxtsky/tap"                     # codeisland
 tap "yoanbernabeu/tap"               # grepai
 
 # =============================================================================
@@ -65,6 +68,7 @@ brew "python-setuptools"
 brew "python@3.14"
 brew "ruby"
 brew "shellcheck"
+brew "shopify/shopify/shopify-cli"
 brew "vercel-cli"
 
 # =============================================================================
