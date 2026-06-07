@@ -66,6 +66,7 @@ else
         warn "attestation mismatch — inputs changed since last merge"
         say "  expected=$expected"
         say "  actual=  $actual"
+        [ "$FIX" -eq 1 ] && issues=$((issues - 1))
     fi
 fi
 
@@ -82,6 +83,7 @@ if [ -f "$CLAUDE_DIR/settings.local.json" ]; then
             say "  (use --fix to apply)"
         else
             ok "applied: regenerated settings.local.json"
+            issues=$((issues - 1))
         fi
     else
         ok "no drift in settings.local.json"
@@ -131,6 +133,7 @@ if [ -f "$AGENT_CORE" ] && [ -x "$SYNC_SCRIPT" ]; then
                     say "  (use --fix to apply cursor sync)"
                 else
                     ok "applied: synced Cursor from agent-core"
+                    issues=$((issues - 1))
                 fi
             else
                 ok "no cursor drift (agent-core aligned)"
@@ -150,6 +153,10 @@ if [ "$issues" -eq 0 ]; then
     ok "doctor clean."
     exit 0
 else
-    warn "$issues issue(s). Run with --fix to reconcile."
+    if [ "$FIX" -eq 1 ]; then
+        warn "$issues issue(s) require manual attention."
+    else
+        warn "$issues issue(s). Run with --fix to reconcile."
+    fi
     exit 1
 fi
