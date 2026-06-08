@@ -20,6 +20,9 @@
 # can blow past the default, producing "command timed out" warnings.
 command_timeout = 2000
 
+format = """$directory$git_branch$git_status$package$nodejs$golang$rust$python$docker_context$aws$kubernetes$terraform$memory_usage$cmd_duration$conda$battery$fill$env_var
+$time$character"""
+
 # =============================================================================
 # PROMPT CHARACTER
 # =============================================================================
@@ -31,24 +34,38 @@ error_symbol = " [✗](#e63946 bold) "
 # DIRECTORY
 # =============================================================================
 [directory]
-truncation_length = 2
-truncation_symbol = " …/ "
+truncation_length = 4
+truncation_symbol = ""
+truncate_to_repo = true
+format = "[ $path]($style) "
 style = "#e76f51 bold"
+
+# =============================================================================
+# FILL — pushes PWD to right edge of line 1
+# =============================================================================
+[fill]
+symbol = " "
+
+# =============================================================================
+# FULL PATH (right side of line 1 — mouse-selectable for copy)
+# =============================================================================
+[env_var.PWD]
+format = "[$env_value]($style)"
+style = "#4c566a dimmed"
+variable = "PWD"
 
 # =============================================================================
 # GIT INTEGRATION
 # =============================================================================
 [git_branch]
 format = '\[ [$symbol$branch ]($style)\] '
-symbol = " "
+symbol = " "
 style = "#f4a261 bold"
 
 [git_status]
-# Enhanced git status with better visual indicators
 format = '\[ [$ahead_behind$conflicted$staged$modified$untracked$renamed$deleted$stashed]($style)\] '
 style = "#f4a261 bold"
 
-# Symbols with counts and better emojis
 conflicted = "🏳$count "
 ahead = "⇡$count "
 behind = "⇣$count "
@@ -70,145 +87,25 @@ style = "#4c566a bold"
 detect_extensions = ["js", "mjs", "cjs", "ts", "jsx", "tsx"]
 detect_files = ["package.json", "node_modules", ".nvmrc", ".node-version"]
 
-[package]
+[golang]
 format = '\[ [$symbol$version ]($style)\] '
-symbol = "󰏗 "
-style = "#f6aa1c bold"
+symbol = " "
+style = "#4c566a bold"
 
 [rust]
 format = '\[ [$symbol$version ]($style)\] '
-symbol = " "
-style = "#4c566a bold"
-
-[golang]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = " "
+symbol = " "
 style = "#4c566a bold"
 
 [python]
 format = '\[ [$symbol$pyenv_prefix$version$virtualenv ]($style)\] '
-symbol = " "
+symbol = " "
 style = "#4c566a bold"
 
-[php]
+[package]
 format = '\[ [$symbol$version ]($style)\] '
-symbol = " "
-style = "#4c566a bold"
-
-[ruby]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = " "
-style = "#4c566a bold"
-
-[java]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = " "
-style = "#4c566a dimmed"
-
-[scala]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = " "
-style = "#4c566a dimmed"
-
-[elixir]
-format = '\[ [$symbol$version OTP $otp_version ]($style)\] '
-symbol = " "
-style = "#4c566a bold"
-
-[erlang]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = " "
-style = "#4c566a bold"
-
-[crystal]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "🔮 "
-style = "#4c566a bold"
-
-[dart]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "🎯 "
-style = "#4c566a bold"
-
-[deno]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "🦕 "
-style = "#4c566a bold"
-
-[haskell]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "λ "
-style = "#4c566a bold"
-
-[julia]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "ஃ "
-style = "#4c566a bold"
-
-[kotlin]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "🅺 "
-style = "#4c566a bold"
-
-[lua]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "🌙 "
-style = "#4c566a bold"
-
-[nim]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "👑 "
-style = "#4c566a bold"
-
-[nix_shell]
-format = '\[ [$symbol$state$name ]($style)\] '
-symbol = "❄️ "
-style = "#4c566a bold"
-
-[ocaml]
-format = '\[ [$symbol$version$switch_indicator$switch_name ]($style)\] '
-symbol = " "
-style = "#4c566a bold"
-
-[perl]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "🐪 "
-style = "#4c566a bold"
-
-[purescript]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "<=> "
-style = "#4c566a bold"
-
-[rlang]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "📊 "
-style = "#4c566a bold"
-
-[red]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "🔺 "
-style = "#4c566a bold"
-
-[solidity]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "🔷 "
-style = "#4c566a bold"
-
-[swift]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = " "
-style = "#4c566a bold"
-
-[vlang]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "V "
-style = "#4c566a bold"
-
-[zig]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = "⚡ "
-style = "#4c566a bold"
+symbol = "󰏗 "
+style = "#f6aa1c bold"
 
 # =============================================================================
 # SYSTEM INFORMATION
@@ -264,7 +161,6 @@ disabled = false
 format = '\[ [$time ]($style)\] '
 style = "#6272a4 bold"
 disabled = false
-time_range = "-30s"
 
 [battery]
 format = '\[ [$symbol$percentage ]($style)\] '
