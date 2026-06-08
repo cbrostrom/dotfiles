@@ -171,3 +171,22 @@ else
   export OBSIDIAN_API_KEY="$(rbw get "🔐 SuperBro Vault" --field Token-Windows 2>/dev/null)"
 fi
 export PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"
+
+# Homebrew (linux)
+if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+fi
+
+# fnm
+FNM_PATH="/home/christian/.local/share/fnm"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="$FNM_PATH:$PATH"
+  eval "$(fnm env --shell zsh)"
+fi
+
+# fnm
+FNM_PATH="/home/christian/.local/share/fnm"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="$FNM_PATH:$PATH"
+  eval "$(fnm env --shell zsh)"
+fi
