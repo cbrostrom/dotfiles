@@ -7,7 +7,7 @@
 #   3. Per-module gum spin with structured output captured to timestamped log
 #   4. Summary + log path
 
-set -euo pipefail
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then set -euo pipefail; fi
 
 DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 export DOTFILES_DIR
@@ -161,4 +161,4 @@ run_install() {
     read -rsp "Press any key to return…" -n1; echo
 }
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && run_install
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then run_install; fi
