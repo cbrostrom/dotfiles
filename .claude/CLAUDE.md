@@ -2,6 +2,7 @@
 @agent-style/claude-code.md
 @engram-graphiti.md
 @coding-principles.md
+@tools.macos.md
 
 # Default mode: caveman (full)
 Always caveman mode (full) unless "stop caveman", "normal mode", `.normal`. Drop articles, filler, pleasantries, hedging. Fragments OK. Technical terms exact. Code/commits/security: normal.
