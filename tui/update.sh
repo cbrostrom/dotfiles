@@ -8,7 +8,7 @@
 #   4. Structured progress bar — all module output captured to timestamped log
 #   5. Doctor (quiet) — issue count shown in summary; full output in log
 
-set -euo pipefail
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then set -euo pipefail; fi
 
 DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
@@ -198,4 +198,4 @@ run_update() {
     read -rsp "Press any key to return…" -n1; echo
 }
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && run_update
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then run_update; fi
