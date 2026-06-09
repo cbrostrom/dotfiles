@@ -1,16 +1,4 @@
 # Claude Code MCP servers overlay for the `server-headless` profile.
 # Active on hosts where profile_tag == server-headless (e.g. linuxbro, superbro).
-#
-# Format (same as mcp-servers.list):
-#   name | command | arg1 | arg2 | ...
-#   name | http    | https://host/mcp
-#
-# Disable an MCP enabled by the base list:
-#   !name
-#
-# Lines starting with '#' are comments. Blank lines ignored.
-
-# Disable desktop/dev-only MCPs
-!google-calendar
-!atlassian-fiskars
-!atlassian-akqa
+# Base list is already core-only — nothing to disable here.
+# Add server-specific MCPs below if needed.

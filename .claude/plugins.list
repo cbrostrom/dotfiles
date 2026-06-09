@@ -1,17 +1,18 @@
-# Claude Code plugins — installed via `claude plugin install` on bootstrap
+# Claude Code plugins — CORE (loaded on every machine)
 # Format: plugin@marketplace = repo_or_source
 # - marketplace added (idempotent) before install
 # - lines starting with # are comments, blank lines ignored
+#
+# Workflow overlays (opt-in per machine via DOTFILES_WORKFLOWS in ~/.zshrc.local):
+#   DOTFILES_WORKFLOWS=developer   → loads plugins.developer.list
+#   DOTFILES_WORKFLOWS=work        → loads plugins.work.list
 
 # Official Anthropic marketplace
-frontend-design@claude-plugins-official      = anthropics/claude-plugins-official
 superpowers@claude-plugins-official          = anthropics/claude-plugins-official
-code-simplifier@claude-plugins-official      = anthropics/claude-plugins-official
 claude-md-management@claude-plugins-official = anthropics/claude-plugins-official
-shopify@claude-plugins-official              = anthropics/claude-plugins-official
-liquid-skills@claude-plugins-official        = anthropics/claude-plugins-official
-liquid-lsp@claude-plugins-official           = anthropics/claude-plugins-official
 
 # Third-party
 caveman@caveman                              = juliusbrussee/caveman
+planning-with-files@planning-with-files      = Ejb25/planning-with-files
 plannotator@plannotator                      = backnotprop/plannotator
+cavekit@cavekit-marketplace                  = backnotprop/cavekit-marketplace

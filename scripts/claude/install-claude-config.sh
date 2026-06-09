@@ -90,6 +90,12 @@ link_file "$CLAUDE_SRC/hooks/git-push-guard.sh"       "$CLAUDE_DIR/hooks/git-pus
 link_file "$CLAUDE_SRC/hooks/effort-classifier.sh"    "$CLAUDE_DIR/hooks/effort-classifier.sh"    "hooks/effort-classifier.sh"
 link_file "$CLAUDE_SRC/push-whitelist.txt"            "$CLAUDE_DIR/push-whitelist.txt"            "push-whitelist.txt"
 
+# Shared rules (engram-graphiti lives in .shared-rules/ so Cursor can also link it)
+SHARED_RULES="$SCRIPT_DIR/.shared-rules"
+if [[ -d "$SHARED_RULES" ]]; then
+    link_file "$SHARED_RULES/engram-graphiti.md" "$CLAUDE_DIR/engram-graphiti.md" "engram-graphiti.md"
+fi
+
 # Skills directory — symlinked so new installs are auto-tracked in dotfiles
 if [ -d "$CLAUDE_DIR/skills" ] && [ ! -L "$CLAUDE_DIR/skills" ]; then
     mv "$CLAUDE_DIR/skills" "$CLAUDE_DIR/skills.backup.$(date +%Y%m%d_%H%M%S)"

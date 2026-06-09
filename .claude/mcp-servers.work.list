@@ -1,0 +1,9 @@
+# Claude Code MCP servers — WORK workflow
+# Loaded when DOTFILES_WORKFLOWS includes "work" (set in ~/.zshrc.local).
+# For work machines with access to Atlassian workspaces.
+
+# Atlassian MCP — Fiskars workspace (script reads ATLASSIAN_FISKARS_* from .local-secrets)
+atlassian-fiskars | ~/.claude/scripts/atlassian-fiskars.sh
+
+# Atlassian MCP — AKQA workspace (script reads ATLASSIAN_AKQA_* from .local-secrets)
+atlassian-akqa | ~/.claude/scripts/atlassian-akqa.sh

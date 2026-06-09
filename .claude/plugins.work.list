@@ -1,0 +1,8 @@
+# Claude Code plugins — WORK workflow
+# Loaded when DOTFILES_WORKFLOWS includes "work" (set in ~/.zshrc.local).
+# For work machines with Shopify/Atlassian tooling.
+
+shopify@claude-plugins-official              = anthropics/claude-plugins-official
+liquid-skills@claude-plugins-official        = anthropics/claude-plugins-official
+liquid-lsp@claude-plugins-official           = anthropics/claude-plugins-official
+atlassian@claude-plugins-official            = anthropics/claude-plugins-official
