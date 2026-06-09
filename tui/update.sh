@@ -106,12 +106,17 @@ run_update() {
     echo
 
     # 1. Pull latest
-    if gum spin --title "Pulling latest from git…" -- \
-           git -C "$DOTFILES_DIR" pull --rebase --autostash 2>/dev/null; then
+    local _pull_err _pull_tmp
+    _pull_tmp="$(mktemp)"
+    if git -C "$DOTFILES_DIR" pull --rebase --autostash >"$_pull_tmp" 2>&1; then
         gum style --foreground 10 "  ✓ Pulled latest from git"
     else
-        gum style --foreground 9 "  ✗ git pull failed (continuing with local copy)"
+        local _pull_msg
+        _pull_msg="$(cat "$_pull_tmp" | head -3 | tr '\n' ' ')"
+        gum style --foreground 9  "  ✗ git pull failed — ${_pull_msg:-unknown error}"
+        gum style --foreground 8  "  Hints: SSH agent forwarding? Try: ssh -A  |  git pull manually  |  check remote: git remote -v"
     fi
+    rm -f "$_pull_tmp"
     echo
 
     # 2. Workflow selector
