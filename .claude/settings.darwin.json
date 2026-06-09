@@ -8,7 +8,11 @@
     ]
   },
   "hooks": {
+    "PreCompact": [
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/brain-save-inject.sh", "timeout": 10 }] }
+    ],
     "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/brain-load.sh", "timeout": 10 }] },
       { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/entroly-start.sh", "async": true, "timeout": 10 }] },
       { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/claude-settings-merge.sh", "async": true, "timeout": 15 }] }
     ],
@@ -27,7 +31,8 @@
     "Notification": [],
     "UserPromptSubmit": [
       { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/effort-classifier.sh", "timeout": 5 }] },
-      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/engram-on-prompt.sh", "timeout": 5 }] }
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/engram-on-prompt.sh", "timeout": 5 }] },
+      { "hooks": [{ "type": "command", "command": "HOOK_EVENT_NAME=UserPromptSubmit $HOME/.claude/hooks/brain-save-inject.sh", "timeout": 5 }] }
     ]
   },
   "statusLine": {
