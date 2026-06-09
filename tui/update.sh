@@ -56,11 +56,14 @@ _workflow_selector() {
     local presel_arg=""
     [[ ${#presels[@]} -gt 0 ]] && presel_arg="$(IFS=,; echo "${presels[*]}")"
 
-    local chosen=""
-    chosen="$(printf '%s\n' "${wf_opts[@]}" | \
+    local chosen="" _wf_tmp
+    _wf_tmp="$(mktemp)"
+    printf '%s\n' "${wf_opts[@]}" | \
         gum choose --no-limit \
             --header "Workflows (Space=toggle, Enter=confirm):" \
-            ${presel_arg:+--selected="$presel_arg"})" || chosen=""
+            ${presel_arg:+--selected="$presel_arg"} > "$_wf_tmp" 2>/dev/null || true
+    chosen="$(<"$_wf_tmp")"
+    rm -f "$_wf_tmp"
 
     local new_wf
     new_wf="$(printf '%s' "$chosen" | tr '\n' ',' | sed 's/,$//')"
@@ -133,11 +136,14 @@ run_update() {
     gum style --foreground 8 "  (new/stale/failed) = pre-selected    (current) = skip"
     echo
 
-    local picked=""
-    picked="$(printf '%s\n' "${labels[@]}" | \
+    local picked="" _pick_tmp
+    _pick_tmp="$(mktemp)"
+    printf '%s\n' "${labels[@]}" | \
         gum choose --no-limit \
             --header "Space=toggle  Enter=confirm" \
-            ${presel_csv:+--selected="$presel_csv"})" || picked=""
+            ${presel_csv:+--selected="$presel_csv"} > "$_pick_tmp" 2>/dev/null || true
+    picked="$(<"$_pick_tmp")"
+    rm -f "$_pick_tmp"
 
     if [[ -z "$picked" ]]; then
         gum style --foreground 220 "  Nothing selected — aborting."
