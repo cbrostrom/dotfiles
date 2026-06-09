@@ -164,7 +164,7 @@ run_install() {
     echo
     gum style --foreground 8 "  Log: $log_file"
     echo
-    read -rsp "Press any key to return…" -n1; echo
+    [[ -t 0 ]] && { read -rsp "Press any key to return…" -n1; echo; }
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then run_install; fi

@@ -28,19 +28,19 @@ run_vscodium_tools() {
             echo
             bash "$DOTFILES_DIR/scripts/vscodium/install-vscodium-config.sh" --config
             echo
-            read -rsp "Press any key…" -n1; echo
+            [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
             ;;
         "Install extensions")
             echo
             bash "$DOTFILES_DIR/scripts/vscodium/install-vscodium-config.sh" --install-extensions
             echo
-            read -rsp "Press any key…" -n1; echo
+            [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
             ;;
         "Sync + install extensions")
             echo
             bash "$DOTFILES_DIR/scripts/vscodium/install-vscodium-config.sh" --all
             echo
-            read -rsp "Press any key…" -n1; echo
+            [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
             ;;
         "Show diff")
             echo
@@ -52,7 +52,7 @@ run_vscodium_tools() {
                 fi
             done
             echo
-            read -rsp "Press any key…" -n1; echo
+            [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
             ;;
         "← Back"|"") return ;;
     esac

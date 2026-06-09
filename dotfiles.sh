@@ -319,7 +319,7 @@ screen_modules() {
                     gum style --align center --foreground 9 --bold "✗ $module_name failed"
                 fi
                 echo
-                read -rsp "Press any key…" -n1; echo
+                [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
                 ;;
             "Preview (--diff)")
                 clear
@@ -341,7 +341,7 @@ screen_status() {
     show_status
     bash "$DOTFILES_DIR/bootstrap.sh" --list
     echo
-    read -rsp "Press any key…" -n1; echo
+    [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
 }
 
 screen_devices() {
@@ -354,7 +354,7 @@ screen_devices() {
         bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" write
     fi
     echo
-    read -rsp "Press any key…" -n1; echo
+    [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
 }
 
 screen_doctor() {
@@ -367,7 +367,7 @@ screen_doctor() {
         bash "$DOTFILES_DIR/scripts/doctor.sh"
     fi
     echo
-    read -rsp "Press any key…" -n1; echo
+    [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
 }
 
 screen_engram_sync() {
@@ -396,7 +396,7 @@ screen_engram_sync() {
         tail -n 10 "$log_file" 2>/dev/null
     fi
     echo
-    read -rsp "Press any key…" -n1; echo
+    [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
 }
 
 screen_install() {

@@ -45,7 +45,7 @@ run_reset() {
     if [[ ${#names[@]} -eq 0 ]]; then
         gum style --foreground 220 "  No modules expose an uninstall.sh."
         echo
-        read -rsp "Press any key to return…" -n1
+        [[ -t 0 ]] && { read -rsp "Press any key to return…" -n1; }
         return
     fi
 
@@ -64,7 +64,7 @@ run_reset() {
     if [[ -z "$picked" ]]; then
         gum style --foreground 220 "  Nothing selected — aborting."
         echo
-        read -rsp "Press any key to return…" -n1
+        [[ -t 0 ]] && { read -rsp "Press any key to return…" -n1; }
         return
     fi
 
@@ -88,12 +88,12 @@ run_reset() {
             echo
             bash "$DOTFILES_DIR/bootstrap.sh" --reset="$sel_csv" --dry-run
             echo
-            read -rsp "Press any key to return…" -n1
+            [[ -t 0 ]] && { read -rsp "Press any key to return…" -n1; }
             ;;
         "Execute"*)
             if ! gum confirm "Really reset: $sel_csv? Backups will be restored if present."; then
                 gum style --foreground 220 "  Cancelled."
-                read -rsp "Press any key…" -n1
+                [[ -t 0 ]] && { read -rsp "Press any key…" -n1; }
                 return
             fi
             echo
@@ -103,7 +103,7 @@ run_reset() {
                 gum style --foreground 9 --bold "  ✗ Reset finished with errors"
             fi
             echo
-            read -rsp "Press any key to return…" -n1
+            [[ -t 0 ]] && { read -rsp "Press any key to return…" -n1; }
             ;;
         *)
             ;;

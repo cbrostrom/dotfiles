@@ -124,7 +124,7 @@ run_update() {
 
     if [[ ${#names[@]} -eq 0 ]]; then
         gum style --foreground 220 "  No applicable modules for this host."
-        echo; read -rsp "Press any key to return…" -n1; echo; return
+        echo; [[ -t 0 ]] && { read -rsp "Press any key to return…" -n1; echo; }; return
     fi
 
     local -a labels=() presels=()
@@ -158,7 +158,7 @@ run_update() {
 
     if [[ -z "$picked" ]]; then
         gum style --foreground 220 "  Nothing selected — aborting."
-        echo; read -rsp "Press any key to return…" -n1; echo; return
+        echo; [[ -t 0 ]] && { read -rsp "Press any key to return…" -n1; echo; }; return
     fi
 
     # Extract bare module names (before the first space)
@@ -206,7 +206,7 @@ run_update() {
     fi
 
     echo
-    read -rsp "Press any key to return…" -n1; echo
+    [[ -t 0 ]] && { read -rsp "Press any key to return…" -n1; echo; }
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then run_update; fi
