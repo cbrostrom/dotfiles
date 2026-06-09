@@ -15,7 +15,7 @@ case "$ACTION" in
         gum spin --title "Re-linking…" -- \
             bash "$DOTFILES_DIR/scripts/install/symlinks.sh"
         gum style --foreground 10 "Done."
-        [[ -t 0 ]] && { read -rsp "Press any key…" -n1; }
+        [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; }
         ;;
     "Check status")
         echo

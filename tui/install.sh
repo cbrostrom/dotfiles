@@ -29,7 +29,7 @@ _workflow_selector() {
     echo
 
     # Skip interactive selection when no TTY (SSH without pty, CI, server-headless).
-    if ! [[ -t 0 && -t 1 ]]; then
+    if [[ -n "${DOTFILES_NONINTERACTIVE:-}" ]]; then
         export DOTFILES_WORKFLOWS="${current:-}"
         return
     fi
@@ -164,7 +164,7 @@ run_install() {
     echo
     gum style --foreground 8 "  Log: $log_file"
     echo
-    [[ -t 0 ]] && { read -rsp "Press any key to return…" -n1; echo; }
+    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key to return…" -n1; echo; }
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then run_install; fi

@@ -319,7 +319,7 @@ screen_modules() {
                     gum style --align center --foreground 9 --bold "✗ $module_name failed"
                 fi
                 echo
-                [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
+                [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; echo; }
                 ;;
             "Preview (--diff)")
                 clear
@@ -341,7 +341,7 @@ screen_status() {
     show_status
     bash "$DOTFILES_DIR/bootstrap.sh" --list
     echo
-    [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
+    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; echo; }
 }
 
 screen_devices() {
@@ -354,7 +354,7 @@ screen_devices() {
         bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" write
     fi
     echo
-    [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
+    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; echo; }
 }
 
 screen_doctor() {
@@ -367,7 +367,7 @@ screen_doctor() {
         bash "$DOTFILES_DIR/scripts/doctor.sh"
     fi
     echo
-    [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
+    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; echo; }
 }
 
 screen_engram_sync() {
@@ -396,7 +396,7 @@ screen_engram_sync() {
         tail -n 10 "$log_file" 2>/dev/null
     fi
     echo
-    [[ -t 0 ]] && { read -rsp "Press any key…" -n1; echo; }
+    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; echo; }
 }
 
 screen_install() {
@@ -430,10 +430,10 @@ main() {
     source "$DOTFILES_DIR/tui/install.sh"
     source "$DOTFILES_DIR/tui/reset.sh"
 
-    # Direct mode flags
+    # Direct mode flags — non-interactive (no gum choose / read prompts)
     case "${1:-}" in
-        --update)        run_update;  return ;;
-        --install)       run_install; return ;;
+        --update)        DOTFILES_NONINTERACTIVE=1 run_update;  return ;;
+        --install)       DOTFILES_NONINTERACTIVE=1 run_install; return ;;
         --reset)         run_reset;   return ;;
         --doctor)        bash "$DOTFILES_DIR/scripts/doctor.sh"; return ;;
         --status)        show_status; return ;;

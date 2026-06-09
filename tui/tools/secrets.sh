@@ -13,7 +13,7 @@ if [[ ! -f "$SECRETS_FILE" ]]; then
     gum style --foreground 9 "  ✗ ~/.local-secrets not found"
     gum style --foreground 8 "  Copy from: $DOTFILES_DIR/.local-secrets.example"
     echo
-    [[ -t 0 ]] && { read -rsp "Press any key…" -n1; }
+    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; }
     exit 0
 fi
 
@@ -37,4 +37,4 @@ grep -E '^[A-Z_]+=.' "$SECRETS_FILE" 2>/dev/null | \
     done
 
 echo
-[[ -t 0 ]] && { read -rsp "Press any key…" -n1; }
+[[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; }

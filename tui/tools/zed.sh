@@ -12,7 +12,7 @@ _show_diff() {
         echo "$diff_out"
     fi
     echo
-    [[ -t 0 ]] && { read -rsp "Press any key…" -n1; }
+    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; }
 }
 
 ACTION=$(gum choose \
@@ -27,7 +27,7 @@ case "$ACTION" in
         gum spin --title "Merging Zed settings…" -- \
             bash "$DOTFILES_DIR/scripts/zed/zed-update-local.sh"
         gum style --foreground 10 "Done."
-        [[ -t 0 ]] && { read -rsp "Press any key…" -n1; }
+        [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; }
         ;;
     "Diff base vs local")
         echo
@@ -43,7 +43,7 @@ case "$ACTION" in
         echo
         _show_diff
         echo
-        [[ -t 0 ]] && { read -rsp "Press any key…" -n1; }
+        [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; }
         ;;
     "← Back"|"") exit 0 ;;
 esac
