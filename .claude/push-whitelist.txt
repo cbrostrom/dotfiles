@@ -15,3 +15,4 @@
 /Users/Christian.Brostrom/Projects/Private/lommr
 /tmp/mcp-dockhand
 /Users/Christian.Brostrom/Projects/Private/tessera-descent
+/home/christian/Projects/svarr
