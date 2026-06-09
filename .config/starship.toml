@@ -20,7 +20,7 @@
 # can blow past the default, producing "command timed out" warnings.
 command_timeout = 2000
 
-format = """$directory$git_branch$git_status$package$nodejs$golang$rust$python$docker_context$aws$kubernetes$terraform$memory_usage$cmd_duration$conda$battery$fill$env_var
+format = """$hostname$directory$git_branch$git_status$package$nodejs$golang$rust$python$docker_context$aws$kubernetes$terraform$memory_usage$cmd_duration$conda$battery$fill$env_var
 $time$character"""
 
 # =============================================================================
@@ -176,3 +176,13 @@ format = '\[ [$symbol$environment ]($style)\] '
 symbol = "🅒 "
 style = "#4c566a bold"
 ignore_base = false
+
+# =============================================================================
+# HOSTNAME — always visible so you know which machine you're on
+# =============================================================================
+[hostname]
+ssh_only = false
+format = "[ $hostname ]($style)"
+style = "#5e81ac bold"
+trim_at = ".local"
+disabled = false
