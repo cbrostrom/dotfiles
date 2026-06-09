@@ -48,6 +48,12 @@ _workflow_selector() {
     gum style --foreground 8 "  Active workflows: ${current:-none}"
     echo
 
+    # Skip interactive selection when no TTY (SSH without pty, CI, server-headless).
+    if ! [[ -t 0 && -t 1 ]]; then
+        export DOTFILES_WORKFLOWS="${current:-}"
+        return
+    fi
+
     local -a wf_opts=("developer" "work")
     local -a presels=()
     [[ "$current" == *"developer"* ]] && presels+=("developer")
@@ -138,10 +144,15 @@ run_update() {
 
     local picked="" _pick_tmp
     _pick_tmp="$(mktemp)"
-    printf '%s\n' "${labels[@]}" | \
-        gum choose --no-limit \
-            --header "Space=toggle  Enter=confirm" \
-            ${presel_csv:+--selected="$presel_csv"} > "$_pick_tmp" 2>/dev/null || true
+    if [[ -t 0 && -t 1 ]]; then
+        printf '%s\n' "${labels[@]}" | \
+            gum choose --no-limit \
+                --header "Space=toggle  Enter=confirm" \
+                ${presel_csv:+--selected="$presel_csv"} > "$_pick_tmp" 2>/dev/null || true
+    else
+        # No TTY — auto-run pre-selected (new/stale/failed) modules unattended.
+        printf '%s\n' "${presels[@]}" > "$_pick_tmp"
+    fi
     picked="$(<"$_pick_tmp")"
     rm -f "$_pick_tmp"
 

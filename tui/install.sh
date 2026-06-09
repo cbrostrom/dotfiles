@@ -28,6 +28,12 @@ _workflow_selector() {
     gum style --foreground 8 "  Active workflows: ${current:-none}"
     echo
 
+    # Skip interactive selection when no TTY (SSH without pty, CI, server-headless).
+    if ! [[ -t 0 && -t 1 ]]; then
+        export DOTFILES_WORKFLOWS="${current:-}"
+        return
+    fi
+
     local -a wf_opts=("developer" "work")
     local -a presels=()
     [[ "$current" == *"developer"* ]] && presels+=("developer")
