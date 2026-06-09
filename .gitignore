@@ -87,3 +87,8 @@ gaming/config/launch.log
 .config/herdr/session.json
 .config/herdr/session-history.json
 .config/herdr/release-notes.json
+
+# Externally-installed Claude skills (managed outside dotfiles)
+.claude/skills/paseo/
+.claude/skills/paseo-*/
+.claude/skills/use-spark/
