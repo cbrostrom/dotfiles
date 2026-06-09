@@ -44,3 +44,14 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         warn "plugin install failed: $plugin_ref"
     fi
 done < <(lists_merge "$base")
+
+# Remove plugins installed but no longer in any active list layer.
+desired="$(lists_merge "$base" | sed 's/=.*//' | tr -d ' ')"
+while IFS= read -r installed_spec; do
+    [[ -n "$installed_spec" ]] || continue
+    if ! grep -qF "$installed_spec" <<< "$desired"; then
+        if claude plugin uninstall "$installed_spec" --scope user >/dev/null 2>&1; then
+            ok "plugin removed (not in active list): $installed_spec"
+        fi
+    fi
+done < <(claude plugin list 2>/dev/null | grep -oE '[^[:space:]]+@[^[:space:]]+' || true)
