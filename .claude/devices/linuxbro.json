@@ -1,0 +1,32 @@
+{
+  "host": "linuxbro",
+  "os": "linux",
+  "arch": "amd64",
+  "profile": "server-headless",
+  "last_synced": "2026-06-09T00:00:00Z",
+  "marketplaces": [
+    "caveman",
+    "planning-with-files"
+  ],
+  "enabled_plugins": [
+    "caveman@caveman",
+    "planning-with-files@planning-with-files",
+    "superpowers@claude-plugins-official"
+  ],
+  "disabled_plugins": [
+    "plannotator@plannotator",
+    "atlassian@claude-plugins-official",
+    "frontend-design@claude-plugins-official",
+    "liquid-skills@claude-plugins-official",
+    "shopify@claude-plugins-official"
+  ],
+  "mcp_servers_settings": [],
+  "mcp_servers_list": [
+    "github",
+    "lean-ctx",
+    "engram",
+    "graphiti",
+    "mcp-dockhand"
+  ],
+  "skills": []
+}

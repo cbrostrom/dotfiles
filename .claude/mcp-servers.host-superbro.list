@@ -1,0 +1,5 @@
+# Claude Code MCP servers — superbro host overlay.
+# Loaded when host_slug == superbro (profile: server-headless).
+
+# Dockhand — superbro manages its own containers locally.
+mcp-dockhand | http | http://localhost:8080/mcp
