@@ -1,0 +1,7 @@
+# Claude Code skills — DEVELOPER workflow
+# Loaded when DOTFILES_WORKFLOWS includes "developer" (set in ~/.zshrc.local).
+#
+# Paseo — iOS chat interface for Claude sessions (multi-skill suite).
+# Install: npx skills add paseo  (or via claude plugin marketplace)
+# The installed dirs (paseo, paseo-*, use-spark) are gitignored — externally managed.
+paseo/paseo
