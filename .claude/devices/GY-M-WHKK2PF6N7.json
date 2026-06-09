@@ -3,7 +3,7 @@
   "os": "macos",
   "arch": "arm64",
   "profile": "desktop-full",
-  "last_synced": "2026-06-08T16:33:55Z",
+  "last_synced": "2026-06-09T10:11:53Z",
   "marketplaces": [
     "cavekit-marketplace",
     "caveman",
@@ -40,17 +40,8 @@
   "mcp_servers_list": [
     "github",
     "lean-ctx",
-    "mcp-mermaid",
-    "tailwindcss",
-    "google-calendar",
-    "atlassian-fiskars",
-    "atlassian-akqa",
     "engram",
-    "graphiti",
-    "mcp-dockhand"
+    "graphiti"
   ],
-  "skills": [
-    "ehmo/find-skills-skill",
-    "ehmo/code-overhaul-skill"
-  ]
+  "skills": []
 }

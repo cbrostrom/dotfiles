@@ -5,3 +5,12 @@
 # (Messages, Notes, Contacts, Mail, Reminders, Calendar, Maps).
 # Requires `bun` on PATH (brew install oven-sh/bun/bun).
 apple-mcp | bunx | -y | @dhravya/apple-mcp@latest
+
+# Headroom — compresses large MCP tool outputs to save context window tokens.
+# Binary installed via: cargo install headroom-mcp (or brew if available)
+headroom | headroom | mcp | serve
+
+# Dockhand — superbro stack management. Tailscale-only.
+mcp-dockhand | http | http://100.100.1.50:8080/mcp
+# mcp-dockhand-linuxbro — add when linuxbro runs Dockhand
+# mcp-dockhand-linuxbro | http | http://100.100.1.100:8080/mcp
