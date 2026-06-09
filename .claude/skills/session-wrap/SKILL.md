@@ -1,56 +1,93 @@
 ---
 name: session-wrap
-description: "End-of-session wrap-up. Saves summary to Engram, updates vault CLAUDE.md next steps, records key decisions. Triggered by .bye or .wrap"
+description: "End-of-session wrap-up. Writes brain.md, saves to Engram + Graphiti, anchors with git diff. Triggered by .bye or .wrap"
 trigger: /session-wrap
 group: productivity
 ---
 
 # Session Wrap (.bye / .wrap)
 
-Run this at the end of every working session. Takes 30-60 seconds. Prevents knowledge loss across compaction and new conversations.
+Run at end of session. ~60s. Prevents knowledge loss across compaction and new sessions.
 
-## Steps (run in order)
+## Steps (in order)
 
-### 1. Reflect on session
-Mentally scan: what decisions were made? What was discovered that isn't obvious from reading the code/files? What should the next session know immediately?
+### 1. Get git anchor
+Run: `git diff --stat HEAD` (or `git diff --stat HEAD~1` if HEAD is clean).
+Keep output — used in steps 2 and 3.
 
-### 2. Save session summary to Engram
-Call `mem_session_summary` with a structured summary:
+### 2. Write .claude/brain.md (cold-start artifact)
+Write `.claude/brain.md` in current project directory. Loaded automatically by SessionStart hook next session. Survives compaction as plain file.
+
+Format (≤3 bullets per section, no filler):
+
+```
+# Brain: <project-name>
+_Updated: <YYYY-MM-DD HH:MM>_
+
+## Current State
+- [what we're actively working on]
+
+## Open Decisions
+- [unresolved questions or choices]
+
+## Gotchas
+- [non-obvious, session-discovered, would waste time to rediscover]
+
+## Next Steps
+- [concrete first action — specific enough to act on immediately]
+
+## Git Snapshot
+<git diff --stat output from step 1>
+```
+
+Target: <20 lines total.
+
+### 3. Save session summary to Engram
+Call `mem_session_summary`:
 
 ```
 ## What we did
-[2-4 bullet points — concrete actions, not vague]
+[2-4 bullets — concrete actions]
 
 ## Key decisions & why
-[Non-obvious choices made this session. Include the WHY.]
+[non-obvious choices + reasoning]
 
 ## Gotchas discovered
-[Anything that would waste time if rediscovered]
+[anything that would waste time if rediscovered]
 
 ## Next steps
-[Concrete, specific — what to do first next session]
+[concrete, specific]
 ```
 
-Use `topic_key` matching the project area (e.g. `obsidian/vault-setup`, `shopify/fiskars-theme`).
+Use `topic_key` matching project area (e.g. `dotfiles/hooks`, `shopify/fiskars-theme`).
 
-### 3. Check for Engram conflicts
-If `mem_session_summary` returns `judgment_required: true` — resolve per conflict surfacing rules (check existing memories, judge each candidate).
+### 4. Push relational facts to Graphiti
+For each significant decision or discovery involving ≥2 entities, call `mcp__graphiti__add_memory`:
 
-### 4. Update vault CLAUDE.md next steps (if in Obsidian vault)
-If working in `/Users/Christian.Brostrom/Vaults/Christian`, update the `## Next Steps` section in `CLAUDE.md` with what was completed and what remains. Keep it current — this is what the next session reads first.
+- Format: `"<entity-A> [relationship] <entity-B> because <reason>"`
+- Examples:
+  - `"DOTFILES_NONINTERACTIVE flag replaces TTY check in tui.sh because SSH sessions have no TTY"`
+  - `"brain-save-inject.sh hooks into PreCompact to write .claude/brain.md before context loss"`
+- Only if non-obvious. Skip trivial facts.
 
-### 5. Clear autosave queue if present
-If the Engram autosave queue hook has pending entries, save those too via `mem_save` with stable `topic_key`.
+### 5. Check Engram conflicts
+If `mem_session_summary` returns `judgment_required: true` — resolve per conflict rules.
 
-### 6. Confirm to user
-One line: what was saved, what's next. Example:
-> Session saved. Next: set Local REST API key, finish mobile plugin installs.
+### 6. Clear autosave queue if present
+If Engram autosave queue has pending entries, save via `mem_save` with stable `topic_key`.
+
+### 7. Update vault CLAUDE.md next steps (vault projects only)
+If in `~/Vaults/Christian`, update `## Next Steps` in `CLAUDE.md`.
+
+### 8. Confirm
+One line: what saved, what's next. Example:
+> Brain written. Engram saved. Graphiti: 2 facts. Next: wire brain-load hook.
 
 ## What NOT to save
-- File paths and code patterns (read from files)
+- File paths / code patterns (readable from files)
 - Things already in CLAUDE.md
 - Git history (use `git log`)
-- Obvious things that any dev would know
+- Obvious dev knowledge
 
 ## Tone
-Caveman mode applies. No praise, no filler. Dense, useful summary only.
+Caveman. No praise, no filler. Dense, useful only.
