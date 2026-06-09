@@ -2,39 +2,62 @@
 # =============================================================================
 # PLUGIN MANAGEMENT — direct source, no plugin manager
 # =============================================================================
-# All plugins installed via brew or cloned once by modules/zsh/install.sh.
 # Load order matters: autosuggestions before syntax highlighting.
+# Plugins are sourced from system paths (brew/apt) when available,
+# otherwise cloned on first use into _ZSH_PLUGINS_DIR.
 
 _ZSH_PLUGINS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/plugins"
+
+# _plugin_load <name> <github-url> [entry-file] [system-paths...]
+# Tries system paths first, then cloned dir. Clones if neither found.
+_plugin_load() {
+    local name="$1" url="$2" entry="${3:-${1}.plugin.zsh}"
+    shift 3 || shift $#
+    local dest="$_ZSH_PLUGINS_DIR/$name"
+
+    # Try system paths (brew, apt, etc.)
+    local p
+    for p in "$@"; do
+        [[ -f "$p" ]] && { source "$p"; return; }
+    done
+
+    # Clone if missing
+    if [[ ! -d "$dest" ]]; then
+        echo "zsh: installing $name..."
+        mkdir -p "$_ZSH_PLUGINS_DIR"
+        git clone --depth=1 --quiet "$url" "$dest" 2>/dev/null \
+            || { echo "zsh: failed to clone $name"; return 1; }
+    fi
+
+    [[ -f "$dest/$entry" ]] && source "$dest/$entry"
+}
 
 # =============================================================================
 # ZSH-AUTOSUGGESTIONS
 # =============================================================================
-for _f in \
+_plugin_load zsh-autosuggestions \
+    https://github.com/zsh-users/zsh-autosuggestions \
+    zsh-autosuggestions.zsh \
     /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
     /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
-    /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh; do
-    [[ -f "$_f" ]] && { source "$_f"; break; }
-done
-unset _f
+    /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # =============================================================================
 # FZF-TAB — must load before syntax highlighting, after compinit
 # =============================================================================
-if [[ -f "$_ZSH_PLUGINS_DIR/fzf-tab/fzf-tab.plugin.zsh" ]]; then
-    source "$_ZSH_PLUGINS_DIR/fzf-tab/fzf-tab.plugin.zsh"
-fi
+_plugin_load fzf-tab \
+    https://github.com/Aloxaf/fzf-tab \
+    fzf-tab.plugin.zsh
 
 # =============================================================================
 # ZSH-SYNTAX-HIGHLIGHTING — must be last plugin loaded
 # =============================================================================
-for _f in \
+_plugin_load zsh-syntax-highlighting \
+    https://github.com/zsh-users/zsh-syntax-highlighting \
+    zsh-syntax-highlighting.zsh \
     /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
     /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
-    /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh; do
-    [[ -f "$_f" ]] && { source "$_f"; break; }
-done
-unset _f
+    /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # =============================================================================
 # FZF CONFIGURATION
@@ -169,3 +192,4 @@ if (( $+commands[fnm] )); then
 fi
 
 unset _ZSH_PLUGINS_DIR
+unfunction _plugin_load 2>/dev/null
