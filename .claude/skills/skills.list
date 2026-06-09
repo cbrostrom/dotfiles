@@ -9,5 +9,5 @@
 # listed here — they ship as-is via dotfiles symlink. Currently:
 #   graphify, plannotator-*, seo, style-review, typescript-advanced-types,
 #   vite, writing. (shopify-theme-development moved to Fiskars project skills.)
-ehmo/find-skills-skill
-ehmo/code-overhaul-skill
+# ehmo/find-skills-skill — removed 2026-06-09: times out on install
+# ehmo/code-overhaul-skill — removed 2026-06-09: same issue

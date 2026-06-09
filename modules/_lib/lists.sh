@@ -76,6 +76,24 @@ _lists_paths() {
         fi
         echo "$path"
     done
+
+    # Workflow overlays: DOTFILES_WORKFLOWS=work,developer (comma-separated).
+    # Set in ~/.zshrc.local or modules.conf on machines that opt into workflows.
+    if [[ -n "${DOTFILES_WORKFLOWS:-}" ]]; then
+        local wf
+        IFS=',' read -ra _wf_arr <<< "$DOTFILES_WORKFLOWS"
+        for wf in "${_wf_arr[@]}"; do
+            wf="${wf#"${wf%%[![:space:]]*}"}"
+            wf="${wf%"${wf##*[![:space:]]}"}"
+            [[ -z "$wf" ]] && continue
+            if [[ -n "$ext" ]]; then
+                path="$dir/$stem.$wf.$ext"
+            else
+                path="$dir/$stem.$wf"
+            fi
+            echo "$path"
+        done
+    fi
 }
 
 # Merge overlays for the given base list path and emit deduped entries on stdout.

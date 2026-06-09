@@ -1,12 +1,12 @@
-# Claude Code MCP servers — registered via `claude mcp add` on bootstrap
+# Claude Code MCP servers — CORE (loaded on every machine)
 # Format: name | command | arg1 | arg2 | ...
-# Pipes separate tokens. Spaces within a token are fine.
-# Lines starting with # are comments. Blank lines ignored.
+# Pipes separate tokens. Lines starting with # are comments. Blank lines ignored.
 # Secrets: scripts read env from ~/.local-secrets (sourced by .zshrc).
-# Tailscale-only servers (graphiti, dockhand) will fail silently
-# at first use on machines not enrolled in the tailnet.
-
-# --- Local ---
+#
+# Workflow overlays (opt-in per machine via DOTFILES_WORKFLOWS in ~/.zshrc.local):
+#   DOTFILES_WORKFLOWS=developer   → loads mcp-servers.developer.list
+#   DOTFILES_WORKFLOWS=work        → loads mcp-servers.work.list
+#   DOTFILES_WORKFLOWS=developer,work → both
 
 # GitHub — requires GITHUB_PERSONAL_ACCESS_TOKEN in ~/.local-secrets
 github | npx | -y | @modelcontextprotocol/server-github
@@ -14,46 +14,11 @@ github | npx | -y | @modelcontextprotocol/server-github
 # lean-ctx — token-saving context tool. Binary installed via cargo or brew.
 lean-ctx | lean-ctx
 
-# Mermaid diagram generator
-mcp-mermaid | npx | -y | mcp-mermaid
-
-# Shopify dev tools — provided by shopify-plugin (shopify-mcp). Manual entry removed to avoid duplicate.
-
-# Tailwind CSS — utilities, color palette, component templates
-tailwindcss | npx | -y | tailwindcss-mcp-server
-
-# Google Calendar — optional; first run opens browser for OAuth.
-# Token cached at ~/.config/google-calendar-mcp/tokens.json.
-# Skip if no Google account configured — bootstrap treats failure as non-fatal.
-google-calendar | ~/.claude/scripts/google-calendar.sh
-
-# Atlassian MCP — Fiskars workspace (script reads ATLASSIAN_FISKARS_* from .local-secrets)
-atlassian-fiskars | ~/.claude/scripts/atlassian-fiskars.sh
-
-# Atlassian MCP — AKQA workspace (script reads ATLASSIAN_AKQA_* from .local-secrets)
-atlassian-akqa | ~/.claude/scripts/atlassian-akqa.sh
-
-# --- Local (no Tailscale needed) ---
-
 # Engram — cross-platform wrapper: WSL uses Windows binary + vault, others use native.
-# Sync: SessionStart hook pulls + imports; Stop hook exports + pushes.
-# Install: (Windows/PowerShell) go install github.com/Gentleman-Programming/engram/cmd/engram@latest
-#          (macOS/Linux)        go install github.com/Gentleman-Programming/engram/cmd/engram@latest
-# Vault init: bash scripts/install/engram.sh  (idempotent)
 engram | ~/.claude/scripts/engram.sh
 
-# --- Tailscale-only (require tailnet enrollment) ---
-
-# Graphiti — temporal knowledge graph (Neo4j) on superbro:8000
+# Graphiti — temporal knowledge graph (Neo4j) on superbro:8000. Tailscale-only.
 graphiti | http | http://100.100.1.50:8000/mcp
 
-# Dockhand — superbro stack management
+# Dockhand — superbro stack management. Tailscale-only.
 mcp-dockhand | http | http://100.100.1.50:8080/mcp
-
-# Dockhand — linuxbro: add when dockhand installed on linuxbro
-# mcp-dockhand-linuxbro | http | http://100.100.1.100:8080/mcp
-
-# Home Assistant — linuxbro (100.100.1.100:8123). Streamable HTTP MCP (not SSE).
-# Token: HA_MCP_TOKEN in ~/.local-secrets. Bootstrap registers via claude mcp add --transport http.
-# NOTE: http type in this list does NOT support headers — handled by post-bootstrap hook or manual add.
-# homeassistant | http | http://100.100.1.100:8123/api/mcp

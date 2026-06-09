@@ -1,0 +1,6 @@
+# Claude Code plugins — DEVELOPER workflow
+# Loaded when DOTFILES_WORKFLOWS includes "developer" (set in ~/.zshrc.local).
+# For machines doing active development: UI, code review, frontend.
+
+frontend-design@claude-plugins-official      = anthropics/claude-plugins-official
+code-simplifier@claude-plugins-official      = anthropics/claude-plugins-official

@@ -1,0 +1,13 @@
+# Claude Code MCP servers — DEVELOPER workflow
+# Loaded when DOTFILES_WORKFLOWS includes "developer" (set in ~/.zshrc.local).
+# For machines doing active development: UI work, diagrams, CSS tooling.
+
+# Mermaid diagram generator
+mcp-mermaid | npx | -y | mcp-mermaid
+
+# Tailwind CSS — utilities, color palette, component templates
+tailwindcss | npx | -y | tailwindcss-mcp-server
+
+# Google Calendar — first run opens browser for OAuth.
+# Token cached at ~/.config/google-calendar-mcp/tokens.json.
+google-calendar | ~/.claude/scripts/google-calendar.sh
