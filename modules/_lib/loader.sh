@@ -396,6 +396,32 @@ _run_one() {
         warn "[$name] no $script — skipping"
         return 0
     fi
+
+    # Structured mode: emit markers to stdout, redirect all module output to log.
+    # Enabled by DOTFILES_STRUCTURED=1; log path from DOTFILES_RUN_LOG.
+    if [[ "${DOTFILES_STRUCTURED:-}" == "1" ]]; then
+        local log="${DOTFILES_RUN_LOG:-/tmp/dotfiles-run.log}"
+        printf 'MODULE_START:%s\n' "$name"
+        local rc=0
+        (
+            export DOTFILES_DIR MODULE_DIR="$d" MODULE_NAME="$name"
+            cd "$DOTFILES_DIR"
+            printf '\n=== %s — %s ===\n' "$name" "${_MODULES_DESC[$name]:-}"
+            bash "$d/$script"
+        ) >> "$log" 2>&1 || rc=$?
+        mkdir -p "$_RUN_STATE_DIR" 2>/dev/null || true
+        if (( rc == 0 )); then
+            printf 'MODULE_DONE:%s\n' "$name"
+            : > "$_RUN_STATE_DIR/$name" 2>/dev/null || true
+            rm -f "$_RUN_STATE_DIR/$name.failed" 2>/dev/null || true
+        else
+            printf 'MODULE_FAIL:%s\n' "$name"
+            : > "$_RUN_STATE_DIR/$name.failed" 2>/dev/null || true
+        fi
+        return $rc
+    fi
+
+    # Normal mode: print everything to terminal.
     hdr "$name — ${_MODULES_DESC[$name]:-}"
     if (
         export DOTFILES_DIR
@@ -405,7 +431,6 @@ _run_one() {
         bash "$d/$script"
     ); then
         ok "[$name] done"
-        # Record successful run timestamp
         mkdir -p "$_RUN_STATE_DIR" 2>/dev/null || true
         : > "$_RUN_STATE_DIR/$name" 2>/dev/null || true
         return 0
@@ -507,6 +532,17 @@ modules_run() {
     if ! ordered="$(_modules_topo_order "${roots[@]}")"; then
         return 1
     fi
+
+    # In structured mode, emit total count of modules that will actually run.
+    if [[ "${DOTFILES_STRUCTURED:-}" == "1" ]]; then
+        local _sc=0 _sn
+        while IFS= read -r _sn; do
+            [[ -z "$_sn" ]] && continue
+            [[ "$(_decide_module_action "$_sn")" == "run" ]] && (( _sc++ )) || true
+        done <<< "$ordered"
+        printf 'MODULE_COUNT:%d\n' "$_sc"
+    fi
+
     local name action req fail_count=0
     declare -A failed_set=()
     while IFS= read -r name; do
