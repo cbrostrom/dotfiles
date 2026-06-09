@@ -156,6 +156,19 @@ host="$(hostname -s)"
 git commit -m "sync: $total_chunks new chunk(s) from $host @ $(date -u +%FT%TZ)" >/dev/null
 log "committed $(git rev-parse --short HEAD)"
 
+_import_chunks() {
+    for vault in $ENGRAM_SYNC_VAULTS; do
+        local data_dir="${ENGRAM_VAULT_ROOT}/$vault"
+        local sub_dir="$ENGRAM_SYNC_REPO/$vault"
+        [[ -d "$data_dir" && -d "$sub_dir" ]] || continue
+        if out="$(ENGRAM_DATA_DIR="$data_dir" "$ENGRAM_BIN" sync --import 2>&1)"; then
+            log "  ↓ vault=$vault import ok"
+        else
+            err "  ✗ vault=$vault import failed: $out"
+        fi
+    done
+}
+
 if [[ "$ENGRAM_SYNC_PUSH" == "1" ]]; then
     # Multi-machine safe push: pull --rebase first to absorb other machines'
     # commits, then push. Retry up to 3x with exponential backoff (2s, 4s, 8s)
@@ -170,6 +183,7 @@ if [[ "$ENGRAM_SYNC_PUSH" == "1" ]]; then
                 err "pull --rebase failed (attempt $attempt) — likely real conflict, manual fix needed"
                 exit 1
             fi
+            _import_chunks
         fi
         if git push --quiet 2>>"$LOG_FILE"; then
             log "pushed $(git rev-parse --short HEAD) (attempt $attempt)"
