@@ -49,7 +49,7 @@ _workflow_selector() {
     echo
 
     # Skip interactive selection when no TTY (SSH without pty, CI, server-headless).
-    if ! [[ -t 0 && -t 1 ]]; then
+    if [[ -n "${DOTFILES_NONINTERACTIVE:-}" ]]; then
         export DOTFILES_WORKFLOWS="${current:-}"
         return
     fi
@@ -124,7 +124,7 @@ run_update() {
 
     if [[ ${#names[@]} -eq 0 ]]; then
         gum style --foreground 220 "  No applicable modules for this host."
-        echo; [[ -t 0 ]] && { read -rsp "Press any key to return…" -n1; echo; }; return
+        echo; [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key to return…" -n1; echo; }; return
     fi
 
     local -a labels=() presels=()
@@ -144,7 +144,7 @@ run_update() {
 
     local picked="" _pick_tmp
     _pick_tmp="$(mktemp)"
-    if [[ -t 0 && -t 1 ]]; then
+    if [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]]; then
         printf '%s\n' "${labels[@]}" | \
             gum choose --no-limit \
                 --header "Space=toggle  Enter=confirm" \
@@ -158,7 +158,7 @@ run_update() {
 
     if [[ -z "$picked" ]]; then
         gum style --foreground 220 "  Nothing selected — aborting."
-        echo; [[ -t 0 ]] && { read -rsp "Press any key to return…" -n1; echo; }; return
+        echo; [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key to return…" -n1; echo; }; return
     fi
 
     # Extract bare module names (before the first space)
@@ -206,7 +206,7 @@ run_update() {
     fi
 
     echo
-    [[ -t 0 ]] && { read -rsp "Press any key to return…" -n1; echo; }
+    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key to return…" -n1; echo; }
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then run_update; fi
