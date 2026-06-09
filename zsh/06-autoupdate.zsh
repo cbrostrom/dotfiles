@@ -22,6 +22,7 @@ DOTFILES_STATE_DIR="$HOME/.cache/dotfiles"
 : "${DOTFILES_THROTTLE_SECONDS:=14400}"
 : "${DOTFILES_FETCH_TIMEOUT:=3}"
 : "${DOTFILES_STALE_DAYS:=7}"
+: "${DOTFILES_GIT_BIN:=$(command -v git 2>/dev/null || echo git)}"
 
 mkdir -p "$DOTFILES_STATE_DIR"
 
@@ -128,19 +129,19 @@ _df_notify() {
 
     if [[ -n "$dirty" ]]; then
         color=yellow; icon='!'
-        suffix=" + dirty tree — commit/stash, then 'dotfiles-update'"
+        suffix=" + dirty tree — commit/stash, then 'dotfiles --update'"
     elif [[ "$conflicts" == "1" ]]; then
         color=yellow; icon='!'
-        suffix=" — merge conflicts expected, run 'dotfiles-update' carefully"
+        suffix=" — merge conflicts expected, run 'dotfiles --update' carefully"
     elif (( commit_age > 7 * 86400 )); then
         color=red; icon='!!'
-        suffix=" ($(_df_format_age $commit_age) old) — run 'dotfiles-update'"
+        suffix=" ($(_df_format_age $commit_age) old) — run 'dotfiles --update'"
     elif (( commit_age > 86400 )); then
         color=yellow; icon='*'
-        suffix=" ($(_df_format_age $commit_age) old) — consider 'dotfiles-update'"
+        suffix=" ($(_df_format_age $commit_age) old) — consider 'dotfiles --update'"
     else
         color=cyan; icon='v'
-        suffix=" — run 'dotfiles-update' to sync"
+        suffix=" — run 'dotfiles --update' to sync"
     fi
 
     print -P "%F{$color}$icon dotfiles: $behind commit(s) behind$suffix%f"
