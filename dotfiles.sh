@@ -442,11 +442,15 @@ main() {
         --engram-check)  bash "$DOTFILES_DIR/scripts/install/engram.sh" --check; return ;;
     esac
 
+    local _menu_tmp
+    _menu_tmp="$(mktemp)"
     while true; do
         clear
         render_banner
-        local action
-        action="$(main_menu)" || break
+        local action=""
+        main_menu > "$_menu_tmp" 2>/dev/null || { rm -f "$_menu_tmp"; break; }
+        action="$(<"$_menu_tmp")"
+        [[ -z "$action" ]] && { rm -f "$_menu_tmp"; break; }
 
         case "$action" in
             *Install*) screen_install ;;
@@ -460,6 +464,7 @@ main() {
             *Quit*|"") break ;;
         esac
     done
+    rm -f "$_menu_tmp" 2>/dev/null || true
 
     clear
     gum style --align center --foreground 220 --margin "1 2" "bye"
