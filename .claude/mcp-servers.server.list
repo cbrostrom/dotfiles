@@ -1,0 +1,9 @@
+# Claude Code MCP servers — SERVER workflow
+# Loaded when DOTFILES_WORKFLOWS includes "server" (set in ~/.zshrc.local).
+# For server-headless machines (LinuxBro, SuperBro) doing active Claude work.
+#
+# Base list already provides: github, lean-ctx, engram, graphiti
+# Add server-specific tools here as needed.
+
+# Serena — LSP-based code intelligence (uvx, no GUI required)
+serena | uvx | --from | git+https://github.com/oraios/serena | serena | start-mcp-server | --project-from-cwd | --context | claude-code
