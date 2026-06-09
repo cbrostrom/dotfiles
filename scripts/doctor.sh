@@ -9,9 +9,11 @@
 set -uo pipefail
 
 FIX_MODE=false
+QUIET_MODE=false
 for arg in "$@"; do
     case "$arg" in
-        --fix) FIX_MODE=true ;;
+        --fix)   FIX_MODE=true ;;
+        --quiet) QUIET_MODE=true ;;
     esac
 done
 
@@ -26,16 +28,26 @@ for _brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.lin
 done
 unset _brew_bin
 
-if [[ -t 1 ]]; then
+if [[ -t 1 ]] && ! $QUIET_MODE; then
     G='\033[0;32m'; Y='\033[1;33m'; R='\033[0;31m'; B='\033[0;34m'; N='\033[0m'
 else
     G=''; Y=''; R=''; B=''; N=''
 fi
+_DOCTOR_ISSUES=0
 ok()   { printf "${G}✓${N} %s\n" "$*"; }
-warn() { printf "${Y}⚠${N} %s\n" "$*"; }
-bad()  { printf "${R}✗${N} %s\n" "$*"; }
 hdr()  { printf "\n${B}━━ %s ━━${N}\n" "$*"; }
 skip() { printf "${N}⊘ %s\n" "$*"; }
+warn() { (( _DOCTOR_ISSUES++ )) || true; printf "${Y}⚠${N} %s\n" "$*"; }
+bad()  { (( _DOCTOR_ISSUES++ )) || true; printf "${R}✗${N} %s\n" "$*"; }
+
+# In quiet mode: suppress all output, only exit code carries issue count.
+if $QUIET_MODE; then
+    ok()   { : ; }
+    hdr()  { : ; }
+    skip() { : ; }
+    warn() { (( _DOCTOR_ISSUES++ )) || true; }
+    bad()  { (( _DOCTOR_ISSUES++ )) || true; }
+fi
 
 is_macos()  { [[ "$(uname -s)" == "Darwin" ]]; }
 is_linux()  { [[ "$(uname -s)" == "Linux"  ]]; }
@@ -493,6 +505,8 @@ fi
 hdr "Summary"
 if (( syn_err > 0 )); then
     bad "$syn_err shell syntax error(s)"
-    exit 1
 fi
-ok "Doctor completed."
+if ! $QUIET_MODE; then
+    ok "Doctor completed."
+fi
+exit $(( _DOCTOR_ISSUES > 125 ? 125 : _DOCTOR_ISSUES ))

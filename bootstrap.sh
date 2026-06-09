@@ -160,7 +160,7 @@ case "$MODE" in
         (cd "$DOTFILES_DIR" && git pull --rebase --autostash) || warn "git pull failed (non-fatal)"
         log "OS: $(uname -s)  platform: $(platform_tag)  profile: $(profile_tag)  host: $(hostname -s 2>/dev/null || hostname)"
         modules_run_all
-        if [[ -x "$DOTFILES_DIR/scripts/doctor.sh" ]]; then
+        if [[ -x "$DOTFILES_DIR/scripts/doctor.sh" && -z "${DOTFILES_SKIP_DOCTOR:-}" ]]; then
             bash "$DOTFILES_DIR/scripts/doctor.sh" $FIX_FLAG || true
         fi
         ok "update complete (profile: $(profile_tag))"
@@ -168,7 +168,7 @@ case "$MODE" in
     full)
         log "OS: $(uname -s)  platform: $(platform_tag)  profile: $(profile_tag)  host: $(hostname -s 2>/dev/null || hostname)"
         modules_run_all
-        if [[ -x "$DOTFILES_DIR/scripts/doctor.sh" ]]; then
+        if [[ -x "$DOTFILES_DIR/scripts/doctor.sh" && -z "${DOTFILES_SKIP_DOCTOR:-}" ]]; then
             bash "$DOTFILES_DIR/scripts/doctor.sh" $FIX_FLAG || true
         fi
         ok "bootstrap complete (profile: $(profile_tag))"
