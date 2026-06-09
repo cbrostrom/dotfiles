@@ -36,11 +36,14 @@ _workflow_selector() {
     local presel_arg=""
     [[ ${#presels[@]} -gt 0 ]] && presel_arg="$(IFS=,; echo "${presels[*]}")"
 
-    local chosen=""
-    chosen="$(printf '%s\n' "${wf_opts[@]}" | \
+    local chosen="" _wf_tmp
+    _wf_tmp="$(mktemp)"
+    printf '%s\n' "${wf_opts[@]}" | \
         gum choose --no-limit \
             --header "Workflows (Space=toggle, Enter=confirm):" \
-            ${presel_arg:+--selected="$presel_arg"})" || chosen=""
+            ${presel_arg:+--selected="$presel_arg"} > "$_wf_tmp" 2>/dev/null || true
+    chosen="$(<"$_wf_tmp")"
+    rm -f "$_wf_tmp"
 
     local new_wf
     new_wf="$(printf '%s' "$chosen" | tr '\n' ',' | sed 's/,$//')"
