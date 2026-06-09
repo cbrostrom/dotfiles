@@ -58,7 +58,7 @@
       "Bash(npm run:*)", "Bash(npx:*)", "Bash(bun run:*)", "Bash(bun add:*)"
     ],
     "ask": ["Bash(git push:*)", "Bash(npm publish:*)"],
-    "deny": ["Bash(rm -rf:*)", "Read(.env)", "Read(.env.*)"]
+    "deny": ["Bash(rm -rf:*)", "Read(.env)", "Read(.env.*)", "Read(*.pem)", "Read(*.key)", "Read(*.p12)", "Read(*.pfx)", "Read(.netrc)", "Read(.aws/credentials)", "Read(.ssh/id_*)", "Read(*secret*)", "Read(*credential*)"]
   },
   "env": { "CLAUDE_CODE_ENABLE_TELEMETRY": "0" },
   "outputStyle": "default",
