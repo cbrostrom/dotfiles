@@ -106,15 +106,25 @@ run_update() {
     echo
 
     # 1. Pull latest
-    local _pull_err _pull_tmp
+    local _pull_tmp
     _pull_tmp="$(mktemp)"
     if git -C "$DOTFILES_DIR" pull --rebase --autostash >"$_pull_tmp" 2>&1; then
         gum style --foreground 10 "  ✓ Pulled latest from git"
     else
         local _pull_msg
-        _pull_msg="$(cat "$_pull_tmp" | head -3 | tr '\n' ' ')"
-        gum style --foreground 9  "  ✗ git pull failed — ${_pull_msg:-unknown error}"
-        gum style --foreground 8  "  Hints: SSH agent forwarding? Try: ssh -A  |  git pull manually  |  check remote: git remote -v"
+        _pull_msg="$(head -3 "$_pull_tmp" | tr '\n' ' ')"
+        gum style --foreground 9 "  ✗ git pull failed — ${_pull_msg:-unknown error}"
+        local _unmerged
+        _unmerged="$(git -C "$DOTFILES_DIR" diff --name-only --diff-filter=U 2>/dev/null)"
+        if [[ -n "$_unmerged" ]]; then
+            gum style --foreground 9 "  Conflicted files (resolve before re-running update):"
+            while IFS= read -r _f; do
+                gum style --foreground 9 "    $_f"
+            done <<< "$_unmerged"
+            gum style --foreground 8 "  Fix: git add <file> && git commit  —or—  git checkout -- <file> to discard local"
+        else
+            gum style --foreground 8 "  Hints: SSH agent forwarding? Try: ssh -A  |  git pull manually  |  check remote: git remote -v"
+        fi
     fi
     rm -f "$_pull_tmp"
     echo
@@ -144,6 +154,12 @@ run_update() {
     local presel_csv=""
     [[ ${#presels[@]} -gt 0 ]] && presel_csv="$(IFS=,; echo "${presels[*]}")"
 
+    # Non-interactive + all current — nothing to do, skip picker entirely.
+    if [[ ${#presels[@]} -eq 0 ]] && [[ -n "${DOTFILES_NONINTERACTIVE:-}" ]]; then
+        gum style --foreground 10 "  All modules up to date."
+        echo; return
+    fi
+
     gum style --foreground 8 "  (new/stale/failed) = pre-selected    (current) = skip"
     echo
 
@@ -162,8 +178,8 @@ run_update() {
     rm -f "$_pick_tmp"
 
     if [[ -z "$picked" ]]; then
-        gum style --foreground 220 "  Nothing selected — aborting."
-        echo; [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key to return…" -n1; echo; }; return
+        gum style --foreground 10 "  All modules up to date."
+        echo; return
     fi
 
     # Extract bare module names (before the first space)

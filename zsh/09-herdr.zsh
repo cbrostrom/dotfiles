@@ -11,6 +11,14 @@
 [[ -z "$HERDR_PANE_ID" ]] && return
 command -v herdr >/dev/null 2>&1 || return
 
+# Terax injects OSC 133 markers into PS1 via _terax_precmd which conflicts with
+# herdr's pane border rendering. Drop the Terax hooks when running inside herdr.
+if [[ -n "${TERAX_USER_ZDOTDIR:-}" ]]; then
+    autoload -Uz add-zsh-hook 2>/dev/null
+    add-zsh-hook -d precmd _terax_precmd 2>/dev/null || true
+    add-zsh-hook -d preexec _terax_preexec 2>/dev/null || true
+fi
+
 # Rename current pane: "<dirname>@<branch>" or just "<dirname>".
 # Runs in background so chpwd stays snappy.
 __herdr_pane_label() {

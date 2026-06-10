@@ -16,8 +16,9 @@ agent_panel_scope = "all"
 name = "catppuccin"
 
 [advanced]
-pane_history           = true
-scrollback_limit_bytes = 20971520  # 20 MB
+pane_history              = true
+scrollback_limit_bytes    = 20971520  # 20 MB
+kitty_clipboard_protocol  = false
 
 [ui.toast]
 delivery = "system"
