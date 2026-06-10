@@ -54,35 +54,32 @@ _workflow_selector() {
         return
     fi
 
-    local -a wf_opts=("developer" "work")
-    local -a presels=()
-    [[ "$current" == *"developer"* ]] && presels+=("developer")
-    [[ "$current" == *"work"* ]] && presels+=("work")
+    # Skip picker if workflows already configured — no interaction needed.
+    if [[ -n "$current" ]]; then
+        export DOTFILES_WORKFLOWS="$current"
+        return
+    fi
 
-    local presel_arg=""
-    [[ ${#presels[@]} -gt 0 ]] && presel_arg="$(IFS=,; echo "${presels[*]}")"
+    local -a wf_opts=("developer" "work")
 
     local chosen="" _wf_tmp
     _wf_tmp="$(mktemp)"
     printf '%s\n' "${wf_opts[@]}" | \
         gum choose --no-limit \
             --header "Workflows (Space=toggle, Enter=confirm):" \
-            ${presel_arg:+--selected="$presel_arg"} > "$_wf_tmp" 2>/dev/null || true
+            > "$_wf_tmp" 2>/dev/null || true
     chosen="$(<"$_wf_tmp")"
     rm -f "$_wf_tmp"
 
     local new_wf
     new_wf="$(printf '%s' "$chosen" | tr '\n' ',' | sed 's/,$//')"
 
-    if [[ "$new_wf" != "$current" ]]; then
-        if [[ -f "$HOME/.zshrc.local" ]] && grep -q "DOTFILES_WORKFLOWS" "$HOME/.zshrc.local"; then
-            sed -i "s|^export DOTFILES_WORKFLOWS=.*|export DOTFILES_WORKFLOWS=\"$new_wf\"|" "$HOME/.zshrc.local"
-        else
-            echo "export DOTFILES_WORKFLOWS=\"$new_wf\"" >> "$HOME/.zshrc.local"
-        fi
-        gum style --foreground 10 "  ✓ Workflows → ${new_wf:-none}"
+    if [[ -f "$HOME/.zshrc.local" ]] && grep -q "DOTFILES_WORKFLOWS" "$HOME/.zshrc.local"; then
+        sed -i "s|^export DOTFILES_WORKFLOWS=.*|export DOTFILES_WORKFLOWS=\"$new_wf\"|" "$HOME/.zshrc.local"
+    else
+        echo "export DOTFILES_WORKFLOWS=\"$new_wf\"" >> "$HOME/.zshrc.local"
     fi
-
+    gum style --foreground 10 "  ✓ Workflows → ${new_wf:-none}"
     export DOTFILES_WORKFLOWS="$new_wf"
 }
 
@@ -166,10 +163,10 @@ run_update() {
     local picked="" _pick_tmp
     _pick_tmp="$(mktemp)"
     if [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]]; then
+        local -a _gum_pick_args=(--no-limit --header "Space=toggle  Enter=confirm")
+        [[ -n "$presel_csv" ]] && _gum_pick_args+=(--selected="$presel_csv")
         printf '%s\n' "${labels[@]}" | \
-            gum choose --no-limit \
-                --header "Space=toggle  Enter=confirm" \
-                ${presel_csv:+--selected="$presel_csv"} > "$_pick_tmp" 2>/dev/null || true
+            gum choose "${_gum_pick_args[@]}" > "$_pick_tmp" 2>/dev/null || true
     else
         # No TTY — auto-run pre-selected (new/stale/failed) modules unattended.
         printf '%s\n' "${presels[@]}" > "$_pick_tmp"
