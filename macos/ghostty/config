@@ -65,8 +65,10 @@ clipboard-read = allow
 clipboard-write = allow
 copy-on-select = clipboard
 
-custom-shader-animation = always
-adjust-cell-height = 35%
+custom-shader-animation = false
+adjust-cell-height = 15%
+bold-color = bright
+resize-overlay = always
 
 mouse-hide-while-typing = true
 mouse-scroll-multiplier = 2
@@ -83,6 +85,8 @@ macos-non-native-fullscreen = visible-menu
 
 # Quake-style drop-down
 quick-terminal-position = top
+quick-terminal-animation-duration = 0.1
+quick-terminal-screen = mouse
 
 # =============================================================================
 # KEYBINDINGS
@@ -111,12 +115,21 @@ keybind = cmd+s>d=new_split:down
 keybind = cmd+s>shift+v=new_split:left
 keybind = cmd+s>shift+d=new_split:up
 keybind = cmd+s>shift+o=close_surface
+keybind = cmd+s>z=toggle_split_zoom
+keybind = cmd+s>shift+ctrl+h=resize_split:left,10
+keybind = cmd+s>shift+ctrl+l=resize_split:right,10
+keybind = cmd+s>shift+ctrl+k=resize_split:up,10
+keybind = cmd+s>shift+ctrl+j=resize_split:down,10
 
 # Navigation
 keybind = cmd+s>j=goto_split:bottom
 keybind = cmd+s>k=goto_split:top
 keybind = cmd+s>shift+j=goto_split:next
 keybind = cmd+s>shift+k=goto_split:previous
+
+# Prompt navigation (requires shell-integration)
+keybind = cmd+s>up=jump_to_prompt:-1
+keybind = cmd+s>down=jump_to_prompt:1
 
 # Quick terminal
 keybind = global:cmd+grave_accent=toggle_quick_terminal

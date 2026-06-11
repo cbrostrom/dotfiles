@@ -13,7 +13,7 @@ show_agent_labels_on_pane_borders = true
 agent_panel_scope = "all"
 
 [theme]
-name = "catppuccin"
+name = "one-dark"
 
 [advanced]
 pane_history              = true
@@ -21,10 +21,11 @@ scrollback_limit_bytes    = 20971520  # 20 MB
 kitty_clipboard_protocol  = false
 
 [ui.toast]
-delivery = "system"
+delivery = "terminal"
 
 [ui.sound]
 enabled = false
 
 [experimental]
-pane_history = false
+pane_history = true
+switch_ascii_input_source_in_prefix = true
