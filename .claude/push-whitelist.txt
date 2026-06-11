@@ -16,3 +16,4 @@
 /tmp/mcp-dockhand
 /Users/Christian.Brostrom/Projects/Private/tessera-descent
 /home/christian/Projects/svarr
+/Users/Christian.Brostrom/Projects/Shopify/akqa-dk-shopify-app-bulk-operations
