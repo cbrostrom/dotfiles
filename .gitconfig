@@ -30,4 +30,4 @@
 	directory = /home/christian/engram-sync
 [merge "engram-manifest"]
 	name = Engram manifest union merge
-	driver = /home/christian/engram-sync/scripts/merge-manifest.py %O %A %B
+	driver = ~/engram-sync/scripts/merge-manifest.py %O %A %B
