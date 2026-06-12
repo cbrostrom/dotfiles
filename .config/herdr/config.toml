@@ -28,4 +28,4 @@ enabled = false
 
 [experimental]
 pane_history = true
-switch_ascii_input_source_in_prefix = true
+switch_ascii_input_source_in_prefix = false
