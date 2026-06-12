@@ -87,20 +87,12 @@ fi
 
 # ---------- Effort hint per tier ----------
 case "$tier" in
-  minimal)
-    HINT="Effort: minimal. Lookup/format task — no extended thinking, no exploration, no planning. One tool call max where possible. Terse output, no preamble."
-    ;;
-  low)
-    HINT="Effort: low. Single-file or single-step change. Skip extended thinking. Skip plan mode. Direct edit + verify. Brief output."
-    ;;
-  high)
-    HINT="Effort: high. Multi-file or design-level work. Use extended thinking. Consider plan mode for ≥3 files. Surface trade-offs."
-    ;;
-  deep)
-    HINT="Effort: deep. Architectural/risky. Use extended thinking + planning-with-files skill. Confirm scope before writing code. Document decisions."
-    ;;
+  minimal) HINT="No tools. Direct answer." ;;
+  low)     HINT="Single edit. No plan. Brief." ;;
+  high)    HINT="Multi-file. Think. Surface tradeoffs." ;;
+  deep)    HINT="Use planning-with-files. Confirm scope. Document decisions." ;;
 esac
 
 jq -nc \
-  --arg ctx "[auto-effort: $tier — $reason] $HINT" \
+  --arg ctx "[eff:$tier] $HINT" \
   '{hookSpecificOutput: {hookEventName: "UserPromptSubmit", additionalContext: $ctx}}'
