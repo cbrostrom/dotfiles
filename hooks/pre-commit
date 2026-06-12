@@ -9,6 +9,10 @@
 
 set -euo pipefail
 
+# Skip snapshot refresh during stash operations — stash creates an internal
+# commit which would re-dirty the working tree immediately after stash.
+[[ "${GIT_REFLOG_ACTION:-}" == *stash* ]] && exit 0
+
 errors=0
 changed=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || true)
 
