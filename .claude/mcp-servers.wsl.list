@@ -1,0 +1,11 @@
+# Claude Code MCP servers — WSL overlay (MonsterBro)
+# Loaded automatically: platform_tag=wsl + profile_tag=wsl both resolve here.
+# No DOTFILES_WORKFLOWS needed — WSL always gets these.
+
+# Developer tools (mirrors mcp-servers.developer.list)
+mcp-mermaid | npx | -y | mcp-mermaid
+tailwindcss | npx | -y | tailwindcss-mcp-server
+google-calendar | ~/.claude/scripts/google-calendar.sh
+
+# Dockhand — superbro via Tailscale (not localhost like host-superbro.list)
+mcp-dockhand | http | http://100.100.1.50:8080/mcp
