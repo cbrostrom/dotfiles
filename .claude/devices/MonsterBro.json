@@ -1,0 +1,41 @@
+{
+  "host": "MonsterBro",
+  "os": "linux",
+  "arch": "x86_64",
+  "profile": "wsl",
+  "last_synced": "2026-06-12T18:59:04Z",
+  "marketplaces": [
+    "cavekit-marketplace",
+    "caveman",
+    "planning-with-files",
+    "plannotator"
+  ],
+  "enabled_plugins": [
+    "atlassian@claude-plugins-official",
+    "caveman@caveman",
+    "ck@cavekit-marketplace",
+    "claude-md-management@claude-plugins-official",
+    "frontend-design@claude-plugins-official",
+    "liquid-lsp@claude-plugins-official",
+    "liquid-skills@claude-plugins-official",
+    "planning-with-files@planning-with-files",
+    "plannotator@plannotator",
+    "shopify@claude-plugins-official",
+    "superpowers@claude-plugins-official"
+  ],
+  "disabled_plugins": [
+    "claude-code-setup@claude-plugins-official",
+    "code-review@claude-plugins-official",
+    "code-simplifier@claude-plugins-official",
+    "github@claude-plugins-official",
+    "skill-creator@claude-plugins-official"
+  ],
+  "mcp_servers_settings": [],
+  "mcp_servers_list": [
+    "github",
+    "lean-ctx",
+    "engram",
+    "graphiti"
+  ],
+  "skills": []
+}
