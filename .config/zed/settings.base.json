@@ -7,18 +7,9 @@
 // → see settings.local.example.json and add manually per machine
 {
     "context_servers": {
-        "mcp-server-github": {
-            "enabled": true,
-            "command": "npx",
-            "args": ["-y", "@modelcontextprotocol/server-github"]
-        },
         "claude-code": {
             "command": "claude",
             "args": ["mcp", "serve"]
-        },
-        "tailwindcss-server": {
-            "command": "npx",
-            "args": ["-y", "tailwindcss-mcp-server"]
         }
     },
     "auto_install_extensions": {
