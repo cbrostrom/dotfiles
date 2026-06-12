@@ -53,6 +53,15 @@ Same as LinuxBro:
 git -C ~/dotfiles pull && DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=server ~/dotfiles/bootstrap.sh --only=mcp-servers,claude-settings,skills
 ```
 
+### 5b. Propagate to MonsterBro (Windows 11 WSL)
+
+SSH into WSL and run:
+```bash
+git -C ~/dotfiles pull && DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=wsl ~/dotfiles/bootstrap.sh --only=mcp-servers,claude-settings,skills
+```
+
+Note: `settings.wsl.json` controls WSL-specific overrides. `wsl` workflow not yet defined — use `server` as fallback until `mcp-servers.wsl.list` is created.
+
 ### 6. Verify effort classifier active on all machines
 
 After each remote update, check:
