@@ -1,6 +1,6 @@
 # dotfiles
 
-Personal dotfiles for macOS (GY-M-WHKK2PF6N7), LinuxBro, SuperBro.
+Personal dotfiles for macOS (GY-M-WHKK2PF6N7), LinuxBro, SuperBro, MonsterBro (Windows 11 WSL).
 
 ## Update
 
@@ -48,6 +48,7 @@ After edits: `./modules/claude-settings/doctor.sh --fix`
 | `developer` | full set | Mac |
 | `work` | atlassian via project-mcp | Mac |
 | `server` | `mcp-servers.server.list` | LinuxBro, SuperBro |
+| `wsl` | `mcp-servers.wsl.list` (TBD) | MonsterBro (WSL) |
 
 ## Per-project MCPs
 
