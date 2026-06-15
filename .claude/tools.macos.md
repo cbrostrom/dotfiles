@@ -12,4 +12,4 @@ Core workflow:
 
 Run `agent-browser --help` for full command reference.
 
-Trigger: any task involving web scraping, form filling, browser testing, or UI automation.
+Trigger: web scraping, form filling, browser testing, UI automation.

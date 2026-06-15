@@ -93,3 +93,4 @@ gaming/config/launch.log
 .claude/skills/paseo-*/
 .claude/skills/use-spark/
 .claude/hooks/herdr-agent-state.sh
+*.original.md

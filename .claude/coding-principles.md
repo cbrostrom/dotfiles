@@ -7,16 +7,16 @@
 - Confused → name it, ask. Never implement through fog.
 
 ## 2. Simplicity First
-- Minimum code that solves the problem. Nothing speculative.
-- No unrequested features, abstractions, or configurability.
+- Min code that solves problem. Nothing speculative.
+- No unrequested features, abstractions, configurability.
 - No error handling for impossible scenarios.
-- 200 lines when 50 works = rewrite it.
+- 200 lines when 50 works = rewrite.
 
 ## 3. Surgical Changes
-- Touch only what the request requires. Nothing else.
-- Don't improve adjacent code, comments, or formatting.
-- Match existing style even when you'd do it differently.
-- Unrelated dead code: mention it, don't delete it.
+- Touch only what request requires. Nothing else.
+- Don't improve adjacent code, comments, formatting.
+- Match existing style even when you'd do differently.
+- Unrelated dead code: mention, don't delete.
 - Clean up only YOUR orphans (imports/vars your changes made unused).
 
 ## 4. Goal-Driven Execution
@@ -24,5 +24,4 @@
 - Multi-step work → see Planning workflow in CLAUDE.md.
 - Weak criteria ("make it work") → ask for success definition first.
 
-These guidelines are working if: diffs contain no unnecessary changes, no rewrites
-due to overcomplication, and clarifying questions come before implementation.
+Guidelines working if: diffs contain no unnecessary changes, no rewrites due to overcomplication, clarifying questions come before implementation.

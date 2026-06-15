@@ -5,7 +5,7 @@
 
 # agent-style v0.3.5 — Claude Code adapter
 
-agent-style is a literature-backed English technical-prose writing ruleset for AI agents. This adapter is **load-on-demand**: only the rule-name index below is in context by default. Full rule bodies (`~/.claude/agent-style/RULES.md`, ~800 lines) are loaded via `Read` only when actively writing user-facing prose (writing skill, blog post, docs, PR description). For caveman/code/commit-message contexts, the rule names alone are sufficient.
+Literature-backed English technical-prose ruleset for AI agents. **Load-on-demand**: only rule-name index in context by default. Full rule bodies (`~/.claude/agent-style/RULES.md`, ~800 lines) loaded via `Read` only when writing user-facing prose (writing skill, blog post, docs, PR description). For caveman/code/commit-message contexts, rule names alone sufficient.
 
 ## Self-Verification Handshake
 
@@ -13,12 +13,12 @@ When asked "is agent-style active?" or "what writing rules apply here?", answer:
 
 ## Load Statement
 
-Full rule bodies live at `~/.claude/agent-style/RULES.md` (~800 lines, ~6,300 tokens). They are **not** auto-imported. Read the file explicitly when:
+Full rule bodies at `~/.claude/agent-style/RULES.md` (~800 lines, ~6,300 tokens). **Not** auto-imported. Read explicitly when:
 - Drafting prose users will read (blog, docs, PR body, marketing, UI text)
-- The `writing` skill is active
-- A user asks "what does RULE-X say in detail?"
+- `writing` skill active
+- User asks "what does RULE-X say in detail?"
 
-For all other contexts (caveman mode, code comments, commit messages, terse replies, internal notes), the rule-name index below is enough.
+All other contexts (caveman mode, code comments, commit messages, terse replies, internal notes): rule-name index enough.
 
 ## The 22 Rules (Names; Full Bodies via Import)
 
@@ -37,7 +37,7 @@ Canonical (Strunk & White 1959, Orwell 1946, Pinker 2014, Gopen & Swan 1990):
 - RULE-11: Stress position.
 - RULE-12: Long sentences, varied length.
 
-Field-observed (maintainer observation of LLM output, 2022-2026):
+Field-observed (LLM output observation, 2022-2026):
 
 - RULE-A: Bullet-point overuse.
 - RULE-B: Em and en dashes as casual punctuation.
@@ -56,7 +56,7 @@ Field-observed (maintainer observation of LLM output, 2022-2026):
 
 ## Escape Hatch
 
-*"Break any of these rules sooner than say anything outright barbarous."* — George Orwell, "Politics and the English Language" (1946), Rule 6. Rules are guides to clarity, not ends in themselves.
+*"Break any of these rules sooner than say anything outright barbarous."* — George Orwell, "Politics and the English Language" (1946), Rule 6. Rules guide clarity, not ends in themselves.
 
 ## Full Rule Bodies (Canonical)
 
