@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # brain-load.sh — SessionStart hook
-# Loads brain from ~/Vaults/Brain/Brains/<slug>.md (primary)
-# Falls back to .claude/brain.md (legacy), then ~/.claude/.active-project (brain-pick).
+# Modular dir (Brains/<slug>/) → INDEX + current + next (non-done items).
+# Falls back to single-file Brains/<slug>.md, then .claude/brain.md,
+# then ~/.claude/.active-project.
 set -uo pipefail
 
 # Platform detection
@@ -18,10 +19,41 @@ else
   SLUG="$(basename "$PWD")"
 fi
 
+MODULAR_DIR="${VAULT_BRAINS}/${SLUG}"
 VAULT_BRAIN="${VAULT_BRAINS}/${SLUG}.md"
 LOCAL_BRAIN=".claude/brain.md"
 ACTIVE_PROJECT_FILE="$HOME/.claude/.active-project"
 
+# ── Modular dir ───────────────────────────────────────────────────────────────
+if [[ -d "$MODULAR_DIR" ]]; then
+  if [[ "$(uname)" == "Darwin" ]]; then
+    MOD="$(stat -f "%Sm" -t "%Y-%m-%d %H:%M" "${MODULAR_DIR}/current.md" 2>/dev/null || true)"
+  else
+    MOD="$(stat -c "%y" "${MODULAR_DIR}/current.md" 2>/dev/null | cut -d'.' -f1 || true)"
+  fi
+
+  echo "=== PROJECT BRAIN LOADED ==="
+  echo "Source: ${MODULAR_DIR}/ (modular, last written: ${MOD:-unknown})"
+  echo "---"
+
+  [[ -f "${MODULAR_DIR}/INDEX.md" ]] && cat "${MODULAR_DIR}/INDEX.md" && echo ""
+
+  if [[ -f "${MODULAR_DIR}/current.md" ]]; then
+    echo "---"
+    cat "${MODULAR_DIR}/current.md"
+    echo ""
+  fi
+
+  if [[ -f "${MODULAR_DIR}/next.md" ]]; then
+    echo "---"
+    grep -v '\[done:' "${MODULAR_DIR}/next.md" || true
+  fi
+
+  echo "=== END PROJECT BRAIN ==="
+  exit 0
+fi
+
+# ── Legacy single-file ────────────────────────────────────────────────────────
 if [ -f "$VAULT_BRAIN" ]; then
   BRAIN="$VAULT_BRAIN"
 elif [ -f "$LOCAL_BRAIN" ]; then
