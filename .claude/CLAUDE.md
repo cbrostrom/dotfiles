@@ -45,7 +45,6 @@ Routing rules: `@engram-graphiti.md`. MCPs: `~/.dotfiles/.claude/mcp-servers.lis
 | `.brain [slug] [text]` | Resolve target slug (explicit arg > active plan `repo:` frontmatter > loaded brain > git basename > PWD). Multiple plausible candidates that differ → ask via `AskUserQuestion` before writing. Append timestamped section to `$VAULT/Brains/<slug>.md`. Before writing output: `> 🧠 **Brain updating** → \`Brains/<slug>.md\`` — then write — then output: `> ✅ **Saved**`. **`.brain optimise`** → read brain file, apply non-destructive cleanup: remove Next Steps items confirmed done in recent sections, deduplicate Gotchas/Current State entries, merge stale timestamped sections into updated Current State, update `updated:` frontmatter date. Rewrite file. No content destruction — only consolidation. |
 | `.docker` | list containers on relevant host |
 | `.stacks` | Dockhand MCP (superbro) |
-| `.spec` / `.build` / `.check` | `/ck:spec` / `/ck:build` / `/ck:check` |
 | `.worklog <period>` | `/worklog` |
 | `.compress-skills [filter]` | `~/dotfiles/scripts/compress-skills.sh [filter]` — caveman-compress skill SKILL.md files |
 | `.pick` | List active projects (`$VAULT/Brains/*.md` status:active + `$VAULT/Plans/Active/*.md`). `find` slugs only (no full reads). `AskUserQuestion` with slug list. On pick: read that brain file, surface top Next Steps item as one-liner. |
@@ -70,6 +69,7 @@ Routing rules: `@engram-graphiti.md`. MCPs: `~/.dotfiles/.claude/mcp-servers.lis
 | "read my note on X / show note" | native `Read` on `$VAULT/<path>` |
 | "open this note in Obsidian" | `ob open <path>` via Bash (only case needing REST API) |
 Engram = manual only (no auto hooks). Use `mem_save`/`mem_search` when invoked explicitly. Graphiti = disabled until needed at scale.
+Engram + Graphiti require `DOTFILES_WORKFLOWS=...,memory` overlay to load. Apple-MCP requires `DOTFILES_WORKFLOWS=...,apple`.
 
 ## Vault paths (direct file access — no REST API needed for read/write/search)
 | Platform | Path |
@@ -121,7 +121,6 @@ Author tool by scope; plannotator gates ExitPlanMode automatically.
 | Trivial: ≤2 files, single fix, 1-line, rename | Direct edit |
 | Mid: 2–3 files, scoped feature, clear path | `EnterPlanMode` → outline → `ExitPlanMode` |
 | Big: ≥3 files, new feature, refactor, architecture, multi-step | `.task init` → vault tasks.md |
-| Component spec w/ invariants + bug history | `/ck:spec` → SPEC.md (see `~/.claude/cavekit.md`) |
 
 ## Plannotator (auto)
 Hooks `ExitPlanMode`. Every exit → browser UI. Approve → proceed. Annotate → piped back → model revises → reopens with diff.
@@ -129,11 +128,6 @@ Hooks `ExitPlanMode`. Every exit → browser UI. Approve → proceed. Annotate �
 | `/plannotator-review` | code review on diff or PR URL |
 | `/plannotator-annotate <file>` | annotate markdown file |
 | `/plannotator-last` | annotate last message |
-
-# Cavekit
-Full detail: `~/.claude/cavekit.md` — Read when using `/ck:spec`, `/ck:build`, `/ck:check`.
-Commands: `/ck:spec` (write/amend SPEC.md) / `/ck:build` (execute + backprop §B/§V) / `/ck:check` (drift report).
-Drift check: run `/ck:check` before `git commit` in repos with SPEC.md.
 
 # Read tool routing (overrides lean-ctx default)
 Default = native Read/Grep/Bash. lean-ctx only when:
