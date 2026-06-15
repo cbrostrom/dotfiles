@@ -42,7 +42,7 @@ Routing rules: `@engram-graphiti.md`. MCPs: `~/.dotfiles/.claude/mcp-servers.lis
 | `.ui` | frontend-design skill |
 | `.write` | writing skill |
 | `.caveman` / `.normal` | caveman on / off |
-| `.brain [slug] [text]` | Resolve target slug (explicit arg > active plan `repo:` frontmatter > loaded brain > git basename > PWD). Multiple plausible candidates that differ → ask via `AskUserQuestion` before writing. Append timestamped section to `$VAULT/Brains/<slug>.md`. Before writing output: `> 🧠 **Brain updating** → \`Brains/<slug>.md\`` — then write — then output: `> ✅ **Saved**`. **`.brain optimise`** → read brain file, apply non-destructive cleanup: remove Next Steps items confirmed done in recent sections, deduplicate Gotchas/Current State entries, merge stale timestamped sections into updated Current State, update `updated:` frontmatter date. Rewrite file. No content destruction — only consolidation. |
+| `.brain [subcmd] [args]` | brain skill (`~/.claude/skills/brain/SKILL.md`). Subcommands: `.brain` (session summary → history/), `.brain <text>` (dump → history/), `.brain current <text>`, `.brain gotcha <text>`, `.brain next <text>`, `.brain done <substr>`, `.brain optimise [slug]`, `.brain migrate <slug>`, `.brain show [slug]`. |
 | `.docker` | list containers on relevant host |
 | `.stacks` | Dockhand MCP (superbro) |
 | `.worklog <period>` | `/worklog` |
@@ -51,11 +51,11 @@ Routing rules: `@engram-graphiti.md`. MCPs: `~/.dotfiles/.claude/mcp-servers.lis
 
 ## Session start behavior
 - Brain auto-loaded by hook (git repo basename → vault slug). No action needed.
-- If brain loaded and has `## Next Steps`: surface top 1–2 items as one-liner after first user message.
-- If no brain auto-loaded (no matching vault file): proactively suggest `.pick` once.
+- If brain loaded (modular: `next.md` non-done items; legacy: `## Next Steps`): surface top 1–2 items as one-liner after first user message.
+- If no brain auto-loaded (no matching vault file or dir): proactively suggest `.pick` once.
 
 ## Memory routing
-**Primary brain = `Brains/<slug>.md` (loaded by hook at session start). No MCP call needed.**
+**Primary brain = `Brains/<slug>/` (modular) or `Brains/<slug>.md` (legacy) — loaded by hook at SessionStart. No MCP call needed.**
 
 | Signal | Action |
 |---|---|

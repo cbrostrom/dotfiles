@@ -150,6 +150,17 @@
   "skipAutoPermissionPrompt": true,
   "useAutoModeDuringPlan": true,
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/brain-optimise-cheap.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
     "PreToolUse": [],
     "SessionEnd": []
   }
