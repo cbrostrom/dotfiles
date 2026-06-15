@@ -223,6 +223,9 @@ run_update() {
         gum style --foreground 10 "  ✓  Doctor: clean"
     fi
 
+    # 7. Cleanup orphaned agent worktrees
+    bash "$DOTFILES_DIR/scripts/cleanup-agent-worktrees.sh" >> "$log_file" 2>&1 || true
+
     echo
     [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key to return…" -n1; echo; }
 }

@@ -1,0 +1,7 @@
+# Claude Code MCP servers — Apple PIM overlay (opt-in)
+# Load via: DOTFILES_WORKFLOWS=developer,apple
+# Requires: bun on PATH (brew install oven-sh/bun/bun)
+
+# Apple MCP — AppleScript bridge to native macOS PIM apps
+# (Messages, Notes, Contacts, Mail, Reminders, Calendar, Maps).
+apple-mcp | bunx | -y | @dhravya/apple-mcp@latest
