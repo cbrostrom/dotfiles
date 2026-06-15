@@ -1,25 +1,30 @@
 # Brain: dotfiles
-_Updated: 2026-06-09 13:45_
+_Updated: 2026-06-15 16:00_
 
 ## Current State
-- Project brain system shipped: brain-save-inject.sh + brain-load.sh hooks + enhanced session-wrap
+- statusline.sh: cost removed (per-session only, not useful)
+- engram-graphiti.md removed from CLAUDE.md (cleanup)
+- settings.base.json + statusline.sh modified this session
 
 ## Open Decisions
-- Test PreCompact hook fires correctly in real session (not yet verified in production)
-- Consider adding `.claude/brain.md` to .gitignore (project-specific, changes often)
+- Vault sync mechanism still deferred (LiveSync vs Syncthing vs hybrid)
+- Brain skill build deferred — validate vault use first
+- Old vault `~/Vaults/Christian/` retained for plugin config; delete after 1 week
 
 ## Gotchas
-- brain-load.sh must NOT be async in settings — async hooks don't inject context before session starts
-- HOOK_EVENT_NAME env var must be set explicitly when brain-save-inject.sh runs as UserPromptSubmit (hook harness doesn't set it automatically)
-- settings.local.json is wiped on SessionStart — all hook changes go in settings.darwin.json
+- `brain-load.sh` / `brain-save-inject.sh` still target repo-local `.claude/brain.md`, NOT vault `Brains/<slug>.md`
+- LiveSync paused during restructure — must reconfigure CouchDB to new vault folder
+- `.cost.total_cost_usd` in Claude Code hook payload = cost since session start (not wall-clock)
 
 ## Next Steps
-- Start new CC session in dotfiles dir → verify brain.md loads in context
-- Test `/compact` triggers brain-save-inject injection
-- Consider gitignore for .claude/brain.md
+- Rewrite `brain-load.sh` to target `~/Vaults/Brain/Brains/<slug>.md` via `$PWD → slug` table
+- Reconfigure LiveSync on new Brain vault (or commit to sync decision first)
+- Merge `Work/AKQA/Shopify/Fiskars/_dupe-from-Projects-Fiskars/` manually before new Fiskars notes
 
 ## Git Snapshot
-.claude/hooks/brain-load.sh                        |  22 +
-.claude/hooks/brain-save-inject.sh                 |  52 +++
-.claude/settings.darwin.json                       |   7 +-
-.claude/skills/session-wrap/SKILL.md               |  85 ++--
+ .claude/CLAUDE.md              |   1 -
+ .claude/brain.md               |  32 ++++----
+ .claude/hooks/statusline.sh    |  71 +++++++++--------
+ .claude/hooks/wrap-reminder.sh |   4 +-
+ .claude/settings.base.json     | 174 ++++++++++++++++++++++++++++++++--------
+ 5 files changed, 200 insertions(+), 82 deletions(-)
