@@ -3,9 +3,10 @@
 // For information on how to configure Zed, see the Zed
 // documentation: https://zed.dev/docs/configuring-zed
 //
-// Machine-specific config (engram MCP, wsl_connections on macOS, etc.)
+// Machine-specific config (engram MCP, wsl_connections on macOS, ollama, font sizes, etc.)
 // → see settings.local.example.json and add manually per machine
 {
+    "redact_private_values": true,
     "context_servers": {
         "claude-code": {
             "command": "claude",
@@ -28,12 +29,16 @@
         "mcp-server-shopify-dev": true,
         "nix": true,
         "toml": true,
-        "yaml": true
+        "yaml": true,
+        "tailwind-css": true
     },
     "git_panel": {
-        "dock": "left"
+        "dock": "left",
+        "button": true,
+        "tree_view": true
     },
     "edit_predictions": {
+        "mode": "subtle",
         "provider": "copilot"
     },
     "agent": {
@@ -60,7 +65,9 @@
         "button": true,
         "default_model": {
             "provider": "copilot_chat",
-            "model": "gpt-4o"
+            "model": "claude-sonnet-4.6",
+            "effort": "high",
+            "enable_thinking": true
         },
         "enable_feedback": true,
         "flexible": false,
@@ -69,20 +76,25 @@
         "favorite_models": [
             {
                 "provider": "copilot_chat",
-                "model": "gpt-4o"
-            },
-            {
-                "provider": "copilot_chat",
                 "model": "claude-sonnet-4.6",
                 "enable_thinking": true,
                 "effort": "high"
             }
         ],
-        "model_parameters": []
+        "model_parameters": [],
+        "show_turn_stats": true
     },
     "agent_servers": {
         "claude-acp": {
-            "type": "registry"
+            "type": "registry",
+            "favorite_config_option_values": {
+                "model": ["claude-sonnet-4-6", "default"],
+                "mode": ["auto", "plan", "bypassPermissions"]
+            },
+            "default_config_options": {
+                "model": "claude-sonnet-4-6",
+                "mode": "auto"
+            }
         },
         "github-copilot-cli": {
             "type": "registry"
@@ -115,7 +127,8 @@
         "trust_all_worktrees": true
     },
     "terminal": {
-        "cursor_shape": "bar"
+        "cursor_shape": "bar",
+        "max_scroll_history_lines": 5000
     },
     "project_panel": {
         "diagnostic_badges": true,
@@ -128,13 +141,29 @@
         "show": "auto"
     },
     "cursor_shape": "bar",
-    "buffer_font_fallbacks": ["Monaco", "Courier New", "monospace"],
+    "cursor_blink": true,
+    "buffer_font_fallbacks": ["JetBrains Mono", "Fira Code", "Consolas", "monospace"],
     "buffer_font_family": "JetBrainsMono Nerd Font",
     "file_types": {
         "tailwindcss": ["*.css"]
     },
-    "auto_indent_on_paste": true,
-    "use_on_type_format": true,
+    "tab_bar": {
+        "show": true
+    },
+    "max_tabs": 10,
+    "autosave": "on_focus_change",
+    "colorize_brackets": true,
+    "linked_edits": true,
+    "show_whitespaces": "boundary",
+    "indent_guides": {
+        "enabled": true
+    },
+    "soft_wrap": "none",
+    "hard_tabs": false,
+    "tab_size": 2,
+    "vim_mode": false,
+    "auto_indent_on_paste": false,
+    "use_on_type_format": false,
     "base_keymap": "VSCode",
     "icon_theme": {
         "mode": "dark",
@@ -146,7 +175,7 @@
     "theme": {
         "mode": "dark",
         "light": "Ayu Dark",
-        "dark": "Cursor Dark"
+        "dark": "Ayu Dark"
     },
     "proxy": ""
 }
