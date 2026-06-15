@@ -19,7 +19,7 @@ set -euo pipefail
 
 RBW_EMAIL_DEFAULT="signup@christianbrostrom.com"
 RBW_BASE_URL_DEFAULT="https://vault.superbro.dk"
-RBW_LOCK_TIMEOUT_DEFAULT="3600"
+RBW_LOCK_TIMEOUT_DEFAULT="28800"
 
 # macOS rbw ignores XDG — uses platform data dir
 if is_macos; then
@@ -167,11 +167,22 @@ EOF
     ok "wrote rbw config → $RBW_CONFIG_FILE (pinentry=$pinentry_program)"
 }
 
+install_launchagent() {
+    is_macos || return 0
+    local plist_src="${DOTFILES_DIR}/modules/rbw/dk.brostrom.rbw-unlock.plist"
+    local plist_dst="${HOME}/Library/LaunchAgents/dk.brostrom.rbw-unlock.plist"
+    [[ -f "${plist_src}" ]] || { warn "rbw unlock plist not found — skipping LaunchAgent"; return 0; }
+    mkdir -p "$(dirname "${plist_dst}")"
+    cp "${plist_src}" "${plist_dst}"
+    launchctl unload "${plist_dst}" 2>/dev/null || true
+    launchctl load "${plist_dst}" && ok "rbw-unlock LaunchAgent loaded (Touch ID at login)" || warn "launchctl load failed"
+}
+
 print_next_steps() {
     if has rbw && [[ -f "$RBW_CONFIG_FILE" ]]; then
         info "next steps (one-time, per machine):"
         info "  1. rbw login                    # authenticate with Bitwarden master password"
-        info "  2. rbw unlock                   # unlock the vault (cached for $RBW_LOCK_TIMEOUT_DEFAULT seconds)"
+        info "  2. rbw unlock                   # one Touch ID tap → silent for 8h"
         info "  3. open a new terminal — env-secrets.zsh will populate \$GITHUB_PERSONAL_ACCESS_TOKEN etc."
         info "  4. restart Cursor / Claude — MCP servers pick up new env on launch"
     fi
@@ -179,4 +190,5 @@ print_next_steps() {
 
 install_rbw
 write_default_config
+install_launchagent
 print_next_steps
