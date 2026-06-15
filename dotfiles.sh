@@ -435,7 +435,8 @@ main() {
         --update)        DOTFILES_NONINTERACTIVE=1 run_update;  return ;;
         --install)       DOTFILES_NONINTERACTIVE=1 run_install; return ;;
         --reset)         run_reset;   return ;;
-        --doctor)        bash "$DOTFILES_DIR/scripts/doctor.sh"; return ;;
+        --doctor)        bash "$DOTFILES_DIR/scripts/doctor.sh" "${@:2}"; return ;;
+        --claude-doctor) bash "$DOTFILES_DIR/modules/claude-settings/doctor.sh" "${@:2}"; return ;;
         --status)        show_status; return ;;
         --devices)       bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" list; return ;;
         --engram-setup)  bash "$DOTFILES_DIR/scripts/install/engram.sh"; return ;;
