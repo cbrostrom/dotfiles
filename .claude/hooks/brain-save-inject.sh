@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # brain-save-inject.sh — PreCompact + UserPromptSubmit hook
-# Injects instruction to write .claude/brain.md before context is lost.
+# Injects instruction to write ~/Vaults/Brain/Brains/<slug>.md before context is lost.
 # As PreCompact: always fires.
 # As UserPromptSubmit: fires only on /compact or /clear.
 set -uo pipefail
@@ -14,20 +14,36 @@ else
   cat >/dev/null
 fi
 
-git rev-parse --git-dir >/dev/null 2>&1 || exit 0
+# Slug: git repo basename if in a repo, else PWD basename
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
+else
+  SLUG="$(basename "$PWD")"
+fi
 
-BRAIN=".claude/brain.md"
-REPO="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")"
+# Platform detection
+if grep -qi microsoft /proc/version 2>/dev/null || [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
+  VAULT_BRAINS="/mnt/c/Users/christian/Obsidian/Brain/Brains"
+else
+  VAULT_BRAINS="$HOME/Vaults/Brain/Brains"
+fi
+BRAIN="${VAULT_BRAINS}/${SLUG}.md"
 NOW="$(date '+%Y-%m-%d %H:%M')"
+
+# Git snapshot line (optional — omitted if not a git repo)
+GIT_SNAP=""
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  GIT_SNAP="$(git diff --stat HEAD 2>/dev/null || git diff --stat HEAD~1 2>/dev/null || true)"
+fi
 
 cat <<EOF
 === BRAIN SAVE REQUIRED ===
 Context about to compact/clear. Write ${BRAIN} NOW before proceeding.
-Project: ${REPO} | Timestamp: ${NOW}
+Project: ${SLUG} | Timestamp: ${NOW}
 
 Write with these exact sections (≤3 bullets each, no filler):
 
-# Brain: ${REPO}
+# Brain: ${SLUG}
 _Updated: ${NOW}_
 
 ## Current State
@@ -41,11 +57,11 @@ _Updated: ${NOW}_
 
 ## Next Steps
 - [concrete first action for next session]
-
+${GIT_SNAP:+
 ## Git Snapshot
-[output of: git diff --stat HEAD (or HEAD~1 if nothing staged)]
+${GIT_SNAP}}
 
-After writing brain.md, proceed with the compact/clear.
+After writing the brain file, proceed with the compact/clear.
 === END BRAIN SAVE REQUIRED ===
 EOF
 
