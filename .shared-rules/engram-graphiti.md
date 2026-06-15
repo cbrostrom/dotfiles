@@ -4,7 +4,7 @@ Canonical source for both Claude Code and Cursor. Edit only this file. Claude
 includes via `@engram-graphiti.md`; Cursor reads from cloud User Rules (paste
 content of this file there once, re-paste when this file changes).
 
-Two complementary memory systems. Use both proactively in every session — do not wait to be asked.
+**Primary brain: flat-file vault (`~/Vaults/Brain/Brains/<slug>.md`).** Brain hook loads it automatically at session start. Engram = write-only by default; query only on explicit `.recall`. Graphiti = disabled until relational queries are needed at scale.
 
 ## Engram — flat memory (key-value + FTS5, fast recall)
 
@@ -19,20 +19,19 @@ MCP tool names are prefixed by server name and have `mem_*` action suffix
 
 | Action | Tool | When |
 |---|---|---|
-| Load prior context at session start | `mem_context` | Always, first action of every session unless explicitly stateless |
+| Load prior context | `mem_context` | Only on explicit `.recall` or "what did we do last session" — NOT automatic |
 | Save a decision/bug/convention/discovery | `mem_save` | Proactively after any of those — do not wait for "remember this" |
-| Search across all observations | `mem_search` | Before assuming context, before re-deriving an answer |
+| Search across all observations | `mem_search` | Only on explicit `.recall` or when vault grep returns nothing |
 | Get full untruncated content | `mem_get_observation(id)` | Only when `mem_search` snippet is insufficient |
 | Persist evolving topic | `mem_save` with `topic_key` | Topic that gets updated over time (devices/X, architecture/Y) |
-| End-of-session summary | `mem_session_summary` | Before saying "done" or wrapping up |
+| End-of-session summary | `mem_session_summary` | On `.bye` / `.wrap` only |
 | Conflict surfacing | `mem_compare` / `mem_judge` | When a new observation contradicts an existing one |
-
 
 ### Token + speed optimization
 
 - Use `type` filter on `mem_search` when scope is known (decision / architecture / bugfix / config / pattern / discovery / learning)
 - Prefer `topic_key` upserts over creating duplicate observations
-- Use `mem_context` (~400 tok) instead of broad search at session start
+- Use `mem_context` (~400 tok) instead of broad search when querying
 
 ### Local UI / inspection
 
@@ -56,16 +55,17 @@ the file is absent.
 
 ## Graphiti — knowledge graph (temporal, relational)
 
+**Status: disabled / on-demand only.** Graphiti quota errors have been recurring; relational queries are not yet needed at current scale. Skip all automatic Graphiti calls. Re-enable when user explicitly asks for entity relationship queries.
+
 Neo4j-backed temporal graph on SuperBro at HTTP MCP
 `http://100.100.1.50:8000/mcp`. Group ID `claude-code` is shared across all
 sessions on all tools (Claude, Cursor, future agents).
 
-Use Graphiti for:
+Use Graphiti for (when re-enabled):
 
 - Relationships between entities (people, projects, services, tools, preferences)
 - Facts that change over time — Graphiti tracks when a fact was true and when it expired
-- Cross-project knowledge that benefits from graph traversal ("what tools does Christian use for X?", "how do these projects relate?")
-- Structured data and richer context than Engram's key-value model
+- Cross-project knowledge that benefits from graph traversal
 
 ### Graphiti tool calls
 
@@ -81,27 +81,22 @@ Use Graphiti for:
 
 | Signal | Use |
 |---|---|
-| Quick fact, convention, bug fix | Engram (`mem_save`) — engram only |
-| Entity with relationships to other entities | Graphiti (`add_memory`) — graphiti only |
-| Session continuity, "what did we do last time?" | Engram (`mem_context`) |
-| "How does X relate to Y?", temporal queries | Graphiti (`search_facts` / `search_nodes`) |
-| "What do you know about X?" general recall | Both: Engram `mem_search` + Graphiti `search_nodes` |
-| End of session | Engram `mem_session_summary` (+ Graphiti `add_memory` for session highlights when relational) |
-
-**Default = single write.** Dual-write doubles cost; reserve for facts that
-genuinely live in both modalities (e.g., "Christian decided to use Loopsy on
-superbro" — relational entity link AND flat recall by topic). Pure flat
-facts → engram only. Pure relational facts → graphiti only.
+| Session start | Brain hook loads `Brains/<slug>.md` automatically — no MCP call needed |
+| Quick fact, convention, bug fix | Engram `mem_save` only |
+| "what did we do last session?" / explicit `.recall` | Engram `mem_context` |
+| "what do you know about X?" / explicit `.recall` | Engram `mem_search` then vault grep |
+| Relational queries ("how does X relate to Y?") | Graphiti — only when explicitly asked |
+| End of session (`.bye` / `.wrap`) | Engram `mem_session_summary` |
 
 ## Keyword dispatch (matches both tools)
 
 | Keywords / intent | Action |
 |---|---|
-| "remember", "save this", "note that", "don't forget" | Engram `mem_save` (+ Graphiti `add_memory` if relational) |
-| "what did we do", "last session", "pick up where", "context" | Engram `mem_context` |
-| "how does X relate to Y", "connections between", "timeline of", "when did X change" | Graphiti `search_facts` / `search_nodes` |
-| "what do you know about X", "recall", "search memory" | Both: Engram `mem_search` + Graphiti `search_nodes` |
-| "we're done", "wrapping up", "end of session" | Engram `mem_session_summary` (+ Graphiti `add_memory` when relational) |
+| "remember", "save this", "note that", "don't forget" | Engram `mem_save` |
+| `.recall`, "what did we do", "last session", "pick up where" | Engram `mem_context` |
+| "how does X relate to Y", "connections between", "timeline of" | Graphiti — only on explicit ask |
+| "what do you know about X", "recall", "search memory" | Engram `mem_search` then vault grep |
+| `.bye` / `.wrap` / "we're done", "wrapping up" | Engram `mem_session_summary` |
 
 ## Maintenance
 
