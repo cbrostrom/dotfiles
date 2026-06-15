@@ -168,8 +168,9 @@ if [[ "$PCT" =~ ^[0-9]+$ && "$PCT" -gt 0 ]]; then
     bar=""
     for ((i=0; i<filled; i++)); do bar+="▰"; done
     for ((i=0; i<empty; i++)); do bar+="▱"; done
-    if   [[ $PCT -ge 90 ]]; then bar_clr='\033[38;5;167m'
-    elif [[ $PCT -ge 70 ]]; then bar_clr='\033[38;5;214m'
+    if   [[ $PCT -ge 90 ]]; then bar_clr='\033[38;5;196m'   # red    — CLEAR NOW
+    elif [[ $PCT -ge 75 ]]; then bar_clr='\033[38;5;214m'  # orange — clear now
+    elif [[ $PCT -ge 50 ]]; then bar_clr='\033[38;5;226m'  # yellow — getting costly
     else                          bar_clr='\033[38;5;71m'; fi
     [[ -n "$right" ]] && right+="$(printf ' \033[38;5;240m·\033[0m')"
     right+=" $(printf "${bar_clr}%s %d%%\033[0m" "$bar" "$PCT")"
