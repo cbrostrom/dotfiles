@@ -41,33 +41,32 @@ Routing rules: `@engram-graphiti.md`. MCPs: `~/.dotfiles/.claude/mcp-servers.lis
 | `.ui` | frontend-design skill |
 | `.write` | writing skill |
 | `.caveman` / `.normal` | caveman on / off |
-| `.remember` | `mem_save` + Graphiti `add_memory` |
-| `.recall` | `mem_search` + Graphiti `search_nodes` |
+| `.brain [slug] [text]` | Resolve target slug (explicit arg > active plan `repo:` frontmatter > loaded brain > git basename > PWD). Multiple plausible candidates that differ → ask via `AskUserQuestion` before writing. Append timestamped section to `$VAULT/Brains/<slug>.md`. Confirm: `Brain updated → Brains/<slug>.md`. |
 | `.docker` | list containers on relevant host |
 | `.stacks` | Dockhand MCP (superbro) |
 | `.spec` / `.build` / `.check` | `/ck:spec` / `/ck:build` / `/ck:check` |
 | `.worklog <period>` | `/worklog` |
-| `.bye` / `.wrap` | `session-wrap` skill — save session to Engram + update next steps |
+| `.compress-skills [filter]` | `~/dotfiles/scripts/compress-skills.sh [filter]` — caveman-compress skill SKILL.md files |
 
 ## Memory routing
+**Primary brain = `Brains/<slug>.md` (loaded by hook at session start). No MCP call needed.**
+
 | Signal | Action |
 |---|---|
-| "remember/save this/note that/don't forget" | `mem_save` (+ Graphiti if relational) |
-| "what did we do/last session/pick up where" | `mem_context` |
-| "how does X relate to Y/connections/timeline" | Graphiti `search_facts`/`search_nodes` |
-| "what do you know about X/recall/search memory" | both: `mem_search` + `search_nodes` |
-| "we're done/wrapping up/end of session" | `mem_session_summary` + Graphiti highlights |
+| `.recall` / "what did we do/last session/pick up where" | vault grep first → `mem_context` if no brain file |
+| "what do you know about X/recall/search memory" | vault grep → `mem_search` if no vault hit |
+| "how does X relate to Y/connections/timeline" | Graphiti — only on explicit ask |
 | "what do I have on X/find my notes on X" | `grep -r -l "<query>" $VAULT --include="*.md"` then Read matching files |
 | "capture this/add to inbox/note this in vault" | append to `$VAULT/Inbox/Inbox.md` via Write tool |
 | "read my note on X / show note" | native `Read` on `$VAULT/<path>` |
 | "open this note in Obsidian" | `ob open <path>` via Bash (only case needing REST API) |
-Engram vs Obsidian — not redundant. Engram = Claude's observations about user. Obsidian = user's own notes.
+Engram = manual only (no auto hooks). Use `mem_save`/`mem_search` when invoked explicitly. Graphiti = disabled until needed at scale.
 
 ## Vault paths (direct file access — no REST API needed for read/write/search)
 | Platform | Path |
 |---|---|
 | WSL | `/mnt/c/Users/christian/Obsidian/Christian` |
-| macOS | `~/Vaults/Christian` |
+| macOS | `~/Vaults/Brain` |
 | Linux | N/A |
 
 Use `$VAULT` as shorthand. Detect platform: WSL = `/proc/version` contains "microsoft"; macOS = `uname` = Darwin.

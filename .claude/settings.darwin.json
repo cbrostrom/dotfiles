@@ -28,26 +28,6 @@
             "timeout": 10
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/entroly-start.sh",
-            "async": true,
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/claude-settings-merge.sh",
-            "async": true,
-            "timeout": 15
-          }
-        ]
       }
     ],
     "PreToolUse": [
