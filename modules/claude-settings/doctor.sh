@@ -148,6 +148,33 @@ if [ -f "$AGENT_CORE" ] && [ -x "$SYNC_SCRIPT" ]; then
     fi
 fi
 
+# 6. Hook symlinks: dotfiles/.claude/hooks/*.sh → ~/.claude/hooks/
+HOOKS_SRC="$CLAUDE_DIR/hooks"
+HOOKS_DEST="$HOME/.claude/hooks"
+if [ -d "$HOOKS_SRC" ] && [ -d "$HOOKS_DEST" ]; then
+    while IFS= read -r -d '' src; do
+        name="$(basename "$src")"
+        dest="$HOOKS_DEST/$name"
+        if [ ! -L "$dest" ]; then
+            warn "missing hook symlink: ~/.claude/hooks/$name"
+            if [ "$FIX" -eq 1 ]; then
+                ln -s "$src" "$dest"
+                ok "applied: linked $name"
+                issues=$((issues - 1))
+            fi
+        elif [ "$(readlink "$dest")" != "$src" ]; then
+            warn "hook symlink wrong target: $name → $(readlink "$dest") (expected $src)"
+            if [ "$FIX" -eq 1 ]; then
+                ln -sf "$src" "$dest"
+                ok "applied: relinked $name"
+                issues=$((issues - 1))
+            fi
+        else
+            ok "hook symlink ok: $name"
+        fi
+    done < <(find "$HOOKS_SRC" -maxdepth 1 -name '*.sh' -print0)
+fi
+
 say ""
 if [ "$issues" -eq 0 ]; then
     ok "doctor clean."
