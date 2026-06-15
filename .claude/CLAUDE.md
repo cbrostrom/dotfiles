@@ -35,29 +35,38 @@ Routing rules: `@engram-graphiti.md`. MCPs: `~/.dotfiles/.claude/mcp-servers.lis
 ## Dot-commands
 | Command | Action |
 |---|---|
-| `.plan` | Scope-route: big → `planning-with-files:plan`, mid → `EnterPlanMode`, trivial → direct |
+| `.plan` | Scope-route: big → `.task init`, mid → `EnterPlanMode`, trivial → direct |
+| `.task <cmd>` | taskmaster skill — vault-native task state machine (`~/.claude/skills/taskmaster/SKILL.md`) |
 | `.review` | review skill |
 | `.security` | security-review skill |
 | `.ui` | frontend-design skill |
 | `.write` | writing skill |
 | `.caveman` / `.normal` | caveman on / off |
-| `.brain [slug] [text]` | Resolve target slug (explicit arg > active plan `repo:` frontmatter > loaded brain > git basename > PWD). Multiple plausible candidates that differ → ask via `AskUserQuestion` before writing. Append timestamped section to `$VAULT/Brains/<slug>.md`. Confirm: `Brain updated → Brains/<slug>.md`. |
+| `.brain [slug] [text]` | Resolve target slug (explicit arg > active plan `repo:` frontmatter > loaded brain > git basename > PWD). Multiple plausible candidates that differ → ask via `AskUserQuestion` before writing. Append timestamped section to `$VAULT/Brains/<slug>.md`. Before writing output: `> 🧠 **Brain updating** → \`Brains/<slug>.md\`` — then write — then output: `> ✅ **Saved**` |
 | `.docker` | list containers on relevant host |
 | `.stacks` | Dockhand MCP (superbro) |
 | `.spec` / `.build` / `.check` | `/ck:spec` / `/ck:build` / `/ck:check` |
 | `.worklog <period>` | `/worklog` |
 | `.compress-skills [filter]` | `~/dotfiles/scripts/compress-skills.sh [filter]` — caveman-compress skill SKILL.md files |
+| `.pick` | List active projects (`$VAULT/Brains/*.md` status:active + `$VAULT/Plans/Active/*.md`). `find` slugs only (no full reads). `AskUserQuestion` with slug list. On pick: read that brain file, surface top Next Steps item as one-liner. |
+
+## Session start behavior
+- Brain auto-loaded by hook (git repo basename → vault slug). No action needed.
+- If brain loaded and has `## Next Steps`: surface top 1–2 items as one-liner after first user message.
+- If no brain auto-loaded (no matching vault file): proactively suggest `.pick` once.
 
 ## Memory routing
 **Primary brain = `Brains/<slug>.md` (loaded by hook at session start). No MCP call needed.**
 
 | Signal | Action |
 |---|---|
+| "remember/save/note/brain/don't forget" | Write to relevant `$VAULT/` note |
+| "capture/inbox" | New file `$VAULT/Inbox/YYYY-MM-DD-HH-MM-<slug>.md` |
+| "save to engram" | `mem_save` — explicit only |
 | `.recall` / "what did we do/last session/pick up where" | vault grep first → `mem_context` if no brain file |
 | "what do you know about X/recall/search memory" | vault grep → `mem_search` if no vault hit |
 | "how does X relate to Y/connections/timeline" | Graphiti — only on explicit ask |
-| "what do I have on X/find my notes on X" | `grep -r -l "<query>" $VAULT --include="*.md"` then Read matching files |
-| "capture this/add to inbox/note this in vault" | append to `$VAULT/Inbox/Inbox.md` via Write tool |
+| "what do I have on X/find my notes on X" | `grep -r -l "<query>" $VAULT --include="*.md"` then Read matching files
 | "read my note on X / show note" | native `Read` on `$VAULT/<path>` |
 | "open this note in Obsidian" | `ob open <path>` via Bash (only case needing REST API) |
 Engram = manual only (no auto hooks). Use `mem_save`/`mem_search` when invoked explicitly. Graphiti = disabled until needed at scale.
@@ -111,11 +120,8 @@ Author tool by scope; plannotator gates ExitPlanMode automatically.
 |---|---|
 | Trivial: ≤2 files, single fix, 1-line, rename | Direct edit |
 | Mid: 2–3 files, scoped feature, clear path | `EnterPlanMode` → outline → `ExitPlanMode` |
-| Big: ≥3 files, new feature, refactor, architecture, multi-step | `planning-with-files:plan` (task_plan.md / findings.md / progress.md) |
+| Big: ≥3 files, new feature, refactor, architecture, multi-step | `.task init` → vault tasks.md |
 | Component spec w/ invariants + bug history | `/ck:spec` → SPEC.md (see `~/.claude/cavekit.md`) |
-
-## Use `planning-with-files:plan` when ANY:
-architecture / spec / refactor / redesign / migration / multi-step / "approach" / "design" / files ≥3 or new files / crosses package boundaries / DB+API+frontend in same task / user says "plan this" / `.plan` / spans multiple sessions.
 
 ## Plannotator (auto)
 Hooks `ExitPlanMode`. Every exit → browser UI. Approve → proceed. Annotate → piped back → model revises → reopens with diff.

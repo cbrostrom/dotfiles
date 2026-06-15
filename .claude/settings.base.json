@@ -79,12 +79,6 @@
         "repo": "juliusbrussee/caveman"
       }
     },
-    "planning-with-files": {
-      "source": {
-        "source": "github",
-        "repo": "OthmanAdi/planning-with-files"
-      }
-    },
     "plannotator": {
       "source": {
         "source": "github",
@@ -124,7 +118,8 @@
       "Bash(bun add:*)",
       "Bash(dotfiles --doctor:*)",
       "Bash(dotfiles --claude-doctor:*)",
-      "Bash(dotfiles --update:*)"
+      "Bash(dotfiles --update:*)",
+      "Edit(/Users/Christian.Brostrom/dotfiles/.claude/CLAUDE.md)"
     ],
     "ask": ["Bash(git push:*)", "Bash(npm publish:*)"],
     "deny": [
