@@ -47,18 +47,7 @@
         ]
       }
     ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/engram-on-stop.sh",
-            "async": true,
-            "timeout": 15
-          }
-        ]
-      }
-    ],
+    "Stop": [],
     "Notification": [],
     "UserPromptSubmit": [
       {
@@ -71,15 +60,6 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/fast-mode-guard.sh",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/engram-on-prompt.sh",
             "timeout": 5
           }
         ]
