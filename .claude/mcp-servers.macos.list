@@ -10,7 +10,4 @@ apple-mcp | bunx | -y | @dhravya/apple-mcp@latest
 # Binary installed via: cargo install headroom-mcp (or brew if available)
 headroom | headroom | mcp | serve
 
-# Dockhand — superbro stack management. Tailscale-only.
-mcp-dockhand | http | http://100.100.1.50:8080/mcp
-# mcp-dockhand-linuxbro — add when linuxbro runs Dockhand
-# mcp-dockhand-linuxbro | http | http://100.100.1.100:8080/mcp
+# Dockhand moved to mcp-servers.infra.list — add "infra" to DOTFILES_WORKFLOWS to load.

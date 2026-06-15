@@ -16,9 +16,9 @@ while IFS='|' read -r name command args_rest || [[ -n "$name" ]]; do
     command="${command/#\~/$HOME}"
     [[ -z "$command" ]] && { warn "MCP entry '$name' missing command — skipping"; continue; }
 
-    IFS='|' read -ra arg_tokens <<< "$args_rest"
+    IFS='|' read -ra arg_tokens <<< "$args_rest" || true
     args=()
-    for t in "${arg_tokens[@]}"; do
+    for t in "${arg_tokens[@]+"${arg_tokens[@]}"}"; do
         t="${t# }"; t="${t% }"
         [[ -n "$t" ]] && args+=("$t")
     done
@@ -31,7 +31,7 @@ while IFS='|' read -r name command args_rest || [[ -n "$name" ]]; do
             warn "MCP registration failed: $name"
         fi
     else
-        if claude mcp add --scope user "$name" -- "$command" "${args[@]}" 2>/dev/null; then
+        if claude mcp add --scope user "$name" -- "$command" "${args[@]+"${args[@]}"}" 2>/dev/null; then
             ok "MCP registered: $name"
         else
             warn "MCP registration failed: $name"

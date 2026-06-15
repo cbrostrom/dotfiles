@@ -1,0 +1,9 @@
+# Claude Code MCP servers — INFRA workflow
+# Loaded when DOTFILES_WORKFLOWS includes "infra".
+# Heavy servers only needed for infrastructure/stack management tasks.
+# Add to session: export DOTFILES_WORKFLOWS=developer,work,infra && claude
+
+# Dockhand — superbro stack management. Tailscale-only.
+mcp-dockhand | http | http://100.100.1.50:8080/mcp
+# mcp-dockhand-linuxbro — uncomment when linuxbro runs Dockhand
+# mcp-dockhand-linuxbro | http | http://100.100.1.100:8080/mcp
