@@ -121,7 +121,10 @@
       "Bash(npm run:*)",
       "Bash(npx:*)",
       "Bash(bun run:*)",
-      "Bash(bun add:*)"
+      "Bash(bun add:*)",
+      "Bash(dotfiles --doctor:*)",
+      "Bash(dotfiles --claude-doctor:*)",
+      "Bash(dotfiles --update:*)"
     ],
     "ask": ["Bash(git push:*)", "Bash(npm publish:*)"],
     "deny": [
@@ -153,42 +156,6 @@
   "useAutoModeDuringPlan": true,
   "hooks": {
     "PreToolUse": [],
-    "SessionEnd": [],
-    "SessionStart": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $HOME/.claude/hooks/engram-sync-start.sh",
-            "timeout": 30
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $HOME/.claude/hooks/engram-sync-stop.sh",
-            "timeout": 30
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $HOME/.claude/hooks/wrap-reminder.sh",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
+    "SessionEnd": []
   }
 }
