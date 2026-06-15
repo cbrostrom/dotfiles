@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Claude Code statusline
 # Left:  [icon] host ·  cwd · ⎇ branch ✎
-# Right: model · ⚡ effort · ▓░ ctx% · 🪨 savings
+# Right: model · ⚡ effort · ▰▱ ctx% · 🪨 savings · $cost
 
 input=$(cat)
 
@@ -59,7 +59,18 @@ import sys, re, unicodedata
 def w(s):
     s = re.sub(r'\x1b\[[0-9;]*[mGKHF]', '', s)
     s = re.sub(r'\x1b\]8;;[^\x07]*\x07[^\x1b]*\x1b\]8;;\x07', '', s)
-    return sum(2 if unicodedata.east_asian_width(c) in ('W', 'F') else 1 for c in s)
+    total = 0
+    for c in s:
+        cp = ord(c)
+        eaw = unicodedata.east_asian_width(c)
+        # emoji blocks render as double-width in most terminals
+        if (0x1F000 <= cp <= 0x1FFFF) or (0x2600 <= cp <= 0x27BF) or (0x1FA00 <= cp <= 0x1FAFF):
+            total += 2
+        elif eaw in ('W', 'F'):
+            total += 2
+        else:
+            total += 1
+    return total
 print(w(sys.argv[1]), w(sys.argv[2]))
 PY
 )"
@@ -114,43 +125,14 @@ if command -v git >/dev/null 2>&1; then
             branch_clr='\033[38;2;130;190;100m'  # green
         fi
 
-        if [[ "$remote_url" == https://github.com/* ]]; then
-            branch_text="$(printf '\033]8;;%s\a%s\033]8;;\a' \
-                "${remote_url}/tree/${branch}" "$branch")"
-        else
-            branch_text="$branch"
-        fi
+        branch_text="$branch"
 
         left+="$(printf " \033[38;5;240m·\033[0m ${branch_clr}%s %s\033[0m" \
             "$branch_icon" "$branch_text")${dirty}${sync}"
     fi
 fi
 
-# ── RIGHT: model · effort · ctx · caveman ─────────────────────────────────────
-
-right=""
-
-[[ -n "$MODEL" ]] && right+="$(printf '\033[38;5;39m%s\033[0m' "$MODEL")"
-
-if [[ -n "$EFFORT" ]]; then
-    [[ -n "$right" ]] && right+="$(printf ' \033[38;5;240m·\033[0m')"
-    right+=" $(printf '\033[38;5;214m⚡ %s\033[0m' "$EFFORT")"
-fi
-
-if [[ "$PCT" =~ ^[0-9]+$ && "$PCT" -gt 0 ]]; then
-    bar_width=8
-    filled=$(( PCT * bar_width / 100 ))
-    empty=$(( bar_width - filled ))
-    bar=""
-    [[ $filled -gt 0 ]] && printf -v _fill "%${filled}s" && bar="${_fill// /▓}"
-    [[ $empty -gt 0 ]] && printf -v _pad  "%${empty}s"  && bar="${bar}${_pad// /░}"
-    if   [[ $PCT -ge 90 ]]; then bar_clr='\033[38;5;167m'
-    elif [[ $PCT -ge 70 ]]; then bar_clr='\033[38;5;214m'
-    else                          bar_clr='\033[38;5;71m'; fi
-    [[ -n "$right" ]] && right+="$(printf ' \033[38;5;240m·\033[0m')"
-    right+=" $(printf "${bar_clr}%s %d%%\033[0m" "$bar" "$PCT")"
-fi
-
+# caveman rock — left side, after git
 CAVEMAN_FLAG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/.caveman-active"
 CAVEMAN_SAVINGS="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/.caveman-statusline-suffix"
 if [[ -f "$CAVEMAN_FLAG" && ! -L "$CAVEMAN_FLAG" ]]; then
@@ -162,18 +144,43 @@ if [[ -f "$CAVEMAN_FLAG" && ! -L "$CAVEMAN_FLAG" ]]; then
             if [[ -f "$CAVEMAN_SAVINGS" && ! -L "$CAVEMAN_SAVINGS" ]]; then
                 _savings="$(head -c 64 "$CAVEMAN_SAVINGS" 2>/dev/null | tr -d '\000-\037')"
             fi
-            [[ -n "$right" ]] && right+="$(printf ' \033[38;5;240m·\033[0m')"
-            right+=" $(printf '\033[38;5;172m🪨\033[0m')"
-            [[ -n "$_savings" ]] && right+=" $(printf '\033[38;5;172m%s\033[0m' "$_savings")"
+            left+=" $(printf '\033[38;5;172m🪨\033[0m')"
+            [[ -n "$_savings" ]] && left+=" $(printf '\033[38;5;172m%s\033[0m' "$_savings")"
             ;;
     esac
 fi
 
+# ── RIGHT: model · effort · ctx · cost ────────────────────────────────────────
+
+right=""
+
+[[ -n "$MODEL" ]] && right+="$(printf '\033[38;5;39m%s\033[0m' "$MODEL")"
+
+if [[ -n "$EFFORT" ]]; then
+    [[ -n "$right" ]] && right+="$(printf ' \033[38;5;240m·\033[0m')"
+    right+=" $(printf '\033[38;5;214m⚡ %s\033[0m' "$EFFORT")"
+fi
+
+if [[ "$PCT" =~ ^[0-9]+$ && "$PCT" -gt 0 ]]; then
+    bar_width=5
+    filled=$(( (PCT * bar_width + 50) / 100 ))
+    empty=$(( bar_width - filled ))
+    bar=""
+    for ((i=0; i<filled; i++)); do bar+="▰"; done
+    for ((i=0; i<empty; i++)); do bar+="▱"; done
+    if   [[ $PCT -ge 90 ]]; then bar_clr='\033[38;5;167m'
+    elif [[ $PCT -ge 70 ]]; then bar_clr='\033[38;5;214m'
+    else                          bar_clr='\033[38;5;71m'; fi
+    [[ -n "$right" ]] && right+="$(printf ' \033[38;5;240m·\033[0m')"
+    right+=" $(printf "${bar_clr}%s %d%%\033[0m" "$bar" "$PCT")"
+fi
+
+
 # ── RIGHT-ALIGN ───────────────────────────────────────────────────────────────
 
-term_width=$(tput cols 2>/dev/null || echo 120)
+term_width="${COLUMNS:-$(tput cols 2>/dev/null || echo 120)}"
 read -r left_w right_w < <(printable_widths "$left" "$right")
-pad=$(( term_width - ${left_w:-0} - ${right_w:-0} - 2 ))
+pad=$(( term_width - ${left_w:-0} - ${right_w:-0} - 6 ))
 [[ $pad -lt 2 ]] && pad=2
 printf -v _padding "%${pad}s" ""
 
