@@ -1,6 +1,5 @@
 @RTK.md
 @agent-style/claude-code.md
-@engram-graphiti.md
 @coding-principles.md
 @tools.macos.md
 

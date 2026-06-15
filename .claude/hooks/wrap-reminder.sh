@@ -6,6 +6,6 @@ COUNT=$(cat "$COUNTER_FILE" 2>/dev/null || echo 0)
 COUNT=$((COUNT + 1))
 echo "$COUNT" > "$COUNTER_FILE"
 
-if [ $((COUNT % 25)) -eq 0 ]; then
-  echo "{\"systemMessage\": \"Turn $COUNT — run .wrap to save context before it bloats.\"}"
+if [ $((COUNT % 15)) -eq 0 ]; then
+  echo "{\"systemMessage\": \"Turn $COUNT — context growing. Run .wrap or /compact now.\"}"
 fi
