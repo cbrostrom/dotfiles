@@ -451,4 +451,10 @@ clipimg() {
     command -v xclip >/dev/null 2>&1 && printf '%s' "$out" | xclip -selection clipboard 2>/dev/null
 }
 
+# Update cloudcli via homebrew prefix + restart pm2 (native auto-update broken)
+cloudcli-update() {
+    is_macos || { echo "cloudcli-update: macOS only" >&2; return 1; }
+    npm update -g @cloudcli-ai/cloudcli --prefix /opt/homebrew && pm2 restart cloudcli-ui
+}
+
 
