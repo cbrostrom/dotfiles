@@ -116,48 +116,6 @@ fi
 # [[ -n "$ZPROF" ]] && zprof
 
 
-# lean-ctx shell hook — transparent CLI compression (90+ patterns)
-_lean_ctx_bin="$(command -v lean-ctx 2>/dev/null)"
-_lean_ctx_cmds=(git cargo docker docker-compose kubectl gh pip pip3 ruff go golangci-lint eslint prettier tsc ls find grep curl wget)
-
-lean-ctx-on() {
-    [[ -z "$_lean_ctx_bin" ]] && { echo "lean-ctx not installed"; return 1; }
-    for _lc_cmd in "${_lean_ctx_cmds[@]}"; do
-        # shellcheck disable=SC2139
-        alias "$_lc_cmd"="$_lean_ctx_bin -c $_lc_cmd"
-    done
-    alias k="$_lean_ctx_bin -c kubectl"
-    export LEAN_CTX_ENABLED=1
-    echo "lean-ctx: ON"
-}
-
-lean-ctx-off() {
-    for _lc_cmd in "${_lean_ctx_cmds[@]}"; do
-        unalias "$_lc_cmd" 2>/dev/null || true
-    done
-    unalias k 2>/dev/null || true
-    unset LEAN_CTX_ENABLED
-    echo "lean-ctx: OFF"
-}
-
-lean-ctx-status() {
-    if [ -n "${LEAN_CTX_ENABLED:-}" ]; then
-        echo "lean-ctx: ON"
-    else
-        echo "lean-ctx: OFF"
-    fi
-}
-
-if [[ -n "$_lean_ctx_bin" ]] && [ -z "${LEAN_CTX_ACTIVE:-}" ] \
-   && { [ "${LEAN_CTX_ENABLED:-0}" != "0" ] \
-        || [ -n "${CURSOR_AGENT:-}" ] \
-        || [ -n "${CURSOR_TRACE_ID:-}" ] \
-        || [ -n "${CLAUDECODE:-}" ] \
-        || [ -n "${CODEX_CLI:-}" ] \
-        || [ -n "${AI_AGENT:-}" ]; }; then
-    lean-ctx-on >/dev/null
-fi
-# lean-ctx shell hook — end
 
 unset MAILCHECK
 

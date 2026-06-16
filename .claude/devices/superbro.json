@@ -23,7 +23,6 @@
   "mcp_servers_settings": [],
   "mcp_servers_list": [
     "github",
-    "lean-ctx",
     "engram",
     "graphiti",
     "mcp-dockhand"
