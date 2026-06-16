@@ -28,7 +28,7 @@ CLAUDE_SRC="$SCRIPT_DIR/.claude"
 LOCAL="$CLAUDE_SRC/settings.local.json"
 CLAUDE_DIR="$HOME/.claude"
 
-mkdir -p "$CLAUDE_DIR/hooks"
+mkdir -p "$CLAUDE_DIR/hooks" "$CLAUDE_DIR/commands"
 
 log_info "Source : $CLAUDE_SRC"
 log_info "Target : $CLAUDE_DIR"
@@ -89,6 +89,7 @@ link_file "$CLAUDE_SRC/hooks/statusline.sh"           "$CLAUDE_DIR/hooks/statusl
 link_file "$CLAUDE_SRC/hooks/git-push-guard.sh"       "$CLAUDE_DIR/hooks/git-push-guard.sh"       "hooks/git-push-guard.sh"
 link_file "$CLAUDE_SRC/hooks/effort-classifier.sh"    "$CLAUDE_DIR/hooks/effort-classifier.sh"    "hooks/effort-classifier.sh"
 link_file "$CLAUDE_SRC/push-whitelist.txt"            "$CLAUDE_DIR/push-whitelist.txt"            "push-whitelist.txt"
+link_file "$CLAUDE_SRC/commands/sh.md"                "$CLAUDE_DIR/commands/sh.md"                "commands/sh.md"
 
 # Shared rules (engram-graphiti lives in .shared-rules/ so Cursor can also link it)
 SHARED_RULES="$SCRIPT_DIR/.shared-rules"

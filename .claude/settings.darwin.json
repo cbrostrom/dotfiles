@@ -1,4 +1,9 @@
 {
+  "enabledPlugins": {
+    "atlassian@claude-plugins-official": true,
+    "liquid-skills@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true
+  },
   "permissions": {
     "additionalDirectories": [
       "$HOME/Projects/Private/vscodium-settings",

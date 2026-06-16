@@ -429,7 +429,7 @@ Flow:
 
 AGENT_FILES = {
     "claude": "CLAUDE.md",
-    "cursor": ".cursorrules",
+    "cursor": "AGENTS.md",
     "copilot": ".github/copilot-instructions.md",
     "windsurf": ".windsurfrules",
     "codeium": ".codeiumrules",

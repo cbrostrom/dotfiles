@@ -1,0 +1,14 @@
+---
+description: Core agent policy — brain OS, native tools, English, push guard.
+alwaysApply: true
+---
+
+Read `AGENTS.md` in the workspace root before acting. It is the source of truth for
+advisor stance, brain memory protocol, tool routing, push guard, and planning thresholds.
+
+**Brain:** run `brain load` at the start of each session to surface current state and
+active tasks. Brain CLI: `~/.local/bin/brain`. Vault: `~/Vaults/Brain/Brains/<slug>/`.
+
+**Tools:** native Read / Grep / Glob / Shell always. No lean-ctx, no headroom.
+
+**Language:** English. No Danish unless explicitly requested.

@@ -3,7 +3,7 @@
   "os": "macos",
   "arch": "arm64",
   "profile": "desktop-full",
-  "last_synced": "2026-06-16T00:13:12Z",
+  "last_synced": "2026-06-16T22:33:40Z",
   "marketplaces": [
     "cavekit-marketplace",
     "caveman",
@@ -11,23 +11,23 @@
   ],
   "enabled_plugins": [
     "atlassian@claude-plugins-official",
-    "caveman@caveman",
-    "ck@cavekit-marketplace",
     "claude-md-management@claude-plugins-official",
     "frontend-design@claude-plugins-official",
     "liquid-skills@claude-plugins-official",
-    "planning-with-files@planning-with-files",
-    "plannotator@plannotator",
-    "superpowers@claude-plugins-official"
+    "plannotator@plannotator"
   ],
   "disabled_plugins": [
+    "caveman@caveman",
+    "ck@cavekit-marketplace",
     "claude-code-setup@claude-plugins-official",
     "code-review@claude-plugins-official",
     "code-simplifier@claude-plugins-official",
     "github@claude-plugins-official",
     "liquid-lsp@claude-plugins-official",
+    "planning-with-files@planning-with-files",
     "shopify@claude-plugins-official",
-    "skill-creator@claude-plugins-official"
+    "skill-creator@claude-plugins-official",
+    "superpowers@claude-plugins-official"
   ],
   "mcp_servers_settings": [
     "apple-mcp",
