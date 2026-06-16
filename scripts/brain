@@ -1,0 +1,535 @@
+#!/usr/bin/env python3
+"""brain — CLI for Obsidian vault brain files."""
+
+import os
+import re
+import sys
+import subprocess
+from datetime import datetime
+from pathlib import Path
+
+
+def _vault() -> Path:
+    if "VAULT" in os.environ:
+        return Path(os.environ["VAULT"])
+    pv = Path("/proc/version")
+    if pv.exists() and "microsoft" in pv.read_text().lower():
+        return Path("/mnt/c/Users/christian/Obsidian/Brain")
+    if "WSL_DISTRO_NAME" in os.environ:
+        return Path("/mnt/c/Users/christian/Obsidian/Brain")
+    return Path.home() / "Vaults" / "Brain"
+
+
+def _slug() -> str:
+    if "BRAIN_SLUG" in os.environ:
+        return os.environ["BRAIN_SLUG"]
+    try:
+        r = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, timeout=2,
+        )
+        if r.returncode == 0:
+            return Path(r.stdout.strip()).name
+    except Exception:
+        pass
+    return Path.cwd().name
+
+
+def _bdir(vault: Path, slug: str) -> Path:
+    return vault / "Brains" / slug
+
+
+def _bfile(vault: Path, slug: str) -> Path:
+    return vault / "Brains" / f"{slug}.md"
+
+
+def _today() -> str:
+    return datetime.now().strftime("%Y-%m-%d")
+
+
+def _now() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H:%M")
+
+
+def _ts() -> str:
+    return datetime.now().strftime("%Y-%m-%d-%H%M")
+
+
+def _modified(p: Path) -> str:
+    try:
+        return datetime.fromtimestamp(p.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+    except Exception:
+        return "unknown"
+
+
+def _write_atomic(p: Path, text: str):
+    tmp = p.with_suffix(".tmp")
+    tmp.write_text(text)
+    tmp.rename(p)
+
+
+def _first_line(text: str) -> str:
+    in_fm = False
+    for i, l in enumerate(text.splitlines()):
+        if i == 0 and l.strip() == "---":
+            in_fm = True; continue
+        if in_fm and l.strip() == "---":
+            in_fm = False; continue
+        if in_fm:
+            continue
+        if l and not l.startswith("#"):
+            return l
+    return "—"
+
+
+def _ensure(vault: Path, slug: str) -> Path:
+    bdir = _bdir(vault, slug)
+    if not bdir.is_dir():
+        bdir.mkdir(parents=True)
+        (bdir / "history").mkdir()
+        (bdir / "archive").mkdir()
+        for fn, content in [
+            ("current.md", f"# Brain: {slug}\n_Updated: {_today()}_\n\n## Current State\n\n## Conventions\n\n"),
+            ("gotchas.md", f"# Gotchas: {slug}\n\n"),
+            ("next.md", f"# Next: {slug}\n\n"),
+        ]:
+            _write_atomic(bdir / fn, content)
+        _generate_index(bdir)
+    return bdir
+
+
+def _generate_index(bdir: Path):
+    slug = bdir.name
+    lines = [f"# Brain index: {slug}"]
+    for fname in ["current.md", "gotchas.md", "next.md"]:
+        fp = bdir / fname
+        if fp.exists():
+            t = fp.read_text()
+            lc = len(t.splitlines())
+            lines.append(f"- {fname} ({lc}L) — {_first_line(t)[:60]}")
+    hf = sorted((bdir / "history").glob("*.md"))
+    last = hf[-1].stem if hf else "none"
+    lines.append(f"- history/ — {len(hf)} session(s), last {last}")
+    arch = bdir / "archive"
+    if arch.is_dir():
+        af = sorted(arch.glob("*.md"))
+        if af:
+            lines.append(f"- archive/ — {len(af)} monthly file(s)")
+    _write_atomic(bdir / "INDEX.md", "\n".join(lines) + "\n")
+
+
+def _has_status(p: Path, status: str) -> bool:
+    try:
+        m = re.search(r"^status:\s*(.+)$", p.read_text(), re.MULTILINE)
+        return bool(m and m.group(1).strip() == status)
+    except Exception:
+        return False
+
+
+# ── Commands ──────────────────────────────────────────────────────────────────
+
+def status(vault: Path, slug: str):
+    """Human-readable dashboard."""
+    bdir = _bdir(vault, slug)
+    if not bdir.is_dir():
+        print(f"brain: no brain for '{slug}' — run 'brain init' or 'brain load' to create", file=sys.stderr)
+        sys.exit(1)
+    print(f"{slug} → {bdir}/")
+    print(f"  modified: {_modified(bdir / 'current.md')}")
+    for fn in ["current.md", "gotchas.md"]:
+        fp = bdir / fn
+        if fp.exists():
+            t = fp.read_text()
+            lc = len(t.splitlines())
+            first = _first_line(t)
+            print(f"  {fn:<12} {lc}L  {first[:70]}")
+    nxt = bdir / "next.md"
+    if nxt.exists():
+        raw = nxt.read_text().splitlines()
+        total = len([l for l in raw if l.strip() and not l.startswith("#") and not l.startswith("_")])
+        active = len([l for l in raw if "[done:" not in l and l.strip() and not l.startswith("#") and not l.startswith("_")])
+        done = total - active
+        print(f"  next.md       {active} active" + (f" ({done} done)" if done else ""))
+    hist = bdir / "history"
+    if hist.is_dir():
+        hf = sorted(hist.glob("*.md"))
+        last = hf[-1].stem if hf else "none"
+        print(f"  history       {len(hf)} sessions, last {last}")
+
+
+def load(vault: Path, slug: str):
+    """AI context dump — auto-inits if missing."""
+    bdir = _ensure(vault, slug)
+    mod = _modified(bdir / "current.md")
+    print(f"=== BRAIN: {slug} ===")
+    print(f"{bdir}/ (modular, modified: {mod})")
+    idx = bdir / "INDEX.md"
+    if idx.exists():
+        print("---")
+        print(idx.read_text().strip())
+    cur = bdir / "current.md"
+    if cur.exists():
+        print("---")
+        print(cur.read_text().strip())
+    nxt = bdir / "next.md"
+    if nxt.exists():
+        raw = nxt.read_text().splitlines()
+        active = [l for l in raw if "[done:" not in l]
+        print("---")
+        print(f"[next.md — {len(active)} remaining]")
+        print("\n".join(active) if active else "(empty)")
+    print("=== END ===")
+
+
+def current(vault: Path, slug: str, text: list[str]):
+    bdir = _ensure(vault, slug)
+    cur = bdir / "current.md"
+    if not text:
+        if cur.exists():
+            print(cur.read_text().strip())
+        else:
+            print(f"brain: no current.md for '{slug}'", file=sys.stderr)
+            sys.exit(1)
+        return
+    line = " ".join(text)
+    if not line.startswith("- ") and not line.startswith("#"):
+        line = f"- {line}"
+    if cur.exists():
+        _write_atomic(cur, cur.read_text().rstrip() + "\n" + line + "\n")
+    else:
+        _write_atomic(cur, line + "\n")
+    _generate_index(bdir)
+    print(f"{cur} +1")
+
+
+def next_cmd(vault: Path, slug: str, text: list[str]):
+    bdir = _ensure(vault, slug)
+    nxt = bdir / "next.md"
+    if not text:
+        if nxt.exists():
+            raw = nxt.read_text().splitlines()
+            active = [l for l in raw if "[done:" not in l]
+            print("\n".join(active) if active else "(empty)")
+        else:
+            print(f"brain: no next.md for '{slug}'", file=sys.stderr)
+            sys.exit(1)
+        return
+    line = " ".join(text)
+    if not line.startswith("- ") and not line.startswith("#"):
+        line = f"- {line}"
+    if nxt.exists():
+        _write_atomic(nxt, nxt.read_text().rstrip() + "\n" + line + "\n")
+    else:
+        _write_atomic(nxt, line + "\n")
+    _generate_index(bdir)
+    print(f"{nxt} +1")
+
+
+def gotcha(vault: Path, slug: str, text: list[str]):
+    bdir = _ensure(vault, slug)
+    gf = bdir / "gotchas.md"
+    if not text:
+        if gf.exists():
+            print(gf.read_text().strip())
+        else:
+            print(f"brain: no gotchas.md for '{slug}'", file=sys.stderr)
+            sys.exit(1)
+        return
+    line = " ".join(text)
+    if not line.startswith("- "):
+        line = f"- {line}"
+    if gf.exists():
+        _write_atomic(gf, gf.read_text().rstrip() + "\n" + line + "\n")
+    else:
+        _write_atomic(gf, line + "\n")
+    _generate_index(bdir)
+    print(f"{gf} +1")
+
+
+def done(vault: Path, slug: str, substr: list[str]):
+    if not substr:
+        print("Usage: brain done <substring>", file=sys.stderr); sys.exit(1)
+    q = " ".join(substr)
+    bdir = _ensure(vault, slug)
+    nxt = bdir / "next.md"
+    if not nxt.exists():
+        print(f"brain: no next.md for '{slug}'", file=sys.stderr); sys.exit(1)
+    lines = nxt.read_text().splitlines()
+    matches = [(i, l) for i, l in enumerate(lines) if q in l and "[done:" not in l]
+    if not matches:
+        print(f"brain: no match for '{q}'", file=sys.stderr); sys.exit(1)
+    if len(matches) > 1:
+        print(f"Multiple matches for '{q}'. Pick one:", file=sys.stderr)
+        for i, l in matches:
+            print(f"  {i+1}. {l.strip()}", file=sys.stderr)
+        try:
+            pick_idx = int(input("> ")) - 1
+        except (ValueError, EOFError):
+            sys.exit(1)
+        if pick_idx < 0 or pick_idx >= len(matches):
+            print(f"brain: invalid pick (1-{len(matches)})", file=sys.stderr); sys.exit(1)
+        idx, line = matches[pick_idx]
+    else:
+        indent = re.match(r"^(\s*)", line).group(1)
+    lines[idx] = f"{indent}{line.strip()} [done: {_today()}]"
+    _write_atomic(nxt, "\n".join(lines) + "\n")
+    _generate_index(bdir)
+    print(lines[idx])
+
+
+def save(vault: Path, slug: str, text: list[str]):
+    bdir = _ensure(vault, slug)
+    hist = bdir / "history"
+    hist.mkdir(parents=True, exist_ok=True)
+    content = " ".join(text) if text else sys.stdin.read()
+    p = hist / f"{_ts()}.md"
+    p.write_text(f"# Session: {slug}\n_{_now()}_\n\n{content.strip()}\n")
+    print(p)
+
+
+def wrap(vault: Path, slug: str, text: list[str]):
+    if not text:
+        print("Usage: brain wrap <summary> [new_topic]", file=sys.stderr); sys.exit(1)
+    bdir = _ensure(vault, slug)
+    summary = text[0]
+    topic = " ".join(text[1:]) if len(text) > 1 else None
+    hist = bdir / "history"
+    hist.mkdir(parents=True, exist_ok=True)
+    p = hist / f"{_ts()}.md"
+    lines = [f"# Session wrap: {slug}", f"_{_now()}_", "", summary]
+    if topic:
+        lines.append("")
+        lines.append(f"→ New focus: {topic}")
+    p.write_text("\n".join(lines) + "\n")
+    print(f"  history/ {p.name}")
+    if topic:
+        cur = bdir / "current.md"
+        line = topic if topic.startswith("- ") or topic.startswith("#") else f"- {topic}"
+        if cur.exists():
+            _write_atomic(cur, cur.read_text().rstrip() + "\n" + line + "\n")
+        else:
+            _write_atomic(cur, line + "\n")
+        _generate_index(bdir)
+        print(f"  current.md +1 ({topic})")
+    print(f"  wrapped")
+
+
+def pick(vault: Path, verbose: bool):
+    entries = []
+    bd = vault / "Brains"
+    pd = vault / "Plans" / "Active"
+    if bd.is_dir():
+        for p in sorted(bd.iterdir()):
+            if p.name.startswith("_") or p.name == "Brain.md":
+                continue
+            if p.suffix == ".md":
+                if _has_status(p, "active"):
+                    entries.append(("legacy", p.stem, str(p)))
+            elif p.is_dir():
+                entries.append(("modular", p.name, str(p)))
+    if pd.is_dir():
+        for p in sorted(pd.glob("*.md")):
+            if not p.name.startswith("_"):
+                entries.append(("plan", p.stem, str(p)))
+    if not entries:
+        print("brain: no projects found", file=sys.stderr); sys.exit(1)
+    if verbose:
+        for fmt, slug, path in entries:
+            print(f"{fmt:<8} {slug:<20} {path}")
+    else:
+        for fmt, slug, path in entries:
+            print(slug)
+
+
+def optimise(vault: Path, slug: str):
+    bdir = _bdir(vault, slug)
+    if not bdir.is_dir():
+        print(f"brain: no modular brain for '{slug}'", file=sys.stderr)
+        sys.exit(1)
+    now_dt = datetime.now()
+    nxt = bdir / "next.md"
+    if nxt.exists():
+        lines = nxt.read_text().splitlines()
+        kept = []
+        removed = 0
+        for l in lines:
+            m = re.search(r"\[done:\s*(\d{4}-\d{2}-\d{2})\]", l)
+            if m:
+                dd = datetime.strptime(m.group(1), "%Y-%m-%d")
+                if (now_dt - dd).days > 30:
+                    removed += 1; continue
+            kept.append(l)
+        if removed:
+            _write_atomic(nxt, "\n".join(kept) + "\n")
+            print(f"  next.md: removed {removed} old done items")
+    hist = bdir / "history"
+    arch = bdir / "archive"
+    if hist.is_dir():
+        arch.mkdir(exist_ok=True)
+        moved = 0
+        for f in hist.glob("*.md"):
+            try:
+                fd = datetime.fromtimestamp(f.stat().st_mtime)
+                if (now_dt - fd).days > 30:
+                    f.rename(arch / f.name); moved += 1
+            except Exception:
+                pass
+        if moved:
+            print(f"  history/: moved {moved} files to archive/")
+    _generate_index(bdir)
+    print(f"  INDEX.md regenerated")
+
+
+def init_brain(vault: Path, slug: str):
+    bdir = _bdir(vault, slug)
+    if bdir.exists():
+        print(f"brain: already exists: {bdir}", file=sys.stderr); sys.exit(1)
+    bdir.mkdir(parents=True)
+    (bdir / "history").mkdir()
+    (bdir / "archive").mkdir()
+    for fn, content in [
+        ("current.md", f"# Brain: {slug}\n_Updated: {_today()}_\n\n## Current State\n\n## Conventions\n\n"),
+        ("gotchas.md", f"# Gotchas: {slug}\n\n"),
+        ("next.md", f"# Next: {slug}\n\n"),
+    ]:
+        _write_atomic(bdir / fn, content)
+    _generate_index(bdir)
+    print(f"brain: created {bdir}/")
+
+
+AGENT_INSTRUCTIONS = """# Brain protocol
+
+This project uses `brain` — CLI for vault-based memory persistence.
+
+Commands:
+  brain load              Load project brain at session start
+  brain current           Read current state
+  brain current <text>    Update current state
+  brain next              Read action items (non-done)
+  brain next <text>       Add action item
+  brain gotcha <text>     Log gotcha
+  brain done <substr>     Mark item done
+  brain save <text>       Save session summary
+  brain wrap <summary> [topic]  Save snapshot + optionally set new topic
+
+Token-efficient format for brain files:
+  **bold label**: value
+  - bullet for lists
+  key: value for structured data
+  [done: YYYY-MM-DD] for completed items
+  No sentences where fragments work. One line per fact.
+
+Flow:
+  1. Session start → `brain load`
+  2. On discovery → `brain current <state>` / `brain gotcha <trap>`
+  3. On new task → `brain next <action>`
+  4. On completion → `brain done <action>`
+  5. Topic switch → `brain wrap <what-done> [new-topic]`
+"""
+
+AGENT_FILES = {
+    "claude": "CLAUDE.md",
+    "cursor": ".cursorrules",
+    "copilot": ".github/copilot-instructions.md",
+    "windsurf": ".windsurfrules",
+    "codeium": ".codeiumrules",
+}
+
+
+def setup(vault: Path, slug: str, args: list[str]):
+    write_mode = "--write" in args
+    agents = []
+    for a in args:
+        if a.startswith("--agent="):
+            agents.append(a.split("=", 1)[1])
+    if not agents:
+        agents = ["all"]
+    if "all" in agents:
+        agents = list(AGENT_FILES.keys())
+    root = Path.cwd()
+    for agent in agents:
+        if agent not in AGENT_FILES:
+            print(f"brain: unknown agent '{agent}'", file=sys.stderr); continue
+        rel = AGENT_FILES[agent]
+        path = root / rel
+        if write_mode:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if path.exists():
+                existing = path.read_text()
+                if "brain load" in existing:
+                    print(f"  {rel} — already configured, skip"); continue
+                _write_atomic(path, existing.rstrip() + "\n\n" + AGENT_INSTRUCTIONS.strip() + "\n")
+            else:
+                path.write_text(AGENT_INSTRUCTIONS.strip() + "\n")
+            print(f"  wrote {rel}")
+        else:
+            print(f"--- {rel} ---")
+            print(AGENT_INSTRUCTIONS.strip())
+            print()
+
+
+def main():
+    vault = _vault()
+    slug = _slug()
+    raw = sys.argv[1:]
+
+    if not raw:
+        status(vault, slug)
+    elif raw[0] in ("load", "l"):
+        load(vault, slug)
+    elif raw[0] in ("current", "c"):
+        current(vault, slug, raw[1:])
+    elif raw[0] in ("next", "n"):
+        next_cmd(vault, slug, raw[1:])
+    elif raw[0] in ("gotcha", "g"):
+        gotcha(vault, slug, raw[1:])
+    elif raw[0] in ("done", "d"):
+        done(vault, slug, raw[1:])
+    elif raw[0] in ("save", "s"):
+        save(vault, slug, raw[1:])
+    elif raw[0] in ("pick", "p"):
+        pick(vault, "-v" in raw or "--verbose" in raw)
+    elif raw[0] in ("optimise", "o"):
+        optimise(vault, raw[1] if len(raw) > 1 else slug)
+    elif raw[0] in ("init", "i"):
+        init_brain(vault, raw[1] if len(raw) > 1 else slug)
+    elif raw[0] in ("wrap", "w"):
+        wrap(vault, slug, raw[1:])
+    elif raw[0] == "setup":
+        setup(vault, slug, raw[1:])
+    elif raw[0] in ("path",):
+        print(_bdir(vault, slug))
+    elif raw[0] in ("slug",):
+        print(raw[1] if len(raw) > 1 else slug)
+    elif raw[0] in ("status",):
+        status(vault, slug)
+    elif raw[0] in ("help", "--help", "-h"):
+        print("""brain — CLI for vault brain files
+
+Commands:
+  status                     show project dashboard (default)
+  load                       AI context dump (auto-inits if missing)
+  current [text]             read or update current.md
+  next [text]                read or add action item
+  gotcha [text]              read or log gotcha
+  done <substr>              mark item done in next.md
+  save [text]                save session snapshot to history/
+  wrap <summary> [topic]     save snapshot + set new current topic
+  pick [-v]                  list active projects
+  optimise [slug]            prune old done items, regen INDEX
+  init [slug]                create modular brain structure
+  setup [--write] [--agent=type]  generate agent instructions
+  slug [name]                get or set project slug
+  path                       print brain directory path
+
+Env:
+  VAULT               vault path (default: ~/Vaults/Brain)
+  BRAIN_SLUG          override project slug
+""")
+    else:
+        print(f"brain: unknown command '{raw[0]}'. Try: brain help", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
