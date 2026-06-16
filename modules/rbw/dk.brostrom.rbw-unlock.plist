@@ -11,15 +11,12 @@
          find the vault already unlocked — no popups. -->
     <key>ProgramArguments</key>
     <array>
-        <string>/opt/homebrew/bin/rbw</string>
-        <string>unlock</string>
+        <string>__DOTFILES_DIR__/modules/rbw/rbw-unlock-if-locked.sh</string>
     </array>
 
     <key>RunAtLoad</key>
     <true/>
 
-    <!-- Guard: only run if agent isn't already unlocked.
-         rbw unlocked exits 0 → skip; exits non-0 → run unlock. -->
     <key>StandardOutPath</key>
     <string>/tmp/rbw-unlock.log</string>
     <key>StandardErrorPath</key>
