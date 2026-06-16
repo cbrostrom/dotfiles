@@ -270,7 +270,8 @@ def done(vault: Path, slug: str, substr: list[str]):
             print(f"brain: invalid pick (1-{len(matches)})", file=sys.stderr); sys.exit(1)
         idx, line = matches[pick_idx]
     else:
-        indent = re.match(r"^(\s*)", line).group(1)
+        idx, line = matches[0]
+    indent = re.match(r"^(\s*)", line).group(1)
     lines[idx] = f"{indent}{line.strip()} [done: {_today()}]"
     _write_atomic(nxt, "\n".join(lines) + "\n")
     _generate_index(bdir)
