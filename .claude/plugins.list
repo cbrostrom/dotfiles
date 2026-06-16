@@ -7,12 +7,9 @@
 #   DOTFILES_WORKFLOWS=developer   → loads plugins.developer.list
 #   DOTFILES_WORKFLOWS=work        → loads plugins.work.list
 
-# Official Anthropic marketplace
-superpowers@claude-plugins-official          = anthropics/claude-plugins-official
-claude-md-management@claude-plugins-official = anthropics/claude-plugins-official
+# Core plugins only — agnostic stack (2026-06-16 prune).
+# Removed from base: superpowers (dupes dotfiles skills), caveman, planning-with-files, cavekit.
+# Work/developer overlays: plugins.work.list, plugins.developer.list
 
-# Third-party
-caveman@caveman                              = juliusbrussee/caveman
-planning-with-files@planning-with-files      = Ejb25/planning-with-files
+claude-md-management@claude-plugins-official = anthropics/claude-plugins-official
 plannotator@plannotator                      = backnotprop/plannotator
-cavekit@cavekit-marketplace                  = backnotprop/cavekit-marketplace
