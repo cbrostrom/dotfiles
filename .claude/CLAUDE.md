@@ -67,3 +67,5 @@ Tailscale primary layer. Self-hosted MCPs (Engram, mcp-dockhand, docker-linuxbro
 
 `/graphify` → `~/.claude/skills/graphify/SKILL.md`
 Visualization: mermaid for diagrams (flowcharts, sequence, state, Gantt).
+
+@AISLOP.md

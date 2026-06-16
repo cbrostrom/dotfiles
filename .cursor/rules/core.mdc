@@ -1,5 +1,5 @@
 ---
-description: Core agent policy — brain OS, native tools, English, push guard.
+description: Core agent policy — brain OS, native tools, English, push guard, code quality.
 alwaysApply: true
 ---
 
@@ -12,3 +12,6 @@ active tasks. Brain CLI: `~/.local/bin/brain`. Vault: `~/Vaults/Brain/Brains/<sl
 **Tools:** native Read / Grep / Glob / Shell always. No lean-ctx, no headroom.
 
 **Language:** English. No Danish unless explicitly requested.
+
+**Code quality:** aislop quality-gate hook is active — follow its feedback when it fires.
+For JS/TS codebase analysis: fallow skill (`~/.agents/skills/fallow/SKILL.md`).

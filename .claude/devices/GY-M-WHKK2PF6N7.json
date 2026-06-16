@@ -3,7 +3,7 @@
   "os": "macos",
   "arch": "arm64",
   "profile": "desktop-full",
-  "last_synced": "2026-06-16T22:39:42Z",
+  "last_synced": "2026-06-16T23:06:06Z",
   "marketplaces": [
     "cavekit-marketplace",
     "caveman",
@@ -37,5 +37,7 @@
   "mcp_servers_list": [
     "github"
   ],
-  "skills": []
+  "skills": [
+    "fallow-rs/fallow-skills"
+  ]
 }

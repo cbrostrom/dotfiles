@@ -2,7 +2,8 @@
 # Format: one source per line. In-repo skills under dotfiles/.claude/skills/ are NOT listed.
 #
 # Pruned 2026-06-16 — agnostic stack. Kept on disk in ~/.agents/skills/:
-#   agent-browser, mermaid, plannotator-setup-goal
+#   agent-browser, plannotator-setup-goal, fallow
 # Viz policy: mermaid only (uml/network/infographic/infocard/canvas/security-diagram retired).
-#
-# Add npx source slugs here when confirmed; install.sh links into ~/.claude/skills/.
+
+# Codebase intelligence — JS/TS: unused code, duplication, circular deps, complexity
+fallow-rs/fallow-skills
