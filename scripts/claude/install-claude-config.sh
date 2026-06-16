@@ -63,6 +63,48 @@ if d.get('statusLine') != target:
     print("[claude] statusLine updated")
 PYEOF
 
+# --- aislop hooks: patch settings.local.json if aislop binary is present ---
+# CC hooks format: each event key → list of block objects [{matcher, hooks:[]}]
+if command -v aislop >/dev/null 2>&1; then
+    python3 - "$LOCAL" <<'PYEOF'
+import json, sys
+
+path = sys.argv[1]
+with open(path) as f:
+    d = json.load(f)
+
+hooks = d.setdefault("hooks", {})
+
+entries = [
+    ("PostToolUse", {"matcher": "Edit|Write|MultiEdit",
+                     "hooks": [{"type": "command", "command": "aislop hook claude"}]}),
+    ("Stop",        {"matcher": "",
+                     "hooks": [{"type": "command", "command": "aislop hook claude --stop"}]}),
+    ("FileChanged", {"matcher": ".aislop/config.yml|.aislop/rules.yml|package.json",
+                     "hooks": [{"type": "command", "command": "aislop hook claude --on-file-changed"}]}),
+]
+
+changed = False
+for event, block in entries:
+    target_cmd = block["hooks"][0]["command"]
+    event_blocks = hooks.setdefault(event, [])
+    existing_cmds = [h.get("command") for b in event_blocks for h in b.get("hooks", [])]
+    if target_cmd in existing_cmds:
+        print(f"\033[0;34m[claude]\033[0m aislop: {event} hook already present")
+    else:
+        event_blocks.append(block)
+        changed = True
+        print(f"\033[0;32m[claude]\033[0m aislop: added {event} hook")
+
+if changed:
+    with open(path, "w") as f:
+        json.dump(d, f, indent=4, ensure_ascii=False)
+        f.write("\n")
+PYEOF
+else
+    log_warning "aislop not found — skipping hook patch (install via: brew install scanaislop/tap/aislop)"
+fi
+
 # --- symlink helper ---
 link_file() {
     local src="$1" dst="$2" label="$3"
@@ -80,6 +122,7 @@ link_file() {
 # --- settings.json + CLAUDE.md install ---
 link_file "$LOCAL"                      "$CLAUDE_DIR/settings.json"          "settings.json → settings.local.json"
 link_file "$CLAUDE_SRC/CLAUDE.md"       "$CLAUDE_DIR/CLAUDE.md"              "CLAUDE.md"
+link_file "$CLAUDE_SRC/AISLOP.md"       "$CLAUDE_DIR/AISLOP.md"              "AISLOP.md"
 
 link_file "$CLAUDE_SRC/RTK.md"             "$CLAUDE_DIR/RTK.md"                 "RTK.md"
 link_file "$CLAUDE_SRC/hooks/rtk-rewrite.sh"          "$CLAUDE_DIR/hooks/rtk-rewrite.sh"          "hooks/rtk-rewrite.sh"
