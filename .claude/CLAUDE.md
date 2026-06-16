@@ -28,9 +28,20 @@ Hook: `~/.claude/hooks/git-push-guard.sh` (PreToolUse:Bash). Denial = correct. D
 Opt personal repo in: append path to `~/.claude/push-whitelist.txt`, mention to user first.
 
 # Memory
-Routing rules: `@engram-graphiti.md`. MCPs: `~/.dotfiles/.claude/mcp-servers.list`.
+Memory = markdown files in `$VAULT/Brains/<slug>/`. Managed via `brain` CLI.
 
-# Keyword dispatch
+## Format = token-efficient
+
+```
+**bold label**: value
+- bullet for lists
+key: value for structured data
+[done: YYYY-MM-DD] for completed items
+```
+
+No sentences where fragments work. No filler. One line per fact.
+
+## Keyword dispatch
 
 ## Dot-commands
 | Command | Action |
@@ -42,44 +53,50 @@ Routing rules: `@engram-graphiti.md`. MCPs: `~/.dotfiles/.claude/mcp-servers.lis
 | `.ui` | frontend-design skill |
 | `.write` | writing skill |
 | `.caveman` / `.normal` | caveman on / off |
-| `.brain [subcmd] [args]` | brain skill (`~/.claude/skills/brain/SKILL.md`). Subcommands: `.brain` (session summary → history/), `.brain <text>` (dump → history/), `.brain current <text>`, `.brain gotcha <text>`, `.brain next <text>`, `.brain done <substr>`, `.brain optimise [slug]`, `.brain migrate <slug>`, `.brain show [slug]`. |
+| `.mem [topic]` | Wrap session: scan conversation, extract decisions/findings/blockers → `brain save` + optional `brain current <topic>`. One-shot context switch. |
+| `brain <cmd>` | Universal brain CLI (`~/dotfiles/scripts/brain`). Works in any agent. Subcommands: `status` (default), `load` (AI dump), `current [text]`, `next [text]`, `gotcha [text]`, `done <substr>`, `save [text]`, `wrap <summary> [topic]`, `pick [-v]`, `optimise [slug]`, `init [slug]`, `setup [--write] [--agent=type]`. |
 | `.docker` | list containers on relevant host |
 | `.stacks` | Dockhand MCP (superbro) |
 | `.worklog <period>` | `/worklog` |
 | `.compress-skills [filter]` | `~/dotfiles/scripts/compress-skills.sh [filter]` — caveman-compress skill SKILL.md files |
-| `.pick` | List active projects (`$VAULT/Brains/*.md` status:active + `$VAULT/Plans/Active/*.md`). `find` slugs only (no full reads). `AskUserQuestion` with slug list. On pick: read that brain file, surface top Next Steps item as one-liner. |
+| `.pick` | List active projects via `brain pick -v`. `AskUserQuestion` with slug list. On pick: `brain load`. |
+
+## `.mem` behavior
+
+When user invokes `.mem [topic]`:
+1. Scan current conversation — extract decisions, findings, completed items, blockers since last `.mem`/session start
+2. Format as token-efficient summary (one line per fact, `[done: YYYY-MM-DD]`)
+3. If items in `next.md` were completed, mark them via `brain done`
+4. Save summary: `brain save "<summary>"` (use backtick-safe plain text)
+5. If `[topic]` given: `brain current "<topic>"` (sets new focus)
+6. If no topic but extracted items changed current state: `brain current "<state>"`
 
 ## Session start behavior
-- Brain auto-loaded by hook (git repo basename → vault slug). No action needed.
-- If brain loaded (modular: `next.md` non-done items; legacy: `## Next Steps`): surface top 1–2 items as one-liner after first user message.
-- If no brain auto-loaded (no matching vault file or dir): proactively suggest `.pick` once.
+- Claude Code: brain auto-loaded by hook (git repo basename → vault slug). No action needed.
+- Other agents: run `brain load` at session start (auto-inits if missing). `brain load` skips `[done:]` items.
+- If brain loaded: surface top 1–2 `next.md` items as one-liner after first user message.
+- If no brain exists for this repo: `brain load` creates it.
 
 ## Memory routing
-**Primary brain = `Brains/<slug>/` (modular) or `Brains/<slug>.md` (legacy) — loaded by hook at SessionStart. No MCP call needed.**
+
+Brain files are the single source of truth. Use `brain` CLI to read/write. No MCP needed.
 
 | Signal | Action |
 |---|---|
-| "remember/save/note/brain/don't forget" | Write to relevant `$VAULT/` note |
-| "capture/inbox" | New file `$VAULT/Inbox/YYYY-MM-DD-HH-MM-<slug>.md` |
-| "save to engram" | `mem_save` — explicit only |
-| `.recall` / "what did we do/last session/pick up where" | vault grep first → `mem_context` if no brain file |
-| "what do you know about X/recall/search memory" | vault grep → `mem_search` if no vault hit |
-| "how does X relate to Y/connections/timeline" | Graphiti — only on explicit ask |
-| "what do I have on X/find my notes on X" | `grep -r -l "<query>" $VAULT --include="*.md"` then Read matching files
-| "read my note on X / show note" | native `Read` on `$VAULT/<path>` |
-| "open this note in Obsidian" | `ob open <path>` via Bash (only case needing REST API) |
-Engram = manual only (no auto hooks). Use `mem_save`/`mem_search` when invoked explicitly. Graphiti = disabled until needed at scale.
-Engram + Graphiti require `DOTFILES_WORKFLOWS=...,memory` overlay to load. Apple-MCP requires `DOTFILES_WORKFLOWS=...,apple`.
+| "remember/save/note/brain/don't forget" | `brain current <fact>` or `brain gotcha <trap>` or `brain next <action>` |
+| "capture/inbox" | `echo <text> > $VAULT/Inbox/$(date +%F-%H%M)-<slug>.md` |
+| ".recall / what did we do / last session" | `brain current` + `brain next` + check recent history/ |
+| "what do I have on / find my notes on X" | `grep -r -l "<query>" $VAULT --include="*.md"` then Read matches |
+| "read my note on X / show note" | `Read` on `$VAULT/<path>` |
+| "open this note in Obsidian" | `ob open <path>` via Bash |
 
-## Vault paths (direct file access — no REST API needed for read/write/search)
+## Vault paths
 | Platform | Path |
 |---|---|
-| WSL | `/mnt/c/Users/christian/Obsidian/Christian` |
 | macOS | `~/Vaults/Brain` |
-| Linux | N/A |
+| WSL | `/mnt/c/Users/christian/Obsidian/Brain` |
 
-Use `$VAULT` as shorthand. Detect platform: WSL = `/proc/version` contains "microsoft"; macOS = `uname` = Darwin.
-`ob open <path>` still uses REST API — only for "open in Obsidian UI" actions.
+Use `$VAULT` as shorthand. Platform detection: `uname` = Darwin → macOS; `/proc/version` contains "microsoft" → WSL.
 
 ## Infrastructure
 | Signal | Action |
