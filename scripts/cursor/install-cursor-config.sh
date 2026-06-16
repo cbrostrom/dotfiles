@@ -4,9 +4,9 @@
 # Symlinks:
 #   ~/.cursor/hooks/brain-load.sh  → dotfiles/.cursor/hooks/brain-load.sh
 #
-# hooks.json:
-#   Patches ~/.cursor/hooks.json to add the brain-load sessionStart entry
-#   if it is not already present. Leaves all other hooks intact.
+# hooks.json patches (idempotent — never clobbers existing hooks):
+#   sessionStart  → brain-load.sh (vault brain context injection)
+#   afterFileEdit → aislop hook cursor (quality gate, if aislop installed)
 set -euo pipefail
 
 BLUE='\033[0;34m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
@@ -48,19 +48,35 @@ path = sys.argv[1]
 with open(path) as f:
     data = json.load(f)
 
-entry = {"command": "bash './hooks/brain-load.sh'"}
 hooks = data.setdefault("hooks", {})
+changed = False
+
+# brain-load: sessionStart
+brain_entry = {"command": "bash './hooks/brain-load.sh'"}
 session_hooks = hooks.setdefault("sessionStart", [])
-
-if any(h.get("command") == entry["command"] for h in session_hooks):
+if any(h.get("command") == brain_entry["command"] for h in session_hooks):
     print("\033[0;34m[cursor]\033[0m brain-load already present in sessionStart — no change")
-    sys.exit(0)
+else:
+    session_hooks.append(brain_entry)
+    changed = True
+    print("\033[0;32m[cursor]\033[0m Patched hooks.json: added brain-load to sessionStart")
 
-session_hooks.append(entry)
+# aislop: afterFileEdit (only if aislop binary exists)
+import shutil
+if shutil.which("aislop"):
+    aislop_cmd = "aislop hook cursor"
+    edit_hooks = hooks.setdefault("afterFileEdit", [])
+    if any(h.get("command") == aislop_cmd for h in edit_hooks):
+        print("\033[0;34m[cursor]\033[0m aislop already present in afterFileEdit — no change")
+    else:
+        edit_hooks.append({"command": aislop_cmd, "type": "command", "timeout": 5000})
+        changed = True
+        print("\033[0;32m[cursor]\033[0m Patched hooks.json: added aislop to afterFileEdit")
+else:
+    print("\033[1;33m[cursor]\033[0m aislop not found — skipping afterFileEdit patch")
 
-with open(path, "w") as f:
-    json.dump(data, f, indent=2)
-    f.write("\n")
-
-print("\033[0;32m[cursor]\033[0m Patched hooks.json: added brain-load to sessionStart")
+if changed:
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
 PYEOF
