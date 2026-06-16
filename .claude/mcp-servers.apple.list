@@ -5,3 +5,8 @@
 # Apple MCP — AppleScript bridge to native macOS PIM apps
 # (Messages, Notes, Contacts, Mail, Reminders, Calendar, Maps).
 apple-mcp | bunx | -y | @dhravya/apple-mcp@latest
+
+# Google Calendar — first run opens browser for OAuth.
+# Token cached at ~/.config/google-calendar-mcp/tokens.json.
+# Grouped with apple overlay since both are personal-data PIM.
+google-calendar | ~/.claude/scripts/google-calendar.sh
