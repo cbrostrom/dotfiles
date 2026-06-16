@@ -11,7 +11,4 @@
 # GitHub — requires GITHUB_PERSONAL_ACCESS_TOKEN in ~/.local-secrets
 github | npx | -y | @modelcontextprotocol/server-github
 
-# lean-ctx — token-saving context tool. Binary installed via cargo or brew.
-lean-ctx | lean-ctx
-
 # Memory MCPs (engram, graphiti) moved to mcp-servers.memory.list — opt-in via DOTFILES_WORKFLOWS=...,memory
