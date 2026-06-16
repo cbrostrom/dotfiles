@@ -164,12 +164,7 @@ unset MAILCHECK
 # opencode
 export PATH=/home/christian/.opencode/bin:$PATH
 
-# secrets via rbw
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  export OBSIDIAN_API_KEY="$(rbw get "🔐 SuperBro Vault" --field "Token - Mac" 2>/dev/null)"
-else
-  export OBSIDIAN_API_KEY="$(rbw get "🔐 SuperBro Vault" --field Token-Windows 2>/dev/null)"
-fi
+# OBSIDIAN_API_KEY and other rbw secrets: modules/rbw/env-secrets.zsh (.zshenv)
 export PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"
 
 # Homebrew (linux)
