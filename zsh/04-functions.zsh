@@ -457,4 +457,12 @@ cloudcli-update() {
     npm update -g @cloudcli-ai/cloudcli --prefix /opt/homebrew && pm2 restart cloudcli-ui
 }
 
+# CloudCLI session purge — archive in UI does not stick; watcher re-imports jsonl files
+cloudcli-sessions() {
+    is_macos || { echo "cloudcli-sessions: macOS only" >&2; return 1; }
+    local script="$HOME/dotfiles/scripts/cloudcli-sessions-cleanup.sh"
+    [[ -x "$script" ]] || chmod +x "$script"
+    "$script" "$@"
+}
+
 
