@@ -3,8 +3,4 @@
 
 # Apple MCP moved to mcp-servers.apple.list — opt-in via DOTFILES_WORKFLOWS=...,apple
 
-# Headroom — compresses large MCP tool outputs to save context window tokens.
-# Binary installed via: cargo install headroom-mcp (or brew if available)
-headroom | headroom | mcp | serve
-
 # Dockhand moved to mcp-servers.infra.list — add "infra" to DOTFILES_WORKFLOWS to load.
