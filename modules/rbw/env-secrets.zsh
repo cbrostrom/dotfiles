@@ -9,23 +9,29 @@
 # refresh: `rbw unlock` then start a new shell / restart Cursor or Claude.
 #
 # Bitwarden item names are case-sensitive. Match exactly what you see in
-# the Bitwarden vault item title.
+# the vault item title.
 # =============================================================================
 
 # Bail early if rbw is not installed — keeps non-rbw machines silent.
 command -v rbw >/dev/null 2>&1 || return 0
 
-# Fast path 1: already in env (subshell/script inheriting from parent shell)
-[[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN+set}" ]] && return 0
-
-# Fast path 2: source from cache file written on last unlock (survives new terminal windows)
 _RBW_ENV_CACHE="${XDG_RUNTIME_DIR:-/tmp}/rbw-env-$UID.zsh"
-if [[ -f "$_RBW_ENV_CACHE" ]] && [[ $(find "$_RBW_ENV_CACHE" -mmin -480 2>/dev/null) ]]; then
-    source "$_RBW_ENV_CACHE"
-    unset _RBW_ENV_CACHE
+_RBW_ENV_LOCK="${XDG_RUNTIME_DIR:-/tmp}/rbw-env-$UID.lock"
+
+# Fast path 1: already populated in env (subshell/script inheriting from parent shell)
+if [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" || -n "${OBSIDIAN_API_KEY:-}" ]]; then
     return 0
 fi
-unset _RBW_ENV_CACHE
+
+# Fast path 2: source from cache file written on last unlock (survives new terminal windows)
+if [[ -f "$_RBW_ENV_CACHE" ]] && [[ -n "$(find "$_RBW_ENV_CACHE" -mmin -480 2>/dev/null)" ]]; then
+    # shellcheck disable=SC1090
+    source "$_RBW_ENV_CACHE"
+    if [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" || -n "${OBSIDIAN_API_KEY:-}" ]]; then
+        unset _RBW_ENV_CACHE _RBW_ENV_LOCK
+        return 0
+    fi
+fi
 
 # Pick a timeout impl. macOS has no `timeout` by default; coreutils brings
 # `gtimeout`. Falls back to bare rbw (no hang protection) if neither exists.
@@ -39,12 +45,29 @@ fi
 
 # Guard: only proceed if vault is actually unlocked.
 # `rbw unlocked` exits 0 if unlocked, non-0 otherwise — no pinentry triggered.
-# rbw list / rbw get with a locked vault spawns pinentry-curses via rbw-agent;
+# rbw list / rbw get with a locked vault spawns pinentry via rbw-agent;
 # when the caller has no TTY the timeout kills the caller but orphans pinentry,
-# causing a CPU storm. Check first, bail if not unlocked.
+# causing a CPU storm. Check first, bail if not locked.
 if ! command ${=_dotfiles_bw_timeout} rbw unlocked >/dev/null 2>&1; then
     [[ -o interactive ]] && printf '[rbw] vault locked — run: rbw unlock\n' >&2
-    unset _dotfiles_bw_timeout
+    unset _dotfiles_bw_timeout _RBW_ENV_CACHE _RBW_ENV_LOCK
+    return 0
+fi
+
+# Another shell is populating the cache (herdr opening many panes at once).
+if ! mkdir "$_RBW_ENV_LOCK" 2>/dev/null; then
+    for _rbw_wait in {1..30}; do
+        if [[ -f "$_RBW_ENV_CACHE" ]]; then
+            # shellcheck disable=SC1090
+            source "$_RBW_ENV_CACHE"
+            if [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" || -n "${OBSIDIAN_API_KEY:-}" ]]; then
+                unset _dotfiles_bw_timeout _RBW_ENV_CACHE _RBW_ENV_LOCK _rbw_wait
+                return 0
+            fi
+        fi
+        sleep 0.1
+    done
+    unset _dotfiles_bw_timeout _RBW_ENV_CACHE _RBW_ENV_LOCK _rbw_wait
     return 0
 fi
 
@@ -77,11 +100,17 @@ export ATLASSIAN_FISKARS_CONFLUENCE_URL="https://fiskars.atlassian.net/wiki"
 export ATLASSIAN_AKQA_JIRA_URL="https://akqa-denmark.atlassian.net"
 export ATLASSIAN_AKQA_CONFLUENCE_URL="https://akqa-denmark.atlassian.net/wiki"
 
+# Obsidian REST — field name differs by platform.
+if [[ "$OSTYPE" == darwin* ]]; then
+    export OBSIDIAN_API_KEY="$(_dotfiles_bw_get_field 'Token - Mac' '🔐 SuperBro Vault')"
+else
+    export OBSIDIAN_API_KEY="$(_dotfiles_bw_get_field 'Token-Windows' '🔐 SuperBro Vault')"
+fi
+
 # export OPENAI_API_KEY="$(_dotfiles_bw_get 'OpenAI API Key')"
 # export ANTHROPIC_API_KEY="$(_dotfiles_bw_get 'Anthropic API Key')"
 
 # Write cache for next terminal window (8h TTL, /tmp cleared on reboot)
-_RBW_ENV_CACHE="${XDG_RUNTIME_DIR:-/tmp}/rbw-env-$UID.zsh"
 {
     printf 'export GITHUB_PERSONAL_ACCESS_TOKEN=%q\n' "$GITHUB_PERSONAL_ACCESS_TOKEN"
     printf 'export ATLASSIAN_USERNAME=%q\n' "$ATLASSIAN_USERNAME"
@@ -90,9 +119,10 @@ _RBW_ENV_CACHE="${XDG_RUNTIME_DIR:-/tmp}/rbw-env-$UID.zsh"
     printf 'export ATLASSIAN_FISKARS_CONFLUENCE_URL=%q\n' "$ATLASSIAN_FISKARS_CONFLUENCE_URL"
     printf 'export ATLASSIAN_AKQA_JIRA_URL=%q\n' "$ATLASSIAN_AKQA_JIRA_URL"
     printf 'export ATLASSIAN_AKQA_CONFLUENCE_URL=%q\n' "$ATLASSIAN_AKQA_CONFLUENCE_URL"
+    printf 'export OBSIDIAN_API_KEY=%q\n' "$OBSIDIAN_API_KEY"
 } > "$_RBW_ENV_CACHE"
 chmod 600 "$_RBW_ENV_CACHE"
-unset _RBW_ENV_CACHE
+rmdir "$_RBW_ENV_LOCK" 2>/dev/null || true
 
 unset -f _dotfiles_bw_get _dotfiles_bw_get_field
-unset _dotfiles_bw_timeout
+unset _dotfiles_bw_timeout _RBW_ENV_CACHE _RBW_ENV_LOCK
