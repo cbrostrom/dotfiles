@@ -65,6 +65,39 @@ Commit message: never append `Co-Authored-By: Claude` trailer.
 | Mid — 2–3 files, clear path | Outline → execute |
 | Big — ≥3 files, new feature, refactor, architecture | Task list in brain |
 
+## Code quality
+
+### aislop — AI slop guard (all languages)
+Catches patterns AI agents leave behind: narrative comments, swallowed exceptions, `as any`,
+dead stubs, duplicated helpers. Scores 0–100. Sub-second, deterministic, no LLM at runtime.
+
+**CC + Cursor**: quality-gate hook installed — runs `aislop hook <agent>` on every write,
+injects feedback only when score **regresses** below baseline. Happy path = zero tokens added.
+**Other agents**: run manually — `aislop scan --changes` after editing, `aislop fix` to auto-repair.
+
+| Signal | Action |
+|---|---|
+| "check code quality" / "any slop?" | `aislop scan` |
+| "fix slop" / "clean this up" | `aislop fix` |
+| "why is this flagged?" | `aislop why <rule>` |
+| score regresses (hook fires) | follow `suggestedActions` in the JSON payload |
+
+Rules: `.aislop/config.yml`. Do not disable rules to pass — fix the underlying issue.
+
+### fallow — JS/TS codebase intelligence
+Unused exports/files/deps, duplication, circular deps, complexity hotspots, architecture drift.
+Deterministic. No AI inside. Install per project: `npm install -D fallow`.
+
+Skill: `~/.agents/skills/fallow/` (all agents) · `~/.claude/skills/fallow/` (CC).
+
+| Signal | Action |
+|---|---|
+| "audit codebase" / "PR risk" | `fallow audit` |
+| "unused exports" / "dead code" | `fallow dead-code` |
+| "duplication" | `fallow dead-code --duplication` |
+| "complexity hotspots" | `fallow health --hotspots` |
+| "circular deps" | `fallow check --circular` |
+
 ## Infrastructure dispatch
 
 | Signal | Action |
