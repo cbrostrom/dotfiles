@@ -2,10 +2,11 @@
 # Install Cursor config from dotfiles.
 #
 # Symlinks:
-#   ~/.cursor/hooks/brain-load.sh  → dotfiles/.cursor/hooks/brain-load.sh
+#   ~/.cursor/hooks/*.sh  → dotfiles/.cursor/hooks/*.sh
 #
 # hooks.json patches (idempotent — never clobbers existing hooks):
 #   sessionStart  → brain-load.sh (vault brain context injection)
+#   preToolUse    → rtk-rewrite.sh (Shell command token compression)
 #   afterFileEdit → aislop hook cursor (quality gate, if aislop installed)
 set -euo pipefail
 
@@ -21,13 +22,14 @@ CURSOR_DIR="$HOME/.cursor"
 mkdir -p "$CURSOR_DIR/hooks"
 
 # --- Hook symlinks ---
-for hook in brain-load.sh; do
+for hook in brain-load.sh rtk-rewrite.sh; do
   src="$CURSOR_SRC/hooks/$hook"
   dst="$CURSOR_DIR/hooks/$hook"
   if [[ ! -f "$src" ]]; then
     warn "Hook source not found: $src — skipping"
     continue
   fi
+  chmod +x "$src"
   ln -sf "$src" "$dst"
   success "Linked hooks/$hook"
 done
@@ -60,6 +62,30 @@ else:
     session_hooks.append(brain_entry)
     changed = True
     print("\033[0;32m[cursor]\033[0m Patched hooks.json: added brain-load to sessionStart")
+
+# rtk-rewrite: preToolUse Shell
+rtk_entry = {
+    "command": "bash './hooks/rtk-rewrite.sh'",
+    "type": "command",
+    "matcher": "Shell",
+    "timeout": 5000,
+}
+tool_hooks = hooks.setdefault("preToolUse", [])
+
+# Remove RTK's upstream self-installed Cursor hook if present. The dotfiles hook
+# owns the adapter shape and calls the shared rewrite policy instead.
+before = len(tool_hooks)
+tool_hooks[:] = [h for h in tool_hooks if h.get("command") != "rtk hook cursor"]
+if len(tool_hooks) != before:
+    changed = True
+    print("\033[0;32m[cursor]\033[0m Removed upstream rtk hook cursor from preToolUse")
+
+if any(h.get("command") == rtk_entry["command"] for h in tool_hooks):
+    print("\033[0;34m[cursor]\033[0m rtk-rewrite already present in preToolUse — no change")
+else:
+    tool_hooks.append(rtk_entry)
+    changed = True
+    print("\033[0;32m[cursor]\033[0m Patched hooks.json: added rtk-rewrite to preToolUse")
 
 # aislop: afterFileEdit (only if aislop binary exists)
 import shutil

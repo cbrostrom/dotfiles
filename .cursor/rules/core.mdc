@@ -11,6 +11,10 @@ active tasks. Brain CLI: `~/.local/bin/brain`. Vault: `~/Vaults/Brain/Brains/<sl
 
 **Tools:** native Read / Grep / Glob / Shell always. No lean-ctx, no headroom.
 
+**RTK:** Cursor `preToolUse` hook rewrites supported Shell commands through `rtk`
+(git, gh, docker, kubectl, pnpm, grep, test tools, etc.) for token-compressed output.
+When running commands manually, prefer `rtk <command>` for matching subcommands.
+
 **Language:** English. No Danish unless explicitly requested.
 
 **Code quality:** aislop quality-gate hook is active — follow its feedback when it fires.

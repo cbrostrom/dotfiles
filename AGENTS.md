@@ -41,6 +41,9 @@ CC auto-loads via hook. All other agents: ask user or run manually on first mess
 
 Native tools always: Read, Grep, Glob, Shell.
 No lean-ctx, no headroom — removed from stack.
+RTK handles token-compressed shell output. Claude Code and Cursor install thin
+hooks that rewrite supported shell commands through `rtk`; other agents should
+use `rtk <command>` manually when a matching subcommand exists.
 Large files: Read with limit/offset. Search: Grep with head_limit.
 
 ## Coding principles
