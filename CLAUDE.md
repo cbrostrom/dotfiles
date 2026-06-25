@@ -18,7 +18,7 @@ dotfiles --update          # local
 | `scripts/` | Standalone tools: `project-mcp.sh`, `agentsync.sh`, `device-snapshot.sh` |
 | `hooks/` | Git hooks (pre-commit: syntax check + device snapshot) |
 | `.claude/` | Claude Code config: settings, hooks, skills, devices |
-| `.claude/hooks/` | Claude Code hooks: effort-classifier, wrap-reminder, brain-save-inject, engram-* |
+| `.claude/hooks/` | Claude Code hooks: effort-classifier, brain-save-inject, brain-load, claude-settings-merge, git-push-guard, rtk-rewrite, statusline |
 | `.claude/devices/` | Per-host Claude snapshots (auto-updated by pre-commit hook) |
 
 ## Settings layers
@@ -34,10 +34,11 @@ After edits: `./modules/claude-settings/doctor.sh --fix`
 | Hook | Event | Purpose |
 |------|-------|---------|
 | `effort-classifier.sh` | UserPromptSubmit | Tier prompt complexity → inject `[eff:tier]` hint |
-| `wrap-reminder.sh` | UserPromptSubmit | Nudge `.wrap` every 25 turns |
-| `brain-save-inject.sh` | PreCompact | Write `brain.md` before context compaction |
-| `engram-sync-start/stop.sh` | SessionStart/Stop | Sync Engram memory |
-| `git-push-guard.sh` | PreToolUse | Block `git push` outside whitelist |
+| `brain-save-inject.sh` | PreCompact + UserPromptSubmit(/compact) | Write brain files before context loss |
+| `brain-load.sh` | SessionStart | Inject vault context into session |
+| `claude-settings-merge.sh` | SessionStart (async) | Regenerate `settings.local.json` when tracked inputs change |
+| `git-push-guard.sh` | PreToolUse[Bash] | Block `git push` outside whitelist |
+| `statusline.sh` | statusLine | Shell command for status bar |
 
 ## Workflows
 
