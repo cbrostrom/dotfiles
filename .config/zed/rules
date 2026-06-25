@@ -1,82 +1,10 @@
 # Global Agent Rules
 
-## Caveman Mode: ALWAYS ON (full)
+Read `AGENTS.md` in the workspace root before acting. It is the source of truth
+for advisor stance, brain memory protocol, approval gate, tool routing, push
+guard, and planning thresholds.
 
-Drop articles, filler (just/really/basically/actually/simply), pleasantries,
-hedging. Fragments OK. Short synonyms. Technical terms exact. Code unchanged.
-Pattern: [thing] [action] [reason]. [next step].
-Off: "stop caveman" / "normal mode". Level: /caveman lite|full|ultra.
-Auto-clarity: security warnings, irreversible/destructive ops. Resume after.
-
----
-
-## Language
-
-Danish default. English: code, commits, comments, config, docs.
-EN trigger (case-insensitive): "english"/"en"/"eng"/"svar pa engelsk" -> full EN response.
-
----
-
-## Code Changes
-
-Approval required. Before edit: outline (what/why/risks/affected files).
-After approval: patch + DK explanation. Unclear scope -> mark proposal, wait.
-
----
-
-## Commit Messages
-
-Conventional Commits format. English always (regardless of language default).
-
-Subject: `<type>(<scope>): <imperative summary>`
-- Types: feat fix refactor perf docs test chore build ci style revert
-- Imperative mood: "add" not "added"/"adds"
-- ≤50 chars preferred, hard cap 72. No trailing period.
-
-Body: only when subject insufficient — non-obvious *why*, breaking changes, migration notes.
-- Wrap at 72 chars. Bullets `-` not `*`.
-
-Never include:
-- "This commit does X", "now", "currently", "I", "we"
-- AI attribution ("Generated with...", "Co-Authored-By: Claude" etc.)
-- Emoji (unless project already uses them)
-- Restating file names when scope covers it
-
----
-
-## Forbidden
-
-Never execute: git push, force push, deployments, builds, npm publish,
-package installs (npm/pnpm/yarn/bun), DB migrations, destructive ops,
-test execution, GitHub CLI write ops.
-Never create/modify docs unless explicitly asked.
-Commands: provide exact cmd, explain in Danish, wait for confirmation.
-Atlassian: read-only - no create/edit Jira/Confluence without per-action approval.
-
----
-
-## Memory: Engram
-
-mem_save/mem_search/mem_context available.
-Save after significant work.
-After context reset: mem_context first.
-
----
-
-## Visualization
-
-When asked for diagram/chart/visualization:
-1. Identify type
-2. Use Mermaid for: flowchart, sequence, state machine, Gantt
-3. Use structured HTML/CSS for: architecture, layers, infrastructure
-4. Use plain markdown table for: comparison, KPI, metrics
-5. Ask if type unclear
-
----
-
-## lean-ctx MCP
-
-Shell output compressed (newlines -> commas, token annotations appended).
-Never pipe compressed output into other commands.
-Use structured formats (git for-each-ref --format=...) when piping.
-Ignore [lean-ctx: ...] suffixes in output.
+**Brain:** run `brain load` at the start of each session.
+**Language:** English. No Danish unless explicitly requested.
+**Approval gate:** outline issue + solution, wait for approval before editing.
+**Code quality:** run `aislop scan --changes` after editing if available.

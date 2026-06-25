@@ -51,139 +51,106 @@
 //   cmd-shift-e      project panel
 //   cmd-shift-g      git panel
 [
-    {
-        "context": "Workspace",
-        "bindings": {
-            "shift shift": "command_palette::Toggle",
+  {
+    "context": "Workspace",
+    "bindings": {
+      "shift shift": "command_palette::Toggle",
+      "ctrl ctrl": "file_finder::Toggle",
+      "cmd-shift-m": [
+        "task::Spawn",
+        { "task_name": "git: merge branch into current" },
+      ],
 
-            "cmd-shift-m": [
-                "task::Spawn",
-                { "task_name": "git: merge branch into current" }
-            ],
+      // Direct panel shortcuts
+      "cmd-shift-e": "project_panel::ToggleFocus",
+      "cmd-shift-g": "git_panel::ToggleFocus",
 
-            // Direct panel shortcuts
-            "cmd-shift-e": "project_panel::ToggleFocus",
-            "cmd-shift-g": "git_panel::ToggleFocus",
+      // Pane navigation
+      "ctrl-h": "workspace::ActivatePaneLeft",
+      "ctrl-j": "workspace::ActivatePaneDown",
+      "ctrl-k": "workspace::ActivatePaneUp",
+      "ctrl-l": "workspace::ActivatePaneRight",
 
-            // Pane navigation
-            "ctrl-h": "workspace::ActivatePaneLeft",
-            "ctrl-j": "workspace::ActivatePaneDown",
-            "ctrl-k": "workspace::ActivatePaneUp",
-            "ctrl-l": "workspace::ActivatePaneRight",
+      // ─── Leader: alt alt ───────────────────────────────────────────────
 
-            // ─── Leader: alt alt ───────────────────────────────────────────────
+      // git
+      "alt alt g s": ["task::Spawn", { "task_name": "git: status (lazygit)" }],
+      "alt alt g m": [
+        "task::Spawn",
+        { "task_name": "git: merge branch into current" },
+      ],
+      "alt alt g M": [
+        "task::Spawn",
+        { "task_name": "git: merge --no-ff branch into current" },
+      ],
+      "alt alt g a": ["task::Spawn", { "task_name": "git: abort merge" }],
+      "alt alt g c": ["task::Spawn", { "task_name": "git: checkout (fzf)" }],
+      "alt alt g n": ["task::Spawn", { "task_name": "git: new branch" }],
+      "alt alt g P": ["task::Spawn", { "task_name": "git: push" }],
+      "alt alt g U": [
+        "task::Spawn",
+        { "task_name": "git: push -u origin HEAD" },
+      ],
+      "alt alt g l": ["task::Spawn", { "task_name": "git: pull --rebase" }],
+      "alt alt g f": [
+        "task::Spawn",
+        { "task_name": "git: fetch --all --prune" },
+      ],
+      "alt alt g S": ["task::Spawn", { "task_name": "git: stash push -m" }],
+      "alt alt g O": ["task::Spawn", { "task_name": "git: stash pop (fzf)" }],
+      "alt alt g L": ["task::Spawn", { "task_name": "git: log graph" }],
 
-            // git
-            "alt alt g s": [
-                "task::Spawn",
-                { "task_name": "git: status (lazygit)" }
-            ],
-            "alt alt g m": [
-                "task::Spawn",
-                { "task_name": "git: merge branch into current" }
-            ],
-            "alt alt g M": [
-                "task::Spawn",
-                { "task_name": "git: merge --no-ff branch into current" }
-            ],
-            "alt alt g a": ["task::Spawn", { "task_name": "git: abort merge" }],
-            "alt alt g c": [
-                "task::Spawn",
-                { "task_name": "git: checkout (fzf)" }
-            ],
-            "alt alt g n": ["task::Spawn", { "task_name": "git: new branch" }],
-            "alt alt g P": ["task::Spawn", { "task_name": "git: push" }],
-            "alt alt g U": [
-                "task::Spawn",
-                { "task_name": "git: push -u origin HEAD" }
-            ],
-            "alt alt g l": [
-                "task::Spawn",
-                { "task_name": "git: pull --rebase" }
-            ],
-            "alt alt g f": [
-                "task::Spawn",
-                { "task_name": "git: fetch --all --prune" }
-            ],
-            "alt alt g S": [
-                "task::Spawn",
-                { "task_name": "git: stash push -m" }
-            ],
-            "alt alt g O": [
-                "task::Spawn",
-                { "task_name": "git: stash pop (fzf)" }
-            ],
-            "alt alt g L": ["task::Spawn", { "task_name": "git: log graph" }],
+      // gh
+      "alt alt h c": ["task::Spawn", { "task_name": "gh: pr create --fill" }],
+      "alt alt h v": ["task::Spawn", { "task_name": "gh: pr view --web" }],
+      "alt alt h w": ["task::Spawn", { "task_name": "gh: pr checks --watch" }],
+      "alt alt h r": ["task::Spawn", { "task_name": "gh: repo view --web" }],
 
-            // gh
-            "alt alt h c": [
-                "task::Spawn",
-                { "task_name": "gh: pr create --fill" }
-            ],
-            "alt alt h v": [
-                "task::Spawn",
-                { "task_name": "gh: pr view --web" }
-            ],
-            "alt alt h w": [
-                "task::Spawn",
-                { "task_name": "gh: pr checks --watch" }
-            ],
-            "alt alt h r": [
-                "task::Spawn",
-                { "task_name": "gh: repo view --web" }
-            ],
+      // dotfiles
+      "alt alt d b": ["task::Spawn", { "task_name": "dotfiles: bootstrap" }],
+      "alt alt d d": [
+        "task::Spawn",
+        { "task_name": "dotfiles: zed-diff-base" },
+      ],
+      "alt alt d i": [
+        "task::Spawn",
+        { "task_name": "dotfiles: install zed-config" },
+      ],
 
-            // dotfiles
-            "alt alt d b": [
-                "task::Spawn",
-                { "task_name": "dotfiles: bootstrap" }
-            ],
-            "alt alt d d": [
-                "task::Spawn",
-                { "task_name": "dotfiles: zed-diff-base" }
-            ],
-            "alt alt d i": [
-                "task::Spawn",
-                { "task_name": "dotfiles: install zed-config" }
-            ],
+      // rtk
+      "alt alt r g": ["task::Spawn", { "task_name": "rtk: gain" }],
+      "alt alt r h": ["task::Spawn", { "task_name": "rtk: gain --history" }],
+      "alt alt r d": ["task::Spawn", { "task_name": "rtk: discover" }],
 
-            // rtk
-            "alt alt r g": ["task::Spawn", { "task_name": "rtk: gain" }],
-            "alt alt r h": [
-                "task::Spawn",
-                { "task_name": "rtk: gain --history" }
-            ],
-            "alt alt r d": ["task::Spawn", { "task_name": "rtk: discover" }],
+      // find / nav
+      "alt alt f f": "file_finder::Toggle",
+      "alt alt f g": "project_search::ToggleFocus",
+      "alt alt f r": "projects::OpenRecent",
 
-            // find / nav
-            "alt alt f f": "file_finder::Toggle",
-            "alt alt f g": "project_search::ToggleFocus",
-            "alt alt f r": "projects::OpenRecent",
+      // panels — alt alt p <letter>
+      "alt alt p e": "project_panel::ToggleFocus",
+      "alt alt p g": "git_panel::ToggleFocus",
+      "alt alt p t": "terminal_panel::ToggleFocus",
+      "alt alt p x": "diagnostics::Deploy",
+      "alt alt p o": "outline::Toggle",
+      "alt alt p a": "agent::ToggleFocus",
+      "alt alt p c": "collab_panel::ToggleFocus",
+      "alt alt p p": "command_palette::Toggle",
 
-            // panels — alt alt p <letter>
-            "alt alt p e": "project_panel::ToggleFocus",
-            "alt alt p g": "git_panel::ToggleFocus",
-            "alt alt p t": "terminal_panel::ToggleFocus",
-            "alt alt p x": "diagnostics::Deploy",
-            "alt alt p o": "outline::Toggle",
-            "alt alt p a": "agent::ToggleFocus",
-            "alt alt p c": "collab_panel::ToggleFocus",
-            "alt alt p p": "command_palette::Toggle",
+      // splits
+      "alt alt w v": "pane::SplitRight",
+      "alt alt w s": "pane::SplitDown",
+      "alt alt w c": "pane::CloseActiveItem",
+      "alt alt w =": "workspace::ActivateNextPane",
 
-            // splits
-            "alt alt w v": "pane::SplitRight",
-            "alt alt w s": "pane::SplitDown",
-            "alt alt w c": "pane::CloseActiveItem",
-            "alt alt w =": "workspace::ActivateNextPane",
+      // buffers
+      "alt alt b n": "pane::ActivateNextItem",
+      "alt alt b p": "pane::ActivatePreviousItem",
+      "alt alt b d": "pane::CloseActiveItem",
 
-            // buffers
-            "alt alt b n": "pane::ActivateNextItem",
-            "alt alt b p": "pane::ActivatePreviousItem",
-            "alt alt b d": "pane::CloseActiveItem",
-
-            // misc
-            "alt alt s": "outline::Toggle",
-            "alt alt q": "pane::CloseActiveItem"
-        }
-    }
+      // misc
+      "alt alt s": "outline::Toggle",
+      "alt alt q": "pane::CloseActiveItem",
+    },
+  },
 ]

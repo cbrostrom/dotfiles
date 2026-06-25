@@ -23,8 +23,12 @@ which rtk             # Verify correct binary
 
 ## Hook-Based Usage
 
-All other commands are automatically rewritten by the Claude Code hook, using the
-shared rewrite policy in `~/dotfiles/scripts/rtk/rewrite-command.sh`.
+Claude Code uses RTK's native hook processor (`rtk hook claude`) to rewrite
+supported shell commands.
 Example: `git status` → `rtk git status` (transparent, 0 tokens overhead)
+
+When choosing commands manually, still prefer explicit RTK forms for noisy
+commands, including `rtk npm run <script>`, `rtk npm test`, `rtk pytest`,
+`rtk cargo test`, `rtk go test`, `rtk docker ...`, and `rtk kubectl ...`.
 
 Refer to CLAUDE.md for full command reference.

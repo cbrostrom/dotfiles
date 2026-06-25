@@ -171,7 +171,7 @@ check_claude_link "$claude_dir/settings.json" "~/.claude/settings.json" \
 check_claude_link "$claude_dir/CLAUDE.md" "~/.claude/CLAUDE.md" \
     "bash $DOTFILES_DIR/scripts/claude/install-claude-config.sh"
 
-for hook in rtk-rewrite.sh entroly-start.sh claude-session-check.sh effort-classifier.sh; do
+for hook in entroly-start.sh claude-session-check.sh effort-classifier.sh; do
     hpath="$claude_dir/hooks/$hook"
     if [[ -L "$hpath" ]]; then
         if [[ -x "$hpath" ]]; then
