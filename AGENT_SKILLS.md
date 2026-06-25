@@ -10,6 +10,8 @@ Cursor also reads them through `~/.cursor/skills -> ~/.agents/skills`.
 | Skill | Use |
 |---|---|
 | `fallow` | JS/TS codebase intelligence: unused code, duplicate code, circular deps, complexity, architecture boundaries, feature flags, PR risk. |
+| `code-cleaner` | Audit code health using aislop + fallow: AI slop detection, duplication, dead code, complexity. Estimates fix complexity, recommends a model per category, presents a plan. Never fixes without permission. |
+| `dotfiles` | Architecture reference + safe implementation guide for the dotfiles repo. Covers settings layers, hook flows, skill routing, module install, devices, brain, and RTK. Plan + approval required before any edit. |
 
 Promote a skill here when Cursor, Claude, Codex, and future agents should all be able to use it. Keep descriptions specific enough for automatic discovery.
 
