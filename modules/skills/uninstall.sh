@@ -6,6 +6,8 @@ set -euo pipefail
 
 base="$DOTFILES_DIR/.claude/skills/skills.list"
 skills_dir="$HOME/.claude/skills"
+cursor_skills_dir="$HOME/.cursor/skills"
+agents_skills_dir="$HOME/.agents/skills"
 
 log "removing Claude Code skill symlinks from $skills_dir…"
 
@@ -23,4 +25,13 @@ if [[ -f "$base" ]]; then
     done < <(lists_merge "$base")
 fi
 
-ok "skills reset complete (npm-installed skill payloads in ~/.agents/skills left intact)"
+cursor_target="$(readlink "$cursor_skills_dir" 2>/dev/null || true)"
+if [[ -L "$cursor_skills_dir" && ( "$cursor_target" == "$agents_skills_dir" || "$cursor_target" == "$DOTFILES_DIR/.agents/skills" ) ]]; then
+    if [[ "${UNLINK_DRY_RUN:-0}" == "1" ]]; then
+        echo "  would remove: $cursor_skills_dir"
+    else
+        rm -- "$cursor_skills_dir" && ok "  removed: $cursor_skills_dir"
+    fi
+fi
+
+ok "skills reset complete (payloads in ~/.agents/skills left intact)"

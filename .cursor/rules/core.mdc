@@ -1,21 +1,47 @@
 ---
-description: Core agent policy — brain OS, native tools, English, push guard, code quality.
+description: Core agent policy — agnostic rules, brain OS, RTK, shared skills.
 alwaysApply: true
 ---
 
 Read `AGENTS.md` in the workspace root before acting. It is the source of truth for
-advisor stance, brain memory protocol, tool routing, push guard, and planning thresholds.
+advisor stance, truth discipline, approval gate, tool routing, skill sharing,
+push guard, and planning thresholds. Read `AGENT_SKILLS.md` when the task is
+about skills or agent capability inventory.
 
 **Brain:** run `brain load` at the start of each session to surface current state and
 active tasks. Brain CLI: `~/.local/bin/brain`. Vault: `~/Vaults/Brain/Brains/<slug>/`.
+Do not auto-load framework quick references. For Tauri/Solid projects, open only
+the relevant note under `~/Vaults/Brain/Development/Frameworks/` when needed.
+
+**Truth:** do not claim tools, skills, MCPs, APIs, or platform behavior exists
+without evidence from visible config/docs/tool schemas when it matters. If Cursor
+cannot do something directly, say so and offer the closest alternative with
+caveats. Give pros/cons for real choices, then recommend a path and why.
 
 **Tools:** native Read / Grep / Glob / Shell always. No lean-ctx, no headroom.
 
-**RTK:** Cursor `preToolUse` hook rewrites supported Shell commands through `rtk`
-(git, gh, docker, kubectl, pnpm, grep, test tools, etc.) for token-compressed output.
-When running commands manually, prefer `rtk <command>` for matching subcommands.
+**RTK:** Cursor `preToolUse` hook runs `rtk hook cursor` to rewrite supported
+Shell commands through `rtk` for token-compressed output. When choosing commands
+manually, prefer explicit `rtk <command>` forms for matching subcommands,
+including `rtk npm run <script>` and `rtk npm test`.
+
+**Skills:** shared skills live in `.agents/skills/` and install to
+`~/.agents/skills/`; Cursor reads them through `~/.cursor/skills`. Claude-only
+skills in `.claude/skills/` are not available to Cursor until promoted into the
+shared layer.
+
+**Token awareness:** Treat tool results, file reads, browser snapshots, MCP
+responses, and shell output as active-context candidates. Prefer scoped output
+and rough estimates from already-visible data; do not spend extra tokens just to
+estimate unless asked.
 
 **Language:** English. No Danish unless explicitly requested.
+
+**Approval gate:** For non-trivial work, outline the issue and solution and wait
+for user approval before editing or running mutating commands. Skip only for
+minor changes or when the user explicitly says unattended/auto/proceed/full go.
+If the user asks for an "outline", grill/test the idea and give recommendations
+with reasons; do not implement until approved.
 
 **Code quality:** aislop quality-gate hook is active — follow its feedback when it fires.
 For JS/TS codebase analysis: fallow skill (`~/.agents/skills/fallow/SKILL.md`).

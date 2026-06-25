@@ -154,6 +154,47 @@ if [[ -d "$SCRIPT_DIR/.claude/scripts" ]]; then
     done
 fi
 
+# Cursor config — rules, agents, hook scripts, built-in skill cache
+mkdir -p "$HOME/.cursor/rules" "$HOME/.cursor/agents" "$HOME/.cursor/hooks"
+
+if [[ -d "$SCRIPT_DIR/.cursor/rules" ]]; then
+    for rule in "$SCRIPT_DIR/.cursor/rules/"*.mdc; do
+        [[ -f "$rule" ]] || continue
+        create_symlink "$rule" "$HOME/.cursor/rules/$(basename "$rule")" "cursor rule: $(basename "$rule")"
+    done
+fi
+
+if [[ -d "$SCRIPT_DIR/.cursor/agents" ]]; then
+    for agent in "$SCRIPT_DIR/.cursor/agents/"*.md; do
+        [[ -f "$agent" ]] || continue
+        create_symlink "$agent" "$HOME/.cursor/agents/$(basename "$agent")" "cursor agent: $(basename "$agent")"
+    done
+fi
+
+if [[ -d "$SCRIPT_DIR/.cursor/hooks" ]]; then
+    for hook in "$SCRIPT_DIR/.cursor/hooks/"*.sh; do
+        [[ -f "$hook" ]] || continue
+        chmod +x "$hook"
+        create_symlink "$hook" "$HOME/.cursor/hooks/$(basename "$hook")" "cursor hook: $(basename "$hook")"
+    done
+fi
+
+if [[ -d "$SCRIPT_DIR/.cursor/skills-cursor" ]]; then
+    create_symlink "$SCRIPT_DIR/.cursor/skills-cursor" "$HOME/.cursor/skills-cursor" "cursor skills dir"
+fi
+
+# Shared agent skills (.agents/skills — portable Agent Skills)
+if [[ -d "$SCRIPT_DIR/.agents/skills" ]]; then
+    mkdir -p "$HOME/.agents"
+    create_symlink "$SCRIPT_DIR/.agents/skills" "$HOME/.agents/skills" "shared agent skills"
+    create_symlink "$SCRIPT_DIR/.agents/skills" "$HOME/.cursor/skills" "cursor shared agent skills"
+fi
+
+# RTK hooks are dotfiles-managed config entries using native `rtk hook ...`
+# processors. Do not call `rtk init` here: upstream installers may mutate
+# ~/.cursor/hooks.json or Claude settings directly. Agent-specific installers
+# patch those files idempotently.
+
 # Local secrets (API keys, tokens - not tracked in git)
 if [[ ! -f "$SCRIPT_DIR/.local-secrets" ]]; then
     if [[ -f "$SCRIPT_DIR/.local-secrets.example" ]]; then
