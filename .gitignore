@@ -28,6 +28,9 @@ Thumbs.db
 *.tmp
 *.temp
 
+# Tool caches
+.fallow/
+
 # IDE files
 .vscode/
 .idea/
