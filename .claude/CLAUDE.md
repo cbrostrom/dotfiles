@@ -1,7 +1,6 @@
 @../AGENTS.md
 @RTK.md
 @agent-style/claude-code.md
-@coding-principles.md
 @tools.macos.md
 
 # CC-only
@@ -53,7 +52,7 @@ Hooks `ExitPlanMode` — every plan exit → browser UI. Approve → proceed. An
 
 ## Settings architecture
 
-Full reference: `~/.claude/settings-arch.md`
+Full reference: `~/dotfiles/modules/claude-settings/README.md`
 
 **NEVER edit `settings.local.json`** — generated, wiped on SessionStart.
 Layers: `settings.base.json` → `settings.{darwin,linux,wsl}.json` → `settings.override.json` (gitignored).
