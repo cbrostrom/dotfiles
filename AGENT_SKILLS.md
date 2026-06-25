@@ -12,6 +12,8 @@ Cursor also reads them through `~/.cursor/skills -> ~/.agents/skills`.
 | `fallow` | JS/TS codebase intelligence: unused code, duplicate code, circular deps, complexity, architecture boundaries, feature flags, PR risk. |
 | `code-cleaner` | Audit code health using aislop + fallow: AI slop detection, duplication, dead code, complexity. Estimates fix complexity, recommends a model per category, presents a plan. Never fixes without permission. |
 | `dotfiles` | Architecture reference + safe implementation guide for the dotfiles repo. Covers settings layers, hook flows, skill routing, module install, devices, brain, and RTK. Plan + approval required before any edit. |
+| `vault` | Obsidian Brain vault protocol. Load/save session context (current.md / next.md / gotchas.md), brain CLI reference, when/what to persist, inbox routing. Shared across all agents. |
+| `inbox-librarian` | Route `$VAULT/Inbox/` files to correct vault locations oldest-first. Infers area/type/tags, proposes destination with backlinks, never auto-routes. Confirm-per-file. |
 
 Promote a skill here when Cursor, Claude, Codex, and future agents should all be able to use it. Keep descriptions specific enough for automatic discovery.
 

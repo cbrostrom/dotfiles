@@ -8,6 +8,7 @@
 #   sessionStart  → brain-load.sh through run-hook.sh
 #   preToolUse    → rtk hook cursor through run-hook.sh
 #   afterFileEdit → aislop hook cursor through run-hook.sh, if aislop installed
+#   stop          → vault-save.sh through run-hook.sh
 #   cleanup       → remove dead Code Island and legacy lean-ctx/rtk adapters
 set -euo pipefail
 
@@ -23,7 +24,7 @@ CURSOR_DIR="$HOME/.cursor"
 mkdir -p "$CURSOR_DIR/hooks"
 
 # --- Hook symlinks ---
-for hook in brain-load.sh run-hook.sh; do
+for hook in brain-load.sh run-hook.sh vault-save.sh; do
   src="$CURSOR_SRC/hooks/$hook"
   dst="$CURSOR_DIR/hooks/$hook"
   if [[ ! -f "$src" ]]; then
@@ -61,11 +62,13 @@ def managed_command(command):
         "rtk hook cursor",
         "aislop hook cursor",
         "bash './hooks/brain-load.sh'",
+        "bash './hooks/vault-save.sh'",
     )
     wrapped = (
         "bash './hooks/run-hook.sh' rtk -- rtk hook cursor",
         "bash './hooks/run-hook.sh' aislop -- aislop hook cursor",
         "bash './hooks/run-hook.sh' brain-load -- bash './hooks/brain-load.sh'",
+        "bash './hooks/run-hook.sh' vault-save -- bash './hooks/vault-save.sh'",
     )
     return any(part in command for part in legacy) or command in wrapped
 
@@ -128,6 +131,12 @@ if shutil.which("aislop"):
     })
 else:
     print("\033[1;33m[cursor]\033[0m aislop not found — skipping afterFileEdit patch")
+
+# vault-save: stop (lightweight brain nudge after each task)
+add_entry("stop", {
+    "command": "bash './hooks/run-hook.sh' vault-save -- bash './hooks/vault-save.sh'",
+    "timeout": 5,
+})
 
 if changed:
     with open(path, "w") as f:
