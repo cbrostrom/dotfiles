@@ -14,6 +14,13 @@ Cursor also reads them through `~/.cursor/skills -> ~/.agents/skills`.
 | `dotfiles` | Architecture reference + safe implementation guide for the dotfiles repo. Covers settings layers, hook flows, skill routing, module install, devices, brain, and RTK. Plan + approval required before any edit. |
 | `vault` | Obsidian Brain vault protocol. Load/save session context (current.md / next.md / gotchas.md), brain CLI reference, when/what to persist, inbox routing. Shared across all agents. |
 | `inbox-librarian` | Route `$VAULT/Inbox/` files to correct vault locations oldest-first. Infers area/type/tags, proposes destination with backlinks, never auto-routes. Confirm-per-file. |
+| `standup` | Daily standup from git commits + Jira in-progress + brain done items. 3 bullets (did/doing/blocked), ≤120 words, `composer-2.5-fast`. |
+| `morning-brief` | Morning context loader: brain priorities + calendar + open PRs in ≤200 words. Run once at workday start. `composer-2.5-fast`. |
+| `dot-doctor` | Dotfiles health check with intelligent triage. Runs doctor.sh, suppresses cosmetic warnings, surfaces real issues with exact fix commands. `composer-2.5-fast`. |
+| `context-bridge` | Rich session save/restore. Extracts decisions + reasoning + dead ends + next step → vault snapshot. Richer than brain save. `claude-4.6-sonnet-medium-thinking`. |
+| `jira-assistant` | Jira ticket analyst and drafter. Reads and reviews tickets (AC, scope, risks), drafts new tickets/comments for copy-paste — never auto-writes. Routes fiskars/akqa by context. |
+| `memory-curator` | Vault quality guard. Finds stale done items, contradictions, duplicates in brain files. Proposes-only, confirm before any change. Weekly cron at `scripts/vault/memory-curator.sh`. |
+| `release-notes` | Git range → grouped, rewritten release notes using stored templates (github/slack/changelog). Learns project style. Never publishes without explicit instruction. |
 
 Promote a skill here when Cursor, Claude, Codex, and future agents should all be able to use it. Keep descriptions specific enough for automatic discovery.
 
