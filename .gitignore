@@ -69,9 +69,6 @@ gaming/config/launch.log
 # Claude device snapshots — tracked in git (no secrets, used for cross-host config)
 # .claude/devices/
 
-# lean-ctx local graph state (runtime cache, not portable)
-.lean-ctx/
-
 # Codex (not used)
 .codex/
 

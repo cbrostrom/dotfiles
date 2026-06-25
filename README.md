@@ -11,12 +11,12 @@ servers, etc.) is a self-contained module under `modules/`.
 ├── bootstrap.sh                  # Module-driven entrypoint
 ├── modules/                      # Module system + individual modules
 │   ├── _lib/                       # loader, log, platform, config helpers
-│   ├── packages/  symlinks/  fonts/  vscodium/  zed/  …
+│   ├── packages/  symlinks/  fonts/  zed/  rust-tools/  …
 │   └── README.md                   # How to add a module
 ├── modules.conf.example          # Per-machine enable/disable template
 ├── .zshrc, .gitconfig, .gitignore_global   # Core dotfiles
 ├── zsh/                          # Modular zsh config (00-08)
-├── .config/                      # bat, lazygit, procs, starship, zellij, vscodium…
+├── .config/                      # bat, lazygit, procs, starship, cursor, zed…
 ├── macos/ghostty/                # Ghostty terminal (macOS)
 ├── linux/ghostty/                # Ghostty terminal (native Linux)
 ├── wsl/windows-terminal/         # Windows Terminal settings (WSL)
@@ -66,16 +66,6 @@ See `modules/README.md` for module authoring details.
 - **.local-config** – Machine-specific (git-ignored); copy from .local-config.example
 
 ## Troubleshooting
-
-### `git config` viser ingen output i terminal
-
-Hvis `lean-ctx` shell-wrapper er aktiv (`lean-ctx-status` viser ON), bliver output fra `git config --list | grep ...` filtreret/munget af wrapperen. Workarounds:
-
-```bash
-/opt/homebrew/bin/git config --list   # bypass wrapper
-command git config --list             # bypass alias
-lean-ctx-off                          # disable wrapper for current shell
-```
 
 ### SSH commit signing ("cannot run gpg" eller "gpg failed to sign")
 

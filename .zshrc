@@ -119,8 +119,8 @@ fi
 
 unset MAILCHECK
 
-# opencode
-export PATH=/home/christian/.opencode/bin:$PATH
+# opencode (Linux only)
+[[ -d /home/christian/.opencode/bin ]] && export PATH=/home/christian/.opencode/bin:$PATH
 
 # OBSIDIAN_API_KEY and other rbw secrets: modules/rbw/env-secrets.zsh (.zshenv)
 export PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"

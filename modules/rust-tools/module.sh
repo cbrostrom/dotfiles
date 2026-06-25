@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 MODULE_NAME="rust-tools"
-MODULE_DESC="Rust toolchain (rustup) + cargo-installed tools (lean-ctx)"
+MODULE_DESC="Rust toolchain (rustup + cargo)"
 MODULE_CATEGORY="tools"
 MODULE_PLATFORMS="all"
 MODULE_PROFILES="all"

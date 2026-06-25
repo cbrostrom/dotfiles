@@ -76,8 +76,8 @@ else
     ok "engram installed"
 fi
 
-# ── 4. Rust + lean-ctx ───────────────────────────────────────────────────────
-if command -v cargo >/dev/null 2>&1; then
+# ── 4. Rust toolchain ────────────────────────────────────────────────────────
+if command -v cargo >/dev/null 2>&1 || [[ -x "$HOME/.cargo/bin/cargo" ]]; then
     ok "cargo already installed"
 else
     log "installing Rust toolchain"
@@ -86,13 +86,6 @@ else
     ok "rust installed"
 fi
 export PATH="$HOME/.cargo/bin:$PATH"
-
-if command -v lean-ctx >/dev/null 2>&1; then
-    ok "lean-ctx already installed"
-else
-    log "installing lean-ctx"
-    cargo install lean-ctx 2>/dev/null || warn "lean-ctx cargo install failed — skip, can install later"
-fi
 
 # ── 5. Node.js ───────────────────────────────────────────────────────────────
 if command -v node >/dev/null 2>&1; then
