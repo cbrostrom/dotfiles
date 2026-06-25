@@ -1,7 +1,10 @@
 # Agent policy — dotfiles
 
-Shared source of truth for all AI agents (CC, Cursor, OpenCode, Zed, etc.).
+Shared source of truth for ALL AI agents (Claude Code, Cursor, Codex, OpenCode,
+Zed, Gemini, etc.). Any AI agent working in this repo must read and obey this
+file before tool-specific adapters.
 Tool-specific adapters: `.claude/CLAUDE.md` (CC), `.cursor/rules/core.mdc` (Cursor).
+Skill inventory: `AGENT_SKILLS.md`.
 
 ## Advisor stance
 
@@ -18,6 +21,18 @@ Not assistant — advisor who knows more. Apply every reply:
 
 English default. Code, commits, comments, config, and AI rules always English.
 Caveman mode (fragments, no filler) available on request — not the default.
+
+## Truth and decisions
+
+1. Do not pretend a tool, skill, MCP, API, file, or platform capability exists.
+   Verify from visible config/docs/tool schemas when it matters.
+2. If something cannot be done in the current agent surface, say so directly.
+   Offer the closest viable alternative, with caveats.
+3. For meaningful choices, give pros/cons when they help decision-making, then
+   recommend a path and say why.
+4. Before mutating files, running mutating commands, publishing, or changing
+   config, ask whether to execute unless the user explicitly says unattended,
+   auto, proceed, full go, or equivalent.
 
 ## Brain (memory)
 
@@ -37,14 +52,84 @@ CC auto-loads via hook. All other agents: ask user or run manually on first mess
 | find my notes on X | `grep -rl "<query>" $VAULT --include="*.md"` |
 | open in Obsidian | `ob open <path>` |
 
+### Quick references
+
+Framework notes are opt-in pointers, never default context. For Tauri/Solid
+projects, open only the relevant quick reference first:
+- Tauri v2: `~/Vaults/Brain/Development/Frameworks/Tauri v2.md`
+- SolidJS: `~/Vaults/Brain/Development/Frameworks/SolidJS.md`
+
+Use these to reach official docs quickly. Keep them token-light: links, routing
+hints, and one-line dated updates only. If official docs changed during use,
+update the note's link/short note and `Last checked`; never paste large docs.
+
 ## Tool routing
 
 Native tools always: Read, Grep, Glob, Shell.
 No lean-ctx, no headroom — removed from stack.
-RTK handles token-compressed shell output. Claude Code and Cursor install thin
-hooks that rewrite supported shell commands through `rtk`; other agents should
-use `rtk <command>` manually when a matching subcommand exists.
+RTK handles token-compressed shell output. Claude Code and Cursor install native
+RTK hooks (`rtk hook claude`, `rtk hook cursor`) that rewrite supported shell
+commands. Other agents should use `rtk <command>` manually when a matching
+subcommand exists.
 Large files: Read with limit/offset. Search: Grep with head_limit.
+
+## Skills
+
+Shared, agent-agnostic skills live in `.agents/skills/` and install to
+`~/.agents/skills/`. Cursor reads the same layer via `~/.cursor/skills`.
+Claude-only skills in `.claude/skills/` and Codex-only skills in `.codex/skills/`
+are not portable until promoted into `.agents/skills/`.
+
+Read `AGENT_SKILLS.md` when asked what skills are available, when tuning skill
+usage, or when deciding whether a workflow should be shared or tool-specific.
+
+## Token awareness
+
+Treat every tool result, file read, search result, browser snapshot, MCP response,
+and shell output as potential active model context until it is truncated,
+compacted, summarized, or dropped. Stored transcript/history is not the same as
+active context, but any retained result can become repeated input cost.
+
+Default behavior:
+1. Before noisy reads/commands, prefer scoped output: path filters, `--stat`,
+   `--tail`, quiet test modes, Read limit/offset, and Grep/rg `head_limit`.
+2. Use RTK for supported shell families. Claude Code and Cursor hooks rewrite
+   automatically; Codex/OpenCode/Zed/Gemini should use `rtk <command>` manually.
+   When choosing commands yourself, still prefer explicit RTK forms even if a
+   hook might catch them: `rtk npm run <script>`, `rtk npm test`, `rtk pnpm ...`,
+   `rtk pytest`, `rtk cargo test`, `rtk go test`, `rtk docker ...`, etc.
+3. Give token/cost approximations only when useful for a decision and derivable
+   from already-visible data. Do not run extra counting commands or read more
+   data just to estimate unless the user asks.
+4. Cheap heuristic: 1 token ~= 4 chars ~= 0.75 words; 1k tokens ~= 750 words.
+   Label estimates as rough.
+5. For likely-large output (>200 lines or >10k chars), say the context risk
+   first and choose a compact view or ask whether full output is needed.
+6. After a large investigation phase, suggest compaction where the agent supports
+   it (`/compact`, summarization, new thread) before implementation.
+7. Token audit tools: `rtk gain`, `rtk gain --history`, `rtk discover`,
+   `rtk verify`, and `rtk init -g --show`. Do not run `rtk init` blindly;
+   dotfiles owns the install shape.
+
+## Approval gate — ALL AI agents
+
+Mandatory default for every AI agent: for non-trivial work, outline the issue
+and the solution, then wait for user approval before editing or running mutating
+commands.
+
+Skip approval only when:
+1. User explicitly says unattended, auto, proceed without approval, full go, or equivalent.
+2. The change is minor: one-file typo/comment/config tweak, read-only lookup, or
+   a clearly reversible command with no product/architecture/security impact.
+
+If scope expands beyond minor while working, stop and ask for approval before
+continuing. The outline should state: issue, proposed solution, files/areas
+likely touched, risks, and verification plan.
+
+Trigger word for ALL AI agents: if the user asks for an "outline", treat it as
+theory-testing mode, not permission to implement. Grill the idea, test
+assumptions, compare options, and give AI recommendations with reasons. Wait for
+approval before action unless the user explicitly says unattended/auto/proceed.
 
 ## Coding principles
 
@@ -65,8 +150,8 @@ Commit message: never append `Co-Authored-By: Claude` trailer.
 | Scope | Tool |
 |---|---|
 | Trivial — ≤2 files, single fix, rename | Direct edit |
-| Mid — 2–3 files, clear path | Outline → execute |
-| Big — ≥3 files, new feature, refactor, architecture | Task list in brain |
+| Mid — 2–3 files, clear path | Outline → wait for approval → execute |
+| Big — ≥3 files, new feature, refactor, architecture | Task list in brain → wait for approval |
 
 ## Code quality
 
