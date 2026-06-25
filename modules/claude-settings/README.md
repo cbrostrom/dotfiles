@@ -34,12 +34,15 @@ The SessionStart hook at `~/.claude/hooks/claude-settings-merge.sh` runs `merge.
 - `replace-by:matcher+command` — array entries identified by `matcher` plus inner `command` set
 - _default_ — overlay wins (replace)
 
-## Editing
+## Editing rules
 
-- Shared change → edit `settings.base.json`, commit, push, pull elsewhere.
-- Platform-only → edit `settings.{platform}.json`.
-- Host-only → edit `settings.override.json` on that host (never commit).
-- Never edit `settings.local.json` directly — generated and wiped on next merge.
+1. **Never edit `settings.local.json`** — generated, wiped on every SessionStart merge.
+2. Shared rule → `settings.base.json`, commit, push, pull elsewhere.
+3. Platform rule → `settings.{darwin,linux,wsl}.json`.
+4. Per-host one-off → `settings.override.json` (gitignored, never commit).
+5. Keep `$VAR` literal in tracked fragments — Claude Code resolves env vars at runtime. Never pre-expand to `/Users/...`.
+6. After editing a tracked layer: `./modules/claude-settings/doctor.sh --fix` or wait for SessionStart hook.
+7. Drift reported → pick correct layer, then `--fix`. Never paper over by hand-editing `settings.local.json`.
+8. Cross-host: edit → commit → push → other hosts pull + regenerate on next session.
 
-Spec: `docs/superpowers/specs/2026-05-15-platform-tiered-settings-design.md`.
-Plan: `docs/superpowers/plans/2026-05-15-platform-tiered-settings-plan.md`.
+When in doubt: `./modules/claude-settings/doctor.sh` first.

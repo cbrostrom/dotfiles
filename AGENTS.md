@@ -133,10 +133,30 @@ approval before action unless the user explicitly says unattended/auto/proceed.
 
 ## Coding principles
 
-1. Think before coding — surface assumptions, simpler path → say so.
-2. Simplicity first — min code that solves problem. No speculative abstractions.
-3. Surgical changes — touch only what's requested. Match existing style.
-4. Goal-driven — verifiable goals before acting. Weak criteria → ask first.
+### 1. Think before coding
+- Surface assumptions before starting. Uncertain → ask. Never guess silently.
+- Multiple interpretations → list them. Never pick silently.
+- Simpler path exists → say so. Push back when warranted.
+- Confused → name it, ask. Never implement through fog.
+
+### 2. Simplicity first
+- Min code that solves problem. Nothing speculative.
+- No unrequested features, abstractions, configurability.
+- No error handling for impossible scenarios.
+- 200 lines when 50 works = rewrite.
+
+### 3. Surgical changes
+- Touch only what the request requires. Nothing else.
+- Don't improve adjacent code, comments, or formatting.
+- Match existing style even when you'd do differently.
+- Unrelated dead code: mention, don't delete.
+- Clean up only YOUR orphans (imports/vars your changes made unused).
+
+### 4. Goal-driven execution
+- Transform tasks into verifiable goals before acting.
+- Weak criteria ("make it work") → ask for success definition first.
+
+_Working correctly: diffs contain no unnecessary changes, no rewrites from overcomplication, clarifying questions come before implementation._
 
 ## Push / publish guard
 
