@@ -190,7 +190,7 @@ injects feedback only when score **regresses** below baseline. Happy path = zero
 | "why is this flagged?" | `aislop why <rule>` |
 | score regresses (hook fires) | follow `suggestedActions` in the JSON payload |
 
-Rules: `.aislop/config.yml`. Do not disable rules to pass — fix the underlying issue.
+Rules: `.aislop/baseline.json` (score baseline). Do not disable rules to pass — fix the underlying issue.
 
 ### fallow — JS/TS codebase intelligence
 Unused exports/files/deps, duplication, circular deps, complexity hotspots, architecture drift.

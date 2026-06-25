@@ -2,7 +2,7 @@
   "language": "english",
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": false,
     "code-simplifier@claude-plugins-official": false
   },
   "permissions": { "allow": ["Bash(git status)", "Bash(git diff:*)", "Bash(bq:*)"] },
@@ -12,7 +12,7 @@
   },
   "hooks": {
     "SessionStart": [
-      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/entroly-start.sh", "async": true }] }
+      { "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/claude-settings-merge.sh", "async": true, "timeout": 15 }] }
     ]
   },
   "statusLine": { "type": "command", "command": "bash \"$HOME/.claude/hooks/statusline.sh\"" }
