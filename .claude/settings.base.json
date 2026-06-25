@@ -1,167 +1,184 @@
 {
-  "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "model": "claude-sonnet-4-6",
-  "enabledPlugins": {
-    "frontend-design@claude-plugins-official": false,
-    "superpowers@claude-plugins-official": false,
-    "code-simplifier@claude-plugins-official": false,
-    "github@claude-plugins-official": false,
-    "claude-md-management@claude-plugins-official": true,
-    "claude-code-setup@claude-plugins-official": false,
-    "atlassian@claude-plugins-official": false,
-    "shopify@claude-plugins-official": false,
-    "liquid-skills@claude-plugins-official": false,
-    "liquid-lsp@claude-plugins-official": false,
-    "code-review@claude-plugins-official": false,
-    "skill-creator@claude-plugins-official": false,
-    "caveman@caveman": false,
-    "planning-with-files@planning-with-files": false,
-    "plannotator@plannotator": true,
-    "ck@cavekit-marketplace": false
-  },
-  "deniedMcpServers": [
-    {
-      "serverUrl": "https://mcp.adobeaemcloud.com/adobe/mcp/aem"
+    "$schema": "https://json.schemastore.org/claude-code-settings.json",
+    "model": "claude-sonnet-4-6",
+    "enabledPlugins": {
+        "frontend-design@claude-plugins-official": false,
+        "superpowers@claude-plugins-official": false,
+        "code-simplifier@claude-plugins-official": false,
+        "github@claude-plugins-official": false,
+        "claude-md-management@claude-plugins-official": true,
+        "claude-code-setup@claude-plugins-official": false,
+        "atlassian@claude-plugins-official": false,
+        "shopify@claude-plugins-official": false,
+        "liquid-skills@claude-plugins-official": false,
+        "liquid-lsp@claude-plugins-official": false,
+        "code-review@claude-plugins-official": false,
+        "skill-creator@claude-plugins-official": false,
+        "caveman@caveman": false,
+        "planning-with-files@planning-with-files": false,
+        "plannotator@plannotator": true,
+        "ck@cavekit-marketplace": false
     },
-    {
-      "serverUrl": "https://adobe-creativity.adobe.io/mcp"
-    },
-    {
-      "serverUrl": "https://mcp.airtable.com/mcp"
-    },
-    {
-      "serverUrl": "https://mcp.atlassian.com/v1/mcp"
-    },
-    {
-      "serverUrl": "https://asset-management.mcp.cloudinary.com/sse"
-    },
-    {
-      "serverUrl": "https://mcp.figma.com/mcp"
-    },
-    {
-      "serverUrl": "https://calendarmcp.googleapis.com/mcp/v1"
-    },
-    {
-      "serverUrl": "https://drivemcp.googleapis.com/mcp/v1"
-    },
-    {
-      "serverUrl": "https://mcp.hubspot.com/anthropic"
-    },
-    {
-      "serverUrl": "https://microsoft365.mcp.claude.com/mcp"
-    },
-    {
-      "serverUrl": "https://mcp.notion.com/mcp"
-    },
-    {
-      "serverUrl": "https://api.peec.ai/mcp"
-    },
-    {
-      "serverUrl": "https://mcp.postman.com/minimal"
-    },
-    {
-      "serverUrl": "https://mcp.slack.com/mcp"
-    },
-    {
-      "serverUrl": "https://mcp.supabase.com/mcp"
-    },
-    {
-      "serverUrl": "https://mcp.vercel.com"
-    },
-    {
-      "serverUrl": "https://mcp.monday.com/mcp"
-    }
-  ],
-  "extraKnownMarketplaces": {
-    "caveman": {
-      "source": {
-        "source": "github",
-        "repo": "juliusbrussee/caveman"
-      }
-    },
-    "plannotator": {
-      "source": {
-        "source": "github",
-        "repo": "backnotprop/plannotator"
-      }
-    },
-    "cavekit-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "juliusbrussee/cavekit"
-      }
-    }
-  },
-  "language": "english",
-  "effortLevel": "medium",
-  "autoUpdatesChannel": "stable",
-  "editorMode": "normal",
-  "spinnerVerbs": {
-    "mode": "replace",
-    "verbs": ["Thinking", "Processing", "Working"]
-  },
-  "permissions": {
-    "defaultMode": "default",
-    "allow": [
-      "Bash(git status)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git checkout:*)",
-      "Bash(git branch:*)",
-      "Bash(git fetch:*)",
-      "Bash(git pull:*)",
-      "Bash(npm run:*)",
-      "Bash(npx:*)",
-      "Bash(bun run:*)",
-      "Bash(bun add:*)",
-      "Bash(dotfiles --doctor:*)",
-      "Bash(dotfiles --claude-doctor:*)",
-      "Bash(dotfiles --update:*)",
-      "Edit(/Users/Christian.Brostrom/dotfiles/.claude/CLAUDE.md)"
+    "deniedMcpServers": [
+        {
+            "serverUrl": "https://mcp.adobeaemcloud.com/adobe/mcp/aem"
+        },
+        {
+            "serverUrl": "https://adobe-creativity.adobe.io/mcp"
+        },
+        {
+            "serverUrl": "https://mcp.airtable.com/mcp"
+        },
+        {
+            "serverUrl": "https://mcp.atlassian.com/v1/mcp"
+        },
+        {
+            "serverUrl": "https://asset-management.mcp.cloudinary.com/sse"
+        },
+        {
+            "serverUrl": "https://mcp.figma.com/mcp"
+        },
+        {
+            "serverUrl": "https://calendarmcp.googleapis.com/mcp/v1"
+        },
+        {
+            "serverUrl": "https://drivemcp.googleapis.com/mcp/v1"
+        },
+        {
+            "serverUrl": "https://mcp.hubspot.com/anthropic"
+        },
+        {
+            "serverUrl": "https://microsoft365.mcp.claude.com/mcp"
+        },
+        {
+            "serverUrl": "https://mcp.notion.com/mcp"
+        },
+        {
+            "serverUrl": "https://api.peec.ai/mcp"
+        },
+        {
+            "serverUrl": "https://mcp.postman.com/minimal"
+        },
+        {
+            "serverUrl": "https://mcp.slack.com/mcp"
+        },
+        {
+            "serverUrl": "https://mcp.supabase.com/mcp"
+        },
+        {
+            "serverUrl": "https://mcp.vercel.com"
+        },
+        {
+            "serverUrl": "https://mcp.monday.com/mcp"
+        }
     ],
-    "ask": ["Bash(git push:*)", "Bash(npm publish:*)"],
-    "deny": [
-      "Bash(rm -rf:*)",
-      "Read(.env)",
-      "Read(.env.*)",
-      "Read(*.pem)",
-      "Read(*.key)",
-      "Read(*.p12)",
-      "Read(*.pfx)",
-      "Read(.netrc)",
-      "Read(.aws/credentials)",
-      "Read(.ssh/id_*)",
-      "Read(*secret*)",
-      "Read(*credential*)"
-    ]
-  },
-  "env": {
-    "CLAUDE_CODE_ENABLE_TELEMETRY": "0"
-  },
-  "outputStyle": "default",
-  "spinnerTipsEnabled": true,
-  "awaySummaryEnabled": false,
-  "tui": "fullscreen",
-  "skipDangerousModePermissionPrompt": true,
-  "preferredNotifChannel": "notifications_disabled",
-  "remoteControlAtStartup": false,
-  "skipAutoPermissionPrompt": true,
-  "useAutoModeDuringPlan": true,
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/brain-optimise-cheap.sh",
-            "timeout": 15
-          }
+    "extraKnownMarketplaces": {
+        "caveman": {
+            "source": {
+                "source": "github",
+                "repo": "juliusbrussee/caveman"
+            }
+        },
+        "plannotator": {
+            "source": {
+                "source": "github",
+                "repo": "backnotprop/plannotator"
+            }
+        },
+        "cavekit-marketplace": {
+            "source": {
+                "source": "github",
+                "repo": "juliusbrussee/cavekit"
+            }
+        }
+    },
+    "language": "english",
+    "effortLevel": "medium",
+    "autoUpdatesChannel": "stable",
+    "editorMode": "normal",
+    "spinnerVerbs": {
+        "mode": "replace",
+        "verbs": [
+            "Thinking",
+            "Processing",
+            "Working"
         ]
-      }
-    ],
-    "PreToolUse": [],
-    "SessionEnd": []
-  }
+    },
+    "permissions": {
+        "defaultMode": "default",
+        "allow": [
+            "Bash(git status)",
+            "Bash(git diff:*)",
+            "Bash(git log:*)",
+            "Bash(git add:*)",
+            "Bash(git commit:*)",
+            "Bash(git checkout:*)",
+            "Bash(git branch:*)",
+            "Bash(git fetch:*)",
+            "Bash(git pull:*)",
+            "Bash(npm run:*)",
+            "Bash(npx:*)",
+            "Bash(bun run:*)",
+            "Bash(bun add:*)",
+            "Bash(dotfiles --doctor:*)",
+            "Bash(dotfiles --claude-doctor:*)",
+            "Bash(dotfiles --update:*)",
+            "Edit(/Users/Christian.Brostrom/dotfiles/.claude/CLAUDE.md)"
+        ],
+        "ask": [
+            "Bash(git push:*)",
+            "Bash(npm publish:*)"
+        ],
+        "deny": [
+            "Bash(rm -rf:*)",
+            "Read(.env)",
+            "Read(.env.*)",
+            "Read(*.pem)",
+            "Read(*.key)",
+            "Read(*.p12)",
+            "Read(*.pfx)",
+            "Read(.netrc)",
+            "Read(.aws/credentials)",
+            "Read(.ssh/id_*)",
+            "Read(*secret*)",
+            "Read(*credential*)"
+        ]
+    },
+    "env": {
+        "CLAUDE_CODE_ENABLE_TELEMETRY": "0"
+    },
+    "outputStyle": "default",
+    "spinnerTipsEnabled": true,
+    "awaySummaryEnabled": false,
+    "tui": "fullscreen",
+    "skipDangerousModePermissionPrompt": true,
+    "preferredNotifChannel": "notifications_disabled",
+    "remoteControlAtStartup": false,
+    "skipAutoPermissionPrompt": true,
+    "useAutoModeDuringPlan": true,
+    "hooks": {
+        "SessionStart": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "$HOME/.claude/hooks/claude-settings-merge.sh",
+                        "timeout": 15,
+                        "async": true
+                    }
+                ]
+            },
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "$HOME/.claude/hooks/brain-optimise-cheap.sh",
+                        "timeout": 15
+                    }
+                ]
+            }
+        ],
+        "PreToolUse": [],
+        "SessionEnd": []
+    }
 }

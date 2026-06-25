@@ -25,7 +25,7 @@ settings.base.json
 - `brain-save-inject.sh` PreCompact + UserPromptSubmit → vault save
 - `brain-load.sh` SessionStart → vault context injection
 - `git-push-guard.sh` PreToolUse[Bash] → whitelist guard
-- `rtk-rewrite.sh` PreToolUse[Bash] → token compression via RTK
+- `rtk hook claude` PreToolUse[Bash] → token compression (native RTK hook, no wrapper script)
 - `fast-mode-guard.sh` UserPromptSubmit → Opus cost warning
 - `statusline.sh` → statusLine command
 

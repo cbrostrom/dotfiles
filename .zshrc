@@ -86,8 +86,8 @@ if [[ -d "$ZSH_MODULES_DIR" ]]; then
     # 08 - Workflow plugins (zsh-abbr + optional TUI aliases) — guarded
     [[ -f "$ZSH_MODULES_DIR/08-workflow.zsh" ]] && source "$ZSH_MODULES_DIR/08-workflow.zsh"
 
-    # 09 - cmux sidebar status integration (only active inside cmux)
-    [[ -f "$ZSH_MODULES_DIR/09-cmux.zsh" ]] && source "$ZSH_MODULES_DIR/09-cmux.zsh"
+    # 09 - Herdr agent state integration
+    [[ -f "$ZSH_MODULES_DIR/09-herdr.zsh" ]] && source "$ZSH_MODULES_DIR/09-herdr.zsh"
 
     # Per-host overrides BEFORE Zellij auto-attach so a host can opt out
     [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
@@ -105,7 +105,7 @@ else
 fi
 
 # Note: ~/.zshrc.local is sourced inside the modules block above,
-# right before 07-zellij.zsh, so host-specific overrides can disable auto-attach.
+# so host-specific overrides take effect before any auto-attach logic.
 
 # =============================================================================
 # PERFORMANCE PROFILING (Optional)

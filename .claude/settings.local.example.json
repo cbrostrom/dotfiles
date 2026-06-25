@@ -2,7 +2,7 @@
     "$schema": "https://code.claude.com/schemas/settings.json",
     "statusLine": {
         "type": "command",
-        "command": "bash \"HOME_PLACEHOLDER/.claude/plugins/cache/caveman/caveman/ef6050c5e184/hooks/caveman-statusline.sh\""
+        "command": "bash HOME_PLACEHOLDER/.claude/hooks/statusline.sh"
     },
     "hooks": {
         "SessionStart": [
@@ -10,12 +10,8 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "HOME_PLACEHOLDER/.claude/hooks/entroly-start.sh",
+                        "command": "HOME_PLACEHOLDER/.claude/hooks/claude-settings-merge.sh",
                         "async": true
-                    },
-                    {
-                        "type": "command",
-                        "command": "HOME_PLACEHOLDER/.claude/hooks/claude-session-check.sh"
                     }
                 ]
             },
@@ -23,7 +19,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "bash HOME_PLACEHOLDER/.config/dotfiles/scripts/claude/device-snapshot.sh write",
+                        "command": "bash HOME_PLACEHOLDER/dotfiles/scripts/claude/device-snapshot.sh write",
                         "async": true
                     }
                 ]
