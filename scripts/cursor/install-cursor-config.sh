@@ -9,6 +9,7 @@
 #   preToolUse    → rtk hook cursor through run-hook.sh
 #   afterFileEdit → aislop hook cursor through run-hook.sh, if aislop installed
 #   stop          → vault-save.sh through run-hook.sh
+#   preCompact    → brain-save-inject.sh through run-hook.sh
 #   cleanup       → remove dead Code Island and legacy lean-ctx/rtk adapters
 set -euo pipefail
 
@@ -45,7 +46,7 @@ if [[ ! -f "$HOOKS_JSON" ]]; then
 fi
 
 python3 - "$HOOKS_JSON" <<'PYEOF'
-import json, shutil, sys
+import json, os, shutil, sys
 
 path = sys.argv[1]
 with open(path) as f:
@@ -69,6 +70,7 @@ def managed_command(command):
         "bash './hooks/run-hook.sh' aislop -- aislop hook cursor",
         "bash './hooks/run-hook.sh' brain-load -- bash './hooks/brain-load.sh'",
         "bash './hooks/run-hook.sh' vault-save -- bash './hooks/vault-save.sh'",
+        "bash './hooks/run-hook.sh' brain-save --",
     )
     return any(part in command for part in legacy) or command in wrapped
 
@@ -136,6 +138,13 @@ else:
 add_entry("stop", {
     "command": "bash './hooks/run-hook.sh' vault-save -- bash './hooks/vault-save.sh'",
     "timeout": 5,
+})
+
+# brain-save-inject: preCompact — save brain before context is summarized
+DOTFILES = os.path.expanduser("~/dotfiles")
+add_entry("preCompact", {
+    "command": f"bash './hooks/run-hook.sh' brain-save -- bash '{DOTFILES}/.claude/hooks/brain-save-inject.sh'",
+    "timeout": 10,
 })
 
 if changed:
