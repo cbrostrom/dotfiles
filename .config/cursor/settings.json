@@ -218,5 +218,10 @@
   },
   "markdown-pdf.breaks": true,
   "markdown-pdf.highlightStyle": "a11y-dark.css",
-  "workbench.colorTheme": "Bearded Theme Black & Ruby"
+  "workbench.colorTheme": "Bearded Theme Black & Ruby",
+  "window.autoDetectColorScheme": false,
+  "cursor.general.emailPrivacyEnabled": true,
+  "cursor.composer.showEmptyStateTips": false,
+  "cursor.worktreeMaxCount": 5,
+  "cursor.general.glassShowWarningNotifications": true
 }

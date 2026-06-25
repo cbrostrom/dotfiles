@@ -39,7 +39,7 @@
                     },
                     {
                         "type": "command",
-                        "command": "HOME_PLACEHOLDER/.claude/hooks/rtk-rewrite.sh"
+                        "command": "rtk hook claude"
                     }
                 ]
             }

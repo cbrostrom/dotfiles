@@ -10,7 +10,7 @@
             "type": "command",
             "command": "$HOME/.claude/hooks/git-push-guard.sh"
           },
-          { "type": "command", "command": "$HOME/.claude/hooks/rtk-rewrite.sh" }
+          { "type": "command", "command": "rtk hook claude" }
         ]
       }
     ],

@@ -19,3 +19,8 @@ alias claude-sync='bash ~/.config/dotfiles/scripts/claude/claude-sync.sh'
 # sends Esc-prefix into ZLE. Never used these widgets.
 bindkey -r "^['" 2>/dev/null
 bindkey -r "^[\"" 2>/dev/null
+
+# Double-ESC → clear the current line entirely (no kill-ring side effect).
+clear-line() { BUFFER=''; CURSOR=0 }
+zle -N clear-line
+bindkey '\e\e' clear-line
