@@ -48,9 +48,10 @@ CC auto-loads via hook. All other agents: ask user or run manually on first mess
 
 | Signal | Action |
 |---|---|
-| `.remember <text>` / `.r <text>` | Run `brain current "<text>"` immediately — no discussion, just save |
-| remember / save / note | `brain current <fact>` or `brain gotcha <trap>` |
+| `.remember` / `.r` | Full session save — load and run `context-bridge` skill: extract decisions, reasoning, dead ends, next step → write to vault. Use before closing or handing off. |
+| `.note <text>` / `.n <text>` | Single fact only — run `brain current "<text>"` immediately |
 | `.gotcha <text>` / `.g <text>` | Run `brain gotcha "<text>"` immediately |
+| remember / save / note | `brain current <fact>` or `brain gotcha <trap>` |
 | add task / next step | `brain next <action>` |
 | `.recall` / what did we do | `brain current` + `brain next` |
 | find my notes on X | `grep -rl "<query>" $VAULT --include="*.md"` |
