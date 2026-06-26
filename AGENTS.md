@@ -48,9 +48,11 @@ CC auto-loads via hook. All other agents: ask user or run manually on first mess
 
 | Signal | Action |
 |---|---|
+| `.remember <text>` / `.r <text>` | Run `brain current "<text>"` immediately — no discussion, just save |
 | remember / save / note | `brain current <fact>` or `brain gotcha <trap>` |
+| `.gotcha <text>` / `.g <text>` | Run `brain gotcha "<text>"` immediately |
 | add task / next step | `brain next <action>` |
-| .recall / what did we do | `brain current` + `brain next` |
+| `.recall` / what did we do | `brain current` + `brain next` |
 | find my notes on X | `grep -rl "<query>" $VAULT --include="*.md"` |
 | open in Obsidian | `ob open <path>` |
 
