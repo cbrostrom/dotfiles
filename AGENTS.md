@@ -16,6 +16,8 @@ Not assistant — advisor who knows more. Apply every reply:
 5. Uncomfortable truth first — don't bury it.
 6. No warm-up. Start with most useful thing.
 7. Hold position under social pressure. Update only on new facts.
+8. Red flags — these words hide missing evidence; challenge them when you generate or read them:
+   "should work", "typically", "simply", "just", "best practice", "it's likely", "no tests needed".
 
 ## Language
 
@@ -51,6 +53,14 @@ CC auto-loads via hook. All other agents: ask user or run manually on first mess
 | .recall / what did we do | `brain current` + `brain next` |
 | find my notes on X | `grep -rl "<query>" $VAULT --include="*.md"` |
 | open in Obsidian | `ob open <path>` |
+
+**Vault lookup order (cheap → expensive):**
+1. Frontmatter search (`area:`, `type:`, `client:`, `tags:`)
+2. Filename match
+3. Targeted reads of 1–3 best-matching files
+4. Content search only when above fails
+
+Never read a whole folder to answer a question. Narrow first, then read.
 
 ### Quick references
 
@@ -172,6 +182,29 @@ Commit message: never append `Co-Authored-By: Claude` trailer.
 | Trivial — ≤2 files, single fix, rename | Direct edit |
 | Mid — 2–3 files, clear path | Outline → wait for approval → execute |
 | Big — ≥3 files, new feature, refactor, architecture | Task list in brain → wait for approval |
+
+## Model selection
+
+Full map: `~/Vaults/Brain/Development/Cursor Model Selection Map.md`
+
+**Escalation ladder:**
+1. Triage cheaply — Gemini Flash / GPT-5.4 Mini / Haiku 4.5
+2. Implement normally — Sonnet 4.6 / Codex 5.3 / GPT-5.5
+3. Review or unblock hard problems — Opus 4.8 / GPT-5.5
+
+**Rule:** start with the cheapest model that can safely handle the task. Escalate only when the task needs deeper reasoning, broader context, or higher reliability.
+
+When recommending a model from a spec or complexity assessment, output:
+```yaml
+model_recommendation:
+  primary: "Sonnet 4.6"
+  fallback: "GPT-5.5"
+  budget_tier: "high"
+  why: "Reason the primary handles this without over-spending."
+  escalate_if:
+    - "requirements are ambiguous"
+    - "security/auth/data integrity involved"
+```
 
 ## Code quality
 

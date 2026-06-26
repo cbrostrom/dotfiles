@@ -39,10 +39,12 @@ If `fallow` is not on PATH: `npx --yes fallow audit --format json --quiet --expl
 
 | Complexity | Criteria | Model |
 |---|---|---|
-| Trivial | Delete unused code, single-line fixes | `composer-2.5-fast` |
-| Low | Replace innerHTML, extract repeated patterns | `composer-2.5` |
-| Medium | Refactor functions, split large files, consolidate duplication | `claude-4.6-sonnet-medium-thinking` |
-| High | Architecture changes, cross-file refactors | `claude-4.6-opus-high-thinking` |
+| Trivial | Delete unused code, single-line fixes | GPT-5.4 Mini / Haiku 4.5 |
+| Low | Replace innerHTML, extract repeated patterns | Sonnet 4.6 / Composer 2.5 |
+| Medium | Refactor functions, split large files, consolidate duplication | Sonnet 4.6 / Codex 5.3 |
+| High | Architecture changes, cross-file refactors | Opus 4.8 / GPT-5.5 |
+
+See full model map: `~/Vaults/Brain/Development/Cursor Model Selection Map.md`
 
 ### 4. Present Plan
 
@@ -56,7 +58,7 @@ Files scanned: N | Issues: N errors, N warnings
 ### [HIGH] Security (N issues)
 - Finding + file:line
 - Fix approach
-- Complexity: X | Model: Y
+- Complexity: X
 
 ### [MEDIUM] AI Slop / Complexity (N issues)
 ...
@@ -64,8 +66,18 @@ Files scanned: N | Issues: N errors, N warnings
 ### [LOW] Dead Code / Duplication (N issues)
 ...
 
-## Recommended Action
-Total fix complexity: X | Recommended model: Y | Files touched: N
+## Model Recommendation
+```yaml
+model_recommendation:
+  primary: "Sonnet 4.6"
+  fallback: "Opus 4.8"
+  budget_tier: "high"
+  why: "Multi-file refactor with clear scope — no architecture ambiguity."
+  escalate_if:
+    - "cross-cutting architectural changes emerge"
+    - "security findings require careful audit"
+```
+Files touched: N
 Shall I proceed with [specific subset]?
 ```
 

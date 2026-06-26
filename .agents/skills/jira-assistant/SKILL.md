@@ -108,8 +108,50 @@ Present as text block for copy-paste.
 
 ---
 
+---
+
+### Mode 4: Delivery Analyst — pressure-test a request
+
+**Trigger:** "analyse this request", "pressure-test", "what's the risk", "clarify this work", or vague brief/client request
+
+Take the input (ticket, meeting notes, client email, brief, or idea) and return structured delivery analysis. Do not start implementing or drafting a ticket yet — that is Mode 2.
+
+```
+## Delivery Analysis
+
+**Summary:** [one sentence — what this actually is]
+
+**Facts:**
+- [only what is explicitly stated or can be verified]
+
+**Assumptions:**
+- [what is being taken for granted but not confirmed]
+
+**Risks:**
+- [delivery, technical, dependency, or scope risks]
+
+**Open questions:**
+- [must be answered before work starts]
+
+**Acceptance criteria (draft):**
+- [ ] [testable criterion]
+
+**Suggested next action:** [one concrete step]
+```
+
+Flags to raise immediately:
+- Missing definition of done
+- Scope that touches security, auth, payments, or production data
+- Dependencies on other teams or external systems not mentioned
+- Acceptance criteria that are unmeasurable ("it should feel fast")
+
+After analysis, offer: "Want me to turn this into a Jira ticket (Mode 2)?"
+
+---
+
 ## Hard rules
 - Never call Jira write APIs (createIssue, editIssue, addComment) without explicit "post this" / "submit this"
 - Never estimate story points without context — ask or leave blank
 - Never assign to people without explicit instruction
 - Always show draft as a code block for easy copy
+- Separate facts from assumptions — never blend them
