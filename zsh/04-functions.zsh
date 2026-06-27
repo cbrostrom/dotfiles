@@ -457,6 +457,25 @@ cloudcli-update() {
     npm update -g @cloudcli-ai/cloudcli --prefix /opt/homebrew && pm2 restart cloudcli-ui
 }
 
+# Allow a macOS app through Gatekeeper — removes quarantine + adds spctl whitelist entry.
+# Usage: allow-app "App Name"  (resolves /Applications/<name>.app)
+#        allow-app /path/to/App.app
+allow-app() {
+    is_macos || { echo "allow-app: macOS only" >&2; return 1; }
+    [[ -z "$1" ]] && { echo "Usage: allow-app <AppName or /path/to/App.app>" >&2; return 1; }
+
+    local app="$1"
+    # Resolve to .app path if bare name given
+    if [[ "$app" != *.app && "$app" != /* ]]; then
+        app="/Applications/${app}.app"
+    fi
+    [[ -d "$app" ]] || { echo "allow-app: not found: $app" >&2; return 1; }
+
+    echo "Allowing: $app"
+    sudo xattr -dr com.apple.quarantine "$app" && \
+    echo "Done — quarantine removed from $app."
+}
+
 # CloudCLI session purge — archive in UI does not stick; watcher re-imports jsonl files
 cloudcli-sessions() {
     is_macos || { echo "cloudcli-sessions: macOS only" >&2; return 1; }
