@@ -51,6 +51,7 @@ CC auto-loads via hook. All other agents: ask user or run manually on first mess
 | `.remember` / `.r` | Full session save — load and run `context-bridge` skill: extract decisions, reasoning, dead ends, next step → write to vault. Use before closing or handing off. |
 | `.note <text>` / `.n <text>` | Single fact only — run `brain current "<text>"` immediately |
 | `.gotcha <text>` / `.g <text>` | Run `brain gotcha "<text>"` immediately |
+| `.spec <problem>` | Load and run `problem-solver` subagent: investigate read-only, output structured diagnosis + implementation spec + model recommendation. |
 | remember / save / note | `brain current <fact>` or `brain gotcha <trap>` |
 | add task / next step | `brain next <action>` |
 | `.recall` / what did we do | `brain current` + `brain next` |

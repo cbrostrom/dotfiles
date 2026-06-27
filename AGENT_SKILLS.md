@@ -22,6 +22,7 @@ Cursor also reads them through `~/.cursor/skills -> ~/.agents/skills`.
 | `memory-curator` | Vault quality guard. Finds stale done items, contradictions, duplicates in brain files. Proposes-only, confirm before any change. Weekly cron at `scripts/vault/memory-curator.sh`. |
 | `release-notes` | Git range → grouped, rewritten release notes using stored templates (github/slack/changelog). Learns project style. Never publishes without explicit instruction. |
 | `shopify` | Shared Shopify platform foundation. Evidence standard, MCP-first verification, vault routing (brain → Work/AKQA/Shopify/ → Fiskars/), complexity assessment with yaml `model_recommendation`. Load before any Shopify platform question or implementation. |
+| `problem-solver` | Read-only investigator and spec writer. Diagnoses bugs and broken features, outputs structured spec (root cause + solution options + implementation checklist + model recommendation) for a doer agent to act on. Triggered by `.spec`. `claude-4.6-sonnet-medium-thinking`. |
 
 Promote a skill here when Cursor, Claude, Codex, and future agents should all be able to use it. Keep descriptions specific enough for automatic discovery.
 
