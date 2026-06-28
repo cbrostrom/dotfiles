@@ -23,6 +23,8 @@ Cursor also reads them through `~/.cursor/skills -> ~/.agents/skills`.
 | `release-notes` | Git range → grouped, rewritten release notes using stored templates (github/slack/changelog). Learns project style. Never publishes without explicit instruction. |
 | `shopify` | Shared Shopify platform foundation. Evidence standard, MCP-first verification, vault routing (brain → Work/AKQA/Shopify/ → Fiskars/), complexity assessment with yaml `model_recommendation`. Load before any Shopify platform question or implementation. |
 | `problem-solver` | Read-only investigator and spec writer. Diagnoses bugs and broken features, outputs structured spec (root cause + solution options + implementation checklist + model recommendation) for a doer agent to act on. Triggered by `.spec`. `claude-4.6-sonnet-medium-thinking`. |
+| `code-reviewer` | Reviews changed code for bugs, security, auth, reuse opportunities, and simplification. Never flags pre-existing code. Delegation hooks to `problem-solver`, `code-cleaner`, `review-security`. Triggered by `.review`. `claude-4.6-sonnet-medium-thinking`. |
+| `config-writer` | Decides placement for new agent behavior (central config vs shared skill vs wrapper vs rule), checks overlap, creates or updates the right artifact. Knows our thin-wrapper architecture. Triggered by `.add`. |
 
 Promote a skill here when Cursor, Claude, Codex, and future agents should all be able to use it. Keep descriptions specific enough for automatic discovery.
 

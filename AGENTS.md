@@ -52,6 +52,8 @@ CC auto-loads via hook. All other agents: ask user or run manually on first mess
 | `.note <text>` / `.n <text>` | Single fact only — run `brain current "<text>"` immediately |
 | `.gotcha <text>` / `.g <text>` | Run `brain gotcha "<text>"` immediately |
 | `.spec <problem>` | Load and run `problem-solver` subagent: investigate read-only, output structured diagnosis + implementation spec + model recommendation. |
+| `.review` | Load and run `code-reviewer` subagent: review changed/indicated code for bugs, security, reuse, simplification. Read-only. |
+| `.add <behavior>` | Load and run `config-writer` subagent: decide placement (AGENTS.md vs shared skill vs wrapper), check overlap, create or update the right artifact. |
 | remember / save / note | `brain current <fact>` or `brain gotcha <trap>` |
 | add task / next step | `brain next <action>` |
 | `.recall` / what did we do | `brain current` + `brain next` |
