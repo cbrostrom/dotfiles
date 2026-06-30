@@ -24,7 +24,6 @@ tap "muhammadhananasghar/tap"        # wormhole
 tap "tomanthony/brews"               # itermocil
 tap "oven-sh/bun"                    # bun (not yet in homebrew core)
 tap "shopify/shopify"                # shopify-cli
-tap "wxtsky/tap"                     # codeisland
 tap "yoanbernabeu/tap"               # grepai
 
 # =============================================================================
@@ -81,7 +80,6 @@ brew "docker-buildx"
 brew "docker-compose"
 brew "docker-credential-helper"
 brew "mtr"
-brew "podman"
 brew "socat"
 brew "unbound"
 
@@ -130,9 +128,7 @@ cask "barrier"
 cask "beeper"
 cask "bitwarden"
 cask "claude"
-cask "codeisland"
 cask "cursor"
-cask "vscodium"
 cask "dropbox"
 cask "elgato-stream-deck"
 cask "figma"

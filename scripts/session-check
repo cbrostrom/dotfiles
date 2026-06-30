@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# session-check — inspect last Cursor stop event + today's session logs
+set -uo pipefail
+
+VAULT_SESSIONS="$HOME/Vaults/AI/sessions"
+EVENT_FILE="/tmp/cursor-stop-event.json"
+TODAY="$(date '+%Y-%m-%d')"
+
+echo "=== Last stop event (${EVENT_FILE}) ==="
+if [[ -f "$EVENT_FILE" ]]; then
+  if command -v jq &>/dev/null; then
+    jq . "$EVENT_FILE"
+  else
+    cat "$EVENT_FILE"
+  fi
+else
+  echo "(no stop event captured yet — end a Cursor session first)"
+fi
+
+echo ""
+echo "=== Today's session logs (sessions/${TODAY}-*-session.md) ==="
+echo "  tip: run 'session-summarize' to add a free TF-IDF summary to the latest log"
+shopt -s nullglob
+files=("${VAULT_SESSIONS}/${TODAY}"-*-session.md)
+if [[ ${#files[@]} -eq 0 ]]; then
+  echo "(none yet)"
+else
+  for f in "${files[@]}"; do
+    echo "--- $(basename "$f") ---"
+    cat "$f"
+    echo ""
+  done
+fi
