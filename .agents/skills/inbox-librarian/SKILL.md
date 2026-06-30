@@ -12,7 +12,7 @@ Process `$VAULT/Inbox/` oldest-first. Confirm each file. No silent moves.
 ## Setup
 
 Detect vault:
-- macOS (`uname` = Darwin): `VAULT=~/Vaults/Brain`
+- macOS (`uname` = Darwin): `VAULT=~/Vaults/Me`
 - WSL (`/proc/version` contains "microsoft"): `VAULT=/mnt/c/Users/christian/Obsidian/Brain`
 
 List files: `find $VAULT/Inbox -maxdepth 1 -name "*.md" ! -name "_*" | sort` (oldest first via filename timestamp or mtime).
@@ -52,7 +52,7 @@ Propose `[[link]]` only if target file found. No fabricated links.
 Per routing table:
 | type | dest |
 |---|---|
-| brain | `$VAULT/Brains/<slug>.md` — APPEND dated section, don't replace |
+| brain | `$VAULT/brains/<slug>.md` — APPEND dated section, don't replace |
 | project | `$VAULT/<area-folder>/<project>/` |
 | reference | `$VAULT/<area>/Reference/` or `$VAULT/Reference/` if cross-cutting |
 | idea | `$VAULT/Ideas/<name>/` |
@@ -85,7 +85,7 @@ tags: [<list>]
 ```
 2. If backlinks: prepend `Cross-area: [[link]]` as first body line (after frontmatter).
 3. If MOVE: move file to dest path (create dir if needed).
-4. If APPEND (type=brain): append to existing `Brains/<slug>.md` as:
+4. If APPEND (type=brain): append to existing `brains/<slug>.md` as:
 ```md
 ## <YYYY-MM-DD> — <inferred topic>
 <full file content>

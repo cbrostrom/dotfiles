@@ -4,7 +4,7 @@ Canonical source for both Claude Code and Cursor. Edit only this file. Claude
 includes via `@engram-graphiti.md`; Cursor reads from cloud User Rules (paste
 content of this file there once, re-paste when this file changes).
 
-**Primary brain: flat-file vault (`~/Vaults/Brain/Brains/<slug>.md`).** Brain hook loads it automatically at session start. Engram = write-only by default; query only on explicit `.recall`. Graphiti = disabled until relational queries are needed at scale.
+**Primary brain: flat-file vault (`~/Vaults/AI/brains/<slug>.md`).** Brain hook loads it automatically at session start. Engram = write-only by default; query only on explicit `.recall`. Graphiti = disabled until relational queries are needed at scale.
 
 ## Engram — flat memory (key-value + FTS5, fast recall)
 
@@ -81,7 +81,7 @@ Use Graphiti for (when re-enabled):
 
 | Signal | Use |
 |---|---|
-| Session start | Brain hook loads `Brains/<slug>.md` automatically — no MCP call needed |
+| Session start | Brain hook loads `brains/<slug>.md` automatically — no MCP call needed |
 | Quick fact, convention, bug fix | Engram `mem_save` only |
 | "what did we do last session?" / explicit `.recall` | Engram `mem_context` |
 | "what do you know about X?" / explicit `.recall` | Engram `mem_search` then vault grep |

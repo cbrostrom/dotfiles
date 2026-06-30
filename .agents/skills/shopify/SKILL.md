@@ -42,10 +42,10 @@ Never blend these categories. If a claim cannot be verified, name the gap.
 
 When you need project context, load in this order — cheapest first:
 
-1. **Brain** (`~/Vaults/Brain/Brains/<slug>/current.md`) — current project state, active decisions, gotchas
-2. **Durable Shopify knowledge** (`~/Vaults/Brain/Work/AKQA/Shopify/`) — headless research, architectural decisions, reusable patterns
-3. **Client-specific** (`~/Vaults/Brain/Work/AKQA/Shopify/Fiskars/`) — Fiskars-specific notes, only when the task is Fiskars-specific
-4. **Cross-cutting technical** (`~/Vaults/Brain/Development/`) — framework notes, model selection, general patterns
+1. **Brain** (`~/Vaults/AI/brains/<slug>/current.md`) — current project state, active decisions, gotchas
+2. **Durable Shopify knowledge** (`~/Vaults/Me/Work/AKQA/Shopify/`) — headless research, architectural decisions, reusable patterns
+3. **Client-specific** (`~/Vaults/Me/Work/AKQA/Shopify/Fiskars/`) — Fiskars-specific notes, only when the task is Fiskars-specific
+4. **Cross-cutting technical** (`~/Vaults/Me/Development/`) — framework notes, model selection, general patterns
 
 Use frontmatter (`client:`, `area:`, `type:`) and filenames to narrow before reading. Never read a full folder when a filename match will do.
 
@@ -67,7 +67,7 @@ model_recommendation:
     - "cross-store or architecture-level changes required"
 ```
 
-Reference tiers (full map: `~/Vaults/Brain/Development/Cursor Model Selection Map.md`):
+Reference tiers (full map: `~/Vaults/Me/Development/Cursor Model Selection Map.md`):
 
 | Complexity | Criteria | Tier |
 |---|---|---|

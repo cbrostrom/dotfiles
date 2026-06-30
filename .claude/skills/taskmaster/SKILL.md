@@ -1,6 +1,6 @@
 ---
 name: taskmaster
-description: Vault-native project task state machine. Manages Projects/<slug>/tasks.md in ~/Vaults/Brain/. Read/write via native tools — no external parsers. Use when user invokes .task <cmd> or asks to manage project tasks across sessions.
+description: Vault-native project task state machine. Manages Projects/<slug>/tasks.md in ~/Vaults/Me/. Read/write via native tools — no external parsers. Use when user invokes .task <cmd> or asks to manage project tasks across sessions.
 trigger: .task
 ---
 
@@ -12,7 +12,7 @@ Vault-native project task state machine. All state lives in `$VAULT/Projects/<sl
 
 | Platform | Path |
 |---|---|
-| macOS | `~/Vaults/Brain` |
+| macOS | `~/Vaults/Me` |
 | WSL | `/mnt/c/Users/christian/Obsidian/Christian` |
 
 Detect: `uname` = Darwin → macOS. Use `$VAULT` as shorthand.

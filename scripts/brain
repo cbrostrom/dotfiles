@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""brain — CLI for Obsidian vault brain files."""
+"""brain — CLI for AI vault brain files."""
 
 import os
 import re
@@ -17,7 +17,7 @@ def _vault() -> Path:
         return Path("/mnt/c/Users/christian/Obsidian/Brain")
     if "WSL_DISTRO_NAME" in os.environ:
         return Path("/mnt/c/Users/christian/Obsidian/Brain")
-    return Path.home() / "Vaults" / "Brain"
+    return Path.home() / "Vaults" / "AI"
 
 
 def _slug() -> str:
@@ -36,11 +36,11 @@ def _slug() -> str:
 
 
 def _bdir(vault: Path, slug: str) -> Path:
-    return vault / "Brains" / slug
+    return vault / "brains" / slug
 
 
 def _bfile(vault: Path, slug: str) -> Path:
-    return vault / "Brains" / f"{slug}.md"
+    return vault / "brains" / f"{slug}.md"
 
 
 def _today() -> str:
@@ -317,8 +317,8 @@ def wrap(vault: Path, slug: str, text: list[str]):
 
 def pick(vault: Path, verbose: bool):
     entries = []
-    bd = vault / "Brains"
-    pd = vault / "Plans" / "Active"
+    bd = vault / "brains"
+    pd = Path.home() / "Vaults" / "Me" / "Plans" / "Active"
     if bd.is_dir():
         for p in sorted(bd.iterdir()):
             if p.name.startswith("_") or p.name == "Brain.md":
@@ -524,7 +524,7 @@ Commands:
   path                       print brain directory path
 
 Env:
-  VAULT               vault path (default: ~/Vaults/Brain)
+  VAULT               vault path (default: ~/Vaults/AI)
   BRAIN_SLUG          override project slug
 """)
     else:

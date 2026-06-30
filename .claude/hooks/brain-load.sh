@@ -9,7 +9,7 @@ set -uo pipefail
 if grep -qi microsoft /proc/version 2>/dev/null || [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
   VAULT_BRAINS="/mnt/c/Users/christian/Obsidian/Brain/Brains"
 else
-  VAULT_BRAINS="$HOME/Vaults/Brain/Brains"
+  VAULT_BRAINS="$HOME/Vaults/AI/brains"
 fi
 
 # Slug: git repo basename if in a repo, else PWD basename

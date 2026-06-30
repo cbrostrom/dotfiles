@@ -13,9 +13,9 @@ Keeps brain files lean and signal-rich. Proposes only — you confirm before any
 One project at a time. Default: current git repo slug. Override: "curate [project]".
 
 Files read:
-- `~/Vaults/Brain/Brains/<slug>/current.md`
-- `~/Vaults/Brain/Brains/<slug>/next.md`
-- `~/Vaults/Brain/Brains/<slug>/gotchas.md`
+- `~/Vaults/AI/brains/<slug>/current.md`
+- `~/Vaults/AI/brains/<slug>/next.md`
+- `~/Vaults/AI/brains/<slug>/gotchas.md`
 
 ## Checks
 
@@ -60,7 +60,7 @@ Confirm before any write. Apply per-section or per-item.
 
 ## Cron mode (scripts/vault/memory-curator.sh)
 
-When run as cron, writes a report to `~/Vaults/Brain/Brains/curator-report-YYYY-MM-DD.md` and does NOT apply changes. You review and invoke the skill to apply.
+When run as cron, writes a report to `~/Vaults/AI/brains/curator-report-YYYY-MM-DD.md` and does NOT apply changes. You review and invoke the skill to apply.
 
 Cron schedule: weekly, Sunday 08:00.
 

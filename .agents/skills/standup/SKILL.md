@@ -23,7 +23,7 @@ Run in cwd and any sibling project dirs if visible. Summarise by project, not by
 
 ### 3. Brain next.md (done items from yesterday)
 ```bash
-grep '\[done:' ~/Vaults/Brain/Brains/$(basename $(git rev-parse --show-toplevel 2>/dev/null || echo $PWD))/next.md 2>/dev/null | grep "$(date -v-1d '+%Y-%m-%d' 2>/dev/null || date -d 'yesterday' '+%Y-%m-%d' 2>/dev/null)"
+grep '\[done:' ~/Vaults/AI/brains/$(basename $(git rev-parse --show-toplevel 2>/dev/null || echo $PWD))/next.md 2>/dev/null | grep "$(date -v-1d '+%Y-%m-%d' 2>/dev/null || date -d 'yesterday' '+%Y-%m-%d' 2>/dev/null)"
 ```
 
 ## Output format
