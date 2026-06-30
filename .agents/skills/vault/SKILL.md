@@ -12,8 +12,8 @@ Single source of truth for all agents interacting with Christian's Obsidian Brai
 
 ```bash
 # macOS
-VAULT=~/Vaults/Brain
-VAULT_BRAINS=~/Vaults/Brain/Brains
+VAULT=~/Vaults/Me
+VAULT_BRAINS=~/Vaults/AI/brains
 
 # WSL (/proc/version contains "microsoft" or $WSL_DISTRO_NAME set)
 VAULT=/mnt/c/Users/christian/Obsidian/Brain

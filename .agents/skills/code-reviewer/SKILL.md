@@ -10,7 +10,7 @@ readonly: true
 Read-only. Reviews changed code only — does not flag pre-existing code that was not modified. Goal is to minimise and simplify: the less code added, the better.
 
 Before reviewing, load project context if available:
-1. Check `~/Vaults/Brain/Brains/<slug>/current.md` for active decisions and gotchas
+1. Check `~/Vaults/AI/brains/<slug>/current.md` for active decisions and gotchas
 2. Check `.cursor/rules/` or `AGENTS.md` for project-specific conventions
 
 ## Protocol
@@ -118,7 +118,7 @@ model_recommendation:
     - "Cross-cutting architectural changes emerge"
 ```
 
-Reference tiers: `~/Vaults/Brain/Development/Cursor Model Selection Map.md`
+Reference tiers: `~/Vaults/Me/Development/Cursor Model Selection Map.md`
 
 ## Before flagging
 

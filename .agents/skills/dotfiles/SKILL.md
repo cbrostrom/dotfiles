@@ -58,7 +58,7 @@ Wrappers reference `.agents/skills/` for reusable logic; Cursor-specific routing
 
 ### Brain (Memory)
 - CLI: `~/.local/bin/brain` → `~/dotfiles/scripts/brain` (Python, no deps)
-- Vault: `~/Vaults/Brain/Brains/<slug>/` — `current.md`, `next.md`, `gotchas.md`, `history/`
+- Vault: `~/Vaults/AI/brains/<slug>/` — `current.md`, `next.md`, `gotchas.md`, `history/`
 - SessionStart hook loads vault context automatically in both Claude Code and Cursor
 
 ### Devices

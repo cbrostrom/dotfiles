@@ -105,7 +105,7 @@ model_recommendation:
     - "confidence on root cause is Guessing"
 ```
 
-Reference tiers: `~/Vaults/Brain/Development/Cursor Model Selection Map.md`
+Reference tiers: `~/Vaults/Me/Development/Cursor Model Selection Map.md`
 
 ## Approval Gate
 

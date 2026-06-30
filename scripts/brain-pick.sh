@@ -13,9 +13,9 @@ set -euo pipefail
 if grep -qi microsoft /proc/version 2>/dev/null || [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
   VAULT="/mnt/c/Users/christian/Obsidian/Brain"
 elif [[ "$(uname)" == "Darwin" ]]; then
-  VAULT="$HOME/Vaults/Brain"
+  VAULT="$HOME/Vaults/Me"
 else
-  VAULT="$HOME/Vaults/Brain"
+  VAULT="$HOME/Vaults/Me"
 fi
 
 ACTIVE_FILE="$HOME/.claude/.active-project"
@@ -63,7 +63,7 @@ filter_active() {
 # Format for fzf display: "TYPE  slug  /path/to/file"
 format_entry() {
   while IFS= read -r f; do
-    if [[ "$f" == */Brains/* ]]; then
+    if [[ "$f" == */brains/* ]]; then
       tag="brain"
     else
       tag="plan "

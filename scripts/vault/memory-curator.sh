@@ -15,13 +15,13 @@ set -uo pipefail
 if grep -qi microsoft /proc/version 2>/dev/null || [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
     VAULT="/mnt/c/Users/christian/Obsidian/Brain"
 elif [[ "$(uname)" == "Darwin" ]]; then
-    VAULT="$HOME/Vaults/Brain"
+    VAULT="$HOME/Vaults/Me"
 else
-    VAULT="$HOME/Vaults/Brain"
+    VAULT="$HOME/Vaults/Me"
 fi
 
 BRAINS_DIR="$VAULT/Brains"
-REPORT_FILE="$VAULT/Brains/curator-report-$(date '+%Y-%m-%d').md"
+REPORT_FILE="$VAULT/brains/curator-report-$(date '+%Y-%m-%d').md"
 NOW="$(date '+%Y-%m-%d %H:%M')"
 CUTOFF_DAYS=14
 

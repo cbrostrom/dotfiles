@@ -44,7 +44,7 @@ If `fallow` is not on PATH: `npx --yes fallow audit --format json --quiet --expl
 | Medium | Refactor functions, split large files, consolidate duplication | Sonnet 4.6 / Codex 5.3 |
 | High | Architecture changes, cross-file refactors | Opus 4.8 / GPT-5.5 |
 
-See full model map: `~/Vaults/Brain/Development/Cursor Model Selection Map.md`
+See full model map: `~/Vaults/Me/Development/Cursor Model Selection Map.md`
 
 ### 4. Present Plan
 
