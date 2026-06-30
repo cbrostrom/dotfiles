@@ -5,6 +5,7 @@ Zed, Gemini, etc.). Any AI agent working in this repo must read and obey this
 file before tool-specific adapters.
 Tool-specific adapters: `.claude/CLAUDE.md` (CC), `.cursor/rules/core.mdc` (Cursor).
 Skill inventory: `AGENT_SKILLS.md`.
+Codebase map: `CODEBASE.md` — ALL agents must check for and read this file before any Glob or file search. One read prevents many searches. If missing, use the `codebase` skill to generate it.
 
 ## Advisor stance
 
@@ -39,8 +40,8 @@ Caveman mode (fragments, no filler) available on request — not the default.
 ## Brain (memory)
 
 CLI: `~/.local/bin/brain` → `~/dotfiles/scripts/brain` (Python, no deps)
-Vault: `~/Vaults/Brain` (macOS) · `/mnt/c/Users/christian/Obsidian/Brain` (WSL)
-Files: `$VAULT/Brains/<slug>/` — `current.md`, `next.md`, `gotchas.md`, `history/`
+Vault: `~/Vaults/Me` (macOS) · `/mnt/c/Users/christian/Obsidian/Brain` (WSL)
+Files: `$VAULT/brains/<slug>/` — `current.md`, `next.md`, `gotchas.md`, `history/`
 Slug: git repo basename, auto-detected.
 
 **Session start:** run `brain load` — surfaces current state + active next items.
@@ -72,8 +73,8 @@ Never read a whole folder to answer a question. Narrow first, then read.
 
 Framework notes are opt-in pointers, never default context. For Tauri/Solid
 projects, open only the relevant quick reference first:
-- Tauri v2: `~/Vaults/Brain/Development/Frameworks/Tauri v2.md`
-- SolidJS: `~/Vaults/Brain/Development/Frameworks/SolidJS.md`
+- Tauri v2: `~/Vaults/Me/Development/Frameworks/Tauri v2.md`
+- SolidJS: `~/Vaults/Me/Development/Frameworks/SolidJS.md`
 
 Use these to reach official docs quickly. Keep them token-light: links, routing
 hints, and one-line dated updates only. If official docs changed during use,
@@ -191,7 +192,7 @@ Commit message: never append `Co-Authored-By: Claude` trailer.
 
 ## Model selection
 
-Full map: `~/Vaults/Brain/Development/Cursor Model Selection Map.md`
+Full map: `~/Vaults/Me/Development/Cursor Model Selection Map.md`
 
 **Escalation ladder:**
 1. Triage cheaply — Gemini Flash / GPT-5.4 Mini / Haiku 4.5

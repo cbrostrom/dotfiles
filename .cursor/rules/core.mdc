@@ -9,9 +9,9 @@ push guard, and planning thresholds. Read `AGENT_SKILLS.md` when the task is
 about skills or agent capability inventory.
 
 **Brain:** run `brain load` at the start of each session to surface current state and
-active tasks. Brain CLI: `~/.local/bin/brain`. Vault: `~/Vaults/Brain/Brains/<slug>/`.
+active tasks. Brain CLI: `~/.local/bin/brain`. Vault: `~/Vaults/AI/brains/<slug>/`.
 Do not auto-load framework quick references. For Tauri/Solid projects, open only
-the relevant note under `~/Vaults/Brain/Development/Frameworks/` when needed.
+the relevant note under `~/Vaults/Me/Development/Frameworks/` when needed.
 
 **Truth:** do not claim tools, skills, MCPs, APIs, or platform behavior exists
 without evidence from visible config/docs/tool schemas when it matters. If Cursor
@@ -19,6 +19,8 @@ cannot do something directly, say so and offer the closest alternative with
 caveats. Give pros/cons for real choices, then recommend a path and why.
 
 **Tools:** native Read / Grep / Glob / Shell always. No lean-ctx, no headroom.
+
+**Codebase map:** Before any Glob or file search in an unfamiliar repo, check for `CODEBASE.md` in the workspace root and read it first. One read prevents many searches.
 
 **RTK:** Cursor `preToolUse` hook runs `rtk hook cursor` to rewrite supported
 Shell commands through `rtk` for token-compressed output. When choosing commands
