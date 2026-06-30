@@ -6,7 +6,7 @@
   {
     "key": "shift+cmd+h",
     "command": "editor.action.formatDocument",
-    "when": "editorHasDocumentFormattingProvider && editorHasDocumentFormattingProvider && editorTextFocus && !editorReadonly"
+    "when": "editorHasDocumentFormattingProvider && !editorReadonly"
   },
   {
     "key": "shift+alt+f",
@@ -19,8 +19,7 @@
   },
   {
     "key": "ctrl+shift+h",
-    "command": "HookyQR.beautify",
-    "when": "editorFocus"
+    "command": "HookyQR.beautify"
   },
   {
     "key": "ctrl+shift+c",
@@ -70,5 +69,29 @@
   {
     "key": "cmd+i",
     "command": "composerMode.agent"
+  },
+  {
+    "key": "cmd+p",
+    "command": "-workbench.action.quickOpen"
+  },
+  {
+    "key": "cmd+p",
+    "command": "workbench.action.showCommands"
+  },
+  {
+    "key": "cmd+f",
+    "command": "-actions.find"
+  },
+  {
+    "key": "cmd+f",
+    "command": "workbench.action.quickOpen"
+  },
+  {
+    "key": "cmd+u",
+    "command": "-cursorUndo"
+  },
+  {
+    "key": "cmd+u",
+    "command": "actions.find"
   }
 ]

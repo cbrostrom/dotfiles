@@ -223,5 +223,6 @@
   "cursor.general.emailPrivacyEnabled": true,
   "cursor.composer.showEmptyStateTips": false,
   "cursor.worktreeMaxCount": 5,
-  "cursor.general.glassShowWarningNotifications": true
+  "cursor.general.glassShowWarningNotifications": true,
+  "workbench.reduceMotion": "off"
 }
