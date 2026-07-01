@@ -297,5 +297,37 @@ create_symlink "$SCRIPT_DIR/scripts/ob" "$HOME/.local/bin/ob" "ob (Obsidian CLI)
 # pi — PI coding agent shim (stable across fnm project-node switches)
 create_symlink "$SCRIPT_DIR/scripts/pi" "$HOME/.local/bin/pi" "pi (coding agent shim)"
 
+# brain / kb — knowledgebase CLI shims
+create_symlink "$SCRIPT_DIR/scripts/brain" "$HOME/.local/bin/brain" "brain (kb shim)"
+create_symlink "$SCRIPT_DIR/scripts/kb" "$HOME/.local/bin/kb" "kb (knowledgebase CLI)"
+
+# PI agent config — extensions, hooks, intercom
+if [[ -d "$SCRIPT_DIR/.config/pi/agent/extensions" ]]; then
+    mkdir -p "$HOME/.pi/agent/extensions"
+    for ext in "$SCRIPT_DIR/.config/pi/agent/extensions/"*.ts; do
+        [[ -f "$ext" ]] || continue
+        create_symlink "$ext" "$HOME/.pi/agent/extensions/$(basename "$ext")" "pi extension: $(basename "$ext")"
+    done
+fi
+
+if [[ -f "$SCRIPT_DIR/.config/pi/agent/rtk-config.json" ]]; then
+    create_symlink "$SCRIPT_DIR/.config/pi/agent/rtk-config.json" "$HOME/.pi/agent/rtk-config.json" "pi rtk config"
+fi
+
+if [[ -f "$SCRIPT_DIR/.config/pi/agent/intercom/config.json" ]]; then
+    mkdir -p "$HOME/.pi/agent/intercom"
+    create_symlink "$SCRIPT_DIR/.config/pi/agent/intercom/config.json" "$HOME/.pi/agent/intercom/config.json" "pi intercom config"
+fi
+
+# pi custom skills tracked in dotfiles
+if [[ -d "$SCRIPT_DIR/.config/pi/agent/skills" ]]; then
+  mkdir -p "$HOME/.pi/agent/skills"
+  for skill_dir in "$SCRIPT_DIR/.config/pi/agent/skills/"*/; do
+    [[ -d "$skill_dir" ]] || continue
+    skill_name="$(basename "$skill_dir")"
+    create_symlink "$skill_dir" "$HOME/.pi/agent/skills/$skill_name" "pi skill: $skill_name"
+  done
+fi
+
 log_success "All symlinks installed successfully!"
 log_info "You may need to restart your shell or run: source ~/.zshrc"
