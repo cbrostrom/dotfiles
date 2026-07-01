@@ -323,6 +323,88 @@ alias ccauth='claude auth'
 alias ccpr='claude --from-pr'
 
 # =============================================================================
+# PI CODING AGENT
+# =============================================================================
+# pi binary resolves via ~/.local/bin/pi shim (always uses fnm default node).
+if command -v pi &>/dev/null; then
+    # Start
+    alias pis='pi'                                   # plain start (current dir)
+    alias piv='cd ~/Vaults && pi'                    # vault session
+    alias pid='cd ~/dotfiles && pi'                  # dotfiles session
+
+    # Presets
+    alias pif='pi --preset fast'                     # Composer 2.5, thinking off
+    alias pit='pi --preset think'                    # Sonnet 5 / high
+
+    # Resume / session
+    alias pir='pi -r'                                # resume picker
+
+    # Updates
+    alias piup='fnm use default && pi update --all'  # update pi + all extensions
+    alias piups='fnm use default && pi update self'  # update pi CLI only
+
+    # Packages
+    alias pil='pi list'                              # list installed extensions
+    alias pii='pi install'                           # install extension
+
+    # Diagnostics
+    alias pistats='pi --version && pi list'          # version + extension list
+fi
+
+# pi-help: quick reference for PI commands and in-session shortcuts
+pi-help() {
+    cat <<'EOF'
+PI coding agent — quick reference
+
+  Start
+    pis / pi            Current directory, default model (Sonnet 4.6 / medium)
+    piv                 ~/Vaults session
+    pid                 ~/dotfiles session
+
+  Presets  (switch inside PI with /preset <name>)
+    pif                 --preset fast   → Composer 2.5, no thinking
+    pi                  --preset sonnet → Sonnet 4.6 / medium  (default)
+    pit                 --preset think  → Sonnet 5 / high
+
+  Sessions
+    pir                 Resume picker
+    /resume             Resume inside PI
+    /fork               Fork session at earlier message
+
+  Extensions
+    pil                 List installed extensions
+    pii npm:<pkg>       Install extension
+    piup                Update pi + all extensions (uses fnm default)
+    piups               Update pi CLI only
+
+  Hooks  (pi-yaml-hooks)
+    /hooks-status       Active hooks, config paths, trust level
+    /hooks-validate     Validate hooks.yaml syntax
+    /hooks-reload       Reload after editing hooks.yaml
+    /hooks-tail-log     Tail hook event log
+
+  Project trust
+    /trust              Trust current project dir
+
+  Vault / memory
+    brain load          Load brain context into session
+    .remember / .r      Full session save to vault
+    .note <text>        Single fact → brain current
+    .gotcha <text>      Trap → brain gotcha
+
+  Model tools
+    /preset             Show / switch Spark presets
+    /recap              Generate session recap (Haiku 4.5)
+    /pi-stats           Token + cost dashboard
+    /cursor-refresh-models  Refresh live Cursor model list
+
+  Diagnostics
+    pistats             pi --version && pi list
+    pi --list-models cursor   Full Cursor model catalog
+EOF
+}
+
+# =============================================================================
 # WORKFLOW LAUNCHERS
 # =============================================================================
 if command -v herdr &>/dev/null; then

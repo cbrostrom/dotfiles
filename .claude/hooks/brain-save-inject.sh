@@ -25,7 +25,7 @@ fi
 if grep -qi microsoft /proc/version 2>/dev/null || [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
   VAULT_BRAINS="/mnt/c/Users/christian/Obsidian/Brain/Brains"
 else
-  VAULT_BRAINS="$HOME/Vaults/AI/brains"
+  VAULT_BRAINS="$HOME/Vaults/AI/projects"
 fi
 
 MODULAR_DIR="${VAULT_BRAINS}/${SLUG}"
@@ -41,62 +41,46 @@ fi
 # ── Modular brain dir ─────────────────────────────────────────────────────────
 if [[ -d "$MODULAR_DIR" ]]; then
   cat <<EOF
-=== BRAIN SAVE REQUIRED ===
-Context about to compact/clear. Write brain files NOW before proceeding.
+=== KB SAVE REQUIRED ===
+Context about to compact/clear. Persist new facts to the vault NOW before proceeding.
 Project: ${SLUG} | Timestamp: ${NOW}
-Brain dir: ${MODULAR_DIR}/
 
-Write these files (atomic: write to <file>.tmp then mv):
+Use these commands (each appends — never destructive overwrites):
+  kb current "<one-line fact>"   → current.md (≤5 bullets hard cap)
+  kb next "<open action>"        → next.md
+  kb gotcha "<non-obvious trap>" → gotchas.md
+  kb remember                    → full digest: scan sessions + auto-prune/compact
 
-1. ${MODULAR_DIR}/current.md — merge current session findings into Current State section.
-   Keep existing content. Update or append — no destructive overwrites.
-
-2. ${MODULAR_DIR}/next.md — add/update any new action items discovered this session.
-
-Format current.md sections (≤3 bullets each, no filler):
-## Current State
-- [what is true right now]
-
-## Conventions / Cross-references
-- [unchanged unless new ones found]
+Or write directly (atomic):
+  1. ${MODULAR_DIR}/current.md — merge new state; keep ≤5 bullets
+  2. ${MODULAR_DIR}/next.md — add new action items; mark done as [done: YYYY-MM-DD]
 ${GIT_SNAP:+
-## Git Snapshot (do NOT write to file — reference only)
+## Git Snapshot (reference only — do NOT write to file)
 ${GIT_SNAP}}
 
-After writing the brain files, proceed with the compact/clear.
-=== END BRAIN SAVE REQUIRED ===
+After persisting, proceed with the compact/clear.
+=== END KB SAVE REQUIRED ===
 EOF
   exit 0
 fi
 
 # ── Legacy single-file ────────────────────────────────────────────────────────
 cat <<EOF
-=== BRAIN SAVE REQUIRED ===
-Context about to compact/clear. Write ${BRAIN} NOW before proceeding.
+=== KB SAVE REQUIRED ===
+Context about to compact/clear. Persist new facts to the vault NOW before proceeding.
 Project: ${SLUG} | Timestamp: ${NOW}
 
-Write with these exact sections (≤3 bullets each, no filler):
-
-# Brain: ${SLUG}
-_Updated: ${NOW}_
-
-## Current State
-- [what we're actively doing right now]
-
-## Open Decisions
-- [unresolved choices/questions from this session]
-
-## Gotchas
-- [non-obvious things discovered this session]
-
-## Next Steps
-- [concrete first action for next session]
+Use kb CLI:
+  kb current "<one-line fact>"   → current.md
+  kb next "<open action>"        → next.md
+  kb gotcha "<non-obvious trap>" → gotchas.md
+  kb remember                    → full digest + auto-prune/compact
 ${GIT_SNAP:+
-## Git Snapshot
+## Git Snapshot (reference only)
 ${GIT_SNAP}}
 
-After writing the brain file, proceed with the compact/clear.
-=== END BRAIN SAVE REQUIRED ===
+After persisting, proceed with the compact/clear.
+=== END KB SAVE REQUIRED ===
 EOF
 
 exit 0

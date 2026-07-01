@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# PI shim — always resolves 'pi' from fnm default node version.
+# ponytail: keeps pi accessible when fnm activates a project-local node that lacks pi globally.
+#
+# ~/.local/bin is prepended before fnm multishell paths, so this shim wins on every cd.
+# To update pi: run 'fnm use default && pi update self' (or use the pi-update alias).
+
+# Locate fnm node versions dir — macOS vs Linux/XDG
+if [[ -d "$HOME/Library/Application Support/fnm/node-versions" ]]; then
+    _fnm_dir="$HOME/Library/Application Support/fnm/node-versions"
+elif [[ -n "${FNM_DIR:-}" && -d "${FNM_DIR}/node-versions" ]]; then
+    _fnm_dir="${FNM_DIR}/node-versions"
+else
+    _fnm_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fnm/node-versions"
+fi
+
+# Prefer fnm default version
+if command -v fnm >/dev/null 2>&1; then
+    _ver="$(fnm alias default 2>/dev/null)"
+    _bin="$_fnm_dir/$_ver/installation/bin/pi"
+    [[ -n "$_ver" && -x "$_bin" ]] && exec "$_bin" "$@"
+fi
+
+# Fallback: find pi in any fnm version (newest first via glob sort)
+for _p in "$_fnm_dir"/*/installation/bin/pi; do
+    [[ -x "$_p" ]] && exec "$_p" "$@"
+done
+
+echo "pi: not found — run: fnm use default && npm install -g @earendil-works/pi-coding-agent" >&2
+exit 1

@@ -43,7 +43,7 @@ fi
 
 # Collect candidate files from Brains/ + Plans/Active/
 find_projects() {
-  local brains_dir="$VAULT/Brains"
+  local brains_dir="$VAULT/projects"
   local plans_dir="$VAULT/Plans/Active"
   [[ -d "$brains_dir" ]] && find "$brains_dir" -maxdepth 1 -name "*.md" ! -name "_*" ! -name "Brain.md" 2>/dev/null
   [[ -d "$plans_dir"  ]] && find "$plans_dir"  -maxdepth 1 -name "*.md" ! -name "_*" 2>/dev/null
@@ -63,7 +63,7 @@ filter_active() {
 # Format for fzf display: "TYPE  slug  /path/to/file"
 format_entry() {
   while IFS= read -r f; do
-    if [[ "$f" == */brains/* ]]; then
+    if [[ "$f" == */projects/* ]]; then
       tag="brain"
     else
       tag="plan "

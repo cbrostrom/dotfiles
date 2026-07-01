@@ -88,6 +88,15 @@ gaming/config/launch.log
 .config/herdr/session-history.json
 .config/herdr/release-notes.json
 
+# PI runtime state (generated, machine-local — auth/cache/sessions/npm tree stay local)
+.config/pi/agent/auth.json
+.config/pi/agent/cursor-sdk-model-list.json
+.config/pi/agent/cursor-sdk.json
+.config/pi/agent/trust.json
+.config/pi/agent/sessions/
+.config/pi/agent/npm/
+.config/pi/agent/pi-stats/
+
 # Externally-installed Claude skills (managed outside dotfiles)
 .claude/skills/paseo/
 .claude/skills/paseo-*/

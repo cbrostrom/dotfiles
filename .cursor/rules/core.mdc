@@ -8,10 +8,7 @@ advisor stance, truth discipline, approval gate, tool routing, skill sharing,
 push guard, and planning thresholds. Read `AGENT_SKILLS.md` when the task is
 about skills or agent capability inventory.
 
-**Brain:** run `brain load` at the start of each session to surface current state and
-active tasks. Brain CLI: `~/.local/bin/brain`. Vault: `~/Vaults/AI/brains/<slug>/`.
-Do not auto-load framework quick references. For Tauri/Solid projects, open only
-the relevant note under `~/Vaults/Me/Development/Frameworks/` when needed.
+**Memory (kb):** run `kb load` at the start of each session — loads personal preferences, all module gotchas, and project brain in one call. CLI: `$VAULT_AI/tools/kb` (shim at `~/dotfiles/scripts/brain`). Vault: `~/Vaults/AI/` (tier map: `personal/`, `modules/`, `projects/<slug>/`, `infra/`). Write path: `kb current/next/gotcha`; full digest: `kb remember`. Do not auto-load framework quick references.
 
 **Truth:** do not claim tools, skills, MCPs, APIs, or platform behavior exists
 without evidence from visible config/docs/tool schemas when it matters. If Cursor

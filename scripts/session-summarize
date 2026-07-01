@@ -25,10 +25,14 @@ import parse_cursor_transcript as P
 
 VAULT_SESSIONS = Path.home() / "Vaults" / "AI" / "sessions"
 TODAY = date.today().isoformat()
+_YEAR = TODAY[:4]
+_MONTH = TODAY[5:7]
+# Session files land in sessions/YYYY/MM/ since 2026-07-01 migration
+_TODAY_DIR = VAULT_SESSIONS / _YEAR / _MONTH
 MARKER = "<!-- summarized -->"
 
 
-def find_transcript_from_inbox(inbox_file: Path) -> str | None:
+def find_transcript_from_inbox(inbox_file: Path) -> "str | None":
     """Extract transcript path stored in the session log header."""
     try:
         for line in inbox_file.read_text().splitlines():
@@ -106,7 +110,7 @@ def main():
     # explicit transcript only
     if args and not args[0].startswith("--") and args[0].endswith(".jsonl"):
         transcript = args[0]
-        inbox = VAULT_SESSIONS / f"{TODAY}-direct-session.md"
+        inbox = _TODAY_DIR / f"{TODAY}-direct-session.md"
         inbox.parent.mkdir(parents=True, exist_ok=True)
         if not inbox.exists():
             inbox.write_text(f"# Session log: direct — {TODAY}\ntranscript: {transcript}\n\n")
@@ -114,9 +118,10 @@ def main():
         return
 
     # find today's session logs
-    session_logs = sorted(VAULT_SESSIONS.glob(f"{TODAY}-*-session.md"))
+    _TODAY_DIR.mkdir(parents=True, exist_ok=True)
+    session_logs = sorted(_TODAY_DIR.glob(f"{TODAY}-*-session.md"))
     if not session_logs:
-        print(f"No session logs found for {TODAY} in {VAULT_SESSIONS}")
+        print(f"No session logs found for {TODAY} in {_TODAY_DIR}")
         return
 
     target = session_logs if "--all" in args else [session_logs[-1]]
