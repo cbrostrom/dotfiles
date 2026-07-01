@@ -294,5 +294,8 @@ create_symlink "$SCRIPT_DIR/scripts/dotfetch.sh" "$HOME/.local/bin/dotfetch" "do
 # ob — Obsidian REST API CLI
 create_symlink "$SCRIPT_DIR/scripts/ob" "$HOME/.local/bin/ob" "ob (Obsidian CLI)"
 
+# pi — PI coding agent shim (stable across fnm project-node switches)
+create_symlink "$SCRIPT_DIR/scripts/pi" "$HOME/.local/bin/pi" "pi (coding agent shim)"
+
 log_success "All symlinks installed successfully!"
 log_info "You may need to restart your shell or run: source ~/.zshrc"

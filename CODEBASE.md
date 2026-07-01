@@ -33,6 +33,8 @@ Install units. Each module has `install.sh` + optional `doctor.sh`.
 | `zsh/` | Zsh config module |
 | `packages/` | Cross-platform package install |
 | `starship/` | Starship prompt config |
+| `herdr/` | Herdr terminal multiplexer — session persistence + SSH remote attach |
+| `pi/` | PI coding agent daily-driver — symlinks AGENTS.md, spark.json, hooks.yaml; patches settings.json |
 | `_lib/` | Shared module helpers |
 
 ### `zsh/`

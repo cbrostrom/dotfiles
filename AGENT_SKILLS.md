@@ -25,6 +25,7 @@ Cursor also reads them through `~/.cursor/skills -> ~/.agents/skills`.
 | `problem-solver` | Read-only investigator and spec writer. Diagnoses bugs and broken features, outputs structured spec (root cause + solution options + implementation checklist + model recommendation) for a doer agent to act on. Triggered by `.spec`. `claude-4.6-sonnet-medium-thinking`. |
 | `code-reviewer` | Reviews changed code for bugs, security, auth, reuse opportunities, and simplification. Never flags pre-existing code. Delegation hooks to `problem-solver`, `code-cleaner`, `review-security`. Triggered by `.review`. `claude-4.6-sonnet-medium-thinking`. |
 | `config-writer` | Decides placement for new agent behavior (central config vs shared skill vs wrapper vs rule), checks overlap, creates or updates the right artifact. Knows our thin-wrapper architecture. Triggered by `.add`. |
+| `pi` | PI coding agent daily-driver reference. Presets, recap, MCP adapter, subagent safety rules, hook health, per-project trust setup, and dotfiles integration. Use when working inside PI or explaining PI usage. |
 
 Promote a skill here when Cursor, Claude, Codex, and future agents should all be able to use it. Keep descriptions specific enough for automatic discovery.
 

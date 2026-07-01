@@ -21,7 +21,7 @@ else
 fi
 
 BRAINS_DIR="$VAULT/Brains"
-REPORT_FILE="$VAULT/brains/curator-report-$(date '+%Y-%m-%d').md"
+REPORT_FILE="$VAULT/_ops/curator-reports/$(date '+%Y-%m-%d').md"
 NOW="$(date '+%Y-%m-%d %H:%M')"
 CUTOFF_DAYS=14
 

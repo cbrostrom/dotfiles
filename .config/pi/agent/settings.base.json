@@ -1,0 +1,23 @@
+{
+  "defaultProvider": "cursor",
+  "defaultModel": "sonnet-4-6@200k",
+  "defaultThinkingLevel": "medium",
+  "theme": "dark",
+  "defaultProjectTrust": "ask",
+  "quietStartup": false,
+  "enableInstallTelemetry": false,
+  "images": {
+    "blockImages": false
+  },
+  "terminal": {
+    "showTerminalProgress": true
+  },
+  "httpIdleTimeoutMs": 60000,
+  "packages": [
+    "npm:pi-cursor-sdk",
+    "npm:pi-mcp-adapter",
+    "npm:pi-stats-ext",
+    "npm:pi-spark",
+    "npm:pi-subagentura"
+  ]
+}

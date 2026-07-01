@@ -1,0 +1,25 @@
+{
+  "presets": {
+    "fast": {
+      "provider": "cursor",
+      "model": "composer-2.5",
+      "thinkingLevel": "off"
+    },
+    "sonnet": {
+      "provider": "cursor",
+      "model": "claude-sonnet-4-6@200k",
+      "thinkingLevel": "medium"
+    },
+    "think": {
+      "provider": "cursor",
+      "model": "claude-sonnet-5@300k",
+      "thinkingLevel": "high"
+    }
+  },
+  "recap": {
+    "idle": "5m",
+    "provider": "cursor",
+    "model": "claude-haiku-4-5",
+    "thinkingLevel": "off"
+  }
+}

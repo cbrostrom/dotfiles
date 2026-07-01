@@ -1,0 +1,91 @@
+# PI global hooks — managed by ~/dotfiles
+# Source: ~/dotfiles/.config/pi/agent/hook/hooks.yaml
+# Install: modules/pi/install.sh (symlinked to ~/.pi/agent/hook/hooks.yaml)
+#
+# Compatibility: pi-yaml-hooks 2026.6.x, PI 0.79.x (tested on 0.80.x — run /hooks-validate)
+#
+# To verify: inside PI run /hooks-validate then /hooks-status
+# To disable: remove or comment out individual hook entries
+
+hooks:
+  # ── Session start: readiness notification ────────────────────────────────────
+  # A lightweight signal that global hooks loaded. Does not inject brain into
+  # model context (PI hook stdout ≠ additional_context). Run `kb load` manually
+  # or type `.remember` if you want a full digest + prune pass.
+  - id: session-ready
+    event: session.created
+    actions:
+      - notify:
+          text: "PI ready. Type `kb load` for session context, `.remember` for a full digest."
+          level: info
+
+  # ── Idle: auto-prune + compact + nudge ───────────────────────────────────────
+  # Fires after turn completion with no pending messages.
+  # Silently runs kb prune + compact to keep brains tidy, then nudges if
+  # there was meaningful activity (kb prune/compact prints output when it acts).
+  # Does NOT auto-save narrative context — that requires agent judgement (.remember).
+  - id: idle-kb-tidy
+    event: session.idle
+    actions:
+      - bash: |
+          KB="${VAULT_AI:-$HOME/Vaults/AI}/tools/kb"
+          [[ -x "$KB" ]] || exit 0
+          # Determine slug from cwd (mirrors kb slug resolution)
+          if git rev-parse --git-dir >/dev/null 2>&1; then
+            SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
+          else
+            SLUG="$(basename "$PWD")"
+          fi
+          "$KB" prune "$SLUG" 2>/dev/null || true
+          "$KB" compact "$SLUG" 2>/dev/null || true
+      - notify:
+          text: "Session idle. Type `.remember` to run kb digest (scans sessions, proposes updates)."
+          level: info
+
+  # ── Session end: final tidy ──────────────────────────────────────────────────
+  # Best-effort (session.deleted is lossy). Runs prune+compact on the active slug
+  # so history files are clean before context is discarded.
+  - id: session-end-tidy
+    event: session.deleted
+    actions:
+      - bash: |
+          KB="${VAULT_AI:-$HOME/Vaults/AI}/tools/kb"
+          [[ -x "$KB" ]] || exit 0
+          if git rev-parse --git-dir >/dev/null 2>&1; then
+            SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
+          else
+            SLUG="$(basename "$PWD")"
+          fi
+          "$KB" prune "$SLUG" 2>/dev/null || true
+          "$KB" compact "$SLUG" 2>/dev/null || true
+
+  # ── File changed: aislop quality check ───────────────────────────────────────
+  # Runs after PI writes/edits code files. aislop --pi checks score regression.
+  # Exit code 2 would block (aislop hook pi uses PI hook protocol).
+  - id: aislop-after-edit
+    event: file.changed
+    conditions:
+      - matchesCodeFiles
+    actions:
+      - bash: "aislop hook pi"
+
+  # ── Before bash: destructive command guard ────────────────────────────────────
+  # Blocks patterns that should never run silently. Exit code 2 = hard stop.
+  # Covers the most obvious force-push / publish / scorched-earth patterns.
+  # Intentionally narrow — don't over-block legitimate dev commands.
+  - id: guard-destructive
+    event: tool.before.bash
+    actions:
+      - bash: |
+          cmd="$(echo "$PI_TOOL_ARGS_COMMAND" 2>/dev/null || true)"
+          blocked=0
+          # Force push to any remote
+          echo "$cmd" | grep -qE 'git push.*(--force|-f)' && blocked=1
+          # rm -rf on root/home dirs
+          echo "$cmd" | grep -qE 'rm -rf (/|~|/home|/Users)' && blocked=1
+          # gh release create / pr merge / npm publish / cargo publish
+          echo "$cmd" | grep -qE '(gh release create|gh pr merge|npm publish|cargo publish|pip publish)' && blocked=1
+          if [[ "$blocked" == "1" ]]; then
+              echo "[pi-guard] Blocked: $cmd" >&2
+              exit 2
+          fi

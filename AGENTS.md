@@ -173,6 +173,25 @@ approval before action unless the user explicitly says unattended/auto/proceed.
 - Transform tasks into verifiable goals before acting.
 - Weak criteria ("make it work") → ask for success definition first.
 
+### 5. Build ladder (ponytail)
+Before writing any code, stop at the first rung that holds:
+
+1. Does this need to be built at all? (YAGNI)
+2. Does it already exist in this codebase? Reuse the helper, util, or pattern — don't re-write it.
+3. Does the standard library already do this? Use it.
+4. Does a native platform feature cover it? Use it.
+5. Does an already-installed dependency solve it? Use it.
+6. Can this be one line? Make it one line.
+7. Only then: write the minimum code that works.
+
+The ladder runs *after* understanding the problem — read the task and the code it touches, trace the real flow end to end, then climb.
+
+Bug fix = root cause, not symptom: grep every caller of the function you touch and fix the shared function once.
+
+- Mark intentional simplifications with a `ponytail:` comment. If the shortcut has a known ceiling (global lock, O(n²) scan, naive heuristic), name the ceiling and the upgrade path.
+- Non-trivial logic leaves ONE runnable check behind — the smallest thing that fails if the logic breaks. No frameworks, no fixtures. Trivial one-liners need no test.
+- Never lazy about: input validation at trust boundaries, error handling that prevents data loss, security, accessibility, anything explicitly requested.
+
 _Working correctly: diffs contain no unnecessary changes, no rewrites from overcomplication, clarifying questions come before implementation._
 
 ## Push / publish guard
@@ -180,7 +199,7 @@ _Working correctly: diffs contain no unnecessary changes, no rewrites from overc
 Never run `git push`, `gh release create`, `gh pr merge`, `npm publish`, `cargo publish`
 unless cwd is in `~/.claude/push-whitelist.txt`.
 Client repos (`~/Projects/Clients`, `~/Projects/Shopify`, `~/Work`) never whitelisted.
-Commit message: never append `Co-Authored-By: Claude` trailer.
+Commit message: never append any AI attribution trailer (`Co-Authored-By`, `Signed-off-by`, or similar) regardless of agent.
 
 ## Planning thresholds
 

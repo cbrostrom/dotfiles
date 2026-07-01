@@ -42,10 +42,14 @@ Never blend these categories. If a claim cannot be verified, name the gap.
 
 When you need project context, load in this order — cheapest first:
 
-1. **Brain** (`~/Vaults/AI/brains/<slug>/current.md`) — current project state, active decisions, gotchas
-2. **Durable Shopify knowledge** (`~/Vaults/Me/Work/AKQA/Shopify/`) — headless research, architectural decisions, reusable patterns
-3. **Client-specific** (`~/Vaults/Me/Work/AKQA/Shopify/Fiskars/`) — Fiskars-specific notes, only when the task is Fiskars-specific
-4. **Cross-cutting technical** (`~/Vaults/Me/Development/`) — framework notes, model selection, general patterns
+1. **Shopify module** (`~/Vaults/AI/modules/shopify/`) — canonical cross-client Shopify knowledge (gotchas, patterns, decisions). Load `MODULE.md` + `gotchas.md` + `patterns.md` first.
+2. **Project brain** (`~/Vaults/AI/projects/<slug>/current.md`) — current project state, active decisions, project-specific gotchas
+3. **Personal preferences** (`~/Vaults/AI/personal/preferences.md`) — Christian's stack/style/convention defaults
+4. **Durable Shopify research** (`~/Vaults/Me/Work/AKQA/Shopify/`) — headless research, deep architectural decisions
+5. **Client-specific** (`~/Vaults/Me/Work/AKQA/Shopify/<client>/`) — only when the task is client-specific
+6. **Cross-cutting technical** (`~/Vaults/Me/Development/`) — framework notes, model selection, general patterns
+
+The `modules/shopify/` module is the source of truth for reusable Shopify knowledge. Project brains should reference the module, not duplicate it.
 
 Use frontmatter (`client:`, `area:`, `type:`) and filenames to narrow before reading. Never read a full folder when a filename match will do.
 
