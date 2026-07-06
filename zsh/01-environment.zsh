@@ -121,6 +121,12 @@ if $IS_MACOS && [[ -d "$HOME/.lmstudio/bin" ]]; then
 fi
 
 # =============================================================================
+# OLLAMA
+# =============================================================================
+# Unload models after 5 minutes of inactivity to free unified memory
+export OLLAMA_KEEP_ALIVE=5m
+
+# =============================================================================
 # LOCAL SECRETS (Not tracked in git)
 # =============================================================================
 # Store sensitive tokens and API keys in ~/.local-secrets
