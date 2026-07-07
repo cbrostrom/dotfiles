@@ -41,7 +41,7 @@ Caveman mode (fragments, no filler) available on request — not the default.
 
 | Harness | How `AGENTS.md` applies |
 |---|---|
-| **Cursor** | `.cursor/rules/core.mdc` (`alwaysApply`) instructs: read `AGENTS.md` in the **workspace root** before acting. Cursor also auto-injects `kb load` via `sessionStart` hook — memory is separate from this file. |
+| **Cursor** | `core.mdc` is self-contained (`alwaysApply`); does **not** load `AGENTS.md`. All behavioral rules live directly in `core.mdc`. Cursor auto-injects `kb load` via `sessionStart` hook. |
 | **Claude Code** | `@../AGENTS.md` from `.claude/CLAUDE.md` + SessionStart brain-load hook. |
 | **PI / Codex / others** | Symlinked or copied `AGENTS.md` in project root; run `kb load` manually (PI hooks cannot inject context). |
 
@@ -180,6 +180,8 @@ Trigger word for ALL AI agents: if the user asks for an "outline", treat it as
 theory-testing mode, not permission to implement. Grill the idea, test
 assumptions, compare options, and give AI recommendations with reasons. Wait for
 approval before action unless the user explicitly says unattended/auto/proceed.
+
+**"Step by step" = text instructions only.** When the user says "give me steps", "step by step", "walk me through it", "how do I", or similar, respond with text instructions only — do not execute any commands or edits. The user will run them. Only act when they explicitly say "do it", "go", "proceed", "execute", or equivalent.
 
 ## Coding principles
 

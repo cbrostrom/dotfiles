@@ -3,7 +3,7 @@
 # 1. Writes a zero-token session marker to sessions/YYYY/MM/
 # 2. Runs TF-IDF summariser in background (no AI, no tokens)
 # 3. Silently runs kb prune + compact for the active slug
-# 4. Nudges the AI to persist new facts when a project brain exists
+# 4. Writes pending.md to project brain (files edited + last state) — picked up by brain-load
 set -uo pipefail
 
 INPUT="$(cat)"
@@ -63,14 +63,72 @@ if [[ -x "$KB" ]]; then
   ) &
 fi
 
-# ── AI nudge — only when project brain exists ─────────────────────────────────
+# ── Write pending.md — deterministic, no AI, picked up by brain-load ──────────
 MODULAR_DIR="${VAULT_PROJECTS}/${SLUG}"
 [[ -d "$MODULAR_DIR" ]] || exit 0
 
-cat <<EOF
-[kb:${SLUG}] ${NOW} — if this session produced new facts, decisions, or traps worth keeping, persist them now (otherwise skip):
-  kb current "<one-line fact>"   → current.md (≤5 bullets)
-  kb next "<open action>"        → next.md
-  kb gotcha "<non-obvious trap>" → gotchas.md
-  kb remember                    → digest recent sessions + auto-prune/compact
-EOF
+if [[ -n "$TRANSCRIPT" && -f "$TRANSCRIPT" ]]; then
+  python3 - "$TRANSCRIPT" "$MODULAR_DIR/pending.md" "$NOW" "$SESSION_FILE" <<'PY'
+import json, sys, re
+from pathlib import Path
+
+transcript_path, out_path, now, session_file = sys.argv[1:5]
+WRITE_TOOLS = {"Write", "StrReplace", "Delete", "EditNotebook"}
+HOME = str(Path.home())
+
+edited, last_state = [], ""
+try:
+    with open(transcript_path, encoding="utf-8") as fh:
+        for raw in fh:
+            raw = raw.strip()
+            if not raw:
+                continue
+            try:
+                obj = json.loads(raw)
+            except ValueError:
+                continue
+            role = obj.get("role", "")
+            content = obj.get("message", {}).get("content", [])
+            if not isinstance(content, list):
+                continue
+            for block in content:
+                if not isinstance(block, dict):
+                    continue
+                if role == "assistant" and block.get("type") == "tool_use":
+                    name = block.get("name", "")
+                    if name in WRITE_TOOLS:
+                        inp = block.get("input") or {}
+                        path = inp.get("path") or inp.get("target_notebook", "")
+                        if path and path not in edited:
+                            edited.append(path)
+                elif role == "assistant" and block.get("type") == "text":
+                    text = block.get("text", "").strip()
+                    if text:
+                        last_state = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", text))[:300]
+except Exception:
+    pass
+
+if not edited:
+    sys.exit(0)
+
+lines = [
+    f"# Pending review — {now}",
+    f"_Unreviewed. At session start: promote to current.md/next.md if relevant, then delete._",
+    f"",
+    f"## Files edited ({len(edited)})",
+]
+for p in edited:
+    short = p.replace(HOME, "~")
+    lines.append(f"- `{short}`")
+
+if last_state:
+    lines.append("")
+    lines.append("## Where we left off")
+    lines.append(last_state + "…")
+
+lines.append("")
+lines.append(f"Full session log: `{session_file.replace(HOME, '~')}`")
+
+Path(out_path).write_text("\n".join(lines) + "\n")
+PY
+fi
