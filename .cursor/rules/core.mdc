@@ -17,9 +17,11 @@ alwaysApply: true
 
 **Code navigation:** When codebase-memory-mcp is available, prefer `search_graph`, `get_architecture`, and `trace_path` over Grep/Glob for symbol lookup and orientation.
 
-**Skills:** shared skills live in `.agents/skills/` and install to `~/.agents/skills/`; Cursor reads them through `~/.cursor/skills`. Claude-only skills in `.claude/skills/` are not available to Cursor until promoted into the shared layer.
+**Skills:** shared skills live in `.agents/skills/` → `~/.agents/skills/`; Cursor reads via `~/.cursor/skills`. No `.claude/skills/` layer — everything is in `.agents/skills/`. Codex-only in `.codex/skills/`.
 
 **Token awareness:** Treat tool results, file reads, browser snapshots, MCP responses, and shell output as active-context candidates. Prefer scoped output and rough estimates from already-visible data; do not spend extra tokens just to estimate unless asked.
+
+**Compact mode (opt-in):** When [eff:minimal] fires or the user says "go compact" / "ultra brief" / "terse" — drop prose, use fragments, no filler, skip preamble. Direct answer only. Stay in compact mode until explicitly released.
 
 **Language:** English. No Danish unless explicitly requested.
 
