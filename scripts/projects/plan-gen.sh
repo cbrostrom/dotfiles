@@ -6,6 +6,13 @@
 
 set -euo pipefail
 
+if (( BASH_VERSINFO[0] < 4 )); then
+    for _b in /opt/homebrew/bin/bash /usr/local/bin/bash; do
+        [[ -x "$_b" ]] && exec "$_b" "$0" "$@"
+    done
+    echo "${0##*/}: bash 4+ required (found $BASH_VERSION)" >&2; exit 1
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 source "$SCRIPT_DIR/lib.sh"

@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 # Regenerate ~/.zellij-projects/ symlink farm.
+# Re-exec with bash 4+ if needed (macOS ships bash 3.2).
+if (( BASH_VERSINFO[0] < 4 )); then
+    for _b in /opt/homebrew/bin/bash /usr/local/bin/bash; do
+        [[ -x "$_b" ]] && exec "$_b" "$0" "$@"
+    done
+    echo "${0##*/}: bash 4+ required" >&2; exit 1
+fi
 #
 # Each git repo under ~/Projects/{clients,internal,personal,sandbox}
 # becomes a symlink in the flat farm. Naming:
