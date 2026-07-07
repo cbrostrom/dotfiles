@@ -54,3 +54,28 @@ Sessionizer config: `root_dirs "/Users/Christian.Brostrom/.zellij-projects"`
 ## Krav
 
 `fd`, `jq`, `git`, `bash 4+`. Macos bash 3.2 fungerer (scripts undgår 4+ features).
+
+---
+
+## kb map
+
+Registry + CODEBASE generator. Entry point: `kb map <subcommand>`.
+
+| Script | Purpose |
+|--------|---------|
+| `map.sh` | Dispatcher — routes to map-*.sh |
+| `map-scan.sh` | Read `_inventory.json` → write `$VAULT_AI/personal/projects-registry.md` |
+| `map-codebase.sh` _(P1)_ | Generate `CODEBASE.md` skeleton in repo root |
+| `map-doctor.sh` _(P2)_ | AI setup audit (read-only) |
+
+**Config:** `~/dotfiles/config/projects-map.conf` — edit to add roots, repos, category rules.
+
+```bash
+kb map scan                    # build/refresh registry
+kb map scan --refresh-inventory  # force inventory.sh re-run first
+kb map list                    # read registry table (no rescan)
+kb map codebase <path>         # generate CODEBASE.md (P1)
+kb map doctor                  # AI bloat audit (P2)
+```
+
+Registry output: `~/Vaults/AI/personal/projects-registry.md`

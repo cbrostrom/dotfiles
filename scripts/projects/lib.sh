@@ -132,3 +132,40 @@ iso_age_days() {
     now=$(date +%s)
     echo $(( (now - then) / 86400 ))
 }
+
+# has_brain <slug>
+# Returns 0 if a modular brain dir exists in the vault for this slug.
+has_brain() {
+    local slug="$1"
+    local vault="${VAULT_AI:-$HOME/Vaults/AI}"
+    [[ -d "$vault/projects/$slug" ]]
+}
+
+# has_codebase <abs_path>
+# Returns 0 if CODEBASE.md exists at the repo root.
+has_codebase() {
+    [[ -f "$1/CODEBASE.md" ]]
+}
+
+# infer_category <rel_path>
+# Matches CATEGORY_RULES (first match wins). Requires config to be sourced first.
+infer_category() {
+    local rel="$1"
+    if [[ -z "${CATEGORY_RULES+x}" ]]; then echo "unknown"; return; fi
+    local rule pattern cat
+    for rule in "${CATEGORY_RULES[@]}"; do
+        pattern="${rule%%|*}"
+        cat="${rule##*|}"
+        # shellcheck disable=SC2254
+        case "$rel" in $pattern) echo "$cat"; return ;; esac
+    done
+    echo "unknown"
+}
+
+# registry_row <slug> <abs_path> <category> <stack> <brain_yn> <codebase_yn> <flags>
+# Prints one markdown table row for projects-registry.md.
+registry_row() {
+    local slug="$1" abs="$2" cat="$3" stack="$4" brain="$5" codebase="$6" flags="$7"
+    printf '| %s | %s | %s | %s | %s | %s | %s |\n' \
+        "$slug" "${abs/#$HOME/\~}" "$cat" "$stack" "$brain" "$codebase" "$flags"
+}
