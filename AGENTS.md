@@ -86,9 +86,9 @@ Do **not** spawn subagents for search, orientation, or single-file edits. Parent
 | Trigger | Subagent / skill | Model tier |
 |---|---|---|
 | `.spec`, blocked bug | `problem-solver` | thinking |
-| `.review`, pre-merge | `code-reviewer` | thinking |
+| `.review`, pre-merge | `code-reviewer` | standard |
 | `.add` behavior | `config-writer` | standard |
-| `.remember`, handoff | `context-bridge` | thinking |
+| `.remember`, handoff | `context-bridge` | standard |
 | standup / morning-brief / dot-doctor | respective skill | **fast** |
 | Shopify platform verify | `shopify-generalist` | standard |
 | Shopify theme implementation | `shopify-fiskars-specialist` | standard |

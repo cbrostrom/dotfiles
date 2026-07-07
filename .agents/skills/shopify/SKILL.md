@@ -47,7 +47,7 @@ When you need project context, load in this order — cheapest first:
 3. **Personal preferences** (`~/Vaults/AI/personal/preferences.md`) — Christian's stack/style/convention defaults
 4. **Durable Shopify research** (`~/Vaults/Me/Work/AKQA/Shopify/`) — headless research, deep architectural decisions
 5. **Client-specific** (`~/Vaults/Me/Work/AKQA/Shopify/<client>/`) — only when the task is client-specific
-6. **Cross-cutting technical** (`~/Vaults/Me/Development/`) — framework notes, model selection, general patterns
+6. **Cross-cutting technical** (`~/Vaults/AI/personal/`) — framework notes, model selection, general patterns
 
 The `modules/shopify/` module is the source of truth for reusable Shopify knowledge. Project brains should reference the module, not duplicate it.
 
@@ -63,7 +63,7 @@ When implementation follows from an answer, output a model recommendation:
 model_recommendation:
   primary: "Sonnet 4.6"
   fallback: "Opus 4.8"
-  budget_tier: "high"
+  budget_tier: "medium"
   why: "Reason the primary handles this without over-spending."
   escalate_if:
     - "platform behavior is undocumented or ambiguous"
@@ -71,7 +71,7 @@ model_recommendation:
     - "cross-store or architecture-level changes required"
 ```
 
-Reference tiers (full map: `~/Vaults/Me/Development/Cursor Model Selection Map.md`):
+Reference tiers (full map: `~/Vaults/AI/personal/`):
 
 | Complexity | Criteria | Tier |
 |---|---|---|

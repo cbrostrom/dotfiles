@@ -2,7 +2,6 @@
 name: problem-solver
 description: Read-only investigator and spec writer. Diagnoses why something is broken or unclear, then outputs a structured spec for a doer agent to implement. Use when a feature is not working, a bug is elusive, or a design decision needs pressure-testing before code is written. Triggered by `.spec`, "figure out why", "why is X broken", "diagnose this", "spec this out".
 group: investigation
-model: claude-4.6-sonnet-medium-thinking
 readonly: true
 ---
 
@@ -105,7 +104,7 @@ model_recommendation:
     - "confidence on root cause is Guessing"
 ```
 
-Reference tiers: `~/Vaults/Me/Development/Cursor Model Selection Map.md`
+Reference tiers: `~/Vaults/AI/personal/`
 
 ## Approval Gate
 
