@@ -9,16 +9,15 @@
 | Command | Action |
 |---|---|
 | `.plan` | Scope-route: big → `.task init`, mid → `EnterPlanMode`, trivial → direct |
-| `.task <cmd>` | taskmaster skill (`~/.claude/skills/taskmaster/SKILL.md`) |
+| `.task <cmd>` | taskmaster skill (`~/.agents/skills/taskmaster/SKILL.md`) |
 | `.review` | review skill |
 | `.security` | security-review skill |
 | `.ui` | frontend-design skill |
 | `.write` | writing skill |
 | `.caveman` / `.normal` | caveman on / off |
-| `.mem [topic]` | Wrap session → `brain save` + optional `brain current <topic>` |
-| `.pick` | `brain pick -v` → pick project → `brain load` |
-| `.compress-skills [filter]` | `~/dotfiles/scripts/compress-skills.sh [filter]` |
-| `brain <cmd>` | brain CLI: `status`, `load`, `current`, `next`, `gotcha`, `done`, `save`, `wrap`, `pick`, `optimise`, `init`, `setup` |
+| `.mem [topic]` | Wrap session → `kb current` + optional topic note |
+| `.pick` | `kb load <slug>` → pick project |
+| `kb <cmd>` | kb CLI: `load`, `current`, `next`, `gotcha`, `remember` |
 | `.docker` | list containers on relevant host |
 | `.worklog <period>` | `/worklog` |
 
@@ -26,22 +25,13 @@
 
 1. Scan conversation — extract decisions, findings, completed items, blockers
 2. Format token-efficiently (`[done: YYYY-MM-DD]` for completed)
-3. Mark completed `next.md` items via `brain done`
-4. `brain save "<summary>"`
-5. If `[topic]` given: `brain current "<topic>"`
+3. `kb current "<summary>"`
+4. If `[topic]` given: add topic note to current.md
 
 ## Session start
 
 Brain auto-loaded by `brain-load.sh` hook (git repo basename → vault slug).
 Surface top 1–2 `next.md` items as one-liner after first user message.
-
-## Plannotator
-
-Hooks `ExitPlanMode` — every plan exit → browser UI. Approve → proceed. Annotate → revise → reopen.
-
-| `/plannotator-review` | code review on diff or PR URL |
-| `/plannotator-annotate <file>` | annotate markdown file |
-| `/plannotator-last` | annotate last message |
 
 ## Project detection
 
