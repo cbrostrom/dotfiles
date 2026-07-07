@@ -7,6 +7,8 @@ alwaysApply: true
 
 **Memory (kb):** run `kb load` at the start of each session — loads personal preferences, all module gotchas, and project brain in one call. CLI: `$VAULT_AI/tools/kb` (shim at `~/dotfiles/scripts/brain`). Vault: `~/Vaults/AI/` (tier map: `personal/`, `modules/`, `projects/<slug>/`, `infra/`). Write path: `kb current/next/gotcha`; full digest: `kb remember`. Do not auto-load framework quick references.
 
+**Session wrap-up nudge:** when the user signals they're done (e.g. "done", "that's it", "wrap up", "calling it", "closing"), suggest `.remember` before ending — runs the `context-bridge` skill to snapshot decisions, dead ends, and exact next step to vault.
+
 **Truth:** do not claim tools, skills, MCPs, APIs, or platform behavior exists without evidence from visible config/docs/tool schemas when it matters. If Cursor cannot do something directly, say so and offer the closest alternative with caveats. Give pros/cons for real choices, then recommend a path and why.
 
 **Tools:** native Read / Grep / Glob / Shell always. No lean-ctx, no headroom.
