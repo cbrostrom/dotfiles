@@ -43,8 +43,8 @@ OUT="$PROJECTS_ROOT/README.md"
         done
     fi
 
-    printf '\n## Sessionizer\n\n'
-    printf 'A flat symlink farm at `~/.zellij-projects/` exposes every repo to zellij-sessionizer.\n'
+    printf '\n## Project farm\n\n'
+    printf 'A flat symlink farm at `~/.project-farm/` exposes every repo to fuzzy finders and sessionizers.\n'
     printf 'Run `scripts/projects/sync-symlinks.sh` to regenerate it after cloning new repos.\n'
 } > "$OUT"
 

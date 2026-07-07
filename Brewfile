@@ -8,7 +8,7 @@
 #     of imagemagick / llama.cpp / qemu / docker / etc. brew bundle cleanup
 #     does NOT remove formulae that are deps of installed parents, so
 #     explicit pinning was unnecessary noise.
-#   - Removed zellij (already dropped per commit bb316c4).
+#   - Removed zellij (dropped, replaced by herdr/Cursor).
 #   - Removed casks dbgate, dotnet-sdk, syncthing-app, voicemod
 #     (not installed on current host; re-add if needed elsewhere).
 #

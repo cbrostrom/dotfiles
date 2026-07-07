@@ -161,10 +161,13 @@ except: print(0)
     fi
 fi
 
-# ── 9. Zellij remnants ───────────────────────────────────────────────────────
+# ── 9. Project farm ──────────────────────────────────────────────────────────
 if [[ -d "$HOME/.zellij-projects" ]]; then
-    zp_count=$(ls "$HOME/.zellij-projects" 2>/dev/null | wc -l | tr -d ' ')
-    _review "~/.zellij-projects/ has $zp_count entries — modules.conf has !zellij; consider removing this dir"
+    _review "~/.zellij-projects/ exists — stale name; run sync-symlinks.sh to migrate to ~/.project-farm/"
+fi
+if [[ -d "$HOME/.project-farm" ]]; then
+    pf_count=$(ls "$HOME/.project-farm" 2>/dev/null | wc -l | tr -d ' ')
+    _info "~/.project-farm/ has $pf_count entries"
 fi
 
 # ── Report ────────────────────────────────────────────────────────────────────

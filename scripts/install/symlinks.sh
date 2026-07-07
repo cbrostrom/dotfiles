@@ -121,7 +121,6 @@ create_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml"
 create_symlink "$SCRIPT_DIR/.config/lazygit" "$HOME/.config/lazygit" "lazygit config"
 create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
 create_symlink "$SCRIPT_DIR/.config/procs" "$HOME/.config/procs" "procs config"
-create_symlink "$SCRIPT_DIR/.config/zellij" "$HOME/.config/zellij" "zellij config"
 [[ -d "$SCRIPT_DIR/.config/herdr" ]] && create_symlink "$SCRIPT_DIR/.config/herdr" "$HOME/.config/herdr" "herdr config"
 
 # WezTerm: lives at $SCRIPT_DIR/wezterm/ (not under .config/) so the Windows-side
