@@ -22,4 +22,19 @@ fi
 output="$(VAULT_AI="${VAULT_AI:-$HOME/Vaults/AI}" "$KB" load "$SLUG" 2>/dev/null)" || exit 0
 [[ -z "$output" ]] && exit 0
 
+# Prepend pending.md if it exists and is newer than current.md (last session not yet reviewed)
+VAULT_AI_PATH="${VAULT_AI:-$HOME/Vaults/AI}"
+PENDING="${VAULT_AI_PATH}/projects/${SLUG}/pending.md"
+CURRENT="${VAULT_AI_PATH}/projects/${SLUG}/current.md"
+if [[ -f "$PENDING" ]] && { [[ ! -f "$CURRENT" ]] || [[ "$PENDING" -nt "$CURRENT" ]]; }; then
+  pending_content="$(cat "$PENDING" 2>/dev/null || true)"
+  if [[ -n "$pending_content" ]]; then
+    output="=== UNREVIEWED SESSION (last stop) ===
+${pending_content}
+=== END UNREVIEWED SESSION ===
+
+${output}"
+  fi
+fi
+
 python3 -c "import json,sys; print(json.dumps({'additional_context': sys.argv[1]}))" "$output"

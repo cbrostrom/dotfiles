@@ -4,3 +4,10 @@
 
 # (intentionally empty after pruning mcp-mermaid, tailwindcss, google-calendar.
 #  Keep file so `developer` overlay remains a no-op slot for future tools.)
+
+# Code intelligence — single binary, indexes repos into a knowledge graph (14 MCP tools)
+# Binary: ~/.local/bin/codebase-memory-mcp — install: curl -fsSL ...install.sh | bash -s -- --skip-config
+codebase-memory-mcp | ~/.local/bin/codebase-memory-mcp
+
+open-notebook | uvx | open-notebook-mcp
+shopify-dev-mcp | npx | -y | @shopify/dev-mcp@latest
