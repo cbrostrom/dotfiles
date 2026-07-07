@@ -90,8 +90,6 @@ Do **not** spawn subagents for search, orientation, or single-file edits. Parent
 | `.add` behavior | `config-writer` | standard |
 | `.remember`, handoff | `context-bridge` | standard |
 | standup / morning-brief / dot-doctor | respective skill | **fast** |
-| Shopify platform verify | `shopify-generalist` | standard |
-| Shopify theme implementation | `shopify-fiskars-specialist` | standard |
 | **Default** | no subagent | — |
 
 **Vault lookup order (cheap → expensive):**
@@ -104,14 +102,10 @@ Never read a whole folder to answer a question. Narrow first, then read.
 
 ### Quick references
 
-Framework notes are opt-in pointers, never default context. For Tauri/Solid
-projects, open only the relevant quick reference first:
-- Tauri v2: `~/Vaults/AI/modules/` or legacy `~/Vaults/Me/Development/Frameworks/Tauri v2.md`
-- SolidJS: `~/Vaults/AI/modules/` or legacy `~/Vaults/Me/Development/Frameworks/SolidJS.md`
+Framework notes are opt-in pointers, never default context.
+- Tauri v2, SolidJS, Bun/Hono, Shopify: `~/Vaults/AI/modules/`
 
-Use these to reach official docs quickly. Keep them token-light: links, routing
-hints, and one-line dated updates only. If official docs changed during use,
-update the note's link/short note and `Last checked`; never paste large docs.
+Open only the relevant module first. Keep notes token-light: links and one-line dated updates only.
 
 ## Tool routing
 
@@ -125,13 +119,11 @@ Large files: Read with limit/offset. Search: Grep with head_limit.
 
 ## Skills
 
-Shared, agent-agnostic skills live in `.agents/skills/` and install to
-`~/.agents/skills/`. Cursor reads the same layer via `~/.cursor/skills`.
-Claude-only skills in `.claude/skills/` and Codex-only skills in `.codex/skills/`
-are not portable until promoted into `.agents/skills/`.
+Shared skills: `.agents/skills/` → installed to `~/.agents/skills/`.
+Cursor reads via `~/.cursor/skills`. CC reads via `~/.agents/skills/`. PI/Codex same.
+Codex-specific: `.codex/skills/`. No `.claude/skills/` layer — collapsed into `.agents/`.
 
-Read `AGENT_SKILLS.md` when asked what skills are available, when tuning skill
-usage, or when deciding whether a workflow should be shared or tool-specific.
+Read `AGENT_SKILLS.md` for full inventory and routing.
 
 ## Token awareness
 
@@ -143,11 +135,7 @@ active context, but any retained result can become repeated input cost.
 Default behavior:
 1. Before noisy reads/commands, prefer scoped output: path filters, `--stat`,
    `--tail`, quiet test modes, Read limit/offset, and Grep/rg `head_limit`.
-2. Use RTK for supported shell families. Claude Code and Cursor hooks rewrite
-   automatically; Codex/OpenCode/Zed/Gemini should use `rtk <command>` manually.
-   When choosing commands yourself, still prefer explicit RTK forms even if a
-   hook might catch them: `rtk npm run <script>`, `rtk npm test`, `rtk pnpm ...`,
-   `rtk pytest`, `rtk cargo test`, `rtk go test`, `rtk docker ...`, etc.
+2. Use RTK for supported shell families. CC + Cursor hooks rewrite automatically; others use `rtk <command>` manually (npm, pnpm, pytest, cargo, go test, docker, etc.).
 3. Give token/cost approximations only when useful for a decision and derivable
    from already-visible data. Do not run extra counting commands or read more
    data just to estimate unless the user asks.
@@ -183,52 +171,6 @@ approval before action unless the user explicitly says unattended/auto/proceed.
 
 **"Step by step" = text instructions only.** When the user says "give me steps", "step by step", "walk me through it", "how do I", or similar, respond with text instructions only — do not execute any commands or edits. The user will run them. Only act when they explicitly say "do it", "go", "proceed", "execute", or equivalent.
 
-## Coding principles
-
-### 1. Think before coding
-- Surface assumptions before starting. Uncertain → ask. Never guess silently.
-- Multiple interpretations → list them. Never pick silently.
-- Simpler path exists → say so. Push back when warranted.
-- Confused → name it, ask. Never implement through fog.
-
-### 2. Simplicity first
-- Min code that solves problem. Nothing speculative.
-- No unrequested features, abstractions, configurability.
-- No error handling for impossible scenarios.
-- 200 lines when 50 works = rewrite.
-
-### 3. Surgical changes
-- Touch only what the request requires. Nothing else.
-- Don't improve adjacent code, comments, or formatting.
-- Match existing style even when you'd do differently.
-- Unrelated dead code: mention, don't delete.
-- Clean up only YOUR orphans (imports/vars your changes made unused).
-
-### 4. Goal-driven execution
-- Transform tasks into verifiable goals before acting.
-- Weak criteria ("make it work") → ask for success definition first.
-
-### 5. Build ladder (ponytail)
-Before writing any code, stop at the first rung that holds:
-
-1. Does this need to be built at all? (YAGNI)
-2. Does it already exist in this codebase? Reuse the helper, util, or pattern — don't re-write it.
-3. Does the standard library already do this? Use it.
-4. Does a native platform feature cover it? Use it.
-5. Does an already-installed dependency solve it? Use it.
-6. Can this be one line? Make it one line.
-7. Only then: write the minimum code that works.
-
-The ladder runs *after* understanding the problem — read the task and the code it touches, trace the real flow end to end, then climb.
-
-Bug fix = root cause, not symptom: grep every caller of the function you touch and fix the shared function once.
-
-- Mark intentional simplifications with a `ponytail:` comment. If the shortcut has a known ceiling (global lock, O(n²) scan, naive heuristic), name the ceiling and the upgrade path.
-- Non-trivial logic leaves ONE runnable check behind — the smallest thing that fails if the logic breaks. No frameworks, no fixtures. Trivial one-liners need no test.
-- Never lazy about: input validation at trust boundaries, error handling that prevents data loss, security, accessibility, anything explicitly requested.
-
-_Working correctly: diffs contain no unnecessary changes, no rewrites from overcomplication, clarifying questions come before implementation._
-
 ## Push / publish guard
 
 Never run `git push`, `gh release create`, `gh pr merge`, `npm publish`, `cargo publish`
@@ -246,7 +188,7 @@ Commit message: never append any AI attribution trailer (`Co-Authored-By`, `Sign
 
 ## Model selection
 
-Full map: `~/Vaults/AI/personal/` or `~/Vaults/Me/Development/Cursor Model Selection Map.md` (legacy)
+Full map: `~/Vaults/AI/personal/`
 
 **Escalation ladder:**
 1. Triage cheaply — Gemini Flash / GPT-5.4 Mini / Haiku 4.5
@@ -260,7 +202,7 @@ When recommending a model from a spec or complexity assessment, output:
 model_recommendation:
   primary: "Sonnet 4.6"
   fallback: "GPT-5.5"
-  budget_tier: "high"
+  budget_tier: "medium"
   why: "Reason the primary handles this without over-spending."
   escalate_if:
     - "requirements are ambiguous"
@@ -287,26 +229,6 @@ injects feedback only when score **regresses** below baseline. Happy path = zero
 Rules: `.aislop/baseline.json` (score baseline). Do not disable rules to pass — fix the underlying issue.
 
 ### fallow — JS/TS codebase intelligence
-Unused exports/files/deps, duplication, circular deps, complexity hotspots, architecture drift.
-Deterministic. No AI inside. Install per project: `npm install -D fallow`.
+Unused exports/files/deps, duplication, circular deps, complexity hotspots.
+Skill: `~/.agents/skills/fallow/`. Install per project: `npm install -D fallow`.
 
-Skill: `~/.agents/skills/fallow/` (all agents) · `~/.claude/skills/fallow/` (CC).
-
-| Signal | Action |
-|---|---|
-| "audit codebase" / "PR risk" | `fallow audit` |
-| "unused exports" / "dead code" | `fallow dead-code` |
-| "duplication" | `fallow dead-code --duplication` |
-| "complexity hotspots" | `fallow health --hotspots` |
-| "circular deps" | `fallow check --circular` |
-
-## Infrastructure dispatch
-
-| Signal | Action |
-|---|---|
-| stacks / deploy on superbro | `mcp-dockhand` |
-| stacks / deploy on linuxbro | `mcp-dockhand-linuxbro` |
-| containers / logs on superbro | `mcp-dockhand` or `docker-superbro` |
-| containers / logs on linuxbro | `mcp-dockhand-linuxbro` or `docker-linuxbro` |
-| search Jira / Confluence | atlassian MCP (fiskars vs akqa by project context) |
-| worklog X / log hours X | `/worklog X` |
