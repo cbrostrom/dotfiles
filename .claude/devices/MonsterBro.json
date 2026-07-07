@@ -7,8 +7,7 @@
   "marketplaces": [
     "cavekit-marketplace",
     "caveman",
-    "planning-with-files",
-    "plannotator"
+    "planning-with-files"
   ],
   "enabled_plugins": [
     "atlassian@claude-plugins-official",
@@ -19,7 +18,6 @@
     "liquid-lsp@claude-plugins-official",
     "liquid-skills@claude-plugins-official",
     "planning-with-files@planning-with-files",
-    "plannotator@plannotator",
     "shopify@claude-plugins-official",
     "superpowers@claude-plugins-official"
   ],
@@ -33,7 +31,6 @@
   "mcp_servers_settings": [],
   "mcp_servers_list": [
     "github",
-    "engram",
     "graphiti"
   ],
   "skills": []
