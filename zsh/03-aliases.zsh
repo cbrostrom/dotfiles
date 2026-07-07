@@ -387,10 +387,10 @@ PI coding agent — quick reference
     /trust              Trust current project dir
 
   Vault / memory
-    brain load          Load brain context into session
+    kb load             Load brain context into session
     .remember / .r      Full session save to vault
-    .note <text>        Single fact → brain current
-    .gotcha <text>      Trap → brain gotcha
+    .note <text>        Single fact → kb current
+    .gotcha <text>      Trap → kb gotcha
 
   Model tools
     /preset             Show / switch Spark presets
