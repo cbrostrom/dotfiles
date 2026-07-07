@@ -58,7 +58,7 @@ Standalone tools symlinked to `~/.local/bin/`.
 
 | Script | Purpose |
 |--------|---------|
-| `brain` | Brain CLI — `brain load/save/current/next/gotcha` |
+| `brain` | Shim → `kb` (knowledgebase CLI); both symlinked to `~/.local/bin/` |
 | `project-mcp.sh` | Per-project MCP injection |
 | `agentsync.sh` | Sync agent core files to servers |
 | `agent-core-sync.sh` | Sync `.agents/` layer |
@@ -79,7 +79,7 @@ Claude Code config (not symlinked — read in place by CC).
 | Path | Purpose |
 |------|---------|
 | `hooks/` | CC hooks: effort-classifier, brain-load, brain-save-inject, git-push-guard, rtk-rewrite, statusline |
-| `skills/` | Claude-only skills (not shared — promote to `.agents/skills/` to share) |
+| `skills/` | Legacy layer — empty. All skills live in `.agents/skills/`. |
 | `devices/` | Per-host Claude snapshots |
 | `settings.base.json` | Base Claude settings |
 | `settings.darwin.json` | macOS overrides |
