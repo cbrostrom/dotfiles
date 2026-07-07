@@ -74,9 +74,13 @@ done
 cursor_size_kb=$(du -sk "$HOME/.cursor" 2>/dev/null | awk '{print $1}')
 cursor_size_mb=$(( cursor_size_kb / 1024 ))
 if [[ $cursor_size_mb -gt 1500 ]]; then
-    _fix "~/.cursor is ${cursor_size_mb}MB (>1.5GB) — safe cleanup: rm -rf ~/.cursor/logs ~/.cursor/CachedExtensions ~/.cursor/Cache"
+    # Find the real large subdirs, not assumed paths
+    large=$(du -sh "$HOME/.cursor"/*/  2>/dev/null \
+        | sort -rh | awk -F'\t' '$1~/[0-9]M|[0-9]G/ {printf "%s (%s)  ", $2, $1}' \
+        | sed "s|$HOME/||g")
+    _fix "~/.cursor is ${cursor_size_mb}MB — large subdirs: ${large}. Safe: rm -rf ~/.cursor/acp-sessions ~/.cursor/ai-tracking. extensions/ = installed extensions (keep). projects/ = per-project state (prune old manually)."
 elif [[ $cursor_size_mb -gt 500 ]]; then
-    _review "~/.cursor is ${cursor_size_mb}MB (>500MB) — consider clearing ~/.cursor/logs and ~/.cursor/Cache"
+    _review "~/.cursor is ${cursor_size_mb}MB — run: du -sh ~/.cursor/*/ | sort -rh | head -8"
 else
     _info "~/.cursor size: ${cursor_size_mb}MB (OK)"
 fi
