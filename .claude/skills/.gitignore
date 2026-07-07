@@ -1,5 +1,0 @@
-# Skills installed via `npx skills add` live in ~/.agents/skills/
-# and are linked here at setup time. Don't commit machine-specific paths.
-caveman
-code-overhaul-review
-find-skills

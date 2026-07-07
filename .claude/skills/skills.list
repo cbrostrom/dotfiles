@@ -1,9 +1,0 @@
-# External skills — installed via modules/skills/install.sh (npx skills add)
-# Format: one source per line. In-repo skills under dotfiles/.claude/skills/ are NOT listed.
-#
-# Pruned 2026-06-16 — agnostic stack. Kept on disk in ~/.agents/skills/:
-#   agent-browser, plannotator-setup-goal, fallow
-# Viz policy: mermaid only (uml/network/infographic/infocard/canvas/security-diagram retired).
-
-# Codebase intelligence — JS/TS: unused code, duplication, circular deps, complexity
-fallow-rs/fallow-skills
