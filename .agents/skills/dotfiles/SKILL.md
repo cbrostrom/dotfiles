@@ -86,7 +86,7 @@ Wrappers reference `.agents/skills/` for reusable logic; Cursor-specific routing
 
 | Complexity | Criteria | Model |
 |---|---|---|
-| Trivial | 1-2 files, mechanical | `composer-2.5-fast` |
+| Trivial | 1-2 files, mechanical | `composer-2.5` |
 | Medium | 2-4 files, logic changes | `claude-4.6-sonnet-medium-thinking` |
 | Complex | 5+ files, cross-cutting | `claude-4.6-opus-high-thinking` — recommend splitting |
 

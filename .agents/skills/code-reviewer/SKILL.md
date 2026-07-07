@@ -118,7 +118,7 @@ model_recommendation:
     - "Cross-cutting architectural changes emerge"
 ```
 
-Reference tiers: `~/Vaults/Me/Development/Cursor Model Selection Map.md`
+Reference tiers: `~/Vaults/AI/personal/`
 
 ## Before flagging
 

@@ -1,8 +1,8 @@
 ---
 name: commit
 description: >-
-  Stage and commit changes in meaningful bundles. Triggered by "commit",
-  "/commit", "bundle commits", or "commit my changes".
+  Stage and commit changes in meaningful chunks. Triggered by "commit",
+  "/commit", "chunk commits", or "commit my changes".
 ---
 # Commit skill
 
@@ -11,7 +11,7 @@ When triggered, commit staged and unstaged changes in logical bundles. Never squ
 ## Steps
 
 1. Run `git status` and `git diff --stat HEAD` to see the full picture.
-2. Group changes into logical bundles (e.g. hook fixes together, new features separate, config/docs separate).
+2. Group changes into logical chunks (e.g. hook fixes together, new features separate, config/docs separate).
 3. For each bundle:
    - Stage only the relevant files with `git add <files>`
    - Commit with a conventional message: `type(scope): short description`
