@@ -1,6 +1,10 @@
 {
   "defaultProvider": "cursor",
   "defaultModel": "sonnet-4-6@200k",
+  "enabledModels": [
+    "cursor/sonnet-4-6@200k",
+    "cursor/composer-2.5"
+  ],
   "defaultThinkingLevel": "medium",
   "theme": "dark",
   "defaultProjectTrust": "ask",
@@ -18,6 +22,6 @@
     "npm:pi-mcp-adapter",
     "npm:pi-stats-ext",
     "npm:pi-spark",
-    "npm:pi-subagentura"
+    "npm:@gotgenes/pi-subagents"
   ]
 }

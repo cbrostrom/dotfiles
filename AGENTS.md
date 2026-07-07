@@ -37,29 +37,54 @@ Caveman mode (fragments, no filler) available on request — not the default.
    config, ask whether to execute unless the user explicitly says unattended,
    auto, proceed, full go, or equivalent.
 
-## Brain (memory)
+## Who reads this file
 
-CLI: `~/.local/bin/brain` → `~/dotfiles/scripts/brain` (Python, no deps)
-Vault: `~/Vaults/Me` (macOS) · `/mnt/c/Users/christian/Obsidian/Brain` (WSL)
-Files: `$VAULT/brains/<slug>/` — `current.md`, `next.md`, `gotchas.md`, `history/`
+| Harness | How `AGENTS.md` applies |
+|---|---|
+| **Cursor** | `.cursor/rules/core.mdc` (`alwaysApply`) instructs: read `AGENTS.md` in the **workspace root** before acting. Cursor also auto-injects `kb load` via `sessionStart` hook — memory is separate from this file. |
+| **Claude Code** | `@../AGENTS.md` from `.claude/CLAUDE.md` + SessionStart brain-load hook. |
+| **PI / Codex / others** | Symlinked or copied `AGENTS.md` in project root; run `kb load` manually (PI hooks cannot inject context). |
+
+If a project repo has no root `AGENTS.md`, only harness-specific rules apply (e.g. Cursor `core.mdc`). Dotfiles policy does not propagate automatically — symlink or copy when a project should inherit it.
+
+## Memory (kb)
+
+CLI: `kb` (canonical) · shim: `~/.local/bin/brain` → `~/dotfiles/scripts/kb`
+Vault: `~/Vaults/AI` (macOS) · `/mnt/c/Users/christian/Obsidian/AI` (WSL) — env: `VAULT_AI`
+Project brain: `$VAULT_AI/projects/<slug>/` — `current.md`, `next.md`, `gotchas.md`, `history/`
 Slug: git repo basename, auto-detected.
 
-**Session start:** run `brain load` — surfaces current state + active next items.
-CC auto-loads via hook. All other agents: ask user or run manually on first message.
+**Session start:** `kb load` (~800 tokens default). Cursor + Claude Code auto-load via hook. PI: run manually.
 
 | Signal | Action |
 |---|---|
-| `.remember` / `.r` | Full session save — load and run `context-bridge` skill: extract decisions, reasoning, dead ends, next step → write to vault. Use before closing or handing off. |
-| `.note <text>` / `.n <text>` | Single fact only — run `brain current "<text>"` immediately |
-| `.gotcha <text>` / `.g <text>` | Run `brain gotcha "<text>"` immediately |
-| `.spec <problem>` | Load and run `problem-solver` subagent: investigate read-only, output structured diagnosis + implementation spec + model recommendation. |
-| `.review` | Load and run `code-reviewer` subagent: review changed/indicated code for bugs, security, reuse, simplification. Read-only. |
-| `.add <behavior>` | Load and run `config-writer` subagent: decide placement (AGENTS.md vs shared skill vs wrapper), check overlap, create or update the right artifact. |
-| remember / save / note | `brain current <fact>` or `brain gotcha <trap>` |
-| add task / next step | `brain next <action>` |
-| `.recall` / what did we do | `brain current` + `brain next` |
-| find my notes on X | `grep -rl "<query>" $VAULT --include="*.md"` |
+| `.remember` / `.r` | Full session save — `context-bridge` skill → vault snapshot |
+| `.note <text>` / `.n <text>` | `kb current "<text>"` |
+| `.gotcha <text>` / `.g <text>` | `kb gotcha "<text>"` |
+| `.spec <problem>` | `problem-solver` subagent (read-only spec) |
+| `.review` | `code-reviewer` subagent (read-only) |
+| `.add <behavior>` | `config-writer` subagent |
+| `.car` | `used-ev-advisor` skill |
+| remember / save / note | `kb current` or `kb gotcha` |
+| add task / next step | `kb next` |
+| `.recall` / what did we do | `kb load` or read `current.md` + `next.md` |
+| find my notes on X | `grep -rl "<query>" $VAULT_AI --include="*.md"` |
 | open in Obsidian | `ob open <path>` |
+
+### Subagent policy (token discipline)
+
+Do **not** spawn subagents for search, orientation, or single-file edits. Parent agent handles those.
+
+| Trigger | Subagent / skill | Model tier |
+|---|---|---|
+| `.spec`, blocked bug | `problem-solver` | thinking |
+| `.review`, pre-merge | `code-reviewer` | thinking |
+| `.add` behavior | `config-writer` | standard |
+| `.remember`, handoff | `context-bridge` | thinking |
+| standup / morning-brief / dot-doctor | respective skill | **fast** |
+| Shopify platform verify | `shopify-generalist` | standard |
+| Shopify theme implementation | `shopify-fiskars-specialist` | standard |
+| **Default** | no subagent | — |
 
 **Vault lookup order (cheap → expensive):**
 1. Frontmatter search (`area:`, `type:`, `client:`, `tags:`)
@@ -73,8 +98,8 @@ Never read a whole folder to answer a question. Narrow first, then read.
 
 Framework notes are opt-in pointers, never default context. For Tauri/Solid
 projects, open only the relevant quick reference first:
-- Tauri v2: `~/Vaults/Me/Development/Frameworks/Tauri v2.md`
-- SolidJS: `~/Vaults/Me/Development/Frameworks/SolidJS.md`
+- Tauri v2: `~/Vaults/AI/modules/` or legacy `~/Vaults/Me/Development/Frameworks/Tauri v2.md`
+- SolidJS: `~/Vaults/AI/modules/` or legacy `~/Vaults/Me/Development/Frameworks/SolidJS.md`
 
 Use these to reach official docs quickly. Keep them token-light: links, routing
 hints, and one-line dated updates only. If official docs changed during use,
@@ -207,11 +232,11 @@ Commit message: never append any AI attribution trailer (`Co-Authored-By`, `Sign
 |---|---|
 | Trivial — ≤2 files, single fix, rename | Direct edit |
 | Mid — 2–3 files, clear path | Outline → wait for approval → execute |
-| Big — ≥3 files, new feature, refactor, architecture | Task list in brain → wait for approval |
+| Big — ≥3 files, new feature, refactor, architecture | Task list in `kb next` → wait for approval |
 
 ## Model selection
 
-Full map: `~/Vaults/Me/Development/Cursor Model Selection Map.md`
+Full map: `~/Vaults/AI/personal/` or `~/Vaults/Me/Development/Cursor Model Selection Map.md` (legacy)
 
 **Escalation ladder:**
 1. Triage cheaply — Gemini Flash / GPT-5.4 Mini / Haiku 4.5

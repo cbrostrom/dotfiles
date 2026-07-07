@@ -71,11 +71,36 @@ _symlink "$PI_SRC/spark.json"          "$PI_DST/spark.json"           "spark.jso
 mkdir -p "$HOME/.local/bin"
 _symlink "$DOTFILES_DIR/scripts/pi" "$HOME/.local/bin/pi" "~/.local/bin/pi shim"
 
+# ── 4b) user extensions — symlink every .ts in extensions/ ──────────────────
+EXT_SRC="$PI_SRC/extensions"
+EXT_DST="$PI_DST/extensions"
+if [[ -d "$EXT_SRC" ]]; then
+    mkdir -p "$EXT_DST"
+    for f in "$EXT_SRC"/*.ts; do
+        [[ -e "$f" ]] || continue
+        name="$(basename "$f")"
+        _symlink "$f" "$EXT_DST/$name" "extensions/$name"
+    done
+fi
+
 # ── 5) hooks.yaml — only if pi-yaml-hooks is installed or will be ─────────────
 # We always symlink so the file is ready; pi-yaml-hooks picks it up automatically
 # when installed. Run /hooks-validate inside PI to confirm compatibility.
 _symlink "$PI_SRC/hook/hooks.yaml"     "$PI_DST/hook/hooks.yaml"      "hook/hooks.yaml"
 log "hooks.yaml symlinked — install pi-yaml-hooks and run /hooks-validate to activate"
+
+# ── 5b) prompt templates (/end and friends) ───────────────────────────────────
+# pi-prompt-template-model loads from ~/.pi/agent/prompts/; symlink each .md
+PROMPT_SRC="$PI_SRC/prompts"
+PROMPT_DST="$PI_DST/prompts"
+if [[ -d "$PROMPT_SRC" ]]; then
+    mkdir -p "$PROMPT_DST"
+    for f in "$PROMPT_SRC"/*.md; do
+        [[ -e "$f" ]] || continue
+        name="$(basename "$f")"
+        _symlink "$f" "$PROMPT_DST/$name" "prompts/$name"
+    done
+fi
 
 # ── 5) merge settings.base.json into settings.json ───────────────────────────
 # PI manages runtime fields (lastChangelogVersion, etc.) in settings.json.

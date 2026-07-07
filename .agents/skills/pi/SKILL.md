@@ -30,7 +30,7 @@ pi-cursor-sdk      0.1.53  — Cursor models via local SDK agent runtime
 pi-mcp-adapter     2.10.0  — Lazy MCP proxy (auto-picks up ~/.cursor/mcp.json)
 pi-spark           0.15.0  — Presets, recap, compact TUI
 pi-stats-ext       0.1.0   — Token/cost dashboard (/pi-stats)
-pi-subagentura     2.3.3   — In-process subagents (subagent_isolated, subagent_with_context)
+@gotgenes/pi-subagents  — In-process subagents (subagent, get_subagent_result, steer_subagent)
 ```
 
 Upgrade all: `fnm use default && pi update --all`
@@ -45,12 +45,11 @@ List installed: `pi list`
 servers are available in PI with no extra config. One proxied `mcp` tool instead of
 the full tool blast.
 
-## Subagent usage (pi-subagentura)
+## Subagent usage (@gotgenes/pi-subagents)
 
-- Use `subagent_isolated` for narrow tasks that do not need full history: parallel
-  file reviews, isolated code generation, research sweeps.
-- Use `subagent_with_context` sparingly — it copies the full conversation to each
-  child and can exhaust heap on concurrent spawns.
+- Use `subagent` with `subagent_type: "Explore"` for fast read-only codebase sweeps.
+- Use `run_in_background: true` for parallel info gathering; poll with `get_subagent_result`.
+- Global `Explore` agent uses Composer 2.5; main session stays on Sonnet 4.6.
 - Default to the main thread unless parallelism gives a clear win.
 
 ## Brain and memory

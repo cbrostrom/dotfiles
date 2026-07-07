@@ -2,20 +2,20 @@
   "editor.formatOnSave": true,
   "workbench.colorCustomizations": {},
   "vscodeGitCommit.variables": {
-    "prefix": "keke"
+    "prefix": "keke",
   },
   "colorize.languages": [
     "javascript",
     "shellscript",
     "typescriptreact",
-    "typescript"
+    "typescript",
   ],
   "security.workspace.trust.untrustedFiles": "open",
   "redhat.telemetry.enabled": false,
   "editor.fontFamily": "'Hack Nerd Font Mono', Monaco, 'Courier New', monospace",
   "git.enableSmartCommit": true,
   "[scss]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "git.confirmSync": false,
   "tailwind-fold.autoFold": false,
@@ -30,32 +30,32 @@
     "jsx",
     "liquid",
     "handlebars",
-    "cshtml"
+    "cshtml",
   ],
   "typescript.updateImportsOnFileMove.enabled": "always",
   "typescript.inlayHints.parameterNames.enabled": "all",
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.codeActionsOnSave": {
-      "source.fixAll": "always"
+      "source.fixAll": "always",
     },
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
   },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.codeActionsOnSave": {
-      "source.fixAll": "always"
+      "source.fixAll": "always",
     },
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
   },
   "workbench.startupEditor": "none",
   "javascript.updateImportsOnFileMove.enabled": "always",
   "[astro]": {
     "editor.defaultFormatter": "astro-build.astro-vscode",
     "editor.codeActionsOnSave": {
-      "source.fixAll": "always"
+      "source.fixAll": "always",
     },
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
   },
   "editor.formatOnPaste": true,
   "editor.formatOnType": true,
@@ -64,24 +64,24 @@
     "javascriptreact",
     "astro",
     "typescript",
-    "typescriptreact"
+    "typescriptreact",
   ],
   "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[html]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[liquid]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
   },
   "terminal.external.windowsExec": "C:\\Windows\\System32\\wsl.exe",
   "[lua]": {
-    "editor.defaultFormatter": "yinfei.luahelper"
+    "editor.defaultFormatter": "yinfei.luahelper",
   },
   "typescript.tsserver.nodePath": "node",
   "terminal.integrated.cursorStyleInactive": "line",
@@ -91,10 +91,10 @@
   "tailwindCSS.experimental.configFile": null,
   "tailwindCSS.experimental.classRegex": [],
   "editor.quickSuggestions": {
-    "strings": "on"
+    "strings": "on",
   },
   "files.associations": {
-    "*.css": "tailwindcss"
+    "*.css": "tailwindcss",
   },
   "projectManager.filterOnFullPath": true,
   "projectManager.groupList": true,
@@ -110,11 +110,11 @@
     "Headless",
     "Astro",
     "SolidJS",
-    "NextJS"
+    "NextJS",
   ],
   "projectManager.git.baseFolders": ["/Users/Christian.Brostrom/Projects"],
   "projectManager.vscode.baseFolders": [
-    "/Users/Christian.Brostrom/Projects/Workspaces"
+    "/Users/Christian.Brostrom/Projects/Workspaces",
   ],
   "projectManager.any.baseFolders": ["/Users/Christian.Brostrom/Projects"],
   "projectManager.git.ignoredFolders": [
@@ -123,7 +123,7 @@
     "typings",
     "test",
     ".haxelib",
-    ".csproj"
+    ".csproj",
   ],
   "projectManager.vscode.ignoredFolders": [
     "node_modules",
@@ -131,7 +131,7 @@
     "typings",
     "test",
     ".git",
-    ".csproj"
+    ".csproj",
   ],
   "projectManager.any.ignoredFolders": [
     "node_modules",
@@ -139,7 +139,7 @@
     "typings",
     "test",
     ".csproj",
-    ".git"
+    ".git",
   ],
   "scss.lint.unknownAtRules": "ignore",
   "css.lint.unknownAtRules": "ignore",
@@ -158,18 +158,18 @@
   "workbench.editor.autoLockGroups": {
     "mainThreadWebview-browserPreview": false,
     "mainThreadWebview-simpleBrowser.view": false,
-    "workbench.editor.chatSession": true
+    "workbench.editor.chatSession": true,
   },
   "errorLens.statusBarColorsEnabled": true,
   "git.autofetch": true,
   "sync.gist": "78d5c8468c9fcd042dd56b2ad7108d27",
   "sonarlint.rules": {
     "typescript:S4123": {
-      "level": "off"
+      "level": "off",
     },
     "css:S4662": {
-      "level": "off"
-    }
+      "level": "off",
+    },
   },
   "cursor.cmdk.useThemedDiffBackground": true,
   "cursor.composer.collapsePaneInputBoxPills": true,
@@ -190,12 +190,12 @@
     "php",
     "blade",
     "svelte",
-    "liquid"
+    "liquid",
   ],
   "explorer.confirmDragAndDrop": false,
   "cursor.composer.shouldAllowCustomModes": true,
   "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "githubPullRequests.pullBranch": "never",
   "git.openRepositoryInParentFolders": "never",
@@ -204,17 +204,17 @@
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
     "editor.autoIndent": "advanced",
-    "editor.defaultFormatter": "redhat.vscode-yaml"
+    "editor.defaultFormatter": "redhat.vscode-yaml",
   },
   "[github-actions-workflow]": {
-    "editor.defaultFormatter": "redhat.vscode-yaml"
+    "editor.defaultFormatter": "redhat.vscode-yaml",
   },
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "remote.SSH.remotePlatform": {
     "linuxbro": "linux",
-    "superbro": "linux"
+    "superbro": "linux",
   },
   "markdown-pdf.breaks": true,
   "markdown-pdf.highlightStyle": "a11y-dark.css",
@@ -224,5 +224,6 @@
   "cursor.composer.showEmptyStateTips": false,
   "cursor.worktreeMaxCount": 5,
   "cursor.general.glassShowWarningNotifications": true,
-  "workbench.reduceMotion": "off"
+  "workbench.reduceMotion": "off",
+  "cursor.composer.editorConversationDensity": "compact-ungrouped",
 }

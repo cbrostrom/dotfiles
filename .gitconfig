@@ -5,6 +5,7 @@
 [core]
 	autocrlf = input
 	excludesfile = ~/.gitignore_global
+	hooksPath = /Users/Christian.Brostrom/dotfiles/.config/git/hooks
 
 [init]
 	defaultBranch = main

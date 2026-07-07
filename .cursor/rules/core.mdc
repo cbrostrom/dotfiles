@@ -36,6 +36,8 @@ estimate unless asked.
 
 **Language:** English. No Danish unless explicitly requested.
 
+**Commit attribution:** Never append `--trailer`, `Co-Authored-By`, `Co-authored-by`, `Signed-off-by`, or any AI attribution to commit messages. This applies to every agent in every repo, without exception.
+
 **Approval gate:** For non-trivial work, outline the issue and solution and wait
 for user approval before editing or running mutating commands. Skip only for
 minor changes or when the user explicitly says unattended/auto/proceed/full go.
