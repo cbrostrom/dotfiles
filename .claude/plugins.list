@@ -12,4 +12,3 @@
 # Work/developer overlays: plugins.work.list, plugins.developer.list
 
 claude-md-management@claude-plugins-official = anthropics/claude-plugins-official
-plannotator@plannotator                      = backnotprop/plannotator

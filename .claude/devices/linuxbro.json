@@ -14,7 +14,6 @@
     "superpowers@claude-plugins-official"
   ],
   "disabled_plugins": [
-    "plannotator@plannotator",
     "atlassian@claude-plugins-official",
     "frontend-design@claude-plugins-official",
     "liquid-skills@claude-plugins-official",
@@ -23,7 +22,6 @@
   "mcp_servers_settings": [],
   "mcp_servers_list": [
     "github",
-    "engram",
     "graphiti",
     "mcp-dockhand"
   ],

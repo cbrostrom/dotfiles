@@ -3,5 +3,3 @@
 # Base list is already core-only — nothing to disable here.
 # Add server-specific plugins below if needed.
 
-# Disable plannotator on headless (requires browser for annotation UI)
-!plannotator@plannotator

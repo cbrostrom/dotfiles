@@ -6,15 +6,13 @@
   "last_synced": "2026-07-01T20:58:03Z",
   "marketplaces": [
     "cavekit-marketplace",
-    "caveman",
-    "plannotator"
+    "caveman"
   ],
   "enabled_plugins": [
     "atlassian@claude-plugins-official",
     "claude-md-management@claude-plugins-official",
     "frontend-design@claude-plugins-official",
-    "liquid-skills@claude-plugins-official",
-    "plannotator@plannotator"
+    "liquid-skills@claude-plugins-official"
   ],
   "disabled_plugins": [
     "caveman@caveman",
@@ -31,7 +29,6 @@
   ],
   "mcp_servers_settings": [
     "apple-mcp",
-    "engram",
     "github"
   ],
   "mcp_servers_list": [

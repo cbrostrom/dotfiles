@@ -50,7 +50,7 @@ After edit: `./modules/claude-settings/doctor.sh --fix`.
 
 ## Security model
 
-Tailscale primary layer. Self-hosted MCPs (Engram, mcp-dockhand, docker-linuxbro) via Tailscale CGNAT (100.64.0.0/10). Must be enrolled in tailnet.
+Tailscale primary layer. Self-hosted MCPs (mcp-dockhand, docker-linuxbro) via Tailscale CGNAT (100.64.0.0/10). Must be enrolled in tailnet.
 
 ## Skills
 
