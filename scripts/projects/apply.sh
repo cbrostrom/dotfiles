@@ -243,6 +243,4 @@ else
     "$SCRIPT_DIR/gen-readme.sh" || warn "gen-readme.sh failed"
     log "Regenerating symlink farm"
     "$SCRIPT_DIR/sync-symlinks.sh" || warn "sync-symlinks.sh failed"
-    log "Updating zellij root_dirs"
-    "$SCRIPT_DIR/update-zellij-config.sh" || warn "update-zellij-config.sh failed"
 fi

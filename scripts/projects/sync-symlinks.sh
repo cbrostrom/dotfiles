@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate ~/.zellij-projects/ symlink farm.
+# Regenerate ~/.project-farm/ symlink farm.
 # Re-exec with bash 4+ if needed (macOS ships bash 3.2).
 if (( BASH_VERSINFO[0] < 4 )); then
     for _b in /opt/homebrew/bin/bash /usr/local/bin/bash; do

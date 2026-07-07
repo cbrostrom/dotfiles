@@ -4,8 +4,7 @@
 set -euo pipefail
 
 PROJECTS_ROOT="${PROJECTS_ROOT:-$HOME/Projects}"
-SYMLINK_ROOT="${SYMLINK_ROOT:-$HOME/.zellij-projects}"
-ZELLIJ_CONFIG="${ZELLIJ_CONFIG:-$HOME/dotfiles/.config/zellij/config.kdl}"
+SYMLINK_ROOT="${SYMLINK_ROOT:-$HOME/.project-farm}"
 
 EXCLUDE_DIRS=(
     node_modules .git vendor .next dist build target .venv venv

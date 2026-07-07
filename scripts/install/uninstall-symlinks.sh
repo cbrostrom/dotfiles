@@ -110,8 +110,6 @@ remove_dir_symlink "$HOME/.config/ghostty" "ghostty config"
 remove_dir_symlink "$HOME/.config/lazygit" "lazygit config"
 remove_dir_symlink "$HOME/.config/bat" "bat config"
 remove_dir_symlink "$HOME/.config/procs" "procs config"
-remove_dir_symlink "$HOME/.config/zellij" "zellij config"
-
 # Add more config directories as needed
 # remove_dir_symlink "$HOME/.config/nvim" "nvim config"
 # remove_dir_symlink "$HOME/.config/alacritty" "alacritty config"
