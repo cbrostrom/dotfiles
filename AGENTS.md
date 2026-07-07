@@ -56,6 +56,14 @@ Slug: git repo basename, auto-detected.
 
 **Session start:** `kb load` (~800 tokens default). Cursor + Claude Code auto-load via hook. PI: run manually.
 
+**Project registry (optional):** `personal/projects-registry.md` lists all 100+ repos with path, stack, brain, and CODEBASE status. Load on demand — not on every session start (too heavy). Triggers: slug unknown, user asks "what projects", or `kb map list`.
+```
+kb map scan          # refresh registry
+kb map list          # read registry (no rescan)
+kb map codebase      # generate CODEBASE.md skeletons
+kb map doctor        # AI setup audit
+```
+
 | Signal | Action |
 |---|---|
 | `.remember` / `.r` | Full session save — `context-bridge` skill → vault snapshot |
