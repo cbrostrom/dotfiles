@@ -52,14 +52,14 @@ Extract from the current session:
 - Key files: [list any files worth re-reading on resume]
 ```
 
-Write to: `~/Vaults/AI/brains/<slug>/context-bridge.md`
+Write to: `~/Vaults/AI/projects/<slug>/context-bridge.md`
 Overwrite each time (this is a snapshot, not a log). Append a dated entry to `history/` as backup.
 
 ## Load protocol
 
 On "resume" or "load context bridge":
-1. Read `~/Vaults/AI/brains/<slug>/context-bridge.md`
-2. Read `~/Vaults/AI/brains/<slug>/current.md` + `next.md`
+1. Read `~/Vaults/AI/projects/<slug>/context-bridge.md`
+2. Read `~/Vaults/AI/projects/<slug>/current.md` + `next.md`
 3. Present as: "Here's where you left off: [exact next step]. Context: [decisions + open questions]."
 4. Ask: "Ready to continue?" — then proceed.
 
