@@ -7,23 +7,23 @@ base="$DOTFILES_DIR/.claude/skills/skills.list"
 skills_dir="$HOME/.claude/skills"
 cursor_skills_dir="$HOME/.cursor/skills"
 agents_skills_dir="$HOME/.agents/skills"
-# Manifest of successfully installed sources — avoids re-running npx on repeated
-# installs. Keyed by source string, so renamed dirs don't cause false misses.
+# Manifest for externally installed npx skills (not local .agents/skills/).
 manifest="${XDG_STATE_HOME:-$HOME/.local/state}/claude-skills.installed"
-
-if [[ ! -f "$base" ]]; then
-    warn "skills.list not found at $base — nothing to do"
-    exit 0
-fi
 
 mkdir -p "$skills_dir" "$(dirname "$manifest")" "$HOME/.cursor" "$agents_skills_dir"
 [[ -f "$manifest" ]] || touch "$manifest"
 
+# ~/.cursor/skills → ~/.agents/skills (always, regardless of npx skills list)
 if [[ ! -e "$cursor_skills_dir" || -L "$cursor_skills_dir" ]]; then
     ln -sfn "$agents_skills_dir" "$cursor_skills_dir"
     ok "linked Cursor skills: $cursor_skills_dir -> $agents_skills_dir"
 else
     warn "$cursor_skills_dir exists and is not a symlink — leaving it untouched"
+fi
+
+if [[ ! -f "$base" ]]; then
+    ok "no skills.list — symlink done (all skills live in .agents/skills/)"
+    exit 0
 fi
 
 overlays="$(lists_active_paths "$base" | xargs -n1 basename 2>/dev/null | tr '\n' ' ')"
