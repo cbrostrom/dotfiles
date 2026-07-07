@@ -67,12 +67,20 @@ fi
 MODULAR_DIR="${VAULT_PROJECTS}/${SLUG}"
 [[ -d "$MODULAR_DIR" ]] || exit 0
 
+# Capture git commits from the active workspace (today, last 24h fallback)
+GIT_LOG=""
+if [[ -n "$WORKSPACE" ]] && git -C "$WORKSPACE" rev-parse --git-dir >/dev/null 2>&1; then
+  GIT_LOG="$(git -C "$WORKSPACE" log --oneline --since="today" --format="- %h %s" 2>/dev/null || true)"
+  [[ -z "$GIT_LOG" ]] && GIT_LOG="$(git -C "$WORKSPACE" log --oneline --since="24 hours ago" --format="- %h %s" 2>/dev/null || true)"
+fi
+
 if [[ -n "$TRANSCRIPT" && -f "$TRANSCRIPT" ]]; then
-  python3 - "$TRANSCRIPT" "$MODULAR_DIR/pending.md" "$NOW" "$SESSION_FILE" <<'PY'
+  python3 - "$TRANSCRIPT" "$MODULAR_DIR/pending.md" "$NOW" "$SESSION_FILE" "$GIT_LOG" <<'PY'
 import json, sys, re
 from pathlib import Path
 
 transcript_path, out_path, now, session_file = sys.argv[1:5]
+git_log = sys.argv[5] if len(sys.argv) > 5 else ""
 WRITE_TOOLS = {"Write", "StrReplace", "Delete", "EditNotebook"}
 HOME = str(Path.home())
 
@@ -108,18 +116,26 @@ try:
 except Exception:
     pass
 
-if not edited:
+if not edited and not git_log:
     sys.exit(0)
 
 lines = [
     f"# Pending review — {now}",
     f"_Unreviewed. At session start: promote to current.md/next.md if relevant, then delete._",
-    f"",
-    f"## Files edited ({len(edited)})",
 ]
-for p in edited:
-    short = p.replace(HOME, "~")
-    lines.append(f"- `{short}`")
+
+if git_log:
+    lines.append("")
+    lines.append("## Commits this session")
+    for line in git_log.strip().splitlines():
+        lines.append(line)
+
+if edited:
+    lines.append("")
+    lines.append(f"## Files edited ({len(edited)})")
+    for p in edited:
+        short = p.replace(HOME, "~")
+        lines.append(f"- `{short}`")
 
 if last_state:
     lines.append("")
