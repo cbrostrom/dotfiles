@@ -10,10 +10,9 @@
 #
 # What it does:
 #   1. Clones dotfiles (if not already at ~/dotfiles)
-#   2. Installs Go (if missing) — needed for engram + lean-ctx
+#   2. Installs Go (if missing) — needed for engram
 #   3. Installs engram MCP binary
-#   4. Installs lean-ctx binary (cargo)
-#   5. Installs Node.js (if missing) — needed for Claude Code + npx MCPs
+#   4. Installs Node.js (if missing) — needed for Claude Code + npx MCPs
 #   6. Installs Claude Code CLI
 #   7. Runs dotfiles bootstrap with server-headless profile
 #   8. Registers Claude Code MCP servers
