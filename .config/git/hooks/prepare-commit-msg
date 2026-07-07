@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Strip AI agent attribution trailers from commit messages.
+# Removes Co-authored-by / Made-with lines from Cursor (and similar tools).
+COMMIT_MSG_FILE="$1"
+grep -Eiv \
+  '^\s*(co-authored-by|made-with|signed-off-by).*cursor|@cursor\.sh|noreply@cursor' \
+  "$COMMIT_MSG_FILE" > "${COMMIT_MSG_FILE}.tmp" \
+  && mv "${COMMIT_MSG_FILE}.tmp" "$COMMIT_MSG_FILE" \
+  || rm -f "${COMMIT_MSG_FILE}.tmp"

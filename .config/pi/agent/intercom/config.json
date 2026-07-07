@@ -1,0 +1,7 @@
+{
+  "brokerCommand": "bun",
+  "brokerArgs": [],
+  "confirmSend": false,
+  "enabled": true,
+  "replyHint": true
+}

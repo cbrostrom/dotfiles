@@ -22,6 +22,7 @@ Cursor also reads them through `~/.cursor/skills -> ~/.agents/skills`.
 | `memory-curator` | Vault quality guard. Finds stale done items, contradictions, duplicates in brain files. Proposes-only, confirm before any change. Weekly cron at `scripts/vault/memory-curator.sh`. |
 | `release-notes` | Git range → grouped, rewritten release notes using stored templates (github/slack/changelog). Learns project style. Never publishes without explicit instruction. |
 | `shopify` | Shared Shopify platform foundation. Evidence standard, MCP-first verification, vault routing (brain → Work/AKQA/Shopify/ → Fiskars/), complexity assessment with yaml `model_recommendation`. Load before any Shopify platform question or implementation. |
+| `used-ev-advisor` | Danish used electric family car advisor. Reviews Bilbasen listings, estimates real-world EV range from Dyssegard/Gentofte, checks family practicality, seller questions, inspection steps, and buy/no-buy guidance. |
 | `problem-solver` | Read-only investigator and spec writer. Diagnoses bugs and broken features, outputs structured spec (root cause + solution options + implementation checklist + model recommendation) for a doer agent to act on. Triggered by `.spec`. `claude-4.6-sonnet-medium-thinking`. |
 | `code-reviewer` | Reviews changed code for bugs, security, auth, reuse opportunities, and simplification. Never flags pre-existing code. Delegation hooks to `problem-solver`, `code-cleaner`, `review-security`. Triggered by `.review`. `claude-4.6-sonnet-medium-thinking`. |
 | `config-writer` | Decides placement for new agent behavior (central config vs shared skill vs wrapper vs rule), checks overlap, creates or updates the right artifact. Knows our thin-wrapper architecture. Triggered by `.add`. |
@@ -52,7 +53,7 @@ Cursor-owned skills live in `~/.cursor/skills-cursor/`. Do not edit or symlink t
 
 Claude Code skills live in `.claude/skills/` and plugin caches under `~/.claude/plugins/cache/`. Cursor does not automatically load these. If a Claude skill should be agent-agnostic, copy or rewrite it into `.agents/skills/` and keep any Claude-specific commands in `.claude/CLAUDE.md`.
 
-Useful active Claude skills include `brainstorming`, `systematic-debugging`, `verification-before-completion`, `writing-plans`, `writing`, `taskmaster`, `dotfiles-update`, `sparring`, `graphify`, `inbox-librarian`, and Plannotator helpers.
+Useful active Claude skills include `brainstorming`, `systematic-debugging`, `verification-before-completion`, `writing-plans`, `writing`, `taskmaster`, `dotfiles-update`, `sparring`, `inbox-librarian`, and Plannotator helpers.
 
 ## Codex Skills
 

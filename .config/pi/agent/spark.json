@@ -1,4 +1,5 @@
 {
+  "editor": false,
   "presets": {
     "fast": {
       "provider": "cursor",

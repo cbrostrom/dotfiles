@@ -64,7 +64,7 @@ Tailscale primary layer. Self-hosted MCPs (Engram, mcp-dockhand, docker-linuxbro
 
 ## Skills
 
-`/graphify` → `~/.claude/skills/graphify/SKILL.md`
 Visualization: mermaid for diagrams (flowcharts, sequence, state, Gantt).
+Shared skills: `AGENT_SKILLS.md` · subagent triggers: `AGENTS.md` § Subagent policy.
 
 @AISLOP.md
