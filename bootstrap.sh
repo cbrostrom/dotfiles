@@ -65,6 +65,15 @@ unset _brew_bin
 . "$DOTFILES_DIR/modules/_lib/config.sh"
 . "$DOTFILES_DIR/modules/_lib/loader.sh"
 
+# Seed per-host modules.conf from example on first run.
+_host_conf="$HOME/.config/dotfiles/modules.conf"
+if [[ ! -f "$_host_conf" ]]; then
+    mkdir -p "$(dirname "$_host_conf")"
+    cp "$DOTFILES_DIR/modules.conf.example" "$_host_conf"
+    log "Created per-host config: $_host_conf (edit to enable rbw, herdr, pi, etc.)"
+fi
+unset _host_conf
+
 # -----------------------------------------------------------------------------
 # Argument parsing
 # -----------------------------------------------------------------------------

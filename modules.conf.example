@@ -1,7 +1,7 @@
 # ~/.config/dotfiles/modules.conf
 #
-# Per-machine module enable/disable list. Copy to ~/.config/dotfiles/modules.conf
-# and edit, OR symlink this file to that path.
+# Per-machine module overrides. Copy to ~/.config/dotfiles/modules.conf (gitignored).
+# Repo-wide defaults live in ~/dotfiles/modules.conf (tracked) — this file wins.
 #
 # Format: one module name per line.
 #   bare name      → explicitly enable (overrides MODULE_DEFAULT_ENABLED=false)
@@ -10,12 +10,14 @@
 #
 # See `bootstrap.sh --list` for available modules.
 
-# --- Examples (commented out — uncomment to use) ---
+# --- Common per-host opt-ins ---
 
-# Enable opt-in modules on this machine:
-# beets
-# secrets
+# Bitwarden CLI (rbw) — env-injected secrets. Enable on machines with vault access.
+# rbw
 
-# Disable modules even though they'd default-on:
-# !mcp-servers
-# !skills
+# Herdr terminal multiplexer — agent-aware session persistence + SSH remote attach.
+# Enable when Cursor CLI is not available (servers, WSL).
+# herdr
+
+# PI coding agent daily-driver config. Enable on machines running PI.
+# pi
