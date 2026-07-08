@@ -30,7 +30,9 @@ _setup_cursor_integration() {
             fi
         fi
     elif $IS_MACOS; then
-        if [[ -d /Applications/Cursor.app ]]; then
+        if [[ -x /usr/local/bin/cursor ]]; then
+            alias cursor=/usr/local/bin/cursor
+        elif [[ -d /Applications/Cursor.app ]]; then
             cursor() {
                 local target="."
                 [[ -n "$1" ]] && target="$1"
