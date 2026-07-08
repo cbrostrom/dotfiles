@@ -176,9 +176,36 @@
                         "timeout": 15
                     }
                 ]
+            },
+            {
+                "matcher": "startup",
+                "hooks": [{"type": "command", "command": "$HOME/.claude/hooks/cbm-session-reminder"}]
+            },
+            {
+                "matcher": "resume",
+                "hooks": [{"type": "command", "command": "$HOME/.claude/hooks/cbm-session-reminder"}]
+            },
+            {
+                "matcher": "clear",
+                "hooks": [{"type": "command", "command": "$HOME/.claude/hooks/cbm-session-reminder"}]
+            },
+            {
+                "matcher": "compact",
+                "hooks": [{"type": "command", "command": "$HOME/.claude/hooks/cbm-session-reminder"}]
             }
         ],
-        "PreToolUse": [],
+        "PreToolUse": [
+            {
+                "matcher": "Grep|Glob",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "$HOME/.claude/hooks/cbm-code-discovery-gate",
+                        "timeout": 5
+                    }
+                ]
+            }
+        ],
         "SessionEnd": []
     }
 }
