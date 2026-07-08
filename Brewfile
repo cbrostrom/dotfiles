@@ -19,7 +19,6 @@
 # Taps
 # =============================================================================
 tap "felixkratz/formulae"            # borders
-tap "gentleman-programming/tap"      # engram
 tap "muhammadhananasghar/tap"        # wormhole
 tap "tomanthony/brews"               # itermocil
 tap "oven-sh/bun"                    # bun (not yet in homebrew core)
@@ -116,7 +115,6 @@ brew "zsh-syntax-highlighting"
 # Tap-scoped formulae
 # =============================================================================
 brew "felixkratz/formulae/borders"
-brew "gentleman-programming/tap/engram"
 brew "muhammadhananasghar/tap/wormhole"
 brew "tomanthony/brews/itermocil"
 brew "yoanbernabeu/tap/grepai"

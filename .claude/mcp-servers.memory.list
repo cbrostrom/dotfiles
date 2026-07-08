@@ -2,8 +2,5 @@
 # Load via: DOTFILES_WORKFLOWS=developer,memory
 # Engram = manual-only per CLAUDE.md. Graphiti = disabled until needed at scale.
 
-# Engram — cross-platform wrapper: WSL uses Windows binary + vault, others use native.
-engram | ~/.claude/scripts/engram.sh
-
 # Graphiti — temporal knowledge graph (Neo4j) on superbro:8000. Tailscale-only.
 graphiti | http | http://100.100.1.50:8000/mcp

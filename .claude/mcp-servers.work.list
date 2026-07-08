@@ -16,3 +16,6 @@
 # This ensures 140 tools only load when you're inside that project.
 # Fiskars projects: ~/Projects/Clients/Fiskars/**  → atlassian-fiskars
 # AKQA projects:    ~/Work/AKQA/**                  → atlassian-akqa
+
+# Shopify Dev MCP — theme/app development tools
+shopify-dev-mcp | npx | -y | @shopify/dev-mcp@latest
