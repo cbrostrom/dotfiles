@@ -2,7 +2,7 @@
 # Loaded when DOTFILES_WORKFLOWS includes "server" (set in ~/.zshrc.local).
 # For server-headless machines (LinuxBro, SuperBro) doing active Claude work.
 #
-# Base list already provides: github, engram, graphiti
+# Base list already provides: github
 # Add server-specific tools here as needed.
 
 # Serena — LSP-based code intelligence (uvx, no GUI required)
