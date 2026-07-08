@@ -136,3 +136,6 @@ if [ -d "$FNM_PATH" ]; then
   export PATH="$FNM_PATH:$PATH"
   eval "$(fnm env --shell zsh)"
 fi
+
+# Added by codebase-memory-mcp install
+export PATH="/Users/Christian.Brostrom/.local/bin:$PATH"
