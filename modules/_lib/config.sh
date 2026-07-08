@@ -25,16 +25,19 @@ if [[ "${_DOTFILES_CONFIG_LOADED:-}" == "1" ]]; then
 fi
 _DOTFILES_CONFIG_LOADED=1
 
+# Layer 1: repo-wide defaults ($DOTFILES_DIR/modules.conf, tracked in git)
+# Layer 2: per-host overrides (~/.config/dotfiles/modules.conf, gitignored, later wins)
+_REPO_MODULES_CONF="${DOTFILES_DIR:-$HOME/dotfiles}/modules.conf"
 CONFIG_FILE="${DOTFILES_CONFIG_FILE:-$HOME/.config/dotfiles/modules.conf}"
 
-# Internal: read the modules.conf file (if present) and populate two arrays.
+# Internal: read one modules.conf file and populate enable/disable arrays.
 declare -ga _CONFIG_FILE_ENABLES=()
 declare -ga _CONFIG_FILE_DISABLES=()
 _config_loaded_file=0
-_config_load_file() {
-    [[ "$_config_loaded_file" == "1" ]] && return 0
-    _config_loaded_file=1
-    [[ -f "$CONFIG_FILE" ]] || return 0
+
+_config_parse_file() {
+    local file="$1"
+    [[ -f "$file" ]] || return 0
     local line name
     while IFS= read -r line || [[ -n "$line" ]]; do
         line="${line%%#*}"
@@ -46,7 +49,14 @@ _config_load_file() {
         else
             _CONFIG_FILE_ENABLES+=("$line")
         fi
-    done < "$CONFIG_FILE"
+    done < "$file"
+}
+
+_config_load_file() {
+    [[ "$_config_loaded_file" == "1" ]] && return 0
+    _config_loaded_file=1
+    _config_parse_file "$_REPO_MODULES_CONF"   # repo-wide baseline
+    _config_parse_file "$CONFIG_FILE"           # per-host overrides (wins on conflict)
 }
 
 _csv_contains() {
