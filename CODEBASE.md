@@ -6,14 +6,15 @@ Read this before searching. Jump directly to the right file.
 
 | File | Purpose |
 |------|---------|
-| `AGENTS.md` | AI agent policy, approval gate, brain protocol, push guard |
+| `AGENTS.md` | AI agent policy, approval gate, memory/kb protocol, push guard |
 | `AGENT_SKILLS.md` | Skill inventory for all agents |
 | `CLAUDE.md` | Claude Code–specific adapter (settings layers, key hooks) |
 | `CODEBASE.md` | This file — directory/file index |
 | `Brewfile` | macOS Homebrew packages |
 | `install.sh` | Bootstrap entry point |
 | `dotfiles.sh` | Main CLI (`dotfiles --update`, `dotfiles --status`) |
-| `modules.conf` | Active modules list |
+| `modules.conf` | Repo-wide module defaults (read by bootstrap before per-host config) |
+| `modules.conf.example` | Template for `~/.config/dotfiles/modules.conf` (per-host overrides) |
 | `skills-lock.json` | Pinned skill versions |
 | `VERSION` | Current dotfiles version |
 
@@ -33,8 +34,8 @@ Install units. Each module has `install.sh` + optional `doctor.sh`.
 | `zsh/` | Zsh config module |
 | `packages/` | Cross-platform package install |
 | `starship/` | Starship prompt config |
-| `herdr/` | Herdr terminal multiplexer — session persistence + SSH remote attach |
-| `pi/` | PI coding agent daily-driver — symlinks AGENTS.md, spark.json, hooks.yaml; patches settings.json |
+| `herdr/` | Herdr terminal multiplexer — standby, opt-in per-host |
+| `pi/` | PI coding agent daily-driver — opt-in per-host |
 | `_lib/` | Shared module helpers |
 
 ### `zsh/`
