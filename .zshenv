@@ -42,3 +42,8 @@ export PATH
 # Bitwarden-injected env vars (rbw module) — silent no-op if rbw not installed
 [[ -r "$HOME/dotfiles/modules/rbw/env-secrets.zsh" ]] \
     && source "$HOME/dotfiles/modules/rbw/env-secrets.zsh"
+
+# OpenCode server override (headless only — allows git commit/push)
+if [[ -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" && -f "$HOME/.config/opencode/server.json" ]]; then
+    export OPENCODE_CONFIG="$HOME/.config/opencode/server.json"
+fi

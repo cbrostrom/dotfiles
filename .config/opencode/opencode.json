@@ -57,7 +57,9 @@
     "edit": "ask",
     "webfetch": "deny",
     "websearch": "deny",
-    "task": "deny"
+    "task": "deny",
+    "git commit": "ask",
+    "git push": "ask"
   },
 
   "agent": {
