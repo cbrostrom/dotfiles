@@ -43,14 +43,14 @@ Only push if dotfiles is in `~/.claude/push-whitelist.txt`. If not: tell user to
 
 SSH in and run:
 ```bash
-git -C ~/dotfiles pull && DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=server ~/dotfiles/bootstrap.sh --only=symlinks,claude-settings,mcp-servers,opencode
+git -C ~/dotfiles pull && DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=server ~/dotfiles/bootstrap.sh --only=symlinks,opencode
 ```
 
 ### 5. Propagate to SuperBro
 
 Same as LinuxBro:
 ```bash
-git -C ~/dotfiles pull && DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=server ~/dotfiles/bootstrap.sh --only=symlinks,claude-settings,mcp-servers,opencode
+git -C ~/dotfiles pull && DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=server ~/dotfiles/bootstrap.sh --only=symlinks,opencode
 ```
 
 ### 5b. Propagate to MonsterBro (Windows 11 WSL) — optional
@@ -62,7 +62,7 @@ Gaming rig, sometimes off. Skip unless explicitly requested or machine is confir
 ping -c1 monsterbro 2>/dev/null && echo "online" || echo "offline — skip"
 
 # If online:
-ssh monsterbro 'git -C ~/dotfiles pull && DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=wsl ~/dotfiles/bootstrap.sh --only=symlinks,claude-settings,mcp-servers,opencode'
+ssh monsterbro 'git -C ~/dotfiles pull && DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=wsl ~/dotfiles/bootstrap.sh --only=symlinks,opencode'
 ```
 
 Note: `wsl` workflow not yet defined — use `server` as fallback until `mcp-servers.wsl.list` is created.
