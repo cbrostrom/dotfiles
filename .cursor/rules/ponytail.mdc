@@ -1,25 +1,10 @@
 ---
-description: Ponytail — lazy senior dev mode. Always stop at the first build-ladder rung that holds.
-globs:
-alwaysApply: true
+description: Deprecated — see core.mdc simple-first heuristic.
+alwaysApply: false
 ---
 
-# Build ladder (ponytail)
+# Build ladder (deprecated)
 
-Before writing any code, stop at the first rung that holds:
+Replaced by **Simple-first** in `core.mdc`: simpler way exists → do it. Otherwise minimum code.
 
-1. Does this need to be built at all? (YAGNI)
-2. Does it already exist in this codebase? Reuse the helper, util, or pattern — don't re-write it.
-3. Does the standard library already do this? Use it.
-4. Does a native platform feature cover it? Use it.
-5. Does an already-installed dependency solve it? Use it.
-6. Can this be one line? Make it one line.
-7. Only then: write the minimum code that works.
-
-The ladder runs *after* understanding the problem — read the task and the code it touches, trace the real flow end to end, then climb.
-
-Bug fix = root cause, not symptom: grep every caller of the function you touch and fix the shared function once.
-
-- Mark intentional simplifications with a `ponytail:` comment. If the shortcut has a known ceiling (global lock, O(n²) scan, naive heuristic), name the ceiling and the upgrade path.
-- Non-trivial logic leaves ONE runnable check behind — the smallest thing that fails if the logic breaks. No frameworks, no fixtures. Trivial one-liners need no test.
-- Never lazy about: input validation at trust boundaries, error handling that prevents data loss, security, accessibility, anything explicitly requested.
+For rigor mode only: YAGNI → reuse in codebase → stdlib → minimum. Never skip: trust boundaries, data-loss, security, a11y.

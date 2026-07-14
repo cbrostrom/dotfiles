@@ -37,6 +37,21 @@ for hook in brain-load.sh run-hook.sh vault-save.sh; do
   success "Linked hooks/$hook"
 done
 
+# --- Rule symlinks (source of truth: dotfiles/.cursor/rules/) ---
+RULES_SRC="$CURSOR_SRC/rules"
+RULES_DST="$CURSOR_DIR/rules"
+mkdir -p "$RULES_DST"
+for rule in core.mdc ponytail.mdc; do
+  src="$RULES_SRC/$rule"
+  dst="$RULES_DST/$rule"
+  if [[ ! -f "$src" ]]; then
+    warn "Rule source not found: $src — skipping"
+    continue
+  fi
+  ln -sf "$src" "$dst"
+  success "Linked rules/$rule"
+done
+
 # --- Patch hooks.json: keep managed Cursor hooks lean and seconds-based ---
 HOOKS_JSON="$CURSOR_DIR/hooks.json"
 

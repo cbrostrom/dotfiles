@@ -1,0 +1,74 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "instructions": ["AGENTS.md"],
+
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "reserved": 8000
+  },
+
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "systemctl *": "allow",
+      "systemctl status *": "allow",
+      "systemctl is-active *": "allow",
+      "systemctl list-units *": "allow",
+      "journalctl *": "allow",
+      "docker ps*": "allow",
+      "docker logs *": "allow",
+      "docker inspect *": "allow",
+      "docker images *": "allow",
+      "docker system df*": "allow",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git show*": "allow",
+      "git branch*": "allow",
+      "ls*": "allow",
+      "cat *": "allow",
+      "head *": "allow",
+      "tail *": "allow",
+      "grep *": "allow",
+      "find *": "allow",
+      "df *": "allow",
+      "free *": "allow",
+      "uptime*": "allow",
+      "uname *": "allow",
+      "hostname*": "allow",
+      "ip *": "allow",
+      "ss *": "allow",
+      "netstat *": "allow",
+      "ps *": "allow",
+      "top -bn1*": "allow",
+      "who*": "allow",
+      "date*": "allow",
+      "env*": "allow",
+      "which *": "allow",
+      "command -v *": "allow",
+      "file *": "allow",
+      "stat *": "allow",
+      "du *": "allow",
+      "wc *": "allow",
+      "rtk *": "allow"
+    },
+    "edit": "ask",
+    "webfetch": "deny",
+    "websearch": "deny",
+    "task": "deny"
+  },
+
+  "agent": {
+    "build": {
+      "steps": 6
+    },
+    "plan": {
+      "steps": 3
+    }
+  },
+
+  "share": "disabled",
+  "autoupdate": true
+}

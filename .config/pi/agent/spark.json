@@ -2,25 +2,25 @@
   "editor": false,
   "presets": {
     "fast": {
-      "provider": "cursor",
-      "model": "composer-2.5",
+      "provider": "ollama",
+      "model": "deepseek-v4-flash:cloud",
       "thinkingLevel": "off"
     },
     "sonnet": {
-      "provider": "cursor",
-      "model": "claude-sonnet-4-6@200k",
+      "provider": "ollama",
+      "model": "gemma4:31b-cloud",
       "thinkingLevel": "medium"
     },
     "think": {
-      "provider": "cursor",
-      "model": "claude-sonnet-5@300k",
+      "provider": "ollama",
+      "model": "deepseek-v4-pro:cloud",
       "thinkingLevel": "high"
     }
   },
   "recap": {
     "idle": "5m",
-    "provider": "cursor",
-    "model": "claude-haiku-4-5",
+    "provider": "ollama",
+    "model": "qwen3.5:cloud",
     "thinkingLevel": "off"
   }
 }
