@@ -24,6 +24,13 @@ else
     IS_WSL=false
 fi
 
+# Profile detection — PROFILE env var set by bootstrap.sh
+# Headless servers skip Claude, Cursor, PI, vault, and brain/kb symlinks
+IS_HEADLESS=false
+if [[ "${PROFILE:-}" == "server-headless" ]] || [[ "${DOTFILES_WORKFLOWS:-}" == *"server"* ]]; then
+    IS_HEADLESS=true
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -131,6 +138,8 @@ create_symlink "$SCRIPT_DIR/wezterm" "$HOME/.config/wezterm" "wezterm config"
 create_symlink "$SCRIPT_DIR/.codex" "$HOME/.codex" "codex config"
 
 # Claude Code config — CLAUDE.md, skills dir, hooks, MCP wrapper scripts
+# Skipped on headless servers (opencode is the agent, not Claude Code)
+if [[ "$IS_HEADLESS" == "false" ]]; then
 mkdir -p "$HOME/.claude"
 create_symlink "$SCRIPT_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md" "claude CLAUDE.md"
 create_symlink "$SCRIPT_DIR/.claude/skills" "$HOME/.claude/skills" "claude skills dir"
@@ -152,8 +161,11 @@ if [[ -d "$SCRIPT_DIR/.claude/scripts" ]]; then
         create_symlink "$script" "$HOME/.claude/scripts/$(basename "$script")" "claude script: $(basename "$script")"
     done
 fi
+fi
 
 # Cursor config — rules, agents, hook scripts, built-in skill cache
+# Skipped on headless servers
+if [[ "$IS_HEADLESS" == "false" ]]; then
 mkdir -p "$HOME/.cursor/rules" "$HOME/.cursor/agents" "$HOME/.cursor/hooks"
 
 if [[ -d "$SCRIPT_DIR/.cursor/rules" ]]; then
@@ -181,12 +193,16 @@ fi
 if [[ -d "$SCRIPT_DIR/.cursor/skills-cursor" ]]; then
     create_symlink "$SCRIPT_DIR/.cursor/skills-cursor" "$HOME/.cursor/skills-cursor" "cursor skills dir"
 fi
+fi
 
 # Shared agent skills (.agents/skills — portable Agent Skills)
 if [[ -d "$SCRIPT_DIR/.agents/skills" ]]; then
     mkdir -p "$HOME/.agents"
     create_symlink "$SCRIPT_DIR/.agents/skills" "$HOME/.agents/skills" "shared agent skills"
-    create_symlink "$SCRIPT_DIR/.agents/skills" "$HOME/.cursor/skills" "cursor shared agent skills"
+    # Cursor skills link — skipped on headless
+    if [[ "$IS_HEADLESS" == "false" ]]; then
+        create_symlink "$SCRIPT_DIR/.agents/skills" "$HOME/.cursor/skills" "cursor shared agent skills"
+    fi
 fi
 
 # OpenCode config (opencode.json, AGENTS.md, skills symlink)
@@ -280,7 +296,8 @@ if [[ "$IS_WSL" == "true" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cy
 fi
 
 # Zed editor config (delegated to dedicated script for platform handling)
-if [[ -x "$SCRIPT_DIR/scripts/zed/install-zed-config.sh" ]]; then
+# Skipped on headless servers
+if [[ "$IS_HEADLESS" == "false" ]] && [[ -x "$SCRIPT_DIR/scripts/zed/install-zed-config.sh" ]]; then
     bash "$SCRIPT_DIR/scripts/zed/install-zed-config.sh"
 fi
 
@@ -304,16 +321,18 @@ mkdir -p "$HOME/.local/bin"
 create_symlink "$SCRIPT_DIR/scripts/dotfetch.sh" "$HOME/.local/bin/dotfetch" "dotfetch command"
 
 # ob — Obsidian REST API CLI
-create_symlink "$SCRIPT_DIR/scripts/ob" "$HOME/.local/bin/ob" "ob (Obsidian CLI)"
-
 # pi — PI coding agent shim (stable across fnm project-node switches)
-create_symlink "$SCRIPT_DIR/scripts/pi" "$HOME/.local/bin/pi" "pi (coding agent shim)"
-
-# brain / kb — knowledgebase CLI shims
-create_symlink "$SCRIPT_DIR/scripts/brain" "$HOME/.local/bin/brain" "brain (kb shim)"
-create_symlink "$SCRIPT_DIR/scripts/kb" "$HOME/.local/bin/kb" "kb (knowledgebase CLI)"
+# brain / kb — knowledgebase CLI shims (require ~/Vaults/AI — desktop only)
+if [[ "$IS_HEADLESS" == "false" ]]; then
+    create_symlink "$SCRIPT_DIR/scripts/ob" "$HOME/.local/bin/ob" "ob (Obsidian CLI)"
+    create_symlink "$SCRIPT_DIR/scripts/pi" "$HOME/.local/bin/pi" "pi (coding agent shim)"
+    create_symlink "$SCRIPT_DIR/scripts/brain" "$HOME/.local/bin/brain" "brain (kb shim)"
+    create_symlink "$SCRIPT_DIR/scripts/kb" "$HOME/.local/bin/kb" "kb (knowledgebase CLI)"
+fi
 
 # PI agent config — extensions, hooks, intercom
+# Skipped on headless servers (PI is a desktop agent)
+if [[ "$IS_HEADLESS" == "false" ]]; then
 if [[ -d "$SCRIPT_DIR/.config/pi/agent/extensions" ]]; then
     mkdir -p "$HOME/.pi/agent/extensions"
     for ext in "$SCRIPT_DIR/.config/pi/agent/extensions/"*.ts; do
@@ -339,6 +358,7 @@ if [[ -d "$SCRIPT_DIR/.config/pi/agent/skills" ]]; then
     skill_name="$(basename "$skill_dir")"
     create_symlink "$skill_dir" "$HOME/.pi/agent/skills/$skill_name" "pi skill: $skill_name"
   done
+fi
 fi
 
 log_success "All symlinks installed successfully!"
