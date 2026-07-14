@@ -52,7 +52,24 @@ else
     ok "node $(node --version) installed"
 fi
 
-# ── 3. OpenCode CLI ─────────────────────────────────────────────────────────
+# ── 3. RTK (token compression for shell output) ────────────────────────────
+if command -v rtk >/dev/null 2>&1; then
+    ok "rtk already installed"
+else
+    log "installing rtk (token compression)"
+    curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+    export PATH="$HOME/.local/bin:$PATH"
+    if ! grep -q '$HOME/.local/bin' "$HOME/.profile" 2>/dev/null; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
+    fi
+    ok "rtk installed"
+fi
+# Install OpenCode plugin (auto-rewrites bash commands via tool.execute.before)
+if command -v rtk >/dev/null 2>&1; then
+    rtk init -g --opencode 2>/dev/null && ok "rtk opencode plugin installed" || warn "rtk opencode plugin install failed (non-fatal)"
+fi
+
+# ── 4. OpenCode CLI ─────────────────────────────────────────────────────────
 if command -v opencode >/dev/null 2>&1; then
     ok "opencode already installed: $(opencode --version 2>/dev/null || echo 'unknown')"
 else
@@ -61,12 +78,12 @@ else
     ok "opencode installed"
 fi
 
-# ── 4. Dotfiles bootstrap ────────────────────────────────────────────────────
+# ── 5. Dotfiles bootstrap ────────────────────────────────────────────────────
 log "running dotfiles bootstrap (profile: server-headless)"
 cd "$DOTFILES_DIR"
 PROFILE=server-headless bash bootstrap.sh --only=symlinks,opencode
 
-# ── 5. Done ───────────────────────────────────────────────────────────────────
+# ── 6. Done ───────────────────────────────────────────────────────────────────
 ok "bootstrap complete"
 echo ""
 echo "Next steps:"

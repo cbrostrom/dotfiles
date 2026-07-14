@@ -210,7 +210,15 @@ if [[ -d "$SCRIPT_DIR/.config/opencode" ]]; then
     mkdir -p "$HOME/.config/opencode"
     for f in "$SCRIPT_DIR/.config/opencode/"*; do
         [[ -f "$f" ]] || continue
-        create_symlink "$f" "$HOME/.config/opencode/$(basename "$f")" "opencode config: $(basename "$f")"
+        bname="$(basename "$f")"
+        # Server override: deploy as server.json, loaded via OPENCODE_CONFIG env var
+        if [[ "$bname" == "opencode.server.json" ]]; then
+            create_symlink "$f" "$HOME/.config/opencode/server.json" "opencode server override"
+            continue
+        fi
+        # Skip server-only config on non-headless
+        [[ "$bname" == "opencode.server.json" ]] && continue
+        create_symlink "$f" "$HOME/.config/opencode/$bname" "opencode config: $bname"
     done
     # Skills symlink → ~/.agents/skills (ensures opencode discovers shared skills)
     if [[ -d "$HOME/.agents/skills" ]]; then
