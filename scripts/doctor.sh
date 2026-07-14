@@ -72,6 +72,10 @@ profile=""
 }
 echo "Profile:   $profile"
 
+# Headless servers skip Claude/Cursor/engram/graphiti/MCP sections
+is_headless=false
+[[ "$profile" == "server-headless" ]] && is_headless=true
+
 # ----- symlinks -----
 hdr "Symlinks"
 check_link() {
@@ -152,6 +156,8 @@ else
 fi
 
 # ----- claude -----
+# Skipped on headless servers (opencode is the agent)
+if [[ "$is_headless" == "false" ]]; then
 hdr "Claude Code"
 claude_dir="$HOME/.claude"
 
@@ -195,8 +201,11 @@ if [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]]; then
 else
     warn "GITHUB_PERSONAL_ACCESS_TOKEN mangler — tilføj til ~/.local-secrets"
 fi
+fi # is_headless
 
 # ----- MCP drift -----
+# Skipped on headless servers
+if [[ "$is_headless" == "false" ]]; then
 # Reads ~/.claude.json directly instead of `claude mcp list` to avoid
 # spawning every stdio server for health checks.
 # Uses lists_merge for proper platform/profile/host overlay resolution.
@@ -237,8 +246,11 @@ else
         done <<< "$extra"
     fi
 fi
+fi # is_headless
 
 # ----- shared rules (cross-tool: Claude + Cursor) -----
+# Skipped on headless servers
+if [[ "$is_headless" == "false" ]]; then
 hdr "Shared rules (Claude + Cursor)"
 shared_rules_dir="$DOTFILES_DIR/.shared-rules"
 canonical_engram="$shared_rules_dir/engram-graphiti.md"
@@ -274,6 +286,7 @@ if [[ -f "$canonical_engram" && -f "$cursor_marker" ]]; then
 elif [[ -f "$canonical_engram" && ! -f "$cursor_marker" ]]; then
     warn "no .cursor-synced marker yet — paste canonical into Cursor cloud User Rules, then: touch $cursor_marker"
 fi
+fi # is_headless
 
 # ----- rbw (Bitwarden CLI) module -----
 hdr "rbw (Bitwarden CLI module)"
@@ -311,6 +324,8 @@ if [[ -f "$rbw_env_script" ]]; then
 fi
 
 # ----- Cursor MCP drift (~/.cursor/mcp.json vs ~/.claude.json) -----
+# Skipped on headless servers
+if [[ "$is_headless" == "false" ]]; then
 # Goal: keep Cursor and Claude in lock-step on MCP servers. User explicitly
 # wants alignment; this surfaces drift fast.
 hdr "Cursor MCP parity (vs Claude)"
@@ -349,9 +364,12 @@ else
         ok "Cursor mcp.json has no obvious inline tokens"
     fi
 fi
+fi # is_headless
 
 
 # ----- engram local + sync diagnostic -----
+# Skipped on headless servers (engram removed in favor of local vaults)
+if [[ "$is_headless" == "false" ]]; then
 hdr "engram local + git sync"
 if is_wsl; then
     WIN_HOME="/mnt/c/Users/${USER}"
@@ -455,8 +473,11 @@ if [[ -n "${log_file:-}" && -f "$log_file" ]]; then
     echo "  last sync log: $last_mtime"
     [[ -n "$last_line" ]] && echo "    $last_line"
 fi
+fi # is_headless
 
 # ----- graphiti remote health -----
+# Skipped on headless servers
+if [[ "$is_headless" == "false" ]]; then
 hdr "graphiti remote (HTTP MCP over Tailscale)"
 graphiti_url="${GRAPHITI_HEALTH_URL:-http://100.100.1.50:8000/health}"
 if command -v curl >/dev/null 2>&1; then
@@ -472,8 +493,11 @@ if command -v curl >/dev/null 2>&1; then
 else
     warn "curl not installed — cannot probe graphiti"
 fi
+fi # is_headless
 
 # ----- MCP staleness diagnostic -----
+# Skipped on headless servers
+if [[ "$is_headless" == "false" ]]; then
 # Reports last-modified time on MCP config files vs running engram-related
 # processes. Useful when "MCP updates aren't coming through" — usually it's
 # because Cursor / Claude need a session restart.
@@ -500,6 +524,7 @@ else
         echo "  If a recently-edited server isn't responding, restart the agent fully (Cmd+Q for IDE, exit/reopen for CLI)."
     fi
 fi
+fi # is_headless
 
 # ----- summary -----
 hdr "Summary"
