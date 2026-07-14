@@ -85,14 +85,13 @@ if [ -z "$tier" ]; then
   fi
 fi
 
-# ---------- Effort hint per tier ----------
+# ---------- Effort hint (binary: lean | rigor) ----------
 case "$tier" in
-  minimal) HINT="No tools. Direct answer." ;;
-  low)     HINT="Single edit. No plan. Brief." ;;
-  high)    HINT="Multi-file. Think. Surface tradeoffs." ;;
-  deep)    HINT="Use planning-with-files. Confirm scope. Document decisions." ;;
+  minimal|low) label="lean";  HINT="Act directly." ;;
+  high)          label="rigor"; HINT="Think. Surface tradeoffs. Outline multi-file changes." ;;
+  deep)          label="rigor"; HINT="Plan first. Confirm scope. Document decisions." ;;
 esac
 
 jq -nc \
-  --arg ctx "[eff:$tier] $HINT" \
+  --arg ctx "[$label] $HINT" \
   '{hookSpecificOutput: {hookEventName: "UserPromptSubmit", additionalContext: $ctx}}'

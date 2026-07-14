@@ -189,6 +189,19 @@ if [[ -d "$SCRIPT_DIR/.agents/skills" ]]; then
     create_symlink "$SCRIPT_DIR/.agents/skills" "$HOME/.cursor/skills" "cursor shared agent skills"
 fi
 
+# OpenCode config (opencode.json, AGENTS.md, skills symlink)
+if [[ -d "$SCRIPT_DIR/.config/opencode" ]]; then
+    mkdir -p "$HOME/.config/opencode"
+    for f in "$SCRIPT_DIR/.config/opencode/"*; do
+        [[ -f "$f" ]] || continue
+        create_symlink "$f" "$HOME/.config/opencode/$(basename "$f")" "opencode config: $(basename "$f")"
+    done
+    # Skills symlink → ~/.agents/skills (ensures opencode discovers shared skills)
+    if [[ -d "$HOME/.agents/skills" ]]; then
+        create_symlink "$HOME/.agents/skills" "$HOME/.config/opencode/skills" "opencode skills"
+    fi
+fi
+
 # RTK hooks are dotfiles-managed config entries using native `rtk hook ...`
 # processors. Do not call `rtk init` here: upstream installers may mutate
 # ~/.cursor/hooks.json or Claude settings directly. Agent-specific installers

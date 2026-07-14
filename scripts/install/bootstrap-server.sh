@@ -111,10 +111,19 @@ else
     ok "claude installed"
 fi
 
+# ── 6b. OpenCode CLI ─────────────────────────────────────────────────────────
+if command -v opencode >/dev/null 2>&1; then
+    ok "opencode already installed: $(opencode --version 2>/dev/null || echo 'unknown')"
+else
+    log "installing OpenCode CLI"
+    curl -fsSL https://opencode.ai/install | bash
+    ok "opencode installed"
+fi
+
 # ── 7. Dotfiles bootstrap ────────────────────────────────────────────────────
 log "running dotfiles bootstrap (profile: server-headless)"
 cd "$DOTFILES_DIR"
-PROFILE=server-headless bash bootstrap.sh --only=symlinks,claude-settings,mcp-servers,claude-plugins
+PROFILE=server-headless bash bootstrap.sh --only=symlinks,claude-settings,mcp-servers,opencode
 
 # ── 8. Done ───────────────────────────────────────────────────────────────────
 ok "bootstrap complete"
@@ -125,3 +134,4 @@ echo "  2. Set GITHUB_PERSONAL_ACCESS_TOKEN in ~/.local-secrets"
 echo "  3. Ensure Tailscale is enrolled (tailscale up)"
 echo "  4. Verify: claude mcp list"
 echo "  5. Test:   claude --no-mcp 'echo hello'"
+echo "  6. For opencode: cd ~ && opencode → /connect → pick OpenRouter or Copilot"
