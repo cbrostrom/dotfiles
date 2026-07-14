@@ -155,6 +155,41 @@ else
     warn "~/.local-secrets not present (copy from .local-secrets.example)"
 fi
 
+# ----- opencode -----
+hdr "OpenCode"
+if command -v opencode >/dev/null 2>&1; then
+    ok "opencode on PATH: $(command -v opencode)"
+else
+    bad "opencode not on PATH — Fix: curl -fsSL https://opencode.ai/install | bash"
+fi
+
+oc_cfg="$HOME/.config/opencode/opencode.json"
+if [[ -L "$oc_cfg" ]]; then
+    ok "~/.config/opencode/opencode.json → $(readlink "$oc_cfg")"
+elif [[ -e "$oc_cfg" ]]; then
+    warn "~/.config/opencode/opencode.json exists but is not a symlink"
+else
+    bad "~/.config/opencode/opencode.json missing — Fix: bootstrap.sh --only=opencode"
+fi
+
+oc_agents="$HOME/.config/opencode/AGENTS.md"
+if [[ -L "$oc_agents" ]]; then
+    ok "~/.config/opencode/AGENTS.md → $(readlink "$oc_agents")"
+elif [[ -e "$oc_agents" ]]; then
+    warn "~/.config/opencode/AGENTS.md exists but is not a symlink"
+else
+    bad "~/.config/opencode/AGENTS.md missing — Fix: bootstrap.sh --only=opencode"
+fi
+
+oc_skills="$HOME/.config/opencode/skills"
+if [[ -L "$oc_skills" ]]; then
+    ok "~/.config/opencode/skills → $(readlink "$oc_skills")"
+elif [[ -e "$oc_skills" ]]; then
+    warn "~/.config/opencode/skills exists but is not a symlink"
+else
+    warn "~/.config/opencode/skills missing — opencode won't discover shared skills"
+fi
+
 # ----- claude -----
 # Skipped on headless servers (opencode is the agent)
 if [[ "$is_headless" == "false" ]]; then
