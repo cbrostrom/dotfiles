@@ -1,2 +1,3 @@
 # Prevent Cursor from auto-loading as instruction context
 AGENTS.md
+.claude/
