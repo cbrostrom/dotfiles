@@ -109,7 +109,7 @@ fi
 
 if $_web_autostart; then
     if [[ "$(uname -s)" == "Linux" ]]; then
-        _install_systemd
+        ( _install_systemd ) || warn "opencode-web setup failed (non-fatal)"
     else
         warn "opencode-web autostart only supported on Linux (systemd) — skipping"
     fi
