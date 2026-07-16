@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 . "$DOTFILES_DIR/modules/_lib/log.sh"
+. "$DOTFILES_DIR/modules/_lib/config.sh"
+. "$DOTFILES_DIR/modules/_lib/platform.sh"
 
 log "installing OpenCode config …"
 
@@ -54,3 +57,54 @@ else
 fi
 
 ok "opencode config complete"
+
+# ── Web UI autostart (opt-in via modules.conf: opencode-web-autostart) ─────────
+_install_systemd() {
+    if ! command -v systemctl >/dev/null 2>&1 || ! systemctl --user status >/dev/null 2>&1; then
+        warn "systemd-user not available — skipping opencode-web autostart"
+        return 0
+    fi
+
+    local opencode_bin
+    opencode_bin="$(command -v opencode)"
+
+    local env_file="$HOME/.config/opencode/web.env"
+    if [[ ! -f "$env_file" ]]; then
+        mkdir -p "$(dirname "$env_file")"
+        cat > "$env_file" <<'ENVEOF'
+OPENCODE_SERVER_USERNAME=cb
+OPENCODE_SERVER_PASSWORD=your-secret-here
+ENVEOF
+        warn "created $env_file — set a real password before starting the service"
+    fi
+
+    local unit_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+    mkdir -p "$unit_dir"
+    cat > "$unit_dir/opencode-web.service" <<EOF
+[Unit]
+Description=OpenCode Web UI
+After=default.target
+
+[Service]
+EnvironmentFile=${env_file}
+ExecStart=${opencode_bin} web --hostname 0.0.0.0 --port 4096
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+EOF
+    systemctl --user daemon-reload
+    systemctl --user enable --now opencode-web.service 2>/dev/null \
+        && ok "opencode-web systemd service enabled" \
+        || warn "systemd enable failed (non-fatal)"
+}
+
+autostart_state="$(config_module_state "opencode-web-autostart" "false")"
+if [[ "$autostart_state" == "enabled" ]]; then
+    if is_native_linux 2>/dev/null || [[ "$(uname -s)" == "Linux" ]]; then
+        _install_systemd
+    else
+        warn "opencode-web autostart only supported on Linux (systemd) — skipping"
+    fi
+fi
