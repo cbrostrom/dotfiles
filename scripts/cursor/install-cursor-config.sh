@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
 # Install Cursor config from dotfiles.
 #
-# Symlinks:
+# Symlinks/Copies:
 #   ~/.cursor/hooks/*.sh  → dotfiles/.cursor/hooks/*.sh
+#   ~/.cursor/rules/*.mdc → dotfiles/.cursor/rules/*.mdc
 #
 # hooks.json patches (idempotent):
 #   sessionStart  → brain-load.sh through run-hook.sh
@@ -20,11 +20,38 @@ warn()    { echo -e "${YELLOW}[cursor]${NC} $1"; }
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CURSOR_SRC="$DOTFILES/.cursor"
-CURSOR_DIR="$HOME/.cursor"
 
+# --- WSL Host Target Detection ---
+if grep -q Microsoft /proc/version 2>/dev/null; then
+    info "WSL detected. Targeting Windows host for Cursor config."
+    # Get Windows username from /etc/wsl.conf or by attempting to find the User folder in /mnt/c
+    # Fallback to standard Windows user path pattern if needed
+    WIN_USER=$(grep "user" /etc/wsl.conf 2>/dev/null | awk '{print $2}' || echo "$USER")
+    # Most common WSL setup: /mnt/c/Users/<User>/AppData/Roaming/Cursor
+    CURSOR_DIR="/mnt/c/Users/$WIN_USER/AppData/Roaming/Cursor"
+    
+    # Verification: ensure the target directory actually exists
+    if [[ ! -d "$CURSOR_DIR" ]]; then
+        warn "Cursor directory not found at $CURSOR_DIR. Checking alternative paths..."
+        # Try to find the directory by globbing common Windows paths
+        for alt in /mnt/c/Users/*/AppData/Roaming/Cursor; do
+            if [[ -d "$alt" ]]; then
+                CURSOR_DIR="$alt"
+                break
+            fi
+        done
+    fi
+fi
+
+# Fallback for macOS/Native Linux
+if [[ -z "$CURSOR_DIR" ]] || [[ ! -d "$CURSOR_DIR" ]]; then
+    CURSOR_DIR="$HOME/.cursor"
+fi
+
+info "Targeting Cursor config at: $CURSOR_DIR"
 mkdir -p "$CURSOR_DIR/hooks"
 
-# --- Hook symlinks ---
+# --- Hook symlinks/copies ---
 for hook in brain-load.sh run-hook.sh vault-save.sh; do
   src="$CURSOR_SRC/hooks/$hook"
   dst="$CURSOR_DIR/hooks/$hook"
@@ -33,11 +60,19 @@ for hook in brain-load.sh run-hook.sh vault-save.sh; do
     continue
   fi
   chmod +x "$src"
-  ln -sf "$src" "$dst"
-  success "Linked hooks/$hook"
+  
+  # Symlinks don't work across WSL -> Windows (Plan 9/9P) boundaries for these specific files
+  # Use copy for Windows host targets to ensure execution
+  if [[ "$CURSOR_DIR" == /mnt/* ]]; then
+      cp "$src" "$dst"
+      success "Copied hooks/$hook to Windows host"
+  else
+      ln -sf "$src" "$dst"
+      success "Linked hooks/$hook"
+  fi
 done
 
-# --- Rule symlinks (source of truth: dotfiles/.cursor/rules/) ---
+# --- Rule symlinks/copies (source of truth: dotfiles/.cursor/rules/) ---
 RULES_SRC="$CURSOR_SRC/rules"
 RULES_DST="$CURSOR_DIR/rules"
 mkdir -p "$RULES_DST"
@@ -48,8 +83,14 @@ for rule in core.mdc ponytail.mdc; do
     warn "Rule source not found: $src — skipping"
     continue
   fi
-  ln -sf "$src" "$dst"
-  success "Linked rules/$rule"
+  
+  if [[ "$CURSOR_DIR" == /mnt/* ]]; then
+      cp "$src" "$dst"
+      success "Copied rules/$rule to Windows host"
+  else
+      ln -sf "$src" "$dst"
+      success "Linked rules/$rule"
+  fi
 done
 
 # --- Patch hooks.json: keep managed Cursor hooks lean and seconds-based ---
