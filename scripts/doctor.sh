@@ -72,6 +72,17 @@ profile=""
 }
 echo "Profile:   $profile"
 
+if is_wsl; then
+    # WSL Performance Guard: check if project dirs are in /mnt/c/
+    # We check for any active projects (directories with .git) in /mnt/
+    bad_paths="$(find /mnt -maxdepth 3 -name .git -type d 2>/dev/null)"
+    if [[ -n "$bad_paths" ]]; then
+        warn "WSL PERFORMANCE RISK: Found .git repos in /mnt/ (Windows filesystem). Move projects to the Linux root (~/) for 10x faster AI agent performance."
+    else
+        ok "Project paths optimal (native Linux root)"
+    fi
+fi
+
 # Headless servers skip Claude/Cursor/engram/graphiti/MCP sections
 is_headless=false
 [[ "$profile" == "server-headless" ]] && is_headless=true
