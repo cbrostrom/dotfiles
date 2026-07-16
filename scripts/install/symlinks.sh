@@ -330,6 +330,7 @@ create_symlink "$SCRIPT_DIR/scripts/dotfetch.sh" "$HOME/.local/bin/dotfetch" "do
 
 # opencode-web — manage the opencode web UI service
 create_symlink "$SCRIPT_DIR/scripts/opencode-web.sh" "$HOME/.local/bin/opencode-web" "opencode-web (service wrapper)"
+create_symlink "$SCRIPT_DIR/scripts/opencode-web-traefik.sh" "$HOME/.local/bin/opencode-web-traefik" "opencode-web-traefik (config generator)"
 
 # ob — Obsidian REST API CLI
 # pi — PI coding agent shim (stable across fnm project-node switches)
