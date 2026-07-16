@@ -58,7 +58,7 @@ fi
 
 ok "opencode config complete"
 
-# ── Web UI autostart (opt-in via modules.conf: opencode-web-autostart) ─────────
+# ── Web UI autostart (auto on server-headless, opt-in elsewhere) ──────────────
 _install_systemd() {
     if ! command -v systemctl >/dev/null 2>&1 || ! systemctl --user status >/dev/null 2>&1; then
         warn "systemd-user not available — skipping opencode-web autostart"
@@ -100,9 +100,15 @@ EOF
         || warn "systemd enable failed (non-fatal)"
 }
 
-autostart_state="$(config_module_state "opencode-web-autostart" "false")"
-if [[ "$autostart_state" == "enabled" ]]; then
-    if is_native_linux 2>/dev/null || [[ "$(uname -s)" == "Linux" ]]; then
+_web_autostart=false
+if [[ "$(profile_tag)" == "server-headless" ]]; then
+    _web_autostart=true
+elif [[ "$(config_module_state "opencode-web-autostart" "false")" == "enabled" ]]; then
+    _web_autostart=true
+fi
+
+if $_web_autostart; then
+    if [[ "$(uname -s)" == "Linux" ]]; then
         _install_systemd
     else
         warn "opencode-web autostart only supported on Linux (systemd) — skipping"
