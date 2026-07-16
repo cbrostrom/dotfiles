@@ -328,6 +328,9 @@ fi
 mkdir -p "$HOME/.local/bin"
 create_symlink "$SCRIPT_DIR/scripts/dotfetch.sh" "$HOME/.local/bin/dotfetch" "dotfetch command"
 
+# opencode-web — manage the opencode web UI service
+create_symlink "$SCRIPT_DIR/scripts/opencode-web.sh" "$HOME/.local/bin/opencode-web" "opencode-web (service wrapper)"
+
 # ob — Obsidian REST API CLI
 # pi — PI coding agent shim (stable across fnm project-node switches)
 # brain / kb — knowledgebase CLI shims (require ~/Vaults/AI — desktop only)
