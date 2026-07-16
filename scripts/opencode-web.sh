@@ -5,10 +5,6 @@ set -euo pipefail
 SERVICE="opencode-web.service"
 ENV_FILE="$HOME/.config/opencode/web.env"
 
-_get_ip() {
-    hostname -I 2>/dev/null | awk '{print $1}' || echo "<server-ip>"
-}
-
 _cmd="${1:-help}"
 shift || true
 
@@ -26,10 +22,16 @@ case "$_cmd" in
         systemctl --user status "$SERVICE" --no-pager || true
         echo ""
         if systemctl --user is-active "$SERVICE" >/dev/null 2>&1; then
-            _local_ip="$(_get_ip)"
-            echo "  Web UI: http://localhost:4096"
-            echo "  Network: http://${_local_ip}:4096"
-            echo "  Username: $(grep OPENCODE_SERVER_USERNAME "$ENV_FILE" 2>/dev/null | cut -d= -f2 || echo 'cb')"
+            echo "  Local:  http://localhost:4096"
+            _pw=$(grep -E '^OPENCODE_SERVER_PASSWORD=' "$ENV_FILE" 2>/dev/null | head -1 | cut -d= -f2 || true)
+            if [[ -n "$_pw" && "$_pw" != "your-secret-here" ]]; then
+                echo "  Auth:   password (set via opencode-web password)"
+            else
+                echo "  Auth:   none (password commented out — use Traefik/TinyAuth)"
+            fi
+            if command -v traefik >/dev/null 2>&1 || docker ps 2>/dev/null | grep -q traefik; then
+                echo "  Note:   Traefik detected — access via your reverse proxy hostname"
+            fi
         fi
         ;;
     logs|log)
@@ -45,7 +47,14 @@ case "$_cmd" in
         [[ $# -gt 0 ]] || { echo "usage: opencode-web password <new-password>" >&2; exit 1; }
         mkdir -p "$(dirname "$ENV_FILE")"
         if [[ -f "$ENV_FILE" ]]; then
-            sed -i.bak "s/^OPENCODE_SERVER_PASSWORD=.*/OPENCODE_SERVER_PASSWORD=$1/" "$ENV_FILE"
+            # If password line is commented out, uncomment it first
+            if grep -qE '^# OPENCODE_SERVER_PASSWORD=' "$ENV_FILE"; then
+                sed -i.bak "s/^# OPENCODE_SERVER_PASSWORD=.*/OPENCODE_SERVER_PASSWORD=$1/" "$ENV_FILE"
+            elif grep -qE '^OPENCODE_SERVER_PASSWORD=' "$ENV_FILE"; then
+                sed -i.bak "s/^OPENCODE_SERVER_PASSWORD=.*/OPENCODE_SERVER_PASSWORD=$1/" "$ENV_FILE"
+            else
+                echo "OPENCODE_SERVER_PASSWORD=$1" >> "$ENV_FILE"
+            fi
             rm -f "${ENV_FILE}.bak"
         else
             echo "OPENCODE_SERVER_USERNAME=cb" > "$ENV_FILE"
@@ -67,9 +76,10 @@ Commands:
   logs               Tail service logs (extra args passed to journalctl)
   enable             Enable on boot
   disable            Disable on boot
-  password <pass>    Set server password
+  password <pass>    Set server password (uncomments if commented out)
 
-Web UI will be available at http://<server>:4096
+Local access:  http://localhost:4096
+Traefik:       access via your reverse proxy hostname
 EOF
         exit 0
         ;;

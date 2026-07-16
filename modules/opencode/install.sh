@@ -73,9 +73,10 @@ _install_systemd() {
         mkdir -p "$(dirname "$env_file")"
         cat > "$env_file" <<'ENVEOF'
 OPENCODE_SERVER_USERNAME=cb
-OPENCODE_SERVER_PASSWORD=your-secret-here
+# OPENCODE_SERVER_PASSWORD=your-secret-here
+# Uncomment above if NOT behind Traefik/TinyAuth (password handled by reverse proxy)
 ENVEOF
-        warn "created $env_file — set a real password before starting the service"
+        warn "created $env_file — uncomment and set password if not using Traefik"
     fi
 
     local unit_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
@@ -87,7 +88,7 @@ After=default.target
 
 [Service]
 EnvironmentFile=${env_file}
-ExecStart=${opencode_bin} web --hostname 0.0.0.0 --port 4096
+ExecStart=${opencode_bin} web --hostname 127.0.0.1 --port 4096
 Restart=on-failure
 RestartSec=5
 
