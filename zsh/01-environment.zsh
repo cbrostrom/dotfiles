@@ -126,6 +126,16 @@ fi
 # Unload models after 5 minutes of inactivity to free unified memory
 export OLLAMA_KEEP_ALIVE=5m
 
+# WSL Bridge: If running in WSL, point OLLAMA_HOST to the Windows host
+# This assumes Ollama is running as a Windows service (default)
+if $IS_WSL; then
+    # Dynamically find Windows host IP from /etc/resolv.conf
+    WIN_IP=$(grep nameserver /etc/resolv.conf | awk '{print $2}' | head -n 1)
+    export OLLAMA_HOST="http://${WIN_IP}:11434"
+    # Ensure opencode/ollama use this host
+    export OPENCODE_OLLAMA_HOST="http://${WIN_IP}:11434"
+fi
+
 # =============================================================================
 # LOCAL SECRETS (Not tracked in git)
 # =============================================================================
