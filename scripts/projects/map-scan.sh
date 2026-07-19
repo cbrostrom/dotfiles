@@ -67,16 +67,17 @@ fi
 log "Building registry…"
 
 declare -a ROWS
-total=0; with_brain=0; with_codebase=0; issue_count=0
+total=0; with_brain=0; with_codebase=0; with_codebase_local=0; issue_count=0
 
 # ── Projects root repos (from inventory JSON) ──────────────────────────────────
 while IFS=$'\t' read -r rel name stack flags; do
     abs="$PROJECTS_ROOT/$rel"
     category=$(infer_category "$rel")
-    brain_yn="no";     has_brain    "$name" && { brain_yn="yes";    with_brain=$((with_brain+1)); }
-    codebase_yn="no";  has_codebase "$abs"  && { codebase_yn="yes"; with_codebase=$((with_codebase+1)); }
+    brain_yn="no";          has_brain         "$name" && { brain_yn="yes";          with_brain=$((with_brain+1)); }
+    codebase_yn="no";       has_codebase      "$abs"  && { codebase_yn="yes";       with_codebase=$((with_codebase+1)); }
+    codebase_local_yn="no"; has_codebase_local "$abs" && { codebase_local_yn="yes"; with_codebase_local=$((with_codebase_local+1)); }
     [[ -n "$flags" ]] && issue_count=$((issue_count+1))
-    ROWS+=("$(registry_row "$name" "$abs" "$category" "$stack" "$brain_yn" "$codebase_yn" "$flags")")
+    ROWS+=("$(registry_row "$name" "$abs" "$category" "$stack" "$brain_yn" "$codebase_yn" "$codebase_local_yn" "$flags")")
     total=$((total+1))
 done < <(jq -r '.repos[] | [.path, .name, .stack, (.flags | join(","))] | @tsv' "$OUT_JSON")
 
@@ -86,9 +87,10 @@ if [[ -v EXTRA_REPOS ]]; then
         [[ -d "$abs/.git" ]] || continue
         slug=$(basename "$abs")
         stack=$(detect_stack "$abs")
-        brain_yn="no";     has_brain    "$slug" && { brain_yn="yes";    with_brain=$((with_brain+1)); }
-        codebase_yn="no";  has_codebase "$abs"  && { codebase_yn="yes"; with_codebase=$((with_codebase+1)); }
-        ROWS+=("$(registry_row "$slug" "$abs" "personal" "$stack" "$brain_yn" "$codebase_yn" "")")
+        brain_yn="no";          has_brain         "$slug" && { brain_yn="yes";          with_brain=$((with_brain+1)); }
+        codebase_yn="no";       has_codebase      "$abs"  && { codebase_yn="yes";       with_codebase=$((with_codebase+1)); }
+        codebase_local_yn="no"; has_codebase_local "$abs" && { codebase_local_yn="yes"; with_codebase_local=$((with_codebase_local+1)); }
+        ROWS+=("$(registry_row "$slug" "$abs" "personal" "$stack" "$brain_yn" "$codebase_yn" "$codebase_local_yn" "")")
         total=$((total+1))
     done
 fi
@@ -104,8 +106,8 @@ mkdir -p "$(dirname "$REGISTRY_PATH")"
     printf '# Projects registry — %s\n' "$(hostname -s)"
     printf '_Updated: %s · %d repos · scan: kb map scan_\n\n' \
         "$(date '+%Y-%m-%d %H:%M')" "$total"
-    printf '| slug | path | type | stack | brain | codebase | flags |\n'
-    printf '|------|------|------|-------|-------|----------|-------|\n'
+    printf '| slug | path | type | stack | brain | codebase | codebase_local | flags |\n'
+    printf '|------|------|------|-------|-------|----------|----------------|-------|\n'
     for row in "${ROWS[@]}"; do
         printf '%s\n' "$row"
     done
@@ -121,5 +123,5 @@ mkdir -p "$(dirname "$REGISTRY_PATH")"
 } > "$REGISTRY_PATH"
 
 ok "Registry written: $REGISTRY_PATH"
-printf '\nSummary: %d repos · %d with brain · %d with CODEBASE · %d with issues\n' \
-    "$total" "$with_brain" "$with_codebase" "$issue_count"
+printf '\nSummary: %d repos · %d with brain · %d with CODEBASE.md · %d with local index · %d with issues\n' \
+    "$total" "$with_brain" "$with_codebase" "$with_codebase_local" "$issue_count"

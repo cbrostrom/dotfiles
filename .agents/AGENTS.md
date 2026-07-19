@@ -55,7 +55,14 @@ Do **not** spawn subagents for search, orientation, or single-file edits. Full r
 
 ## Tool routing
 
-Native tools always: Read, Grep, Glob, Shell. No lean-ctx, no headroom.
+**Discovery priority — always follow this order:**
+
+1. **kb tools first** for vault content: `kb_me_search`, `kb_me_list`, `kb_me_read`, `kb_kb_load`, `kb_kb_search`
+2. **codebase-memory-mcp** for code structure: `search_graph`, `get_code_snippet`, `search_code`
+3. **Native tools** (Read, Grep, Glob, Shell) only when kb/codebase-memory return insufficient results
+
+Why: kb and codebase-memory return structured, token-efficient data. Native tools return raw, verbose output that bloats context.
+
 RTK compresses shell output. CC + Cursor hooks rewrite automatically. Others: `rtk <command>` manually.
 Large files: Read with limit/offset. Search: Grep with head_limit.
 

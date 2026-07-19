@@ -146,6 +146,15 @@ has_codebase() {
     [[ -f "$1/CODEBASE.md" ]]
 }
 
+# has_codebase_local <abs_path>
+# Returns 0 if codebase-memory index exists locally.
+# Data lives in ~/.cache/codebase-memory-mcp/<path-with-dashes>.db
+has_codebase_local() {
+    local slug="${1//\//-}"  # replace / with -
+    slug="${slug#-}"  # strip leading dash
+    [[ -f "$HOME/.cache/codebase-memory-mcp/${slug}.db" ]]
+}
+
 # infer_category <rel_path>
 # Matches CATEGORY_RULES (first match wins). Requires config to be sourced first.
 infer_category() {
@@ -161,10 +170,10 @@ infer_category() {
     echo "unknown"
 }
 
-# registry_row <slug> <abs_path> <category> <stack> <brain_yn> <codebase_yn> <flags>
+# registry_row <slug> <abs_path> <category> <stack> <brain_yn> <codebase_yn> <codebase_local_yn> <flags>
 # Prints one markdown table row for projects-registry.md.
 registry_row() {
-    local slug="$1" abs="$2" cat="$3" stack="$4" brain="$5" codebase="$6" flags="$7"
-    printf '| %s | %s | %s | %s | %s | %s | %s |\n' \
-        "$slug" "${abs/#$HOME/\~}" "$cat" "$stack" "$brain" "$codebase" "$flags"
+    local slug="$1" abs="$2" cat="$3" stack="$4" brain="$5" codebase="$6" codebase_local="$7" flags="$8"
+    printf '| %s | %s | %s | %s | %s | %s | %s | %s |\n' \
+        "$slug" "${abs/#$HOME/\~}" "$cat" "$stack" "$brain" "$codebase" "$codebase_local" "$flags"
 }
