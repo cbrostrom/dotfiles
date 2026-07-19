@@ -6,14 +6,14 @@ group: kb
 
 # Knowledgebase (kb) — Patina
 
-Christian's Patina vault at `~/Vaults/AI`. Git-backed, plain-markdown, consumed by every agent harness. The vault's own contract lives at `$VAULT_AI/AGENTS.md`.
+Christian's Patina vault at `~/Vaults/Higgins/AI`. Git-backed, plain-markdown, consumed by every agent harness. The vault's own contract lives at `$VAULT_AI/AGENTS.md`.
 
 GitHub: `git@github.com:bybrostrom/patina.git` (private)
 
 ## Vault paths
 
 ```bash
-VAULT_AI=~/Vaults/AI                          # macOS (canonical)
+VAULT_AI=~/Vaults/Higgins/AI                          # macOS (canonical)
 VAULT_AI=/mnt/c/Users/christian/Obsidian/AI  # WSL — TBD, confirm on MonsterBro
 ```
 
