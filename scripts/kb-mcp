@@ -9,14 +9,28 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP(
-    "kb",
-    instructions="On-demand access to the Higgins vaults. Query AI project context and personal notes.",
-)
-
 KB = str(Path.home() / "dotfiles" / "scripts" / "kb")
 VAULT_AI = os.environ.get("VAULT_AI", str(Path.home() / "Vaults" / "Higgins" / "AI"))
 VAULT_ME = os.environ.get("VAULT_ME", str(Path.home() / "Vaults" / "Higgins" / "Me"))
+
+
+def _parse_args():
+    import argparse
+    parser = argparse.ArgumentParser(description="kb-mcp — MCP server for Higgins vaults")
+    parser.add_argument("--transport", choices=["stdio", "sse", "streamable-http"], default="stdio")
+    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=8765)
+    return parser.parse_args()
+
+
+_args = _parse_args()
+
+mcp = FastMCP(
+    "kb",
+    instructions="On-demand access to the Higgins vaults. Query AI project context and personal notes.",
+    host=_args.host,
+    port=_args.port,
+)
 
 
 def _run_kb(*args: str) -> str:
@@ -294,15 +308,7 @@ def me_recent(limit: int = 10) -> str:
 
 
 if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="kb-mcp — MCP server for Higgins vaults")
-    parser.add_argument("--transport", choices=["stdio", "sse", "streamable-http"], default="stdio",
-                        help="Transport mode (default: stdio)")
-    parser.add_argument("--host", default="0.0.0.0", help="Host for HTTP transport (default: 0.0.0.0)")
-    parser.add_argument("--port", type=int, default=8765, help="Port for HTTP transport (default: 8765)")
-    args = parser.parse_args()
-
-    if args.transport == "stdio":
+    if _args.transport == "stdio":
         mcp.run(transport="stdio")
     else:
-        mcp.run(transport=args.transport, host=args.host, port=args.port)
+        mcp.run(transport=_args.transport)
