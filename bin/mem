@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Mnemosyne Context-Aware Capture Tool
+# Appends a note with environment snapshots to the daily scrap file
+
+INBOX_DIR="$HOME/Vaults/Higgins/AI/_ops/mem"
+DATE=$(date +"%Y-%m-%d")
+FILE="$INBOX_DIR/scraps-$DATE.md"
+
+# Ensure directory exists
+mkdir -p "$INBOX_DIR"
+
+# --- Context Gathering ---
+CWD=$(pwd)
+REPO_NAME="No Repo"
+LAST_COMMIT="N/A"
+
+# Check if we are in a git repo
+if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    REPO_NAME=$(basename "$(git rev-parse --show-toplevel)")
+    LAST_COMMIT=$(git log -1 --oneline --format=%s 2>/dev/null || echo "No commits")
+fi
+
+# --- Formatting ---
+TIMESTAMP=$(date +"%H:%M")
+NOTE_CONTENT="$*"
+
+# Create a structured entry
+ENTRY="---
+Time: $TIMESTAMP
+Note: $NOTE_CONTENT
+Path: $CWD
+Repo: $REPO_NAME
+LastChange: $LAST_COMMIT
+---"
+
+# Append to file
+echo "$ENTRY" >> "$FILE"
+echo "" >> "$FILE"
+
+echo "Contextual memory anchored to $FILE"

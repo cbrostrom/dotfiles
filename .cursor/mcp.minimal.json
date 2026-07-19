@@ -3,6 +3,20 @@
     "github": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"]
+    },
+    "kb": {
+      "command": "python3",
+      "args": ["/Users/Christian.Brostrom/dotfiles/scripts/kb-mcp"],
+      "env": {
+        "VAULT_AI": "/Users/Christian.Brostrom/Vaults/Higgins/AI"
+      }
+    },
+    "zennotes": {
+      "command": "npx",
+      "args": ["zennotes-mcp"],
+      "env": {
+        "ZENNOTES_VAULT": "/Users/Christian.Brostrom/Vaults/Higgins/Me"
+      }
     }
   }
 }

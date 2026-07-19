@@ -12,6 +12,7 @@ mobile_width_threshold           = 80
 show_agent_labels_on_pane_borders = true
 agent_panel_scope = "all"
 
+agent_panel_sort = "spaces"
 [theme]
 name = "one-dark"
 
