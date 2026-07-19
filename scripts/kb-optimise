@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# kb-optimise — shared vault structural maintenance (no LLM)
+# Usage: kb-optimise [--format=cursor|claude] [slug]
+set -uo pipefail
+
+VAULT_AI="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
+KB="$VAULT_AI/tools/kb"
+[[ -x "$KB" ]] || exit 0
+
+SLUG=""
+for arg in "$@"; do
+  [[ "$arg" == -* ]] || SLUG="$arg"
+done
+
+# Slug resolution (same as kb-load)
+if [[ -z "$SLUG" ]]; then
+  if git rev-parse --git-dir >/dev/null 2>&1; then
+    SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
+  else
+    SLUG="$(basename "$PWD")"
+  fi
+fi
+case "$SLUG" in
+  empty-window|""|"$USER"|"Users-$USER"|"home") SLUG="personal" ;;
+esac
+
+VAULT_AI="$VAULT_AI" "$KB" prune "$SLUG" 2>/dev/null
+VAULT_AI="$VAULT_AI" "$KB" compact "$SLUG" 2>/dev/null

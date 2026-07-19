@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# kb-save-inject — shared "save before compact" instruction injector
+# Usage: kb-save-inject [--format=cursor|claude]
+# Event: PreCompact (always) or UserPromptSubmit (only on /compact, /clear)
+set -uo pipefail
+
+if [[ "${HOOK_EVENT_NAME:-}" == "UserPromptSubmit" ]]; then
+  INPUT="$(cat)"
+  PROMPT="$(printf '%s' "$INPUT" | jq -r '.prompt // empty' 2>/dev/null || true)"
+  case "$PROMPT" in
+    /compact*|/clear*) ;; # proceed
+    *) exit 0 ;;          # not a compact/clear — skip
+  esac
+fi
+
+# Slug resolution
+VAULT_AI="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
+else
+  SLUG="$(basename "$PWD")"
+fi
+
+cat <<EOF
+Context compaction imminent. Before context is lost:
+1. Run \`kb current "state: ..."\` with current state
+2. Run \`kb save "summary"\` with session summary
+3. Run \`kb gotcha "trap"\` for any non-obvious traps discovered
+Then let compaction proceed.
+EOF
