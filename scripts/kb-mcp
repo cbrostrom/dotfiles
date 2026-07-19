@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""kb-mcp — MCP server wrapping the kb CLI for on-demand vault access."""
+"""kb-mcp — MCP server wrapping the kb CLI for on-demand vault access.
+Also provides tools for querying the personal vault (Me/)."""
 
 import os
 import sys
@@ -10,11 +11,12 @@ from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP(
     "kb",
-    instructions="On-demand access to the Higgins AI knowledge vault. Query context, search, lint.",
+    instructions="On-demand access to the Higgins vaults. Query AI project context and personal notes.",
 )
 
 KB = str(Path.home() / "dotfiles" / "scripts" / "kb")
 VAULT_AI = os.environ.get("VAULT_AI", str(Path.home() / "Vaults" / "Higgins" / "AI"))
+VAULT_ME = os.environ.get("VAULT_ME", str(Path.home() / "Vaults" / "Higgins" / "Me"))
 
 
 def _run_kb(*args: str) -> str:
@@ -35,6 +37,14 @@ def _run_kb(*args: str) -> str:
         return f"Error: kb not found at {KB}"
     except subprocess.TimeoutExpired:
         return "Error: command timed out"
+
+
+def _me_path(rel: str = "") -> Path:
+    """Resolve a path relative to the personal vault."""
+    base = Path(VAULT_ME)
+    if not rel:
+        return base
+    return base / rel
 
 
 @mcp.tool()
@@ -154,6 +164,133 @@ def kb_resolve() -> str:
 def kb_map(subcommand: str = "help") -> str:
     """Project registry + CODEBASE generator. Subcommands: help, list, codebase, etc."""
     return _run_kb("map", subcommand)
+
+
+# ── Personal vault (Me/) tools ──────────────────────────────────────────────
+
+
+@mcp.tool()
+def me_list(folder: str = "") -> str:
+    """List notes and subfolders in the personal vault. Defaults to root.
+    Use folder='Personal' to list personal notes, folder='Work' for work, etc."""
+    p = _me_path(folder)
+    if not p.is_dir():
+        return f"Error: folder not found: {p}"
+    
+    entries = []
+    for item in sorted(p.iterdir()):
+        if item.name.startswith("."):
+            continue
+        if item.is_dir():
+            count = sum(1 for _ in item.rglob("*.md"))
+            entries.append(f"  {item.name}/  ({count} notes)")
+        elif item.suffix == ".md":
+            entries.append(f"  {item.name}")
+    
+    if not entries:
+        return f"Empty folder: {folder or 'root'}"
+    
+    return f"=== {folder or 'Me/'} ===\n" + "\n".join(entries)
+
+
+@mcp.tool()
+def me_read(path: str) -> str:
+    """Read a note from the personal vault. Path is relative to Me/.
+    Example: 'Personal/Familie/Psyk.md' or 'Work/Projects.md'."""
+    p = _me_path(path)
+    if not p.is_file():
+        # Try adding .md extension
+        p = _me_path(path + ".md")
+    if not p.is_file():
+        return f"Error: file not found: {path}"
+    
+    try:
+        content = p.read_text(encoding="utf-8")
+        # Truncate if very long
+        if len(content) > 8000:
+            lines = content.splitlines()
+            truncated = "\n".join(lines[:200])
+            return f"{truncated}\n\n... ({len(lines) - 200} more lines)"
+        return content
+    except Exception as e:
+        return f"Error reading {path}: {e}"
+
+
+@mcp.tool()
+def me_search(query: str, folder: str = "", limit: int = 10) -> str:
+    """Search across personal notes for text matches.
+    Returns file paths and matching lines. Use folder to scope search."""
+    search_dir = _me_path(folder)
+    if not search_dir.is_dir():
+        return f"Error: folder not found: {search_dir}"
+    
+    results = []
+    query_lower = query.lower()
+    
+    for md_file in sorted(search_dir.rglob("*.md")):
+        if len(results) >= limit:
+            break
+        try:
+            content = md_file.read_text(encoding="utf-8")
+            for i, line in enumerate(content.splitlines(), 1):
+                if query_lower in line.lower():
+                    rel = md_file.relative_to(Path(VAULT_ME))
+                    results.append(f"{rel}:{i}: {line.strip()[:100]}")
+                    if len(results) >= limit:
+                        break
+        except Exception:
+            continue
+    
+    if not results:
+        return f"No matches for '{query}' in {folder or 'Me/'}"
+    
+    return f"=== Search: '{query}' ({len(results)} matches) ===\n" + "\n".join(results)
+
+
+@mcp.tool()
+def me_folders() -> str:
+    """List the folder structure of the personal vault."""
+    root = Path(VAULT_ME)
+    if not root.is_dir():
+        return f"Error: vault not found: {VAULT_ME}"
+    
+    folders = []
+    for item in sorted(root.iterdir()):
+        if item.name.startswith(".") or item.name in ("trash", "Attachments"):
+            continue
+        if item.is_dir():
+            count = sum(1 for _ in item.rglob("*.md"))
+            folders.append(f"{item.name}/  ({count} notes)")
+    
+    return "=== Personal Vault Structure ===\n" + "\n".join(folders)
+
+
+@mcp.tool()
+def me_recent(limit: int = 10) -> str:
+    """Show recently modified notes in the personal vault."""
+    root = Path(VAULT_ME)
+    if not root.is_dir():
+        return f"Error: vault not found: {VAULT_ME}"
+    
+    files = []
+    for md_file in root.rglob("*.md"):
+        try:
+            mtime = md_file.stat().st_mtime
+            files.append((mtime, md_file))
+        except Exception:
+            continue
+    
+    # Sort by modification time, newest first
+    files.sort(key=lambda x: x[0], reverse=True)
+    
+    results = []
+    import datetime
+    for mtime, md_file in files[:limit]:
+        rel = md_file.relative_to(root)
+        dt = datetime.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M")
+        results.append(f"  {rel}  ({dt})")
+    
+    return "=== Recently Modified ===\n" + "\n".join(results)
 
 
 if __name__ == "__main__":
