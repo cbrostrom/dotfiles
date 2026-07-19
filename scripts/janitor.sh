@@ -54,7 +54,65 @@ else
   log "session-promote: skipped (not found or not executable)"
 fi
 
-# 5. Git commit + push
+# 5. Mem routing (classify scraps → route to projects or personal)
+log "--- mem routing ---"
+MEM_DIR="$VAULT_AI/_ops/mem"
+MEM_PROCESSED="$MEM_DIR/processed"
+if [ -d "$MEM_DIR" ]; then
+  mkdir -p "$MEM_PROCESSED"
+  SCRAP_COUNT=0
+  ROUTED_COUNT=0
+  
+  for file in "$MEM_DIR"/scraps-*.md; do
+    [ -f "$file" ] || continue
+    SCRAP_COUNT=$((SCRAP_COUNT + 1))
+    BASENAME=$(basename "$file")
+    
+    # Parse entries (separated by ---)
+    while IFS= read -r -d '' entry || [ -n "$entry" ]; do
+      # Extract Note field
+      NOTE=$(echo "$entry" | grep -A1 "^Note:" | tail -1 | sed 's/^ *//')
+      REPO=$(echo "$entry" | grep -A1 "^Repo:" | tail -1 | sed 's/^ *//')
+      
+      [ -z "$NOTE" ] && continue
+      
+      # Simple keyword classification
+      PROJECT=""
+      if echo "$NOTE" | grep -qiE '(shopify|liquid|theme|akqa)'; then
+        PROJECT="akqa-denmark-shopify-theme-build"
+      elif echo "$NOTE" | grep -qiE '(tauri|huskr|todo)'; then
+        PROJECT="huskr"
+      elif echo "$NOTE" | grep -qiE '(hopper|browser|sidebar)'; then
+        PROJECT="hopper"
+      elif echo "$NOTE" | grep -qiE '(laesr|rss|feed)'; then
+        PROJECT="laesr"
+      elif echo "$NOTE" | grep -qiE '(dotfiles|shell|zsh|hook)'; then
+        PROJECT="dotfiles"
+      elif echo "$NOTE" | grep -qiE '(pi|deck|ui)'; then
+        PROJECT="pi-deck"
+      fi
+      
+      # Route to project or personal
+      if [ -n "$PROJECT" ] && [ -d "$VAULT_AI/projects/$PROJECT" ]; then
+        echo "- $NOTE [mem: $BASENAME]" >> "$VAULT_AI/projects/$PROJECT/current.md"
+        log "  routed → projects/$PROJECT: $NOTE"
+      else
+        echo "- $NOTE [mem: $BASENAME]" >> "$VAULT_AI/personal/current.md"
+        log "  routed → personal: $NOTE"
+      fi
+      ROUTED_COUNT=$((ROUTED_COUNT + 1))
+    done < <(awk '/^---$/{if(entry) print entry; entry=""} /^/{entry=entry $0 "\n"} END{if(entry) print entry}' "$file")
+    
+    # Move processed file
+    mv "$file" "$MEM_PROCESSED/$BASENAME"
+  done
+  
+  log "mem: processed $SCRAP_COUNT file(s), routed $ROUTED_COUNT entries"
+else
+  log "mem: skipped (no _ops/mem/ directory)"
+fi
+
+# 6. Git commit + push
 log "--- git ---"
 CHANGES=$(git status --porcelain)
 if [ -n "$CHANGES" ]; then

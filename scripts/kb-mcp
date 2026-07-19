@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+"""kb-mcp — MCP server wrapping the kb CLI for on-demand vault access."""
+
+import os
+import sys
+import subprocess
+from pathlib import Path
+
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP(
+    "kb",
+    instructions="On-demand access to the Higgins AI knowledge vault. Query context, search, lint.",
+)
+
+KB = str(Path.home() / "dotfiles" / "scripts" / "kb")
+VAULT_AI = os.environ.get("VAULT_AI", str(Path.home() / "Vaults" / "Higgins" / "AI"))
+
+
+def _run_kb(*args: str) -> str:
+    """Run kb CLI and return stdout."""
+    env = {**os.environ, "VAULT_AI": VAULT_AI}
+    try:
+        r = subprocess.run(
+            [KB, *args],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            env=env,
+        )
+        if r.returncode != 0:
+            return f"Error: {r.stderr.strip()}" if r.stderr else "Error: command failed"
+        return r.stdout.strip()
+    except FileNotFoundError:
+        return f"Error: kb not found at {KB}"
+    except subprocess.TimeoutExpired:
+        return "Error: command timed out"
+
+
+@mcp.tool()
+def kb_load(slug: str = "", full: bool = False) -> str:
+    """Load vault context for a project slug. Returns personal context + project brain.
+    If no slug given, resolves from cwd. Use full=true for full preferences + module gotchas."""
+    args = ["load"]
+    if full:
+        args.append("--full")
+    if slug:
+        args.append(slug)
+    return _run_kb(*args)
+
+
+@mcp.tool()
+def kb_status(slug: str = "") -> str:
+    """Show dashboard for a project: modified time, file sizes, session count."""
+    args = ["status"]
+    if slug:
+        args.append(slug)
+    return _run_kb(*args)
+
+
+@mcp.tool()
+def kb_search(query: str, full: bool = False) -> str:
+    """Search across vault content. Returns kb load output (personal + modules + matching projects).
+    For broad search, use kb_load. This resolves slug from the query and loads it."""
+    return _run_kb("load", query) if not full else _run_kb("load", "--full", query)
+
+
+@mcp.tool()
+def kb_current(slug: str = "", text: str = "") -> str:
+    """Read or update current.md. No text = read. With text = append a bullet."""
+    args = ["current"]
+    if slug:
+        args.insert(1, slug)
+    if text:
+        args.append(text)
+    return _run_kb(*args)
+
+
+@mcp.tool()
+def kb_next(slug: str = "", text: str = "") -> str:
+    """Read or add action items. No text = read active items. With text = add item."""
+    args = ["next"]
+    if slug:
+        args.insert(1, slug)
+    if text:
+        args.append(text)
+    return _run_kb(*args)
+
+
+@mcp.tool()
+def kb_gotcha(slug: str = "", text: str = "") -> str:
+    """Read or log a gotcha. No text = read gotchas. With text = append."""
+    args = ["gotcha"]
+    if slug:
+        args.insert(1, slug)
+    if text:
+        args.append(text)
+    return _run_kb(*args)
+
+
+@mcp.tool()
+def kb_done(slug: str = "", substr: str = "") -> str:
+    """Mark an item done in next.md. Provide substring to match."""
+    args = ["done"]
+    if slug:
+        args.insert(1, slug)
+    if substr:
+        args.append(substr)
+    return _run_kb(*args)
+
+
+@mcp.tool()
+def kb_save(slug: str = "", text: str = "") -> str:
+    """Save session summary to history/."""
+    args = ["save"]
+    if slug:
+        args.insert(1, slug)
+    if text:
+        args.append(text)
+    return _run_kb(*args)
+
+
+@mcp.tool()
+def kb_prune(slug: str = "") -> str:
+    """Move [done:] items from next.md to history/."""
+    args = ["prune"]
+    if slug:
+        args.append(slug)
+    return _run_kb(*args)
+
+
+@mcp.tool()
+def kb_compact(slug: str = "", cap: int = 5) -> str:
+    """Cap current.md at cap bullets; overflow moves to history/."""
+    args = ["compact"]
+    if slug:
+        args.append(slug)
+    return _run_kb(*args)
+
+
+@mcp.tool()
+def kb_lint() -> str:
+    """Validate the vault tree against _schema/. Returns errors and warnings."""
+    return _run_kb("lint")
+
+
+@mcp.tool()
+def kb_resolve() -> str:
+    """Resolve the active slug from cwd/args. Useful for discovering what project you're in."""
+    return _run_kb("slug")
+
+
+@mcp.tool()
+def kb_map(subcommand: str = "help") -> str:
+    """Project registry + CODEBASE generator. Subcommands: help, list, codebase, etc."""
+    return _run_kb("map", subcommand)
+
+
+if __name__ == "__main__":
+    mcp.run()

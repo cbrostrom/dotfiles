@@ -11,7 +11,7 @@ Act. No preamble, no advisor overhead. For ≤3 files with an obvious fix: execu
 
 **Subagents:** Forbidden unless user explicitly asks. Before requesting: one sentence on what grep/read/glob returned and why it was insufficient.
 
-**Memory:** Load the specific vault file after identifying the slug/module. Never auto-load `kb load` at session start. Read `~/.cursor/rules/session-brain.mdc` only when vault context is needed.
+**Memory:** Query the kb MCP tool for vault context. Use `kb_resolve` to discover the active slug, `kb_load` for specifics. Never auto-load at session start.
 
 **Shell/logs:** Summarize unless debugging. Check terminals folder before spawning processes.
 
@@ -30,7 +30,7 @@ Tag: `.rigor` / `!deep` / `[rigor]` — or auto-triggers for: security-critical,
 - **Advisor stance:** challenge first, expose gaps. `[Certain]` / `[Likely]` / `[Guessing]` on advisory calls.
 - **Approval gate:** outline issue + solution → wait for go/proceed/execute.
 - **Pre-code:** YAGNI → reuse in codebase → stdlib → minimum.
-- **Memory:** read `modules/<slug>/gotchas.md` when module context matters.
+- **Memory:** use `kb_load` MCP tool for project context, or read `modules/<slug>/gotchas.md` directly when module-specific.
 - **Subagents:** one max, only when ≥5 cross-module files and grep has been tried.
 
 ---
