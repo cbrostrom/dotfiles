@@ -96,13 +96,6 @@
     "apple-mcp": {
       "command": "bunx",
       "args": ["-y", "@dhravya/apple-mcp@latest"]
-    },
-    "engram": {
-      "command": "engram",
-      "args": ["mcp"],
-      "env": {
-        "ENGRAM_DATA_DIR": "$HOME/.engram/personal"
-      }
     }
   }
 }

@@ -1,7 +1,7 @@
 {
-  "$comment": "Per-host manual tweaks. Copy this file to settings.override.json (gitignored) and edit. Anything here wins over base + platform on merge. Common uses: host-specific MCPs (e.g., engram-personal exposed only on the host that runs Engram), extra permission allowlist entries for this machine, statusLine experiments.",
+  "$comment": "Per-host manual tweaks. Copy this file to settings.override.json (gitignored) and edit. Anything here wins over base + platform on merge. Common uses: host-specific MCPs, extra permission allowlist entries for this machine, statusLine experiments.",
   "mcpServers": {
-    "$comment_engram": "Example: enable graphiti only on the host that exposes it",
+    "$comment_graphiti": "Enable graphiti only on the host that exposes it",
     "graphiti": { "command": "http", "args": ["http://100.100.1.50:8000/mcp"] }
   },
   "permissions": {

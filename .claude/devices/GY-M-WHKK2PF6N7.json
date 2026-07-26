@@ -3,16 +3,18 @@
   "os": "macos",
   "arch": "arm64",
   "profile": "desktop-full",
-  "last_synced": "2026-07-01T20:58:03Z",
+  "last_synced": "2026-07-21T20:25:33Z",
   "marketplaces": [
     "cavekit-marketplace",
-    "caveman"
+    "caveman",
+    "plannotator"
   ],
   "enabled_plugins": [
     "atlassian@claude-plugins-official",
     "claude-md-management@claude-plugins-official",
     "frontend-design@claude-plugins-official",
-    "liquid-skills@claude-plugins-official"
+    "liquid-skills@claude-plugins-official",
+    "plannotator@plannotator"
   ],
   "disabled_plugins": [
     "caveman@caveman",
@@ -29,12 +31,11 @@
   ],
   "mcp_servers_settings": [
     "apple-mcp",
+    "engram",
     "github"
   ],
   "mcp_servers_list": [
     "github"
   ],
-  "skills": [
-    "fallow-rs/fallow-skills"
-  ]
+  "skills": []
 }
