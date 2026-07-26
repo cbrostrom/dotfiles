@@ -476,6 +476,22 @@ allow-app() {
     echo "Done — quarantine removed from $app."
 }
 
+# =============================================================================
+# AI / VAULT FUNCTIONS
+# =============================================================================
+# Higgins memory pipeline — extract PI session history into vault markdown
+# Usage: extract-sessions          # extract today's sessions (default)
+#        extract-sessions --reindex # re-extract all sessions
+#        extract-sessions --since 2026-07-01 # extract since date
+extract-sessions() {
+    local script="$HOME/dotfiles/.config/pi/agent/scripts/extract.ts"
+    [[ -f "$script" ]] || {
+        echo "extract-sessions: script not found: $script" >&2
+        return 1
+    }
+    bun run "$script" "$@"
+}
+
 # CloudCLI session purge — archive in UI does not stick; watcher re-imports jsonl files
 cloudcli-sessions() {
     is_macos || { echo "cloudcli-sessions: macOS only" >&2; return 1; }

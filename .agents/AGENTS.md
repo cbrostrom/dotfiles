@@ -132,3 +132,32 @@ For non-interactive shells (where alias won't work):
 ```bash
 zsh -i -c 'superbro "your command here"'
 ```
+
+## Vault functions
+
+Session extraction & memory pipeline functions (defined in `zsh/04-functions.zsh`).
+
+| Function | Usage | Args |
+|---|---|---|
+| `extract-sessions` | Extract PI sessions to Higgins vault | `--since DATE`, `--reindex`, `--project NAME` |
+
+**Default behavior (no args):**
+```bash
+extract-sessions  # Smart: extract today's sessions + any changed since last run
+```
+
+**Common usage:**
+```bash
+extract-sessions --reindex        # Force re-extract everything
+extract-sessions --since 2026-07-01 # Extract since date
+extract-sessions --project dotfiles # Extract specific project
+```
+
+**Agent usage:** Use via zsh function
+```bash
+# Interactive shells (zsh)
+extract-sessions
+
+# Non-interactive shells
+zsh -i -c 'extract-sessions --reindex'
+```
