@@ -8,23 +8,8 @@
 
 {
     "context_servers": {
-        // Engram MCP — path differs per machine/OS
-        // Windows:
-        "engram": {
-            "command": "C:\\path\\to\\engram.exe",
-            "args": ["mcp"],
-            "env": {
-                "ENGRAM_DATA_DIR": "C:\\Users\\christian\\.engram"
-            }
-        }
-        // macOS / Linux:
-        // "engram": {
-        //     "command": "/usr/local/bin/engram",
-        //     "args": ["mcp"],
-        //     "env": {
-        //         "ENGRAM_DATA_DIR": "/home/christian/.engram"
-        //     }
-        // }
+        // Higgins (kb MCP) handles memory across all machines
+        // Configure per-project via .cursor/mcp.json or pi extensions
     }
 
     // wsl_connections is already in shared settings.json (ignored on macOS/Linux)

@@ -3,7 +3,7 @@
 // For information on how to configure Zed, see the Zed
 // documentation: https://zed.dev/docs/configuring-zed
 //
-// Machine-specific config (engram MCP, wsl_connections on macOS, ollama, font sizes, etc.)
+// Machine-specific config (Higgins/kb MCP, wsl_connections on macOS, ollama, font sizes, etc.)
 // → see settings.local.example.json and add manually per machine
 {
     "redact_private_values": true,

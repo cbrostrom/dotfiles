@@ -67,7 +67,7 @@ done < <(grep -rlE --include="*.sh" --include="*.zsh" \
   | grep -v '\.git' \
   | grep -v "${DOTFILES_DIR}/modules/zed/" \
   | grep -v "${DOTFILES_DIR}/scripts/zed/" \
-  | grep -v "${DOTFILES_DIR}/tui/tools/zed.sh" \
+  | grep -v "${DOTFILES_DIR}/tui/scripts/zed.sh" \
   | grep -v "${BASH_SOURCE[0]}" \
   | sort)
 if (( _found == 0 )); then echo "  none"; fi

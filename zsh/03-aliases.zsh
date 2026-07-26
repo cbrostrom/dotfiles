@@ -411,10 +411,10 @@ if command -v herdr &>/dev/null; then
     alias work='herdr'
 fi
 
-# WSL: engram binary is a Windows .exe — needs explicit path
-if [[ -n "${WSL_DISTRO_NAME:-}" ]] && [[ -x "/mnt/c/Users/${USER}/go/bin/engram.exe" ]]; then
-    alias engram='/mnt/c/Users/${USER}/go/bin/engram.exe'
-fi
+# Higgins (kb memory system) — personality alias
+alias higgins='kb'
+
+# Engram removed — Higgins (kb) is the sole memory system
 
 # =============================================================================
 # SYSTEM UPDATE ALIASES

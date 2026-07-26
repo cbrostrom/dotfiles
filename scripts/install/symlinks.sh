@@ -334,7 +334,7 @@ create_symlink "$SCRIPT_DIR/scripts/opencode-web-traefik.sh" "$HOME/.local/bin/o
 
 # ob — Obsidian REST API CLI
 # pi — PI coding agent shim (stable across fnm project-node switches)
-# brain / kb — knowledgebase CLI shims (require ~/Vaults/AI — desktop only)
+# brain / kb — knowledgebase CLI shims (require ~/Vaults/Higgins/AI — desktop only)
 if [[ "$IS_HEADLESS" == "false" ]]; then
     create_symlink "$SCRIPT_DIR/scripts/ob" "$HOME/.local/bin/ob" "ob (Obsidian CLI)"
     create_symlink "$SCRIPT_DIR/scripts/pi" "$HOME/.local/bin/pi" "pi (coding agent shim)"

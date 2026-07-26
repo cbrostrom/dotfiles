@@ -71,7 +71,27 @@ _symlink "$PI_SRC/spark.json"          "$PI_DST/spark.json"           "spark.jso
 mkdir -p "$HOME/.local/bin"
 _symlink "$DOTFILES_DIR/scripts/pi" "$HOME/.local/bin/pi" "~/.local/bin/pi shim"
 
-# ── 4b) user extensions — symlink every .ts in extensions/ ──────────────────
+# ── 4b) tools — symlink tools/ directory ─────────────────────────────────────
+TOOLS_SRC="$PI_SRC/tools"
+TOOLS_DST="$PI_DST/tools"
+if [[ -d "$TOOLS_SRC" ]]; then
+    if [[ -L "$TOOLS_DST" ]]; then
+        current="$(readlink "$TOOLS_DST")"
+        if [[ "$current" == "$TOOLS_SRC" ]]; then
+            ok "tools/ symlink already up to date"
+        else
+            ln -sfn "$TOOLS_SRC" "$TOOLS_DST"
+            ok "tools/ symlink updated ($current → $TOOLS_SRC)"
+        fi
+    elif [[ -e "$TOOLS_DST" ]]; then
+        warn "tools/ exists but not symlinked — skipping (move it manually)"
+    else
+        ln -sfn "$TOOLS_SRC" "$TOOLS_DST"
+        ok "tools/ symlinked → quick job runner scripts available"
+    fi
+fi
+
+# ── 4c) user extensions — symlink every .ts in extensions/ ──────────────────
 EXT_SRC="$PI_SRC/extensions"
 EXT_DST="$PI_DST/extensions"
 if [[ -d "$EXT_SRC" ]]; then
@@ -88,6 +108,54 @@ fi
 # when installed. Run /hooks-validate inside PI to confirm compatibility.
 _symlink "$PI_SRC/hook/hooks.yaml"     "$PI_DST/hook/hooks.yaml"      "hook/hooks.yaml"
 log "hooks.yaml symlinked — install pi-yaml-hooks and run /hooks-validate to activate"
+
+# ── 5a) pi-tool-display config — prevent write tool conflict with pi-spark ────
+# pi-tool-display defaults all tool ownership to true, but pi-spark also
+# registers a write tool. After PI updates, reinstalling pi-tool-display
+# overwrites any manual config changes. This ensures the config is correct.
+TDD_CFG="$PI_DST/extensions/pi-tool-display/config.json"
+if [[ -f "$TDD_CFG" ]]; then
+    # Config exists — verify write ownership is disabled
+    if python3 -c "
+import json, sys
+with open('$TDD_CFG') as f:
+    cfg = json.load(f)
+overrides = cfg.get('registerToolOverrides', {})
+if overrides.get('write', True) is True:
+    sys.exit(1)
+" 2>/dev/null; then
+        ok "pi-tool-display config: write ownership already disabled"
+    else
+        # Patch: set write to false
+        python3 -c "
+import json
+with open('$TDD_CFG') as f:
+    cfg = json.load(f)
+cfg.setdefault('registerToolOverrides', {})['write'] = False
+with open('$TDD_CFG', 'w') as f:
+    json.dump(cfg, f, indent=2)
+    f.write('\n')
+print('[pi] pi-tool-display config: write ownership disabled (conflict with pi-spark)')
+"
+    fi
+else
+    # No config — create it
+    mkdir -p "$(dirname "$TDD_CFG")"
+    cat > "$TDD_CFG" << 'JSON'
+{
+  "registerToolOverrides": {
+    "read": true,
+    "grep": true,
+    "find": true,
+    "ls": true,
+    "bash": true,
+    "edit": true,
+    "write": false
+  }
+}
+JSON
+    ok "pi-tool-display config created (write ownership disabled)"
+fi
 
 # ── 5b) prompt templates (/end and friends) ───────────────────────────────────
 # pi-prompt-template-model loads from ~/.pi/agent/prompts/; symlink each .md
@@ -164,9 +232,9 @@ ok "settings.json patched"
 # ── 6) summary ────────────────────────────────────────────────────────────────
 log "PI install complete. Manual steps:"
 log "  1. Open PI and run:  /preset          (to confirm Spark presets loaded)"
-log "  2. Run:              /recap            (to test recap on Haiku 4.5)"
-log "  3. Install hooks:    pi install npm:pi-yaml-hooks"
-log "     Then validate:    /hooks-validate   /hooks-status"
+log "  2. Run:              /reload           (pick up new extensions + prompts)"
+log "  3. Run:              /hooks-validate   (to confirm hooks compatible)"
 log "  4. Trust your repos: /trust  (once, per project, inside PI)"
-log "  5. Update PI:        fnm use default && pi update self"
+log "  5. Run:              /session-extract  (to test session extraction)"
+log "  6. Update PI:        fnm use default && pi update self"
 log "     (always update from fnm default so the shim stays aligned)"

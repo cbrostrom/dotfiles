@@ -5,7 +5,7 @@
 # APPEARANCE & THEMING
 # =============================================================================
 
-font-family = Hack Nerd Font Mono
+font-family = JetBrains Mono Nerd Font
 
 fullscreen = false
 window-theme = dark
