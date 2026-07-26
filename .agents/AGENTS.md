@@ -108,3 +108,27 @@ Start cheapest that can safely handle the task. Escalate only for deeper reasoni
 aislop quality-gate hook active on CC + Cursor — follow feedback when it fires.
 Other agents: `aislop scan --changes` after edits, `aislop fix` to repair.
 fallow for JS/TS dead code + complexity: `~/.agents/skills/fallow/`.
+
+## Remote hosts & aliases
+
+All SSH access via `.zshrc` aliases (defined in `zsh/03-aliases.zsh`).
+
+| Alias | Target | Usage |
+|---|---|---|
+| `superbro` | `ssh christian@100.100.1.50 -p 27789` (Tailscale) | Primary server: Linux, Docker, Tailscale |
+
+**Agent usage:** Use zsh aliases directly. Don't hardcode SSH details.
+
+```bash
+# GOOD: agents use aliases
+superbro 'docker ps'
+superbro 'systemctl status ssh'
+
+# BAD: hardcoded SSH (breaks if port/IP changes)
+ssh -p 27789 100.100.1.50 'docker ps'
+```
+
+For non-interactive shells (where alias won't work):
+```bash
+zsh -i -c 'superbro "your command here"'
+```
