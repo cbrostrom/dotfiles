@@ -62,7 +62,7 @@ if [ -z "$tier" ]; then
     tier="minimal"; reason="slash-command"
   elif printf '%s' "$LOWER" | grep -Eq '^(give me|show me|list|what is|what'\''s|what are|get|fetch|find|grep|search for|tell me|how many|when is|what time|where is|what did i|hours for|worklog for|log hours|registration for|look up|check if|is the|is there|does .* (exist|have)|read (this|the)|print|display|output)\b'; then
     tier="minimal"; reason="lookup/list/format"
-  elif printf '%s' "$LOWER" | grep -Eq '\b(memory|memories|engram|mcp|calendar|notes|reminders|contacts) (for|of|from|about|on)\b'; then
+  elif printf '%s' "$LOWER" | grep -Eq '\b(memory|memories|higgins|kb|mcp|calendar|notes|reminders|contacts) (for|of|from|about|on)\b'; then
     tier="minimal"; reason="data fetch"
   elif printf '%s' "$LOWER" | grep -Eq '\b(can you (read|see|look at|check|verify|confirm))\b'; then
     tier="minimal"; reason="verification ask"

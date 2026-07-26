@@ -11,4 +11,4 @@
 # GitHub — requires GITHUB_PERSONAL_ACCESS_TOKEN in ~/.local-secrets
 github | npx | -y | @modelcontextprotocol/server-github
 
-# Memory MCPs (engram, graphiti) moved to mcp-servers.memory.list — opt-in via DOTFILES_WORKFLOWS=...,memory
+# Memory: Higgins (kb MCP) — loaded via mcp-servers.memory.list

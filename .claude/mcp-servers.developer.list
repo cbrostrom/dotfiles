@@ -10,4 +10,3 @@
 # Binary: ~/.local/bin/codebase-memory-mcp — install: curl -fsSL ...install.sh | bash -s -- --skip-config
 codebase-memory-mcp | ~/.local/bin/codebase-memory-mcp
 
-open-notebook | uvx | open-notebook-mcp
