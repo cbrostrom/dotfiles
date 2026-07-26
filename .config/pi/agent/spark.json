@@ -20,7 +20,7 @@
   "recap": {
     "idle": "5m",
     "provider": "ollama",
-    "model": "qwen3.5:cloud",
+    "model": "gemma4:31b-cloud",
     "thinkingLevel": "off"
   }
 }

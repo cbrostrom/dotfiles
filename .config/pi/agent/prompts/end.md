@@ -1,7 +1,7 @@
 ---
-description: End-of-session vault save — synthesise decisions, write kb, update context-bridge, re-index FTS5
+description: End-of-session vault save — synthesise decisions, write kb, re-index FTS5
 run: |
-  VAULT="${VAULT_AI:-$HOME/Vaults/AI}"
+  VAULT="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
   if git rev-parse --git-dir >/dev/null 2>&1; then
     SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
     BRANCH="$(git branch --show-current 2>/dev/null)"
@@ -31,7 +31,7 @@ run: |
   [[ -f "$VAULT/projects/$SLUG/next.md" ]] && cat "$VAULT/projects/$SLUG/next.md" || echo "(none)"
   echo ""
   echo "=== inbox check ==="
-  INBOX="${HOME}/Vaults/Me/Inbox"
+  INBOX="${HOME}/Vaults/Higgins/Me/Inbox"
   if [[ -d "$INBOX" ]]; then
     COUNT="$(find "$INBOX" -maxdepth 1 -name "*.md" ! -name "_*" | wc -l | tr -d ' ')"
     echo "pending inbox items: $COUNT"
@@ -64,54 +64,20 @@ BRAIN_SLUG=<slug> kb current "<concise state fact>" 2>&1
 
 For personal/cross-cutting agent setup:
 ```bash
-cd ~/Vaults/AI && kb current "<fact>" 2>&1
+cd ~/Vaults/Higgins/AI && kb current "<fact>" 2>&1
 ```
 
 Only add facts that are durable and non-obvious. Skip things already in current.md.
 
 ### 3. Save history snapshot
 ```bash
-cd ~/Vaults/AI && kb save "<one-sentence synthesis of the session>" 2>&1
+cd ~/Vaults/Higgins/AI && kb save "<one-sentence synthesis of the session>" 2>&1
 ```
 
-### 4. Write context-bridge
-Overwrite `~/Vaults/AI/projects/<slug>/plans/context-bridge.md` with:
-
-```markdown
-## Context Bridge — <slug> — <YYYY-MM-DD HH:MM>
-
-### What we were doing
-<1–2 sentences>
-
-### Decisions made
-- <decision: choice + rationale + what was rejected>
-- ...
-
-### Files touched
-- <path> — <what changed>
-- ...
-
-### Dead ends (don't repeat)
-- <trap: what happened + why it's wrong>
-- ...
-
-### Open questions
-- <question>
-
-### Exact next step
-<single action sentence>
-
-### Context to reload
-- `kb load` from `~/<project-dir>`
-- Key files: <2–3 most important files>
-```
-
-If no project brain exists for the slug (no `projects/<slug>/` dir), write to `projects/dotfiles/plans/context-bridge.md` as fallback.
-
-### 5. Re-index vault into FTS5
+### 4. Re-index vault into FTS5
 ```bash
 CTX="$HOME/.pi/agent/npm/node_modules/.bin/context-mode"
-VAULT="${VAULT_AI:-$HOME/Vaults/AI}"
+VAULT="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
 SLUG=<resolved slug from pre-step>
 "$CTX" index "$VAULT/personal/" --project "$VAULT" --ext .md 2>&1
 "$CTX" index "$VAULT/modules/"  --project "$VAULT" --ext .md 2>&1

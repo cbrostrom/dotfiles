@@ -15,7 +15,7 @@ import { execSync } from "child_process";
 import { resolve } from "path";
 
 const HOME = process.env.HOME ?? "~";
-const VAULT_AI = process.env.VAULT_AI ?? resolve(HOME, "Vaults/AI");
+const VAULT_AI = process.env.VAULT_AI ?? resolve(HOME, "Vaults/Higgins/AI");
 
 function abbreviatePath(p: string): string {
   if (p.startsWith(HOME)) return "~" + p.slice(HOME.length);
