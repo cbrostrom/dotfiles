@@ -15,10 +15,10 @@ The key rules from dotfiles/AGENTS.md that apply here:
 - English default. Code, comments, commits always English.
 - Coding principles: simplicity, surgical changes, build ladder (ponytail).
 
-## Memory (kb)
+## Memory (Higgins)
 
-CLI: `$VAULT_AI/tools/kb` (canonical); `~/dotfiles/scripts/brain` is a shim that execs `kb`; `kb` symlink also works.
-Vault: `~/Vaults/AI` (macOS, git-backed) — tier map: `personal/`, `modules/`, `projects/`, `infra/`, `sessions/`, `_ops/`
+CLI: `kb` (in PATH via `~/.local/bin/kb`); `~/dotfiles/scripts/brain` is a shim that execs `kb`.
+Vault: `~/Vaults/Higgins/AI` (macOS, git-backed) — tier map: `personal/`, `modules/`, `projects/`, `infra/`, `sessions/`, `_ops/`
 
 At the start of each session, if context is unclear, run:
 ```bash
@@ -45,19 +45,29 @@ kb digest [slug]       # scan sessions + propose updates (auto-runs prune+compac
 kb lint                # validate vault against _schema/
 ```
 
+### Higgins Workflow Integration
+- **Ralph-Wiggum**: During the "Reflection" phase of a `ralph` loop, ALWAYS update the project brain via `kb current` or `kb next` to persist progress across potential session resets.
+- **Pi-Compound**: When compounding a solution, write the final pattern to the appropriate Higgins module (`modules/<name>/patterns.md`) or project brain (`projects/<slug>/gotchas.md`) rather than generic docs.
+
 ## Skills
 
 Shared skills live in `~/.agents/skills/`. PI discovers these automatically.
 Use `/skill:<name>` to load and run a skill.
 
 Key shared skills available: `dotfiles`, `kb`, `code-reviewer`, `problem-solver`,
-`context-bridge`, `standup`, `morning-brief`, `dot-doctor`, `jira-assistant`,
+`standup`, `morning-brief`, `dot-doctor`, `jira-assistant`,
 `code-cleaner`, `shopify`, `pi` (PI-specific daily-driver reference).
 
 ## PI-specific
 
+- See `~/.config/pi/agent/README.md` for full architecture and package list.
 - Model selection: use spark presets via `/preset`. `fast` (Composer 2.5) for shell/edits,
   `sonnet` (Sonnet 4.6) for regular work, `think` (Sonnet 5) for planning/review.
+- Memory pipeline (zero-token):
+  1. `working-state` extension — deterministic compaction (strips thinking, preserves state)
+  2. `pi-rtk-optimizer` — output compaction + source filtering
+  3. `context-mode` — FTS5 knowledge base for vault lookups
+  4. `/session-extract` EOD — sessions → vault markdown + auto-learning
 - MCP servers: `pi-mcp-adapter` auto-loads `~/.cursor/mcp.json` servers (github, shopify-dev).
 - Project trust: use `/trust` once in trusted repos. Keep `defaultProjectTrust` at `"ask"`.
 - Hooks: if `pi-yaml-hooks` is installed, run `/hooks-status` to verify on first session.

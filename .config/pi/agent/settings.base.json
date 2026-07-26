@@ -1,27 +1,49 @@
 {
-  "defaultProvider": "cursor",
-  "defaultModel": "sonnet-4-6@200k",
-  "enabledModels": [
-    "cursor/sonnet-4-6@200k",
-    "cursor/composer-2.5"
-  ],
-  "defaultThinkingLevel": "medium",
-  "theme": "dark",
+  "defaultModel": "claude-haiku-4.5",
   "defaultProjectTrust": "ask",
-  "quietStartup": false,
+  "defaultProvider": "github-copilot",
+  "defaultThinkingLevel": "medium",
+  "doubleEscapeAction": "tree",
+  "editorPaddingX": 1,
   "enableInstallTelemetry": false,
+  "enabledModels": [],
+  "httpIdleTimeoutMs": 60000,
   "images": {
     "blockImages": false
   },
+  "packages": [
+    "npm:@juanibiapina/pi-extension-settings",
+    "npm:pi-stats-ext",
+    "npm:pi-spark",
+    "npm:pi-yaml-hooks",
+    "npm:pi-ask-user",
+    "npm:pi-web-access",
+    "npm:pi-prompt-template-model",
+    "npm:@juanibiapina/pi-powerbar",
+    "npm:@tmustier/pi-raw-paste",
+    "npm:pi-interactive-shell",
+    "git:github.com/davebcn87/pi-autoresearch",
+    "npm:@tmustier/pi-ralph-wiggum",
+    "npm:@victor-software-house/pi-curated-themes",
+    "npm:pi-intercom",
+    "git:github.com/v2nic/pi-caveman",
+    "npm:@narumitw/pi-caffeinate",
+    "npm:@narumitw/pi-chrome-devtools",
+    "npm:@gotgenes/pi-subagents",
+    "npm:context-mode",
+    "npm:pi-mcp-adapter",
+    "npm:pi-tool-display",
+    "npm:pi-rtk-optimizer",
+    "npm:@thisux/pi-double-esc-clear",
+    "npm:@diegopetrucci/pi-notify",
+    "npm:pi-effort"
+  ],
+  "quietStartup": false,
+  "steeringMode": "parallel",
   "terminal": {
     "showTerminalProgress": true
   },
-  "httpIdleTimeoutMs": 60000,
-  "packages": [
-    "npm:pi-cursor-sdk",
-    "npm:pi-mcp-adapter",
-    "npm:pi-stats-ext",
-    "npm:pi-spark",
-    "npm:@gotgenes/pi-subagents"
-  ]
+  "theme": "dark",
+  "transport": "auto",
+  "treeFilterMode": "default"
 }

@@ -5,28 +5,29 @@ description: PI coding agent daily-driver reference. Use when working inside PI,
 
 # PI Daily-Driver Skill
 
-Reference for Christian's PI coding agent daily-driver setup. PI runs Cursor models
-through `pi-cursor-sdk` and shares the same policy spine, skills, brain, and MCP
-servers as Cursor and Claude Code.
+Reference for Christian's PI coding agent daily-driver setup. PI uses Claude via
+GitHub Copilot and shares the same policy spine, skills, brain, and MCP servers
+as Cursor and Claude Code.
 
 ## Quick model reference
 
 | Preset | Model | Thinking | Use for |
 |--------|-------|----------|---------|
-| `fast` | Cursor Composer 2.5 | off | Quick edits, shell, chat |
-| `sonnet` | Cursor Sonnet 4.6 (200k) | medium | Default work |
-| `think` | Cursor Sonnet 5 | high | Planning, specs, deep review |
-| — (recap) | Cursor Haiku 4.5 | off | Idle/on-demand recap |
+| `fast` | Claude Opus (200k) | off | Quick edits, shell, chat |
+| `sonnet` | Claude Sonnet 5 | medium | Default work |
+| `think` | Claude Sonnet 5 | high | Planning, specs, deep review |
+| — (recap) | Claude Haiku | off | Idle/on-demand recap |
 
 Switch preset: `/preset fast`, `/preset sonnet`, `/preset think`
 Or start PI on a preset: `pi --preset sonnet`
-Show all models: `pi --list-models cursor`
-Refresh live catalog: `/cursor-refresh-models`
+Show all models: `pi --list-models`
+
+**Cost control:** Using GitHub Copilot ($20/mo) with stable token consumption.
+Alternative: Install `@schultzp2020/pi-cursor` for Cursor models via OpenAI-compatible proxy (no agent spawn overhead).
 
 ## Installed extensions
 
 ```
-pi-cursor-sdk      0.1.53  — Cursor models via local SDK agent runtime
 pi-mcp-adapter     2.10.0  — Lazy MCP proxy (auto-picks up ~/.cursor/mcp.json)
 pi-spark           0.15.0  — Presets, recap, compact TUI
 pi-stats-ext       0.1.0   — Token/cost dashboard (/pi-stats)
@@ -49,7 +50,7 @@ the full tool blast.
 
 - Use `subagent` with `subagent_type: "Explore"` for fast read-only codebase sweeps.
 - Use `run_in_background: true` for parallel info gathering; poll with `get_subagent_result`.
-- Global `Explore` agent uses Composer 2.5; main session stays on Sonnet 4.6.
+- Global `Explore` agent uses Claude Opus; main session stays on Sonnet 5.
 - Default to the main thread unless parallelism gives a clear win.
 
 ## Brain and memory
@@ -95,11 +96,31 @@ is Cursor-specific). PI hooks can guard, observe, notify, and prompt, not rewrit
 5. Project `.agents/skills/` is auto-discovered after trust.
 6. Project `AGENTS.md` or `CLAUDE.md` loads as context regardless of trust.
 
+## Known conflicts
+
+**pi-tool-display + pi-spark write tool conflict:**
+Both extensions register a `write` tool. PI fails to start with:
+`Tool "write" conflicts with ... pi-spark/index.ts`
+Fix: `~/.pi/agent/extensions/pi-tool-display/config.json` must set
+`registerToolOverrides.write: false`. The `install.sh` script ensures this
+automatically — run `bash ~/dotfiles/modules/pi/install.sh` after updates.
+
+Quick fix without reinstall: `pi -ne` → `/tool-display` → disable Write ownership → `/reload`.
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| `Tool "write" conflicts` | Run install.sh or manually set `write: false` in tool-display config |
+| Extensions not loading | `pi -ne` → `/reload` → check `/extensions` |
+| Stale shim (wrong version) | `fnm use default && pi update self` |
+| Hooks not firing | `/hooks-validate` → fix issues → `/hooks-reload` |
+
 ## Verification commands
 
 ```bash
 pi list                         # Installed extensions
-pi --list-models cursor         # Live model catalog
+pi --list-models                # Available models
 pi --version                    # PI version
 /preset                         # Show/select Spark presets
 /recap                          # Manual recap
@@ -119,5 +140,4 @@ Config sources (git-tracked in ~/dotfiles):
 To re-apply after changing dotfiles: `dotfiles --update` (if `pi` module is enabled)
 or `bash ~/dotfiles/modules/pi/install.sh`.
 
-Local-only (never committed): `auth.json`, `cursor-sdk-model-list.json`,
-`cursor-sdk.json`, `trust.json`, `sessions/`, `npm/`, `pi-stats/`.
+Local-only (never committed): `auth.json`, `trust.json`, `sessions/`, `npm/`, `pi-stats/`.

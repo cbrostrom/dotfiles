@@ -16,7 +16,7 @@ hooks:
     event: session.created
     actions:
       - notify:
-          text: "PI ready. Vault indexed → `ctx_search 'query'` for module/project lookups. `kb load` for structured briefing."
+          text: "PI ready. `ctx_search` for vault lookups. `/session-extract` EOD."
           level: info
 
   # ── Session start: vault knowledge index ─────────────────────────────────────
@@ -31,7 +31,7 @@ hooks:
       - bash: |
           CTX="$HOME/.pi/agent/npm/node_modules/.bin/context-mode"
           [[ -x "$CTX" ]] || exit 0
-          VAULT="${VAULT_AI:-$HOME/Vaults/AI}"
+          VAULT="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
           [[ -d "$VAULT" ]] || exit 0
           # Determine active project slug (mirrors kb slug resolution)
           if git rev-parse --git-dir >/dev/null 2>&1; then
@@ -58,7 +58,7 @@ hooks:
     event: session.idle
     actions:
       - bash: |
-          KB="${VAULT_AI:-$HOME/Vaults/AI}/tools/kb"
+          KB="${VAULT_AI:-$HOME/Vaults/Higgins/AI}/tools/kb"
           [[ -x "$KB" ]] || exit 0
           # Determine slug from cwd (mirrors kb slug resolution)
           if git rev-parse --git-dir >/dev/null 2>&1; then
@@ -68,64 +68,6 @@ hooks:
           fi
           "$KB" prune "$SLUG" 2>/dev/null || true
           "$KB" compact "$SLUG" 2>/dev/null || true
-      - notify:
-          text: "Session idle. Type `.remember` to run kb digest (scans sessions, proposes updates)."
-          level: info
-
-  # ── /new: auto-digest before session is discarded ───────────────────────────
-  # Fires only when reason=new (/new command). Runs full kb remember (digest +
-  # prune + compact) so context is preserved before the slate is wiped.
-  # session.deleted stdin JSON contains {"reason": "new"|"quit"|"reload"|...}
-  - id: new-session-digest
-    event: session.deleted
-    actions:
-      - bash: |
-          REASON="$(python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('reason',''))" 2>/dev/null || true)"
-          [[ "$REASON" == "new" ]] || exit 0
-          KB="${VAULT_AI:-$HOME/Vaults/AI}/tools/kb"
-          [[ -x "$KB" ]] || exit 0
-          if git rev-parse --git-dir >/dev/null 2>&1; then
-            SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
-          else
-            SLUG="$(basename "$PWD")"
-          fi
-          # Full digest: scans recent sessions, proposes entries, auto-prunes+compacts
-          VAULT_AI="${VAULT_AI:-$HOME/Vaults/AI}" "$KB" digest "$SLUG" 2>/dev/null || true
-
-  # ── Session end (quit/reload): digest + tidy + re-index ─────────────────────
-  # Fires on quit/reload/fork — NOT on /new (new-session-digest already handles
-  # that case). Runs kb digest from session logs (no AI needed, reads disk only),
-  # prune+compact, and FTS5 re-index. Best-effort: session.deleted is lossy and
-  # the hook may not always fire on hard kills, but covers normal quit cleanly.
-  - id: session-end-tidy
-    event: session.deleted
-    actions:
-      - bash: |
-          REASON="$(python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('reason',''))" 2>/dev/null || true)"
-          [[ "$REASON" == "new" ]] && exit 0  # new-session-digest already ran
-          KB="${VAULT_AI:-$HOME/Vaults/AI}/tools/kb"
-          [[ -x "$KB" ]] || exit 0
-          CTX="$HOME/.pi/agent/npm/node_modules/.bin/context-mode"
-          VAULT="${VAULT_AI:-$HOME/Vaults/AI}"
-          if git rev-parse --git-dir >/dev/null 2>&1; then
-            SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
-          else
-            SLUG="$(basename "$PWD")"
-          fi
-          # Digest: reads session logs on disk, synthesises vault entries, no AI context needed
-          VAULT_AI="$VAULT" "$KB" digest "$SLUG" 2>/dev/null || true
-          # Structural tidy
-          "$KB" prune "$SLUG" 2>/dev/null || true
-          "$KB" compact "$SLUG" 2>/dev/null || true
-          # Re-index FTS5 so next session starts with fresh vault knowledge
-          if [[ -x "$CTX" && -d "$VAULT" ]]; then
-            "$CTX" index "$VAULT/personal/" --project "$VAULT" --ext .md 2>/dev/null || true
-            "$CTX" index "$VAULT/modules/"  --project "$VAULT" --ext .md 2>/dev/null || true
-            [[ -d "$VAULT/projects/$SLUG" ]] && \
-              "$CTX" index "$VAULT/projects/$SLUG/" \
-                --project "$VAULT" --ext .md \
-                --exclude "history/**" --exclude "archive/**" 2>/dev/null || true
-          fi
 
   # ── File changed: aislop quality check ───────────────────────────────────────
   # Runs after PI writes/edits code files. aislop --pi checks score regression.
@@ -170,7 +112,7 @@ hooks:
           echo "$cmd" | grep -qE '\bkb (save|wrap|compact|prune)\b' || exit 0
           CTX="$HOME/.pi/agent/npm/node_modules/.bin/context-mode"
           [[ -x "$CTX" ]] || exit 0
-          VAULT="${VAULT_AI:-$HOME/Vaults/AI}"
+          VAULT="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
           [[ -d "$VAULT" ]] || exit 0
           if git rev-parse --git-dir >/dev/null 2>&1; then
             SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
