@@ -53,6 +53,14 @@ export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
 
+# macOS: Ensure Homebrew bin comes before system paths to use brew tools
+if $IS_MACOS; then
+    export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+fi
+
+# Vault location (used by kb CLI, PI hooks, context-mode indexing)
+export VAULT_AI="$HOME/Vaults/Higgins/AI"
+
 # =============================================================================
 # EDITOR CONFIGURATION
 # =============================================================================

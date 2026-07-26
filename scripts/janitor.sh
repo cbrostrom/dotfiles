@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # janitor.sh — nightly vault maintenance
-# Runs: lint → prune → compact → session-promote → git commit + push
-# Designed for cron on SuperBro (central hub) or any machine.
+# Runs: resolve-conflicts → lint → prune → compact → session-promote → mem-route
+# Designed for cron or manual run. Syncthing handles sync; no git dependency.
 set -euo pipefail
 
 VAULT_AI="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
@@ -17,6 +17,55 @@ log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG"; }
 cd "$VAULT_AI"
 log "=== Janitor started ==="
 log "Vault: $VAULT_AI"
+
+# 0. Resolve Syncthing conflicts
+log "--- resolve-conflicts ---"
+CONFLICT_COUNT=0
+RESOLVED_COUNT=0
+CONFLICT_DIR="$VAULT_AI/_ops/sync-conflicts"
+mkdir -p "$CONFLICT_DIR"
+
+while IFS= read -r -r conflict; do
+  CONFLICT_COUNT=$((CONFLICT_COUNT + 1))
+  CONFLICT_BASENAME=$(basename "$conflict")
+
+  # Skip .DS_Store conflicts — not worth tracking
+  if [[ "$CONFLICT_BASENAME" == *".DS_Store" ]]; then
+    rm "$conflict"
+    log "  conflict (ds-store): deleted $CONFLICT_BASENAME"
+    RESOLVED_COUNT=$((RESOLVED_COUNT + 1))
+    continue
+  fi
+
+  ORIGINAL="${conflict%%.sync-conflict-*}"
+
+  # If resolved path is a directory (conflict at vault root), skip
+  if [ -d "$ORIGINAL" ]; then
+    mv "$conflict" "$CONFLICT_DIR/$CONFLICT_BASENAME"
+    log "  conflict (root orphan): archived $CONFLICT_BASENAME"
+    RESOLVED_COUNT=$((RESOLVED_COUNT + 1))
+    continue
+  fi
+
+  if [ ! -f "$ORIGINAL" ]; then
+    mv "$conflict" "$ORIGINAL"
+    log "  conflict (orphan): restored $(basename "$ORIGINAL")"
+    RESOLVED_COUNT=$((RESOLVED_COUNT + 1))
+    continue
+  fi
+
+  if [ "$ORIGINAL" -nt "$conflict" ]; then
+    mv "$conflict" "$CONFLICT_DIR/$CONFLICT_BASENAME"
+    log "  conflict: kept original, archived $CONFLICT_BASENAME"
+  else
+    mv "$ORIGINAL" "$CONFLICT_DIR/$(basename "$ORIGINAL")"
+    mv "$conflict" "$ORIGINAL"
+    log "  conflict: replaced with newer, archived $(basename "$ORIGINAL")"
+  fi
+  RESOLVED_COUNT=$((RESOLVED_COUNT + 1))
+done < <(find "$VAULT_AI" -name '.sync-conflict-*' -type f 2>/dev/null)
+
+log "resolve-conflicts: $RESOLVED_COUNT resolved of $CONFLICT_COUNT found"
 
 # 1. Lint
 log "--- kb lint ---"
@@ -110,18 +159,6 @@ if [ -d "$MEM_DIR" ]; then
   log "mem: processed $SCRAP_COUNT file(s), routed $ROUTED_COUNT entries"
 else
   log "mem: skipped (no _ops/mem/ directory)"
-fi
-
-# 6. Git commit + push
-log "--- git ---"
-CHANGES=$(git status --porcelain)
-if [ -n "$CHANGES" ]; then
-  git add -A
-  git commit -m "janitor: nightly maintenance $DATE" >> "$LOG" 2>&1
-  git push >> "$LOG" 2>&1
-  log "git: committed + pushed"
-else
-  log "git: nothing to commit"
 fi
 
 log "=== Janitor done ==="

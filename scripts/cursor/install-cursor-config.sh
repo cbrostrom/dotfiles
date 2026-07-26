@@ -20,6 +20,7 @@ warn()    { echo -e "${YELLOW}[cursor]${NC} $1"; }
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CURSOR_SRC="$DOTFILES/.cursor"
+CURSOR_DIR=""
 
 # --- WSL Host Target Detection ---
 if grep -q Microsoft /proc/version 2>/dev/null; then

@@ -25,7 +25,7 @@ LOCAL="$SCRIPT_DIR/.claude/settings.local.json"
 [[ -f "$LOCAL" ]] || { log_warning "No settings.local.json — run install-claude-config.sh first"; exit 1; }
 
 MERGED="$(python3 - "$BASE" "$LOCAL" "$SCRIPT_DIR/.claude/settings.darwin.json" "$SCRIPT_DIR/.claude/settings.linux.json" "$SCRIPT_DIR/.claude/settings.wsl.json" <<'PYEOF'
-import json, sys
+import json, sys, os
 
 # Arrays under these keys are always taken from base (not merged with local)
 BASE_WINS_ARRAYS = {'permissions'}
@@ -43,7 +43,7 @@ def deep_merge(base, override, base_wins_arrays=None, _key=None):
 
 # OS Layering Logic
 def get_os_override():
-    import platform, os
+    import platform
     # WSL usually identifies as linux, but we can check for WSL specifically
     if "microsoft" in platform.release().lower() or os.path.exists("/proc/sys/kernel/osrelease"):
         # More robust WSL check

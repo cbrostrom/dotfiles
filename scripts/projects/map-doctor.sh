@@ -29,7 +29,7 @@ for arg in "$@"; do
     esac
 done
 
-VAULT_AI="${VAULT_AI:-$HOME/Vaults/AI}"
+VAULT_AI="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
 CLAUDE_SKILLS="$HOME/.claude/skills"
 AGENTS_SKILLS="$HOME/.agents/skills"
 CURSOR_SKILLS="$HOME/.cursor/skills"

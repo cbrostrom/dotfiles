@@ -136,7 +136,7 @@ iso_age_days() {
 # Returns 0 if a modular brain dir exists in the vault for this slug.
 has_brain() {
     local slug="$1"
-    local vault="${VAULT_AI:-$HOME/Vaults/AI}"
+    local vault="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
     [[ -d "$vault/projects/$slug" ]]
 }
 

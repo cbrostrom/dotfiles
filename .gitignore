@@ -103,3 +103,6 @@ gaming/config/launch.log
 .claude/skills/use-spark/
 .claude/hooks/herdr-agent-state.sh
 *.original.md
+
+# Local MCP config (contains absolute paths, not shareable)
+.cursor/

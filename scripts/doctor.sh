@@ -299,37 +299,11 @@ fi # is_headless
 if [[ "$is_headless" == "false" ]]; then
 hdr "Shared rules (Claude + Cursor)"
 shared_rules_dir="$DOTFILES_DIR/.shared-rules"
-canonical_engram="$shared_rules_dir/engram-graphiti.md"
 cursor_marker="$shared_rules_dir/.cursor-synced"
 
-if [[ ! -f "$canonical_engram" ]]; then
-    bad "canonical $canonical_engram missing — Fix: re-pull dotfiles or run shared-rules setup"
+if [[ -f "$cursor_marker" ]]; then
+    ok "Cursor User Rules in sync with canonical (per marker)"
 else
-    ok "canonical engram-graphiti.md present"
-fi
-
-claude_engram_link="$HOME/.claude/engram-graphiti.md"
-if [[ -L "$claude_engram_link" ]]; then
-    if [[ "$(readlink -f "$claude_engram_link" 2>/dev/null || realpath "$claude_engram_link" 2>/dev/null)" == "$canonical_engram" ]]; then
-        ok "~/.claude/engram-graphiti.md → canonical (Claude @-includes via CLAUDE.md)"
-    else
-        warn "~/.claude/engram-graphiti.md points elsewhere — Fix: ln -sfn $canonical_engram $claude_engram_link"
-    fi
-elif [[ -e "$claude_engram_link" ]]; then
-    warn "~/.claude/engram-graphiti.md is not a symlink — Fix: rm + ln -sfn"
-else
-    bad "~/.claude/engram-graphiti.md missing — Fix: ln -sfn $canonical_engram $claude_engram_link"
-fi
-
-# Drift: warn if canonical is newer than the cursor-synced marker.
-# User pastes content into Cursor cloud User Rules manually, then `touch .cursor-synced`.
-if [[ -f "$canonical_engram" && -f "$cursor_marker" ]]; then
-    if [[ "$canonical_engram" -nt "$cursor_marker" ]]; then
-        warn "engram-graphiti.md edited after last Cursor sync — re-paste into Cursor cloud User Rules, then: touch $cursor_marker"
-    else
-        ok "Cursor User Rules in sync with canonical (per marker)"
-    fi
-elif [[ -f "$canonical_engram" && ! -f "$cursor_marker" ]]; then
     warn "no .cursor-synced marker yet — paste canonical into Cursor cloud User Rules, then: touch $cursor_marker"
 fi
 fi # is_headless
@@ -414,112 +388,9 @@ fi # is_headless
 
 
 # ----- engram local + sync diagnostic -----
-# Skipped on headless servers (engram removed in favor of local vaults)
-if [[ "$is_headless" == "false" ]]; then
-hdr "engram local + git sync"
-if is_wsl; then
-    WIN_HOME="/mnt/c/Users/${USER}"
-    ENGRAM_BIN="${WIN_HOME}/go/bin/engram.exe"
-    ENGRAM_ROOT="${WIN_HOME}/.engram"
-    if [[ -x "$ENGRAM_BIN" ]]; then
-        ok "engram (WSL→Windows): $ENGRAM_BIN ($("$ENGRAM_BIN" version 2>/dev/null | head -1 || echo '?'))"
-    else
-        warn "engram Windows binary missing: $ENGRAM_BIN — Fix: (PowerShell) go install github.com/Gentleman-Programming/engram/cmd/engram@latest"
-    fi
-elif command -v engram >/dev/null 2>&1; then
-    ok "engram on PATH: $(command -v engram) ($(engram version 2>/dev/null | head -1))"
-else
-    case "$(uname -s)" in
-        Darwin) warn "engram not on PATH — Fix: go install github.com/Gentleman-Programming/engram/cmd/engram@latest" ;;
-        Linux)  warn "engram not on PATH — Fix: go install github.com/Gentleman-Programming/engram/cmd/engram@latest" ;;
-        *)      warn "engram not on PATH — see https://github.com/Gentleman-Programming/engram" ;;
-    esac
-fi
-for vault in personal work; do
-    if is_wsl; then
-        vault_dir="${ENGRAM_ROOT:-/mnt/c/Users/${USER}/.engram}/$vault"
-    else
-        vault_dir="$HOME/.engram/$vault"
-    fi
-    if [[ -d "$vault_dir" ]]; then
-        ok "vault $vault: $vault_dir"
-    else
-        warn "vault $vault missing: $vault_dir"
-    fi
-done
-if is_wsl; then
-    sync_repo="/mnt/c/Users/${USER}/.engram"
-else
-    sync_repo="$HOME/engram-sync"
-fi
-if [[ -d "$sync_repo/.git" ]]; then
-    remote="$(git -C "$sync_repo" remote get-url origin 2>/dev/null || echo none)"
-    if [[ "$remote" == "git@github.com:cbrostrom/engram.git" ]]; then
-        ok "$sync_repo origin → cbrostrom/engram"
-    else
-        warn "$sync_repo origin: $remote (expected git@github.com:cbrostrom/engram.git)"
-    fi
-    if git -C "$sync_repo" rev-parse '@{u}' >/dev/null 2>&1; then
-        pending="$(git -C "$sync_repo" log '@{u}..HEAD' --oneline 2>/dev/null | wc -l | tr -d ' ')"
-        if (( pending > 0 )); then
-            warn "$pending unpushed commit(s) in $sync_repo — Fix: cd $sync_repo && git push"
-        else
-            ok "$sync_repo in sync with origin"
-        fi
-    else
-        local_commits="$(git -C "$sync_repo" log --oneline 2>/dev/null | wc -l | tr -d ' ')"
-        warn "$sync_repo has no upstream tracking ($local_commits local commit(s) never pushed) — Fix: cd $sync_repo && git push -u origin main"
-    fi
-else
-    warn "$sync_repo not a git repo — Fix: bash $DOTFILES_DIR/scripts/install/engram.sh"
-fi
-case "$(uname -s)" in
-    Darwin)
-        plist="$HOME/Library/LaunchAgents/dk.brostrom.engram-sync.plist"
-        if launchctl list dk.brostrom.engram-sync >/dev/null 2>&1; then
-            last_exit="$(launchctl list dk.brostrom.engram-sync 2>/dev/null | awk '/LastExitStatus/{print $3}' | tr -d ';"')"
-            if [[ "$last_exit" == "0" || -z "$last_exit" ]]; then
-                ok "launchd dk.brostrom.engram-sync loaded (last exit: ${last_exit:-not yet run})"
-            else
-                warn "launchd dk.brostrom.engram-sync last exit=$last_exit — Fix: tail ~/Library/Logs/engram-sync.log"
-            fi
-        elif [[ -f "$plist" ]]; then
-            warn "launchd plist exists but not loaded — Fix: launchctl load $plist"
-        else
-            warn "launchd plist missing — Fix: bash $DOTFILES_DIR/scripts/install/engram.sh"
-        fi
-        log_file="$HOME/Library/Logs/engram-sync.log"
-        ;;
-    Linux)
-        if systemctl --user is-enabled engram-sync.timer >/dev/null 2>&1; then
-            timer_state="$(systemctl --user is-active engram-sync.timer 2>/dev/null)"
-            path_state="$(systemctl --user is-active engram-sync.path 2>/dev/null)"
-            if [[ "$timer_state" == "active" && "$path_state" == "active" ]]; then
-                ok "systemd-user engram-sync.{timer,path} active"
-            else
-                warn "systemd-user units not fully active (timer=$timer_state, path=$path_state) — Fix: systemctl --user start engram-sync.timer engram-sync.path"
-            fi
-            last_exit="$(systemctl --user show engram-sync.service -p ExecMainStatus --value 2>/dev/null)"
-            [[ -n "$last_exit" && "$last_exit" != "0" ]] && warn "engram-sync.service last exit=$last_exit — Fix: journalctl --user -u engram-sync.service -n 30"
-            if ! loginctl show-user "$USER" 2>/dev/null | grep -q "Linger=yes"; then
-                warn "linger NOT enabled — timers stop on logout. Fix: sudo loginctl enable-linger $USER"
-            fi
-        elif command -v systemctl >/dev/null 2>&1; then
-            warn "engram-sync systemd-user units not enabled — Fix: bash $DOTFILES_DIR/scripts/install/engram.sh"
-        else
-            warn "systemctl not found — WSL? Enable systemd in /etc/wsl.conf, then wsl --shutdown"
-        fi
-        log_file="${XDG_STATE_HOME:-$HOME/.local/state}/engram-sync.log"
-        ;;
-esac
-if [[ -n "${log_file:-}" && -f "$log_file" ]]; then
-    last_line="$(tail -1 "$log_file" 2>/dev/null)"
-    last_mtime="$(stat -f '%Sm' -t '%Y-%m-%d %H:%M:%S' "$log_file" 2>/dev/null \
-                || stat -c '%y' "$log_file" 2>/dev/null | cut -d'.' -f1)"
-    echo "  last sync log: $last_mtime"
-    [[ -n "$last_line" ]] && echo "    $last_line"
-fi
-fi # is_headless
+# REMOVED in favor of local vaults (Higgins)
+# This section is intentionally left empty or can be removed.
+:
 
 # ----- graphiti remote health -----
 # Skipped on headless servers
@@ -544,7 +415,7 @@ fi # is_headless
 # ----- MCP staleness diagnostic -----
 # Skipped on headless servers
 if [[ "$is_headless" == "false" ]]; then
-# Reports last-modified time on MCP config files vs running engram-related
+# Reports last-modified time on MCP config files vs running non-engram-related
 # processes. Useful when "MCP updates aren't coming through" — usually it's
 # because Cursor / Claude need a session restart.
 hdr "MCP config freshness"
@@ -557,7 +428,7 @@ for cfg in "$HOME/.cursor/mcp.json" "$HOME/.claude.json"; do
 done
 # Portable across macOS/Linux: ps + grep. Exclude grep itself + own process.
 running_mcp="$(ps -A -o pid,command 2>/dev/null \
-    | grep -E 'engram mcp|graphiti|mcp-mermaid|tailwindcss-mcp|shopify.*dev-mcp|apple-mcp|@modelcontextprotocol/server-github' \
+    | grep -E 'graphiti|mcp-mermaid|tailwindcss-mcp|shopify.*dev-mcp|apple-mcp|@modelcontextprotocol/server-github' \
     | grep -v 'grep -E' \
     | wc -l | tr -d ' ')"
 echo "  Running MCP-related processes (this host): $running_mcp"
@@ -565,7 +436,7 @@ if (( running_mcp == 0 )); then
     warn "No MCP processes running. Cursor/Claude load mcp.json at session start — restart the agent after editing config."
 else
     if (( running_mcp > 30 )); then
-        warn "Unusually high MCP process count ($running_mcp). Possible leaked processes from previous agent sessions — Fix: pkill -f 'engram mcp|graphiti|mcp-mermaid|tailwindcss-mcp|shopify.*dev-mcp|apple-mcp|server-github' (then relaunch agent)"
+        warn "Unusually high MCP process count ($running_mcp). Possible leaked processes from previous agent sessions — Fix: pkill -f 'graphiti|mcp-mermaid|tailwindcss-mcp|shopify.*dev-mcp|apple-mcp|server-github' (then relaunch agent)"
     else
         echo "  If a recently-edited server isn't responding, restart the agent fully (Cmd+Q for IDE, exit/reopen for CLI)."
     fi

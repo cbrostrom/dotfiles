@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-# brain — transition shim → execs canonical kb CLI in the AI vault
+# brain — shim → execs canonical kb CLI (prefer `kb` directly)
 VAULT_AI="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
 exec "$VAULT_AI/tools/kb" "$@"

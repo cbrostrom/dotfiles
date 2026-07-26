@@ -9,13 +9,13 @@ set -uo pipefail
 INPUT="$(cat)"
 echo "$INPUT" > /tmp/cursor-stop-event.json
 
-KB="${VAULT_AI:-$HOME/Vaults/AI}/tools/kb"
+KB="${VAULT_AI:-$HOME/Vaults/Higgins/AI}/tools/kb"
 
 # Platform detection
 if grep -qi microsoft /proc/version 2>/dev/null || [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
   VAULT_AI_PATH="/mnt/c/Users/christian/Obsidian/AI"
 else
-  VAULT_AI_PATH="${VAULT_AI:-$HOME/Vaults/AI}"
+  VAULT_AI_PATH="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
 fi
 
 VAULT_SESSIONS="${VAULT_AI_PATH}/sessions"
@@ -67,20 +67,12 @@ fi
 MODULAR_DIR="${VAULT_PROJECTS}/${SLUG}"
 [[ -d "$MODULAR_DIR" ]] || exit 0
 
-# Capture git commits from the active workspace (today, last 24h fallback)
-GIT_LOG=""
-if [[ -n "$WORKSPACE" ]] && git -C "$WORKSPACE" rev-parse --git-dir >/dev/null 2>&1; then
-  GIT_LOG="$(git -C "$WORKSPACE" log --oneline --since="today" --format="- %h %s" 2>/dev/null || true)"
-  [[ -z "$GIT_LOG" ]] && GIT_LOG="$(git -C "$WORKSPACE" log --oneline --since="24 hours ago" --format="- %h %s" 2>/dev/null || true)"
-fi
-
 if [[ -n "$TRANSCRIPT" && -f "$TRANSCRIPT" ]]; then
-  python3 - "$TRANSCRIPT" "$MODULAR_DIR/pending.md" "$NOW" "$SESSION_FILE" "$GIT_LOG" <<'PY'
+  python3 - "$TRANSCRIPT" "$MODULAR_DIR/pending.md" "$NOW" "$SESSION_FILE" <<'PY'
 import json, sys, re
 from pathlib import Path
 
 transcript_path, out_path, now, session_file = sys.argv[1:5]
-git_log = sys.argv[5] if len(sys.argv) > 5 else ""
 WRITE_TOOLS = {"Write", "StrReplace", "Delete", "EditNotebook"}
 HOME = str(Path.home())
 
@@ -116,19 +108,13 @@ try:
 except Exception:
     pass
 
-if not edited and not git_log:
+if not edited:
     sys.exit(0)
 
 lines = [
     f"# Pending review — {now}",
     f"_Unreviewed. At session start: promote to current.md/next.md if relevant, then delete._",
 ]
-
-if git_log:
-    lines.append("")
-    lines.append("## Commits this session")
-    for line in git_log.strip().splitlines():
-        lines.append(line)
 
 if edited:
     lines.append("")

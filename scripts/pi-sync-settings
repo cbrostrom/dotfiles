@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Sync Pi settings from ~/.pi/agent/settings.json → dotfiles/.config/pi/agent/settings.base.json
+# Filters out runtime fields (lastChangelogVersion, trackingId)
+# Usage: pi-sync-settings
+
+set -euo pipefail
+
+PI_CURRENT="$HOME/.pi/agent/settings.json"
+
+# Find dotfiles via git or DOTFILES_DIR
+DOTFILES_DIR="${DOTFILES_DIR:-}"
+if [[ -z "$DOTFILES_DIR" ]]; then
+    DOTFILES_DIR="$(git -C ~ rev-parse --show-toplevel 2>/dev/null || echo ~/dotfiles)"
+fi
+
+DOTFILES_BASE="$DOTFILES_DIR/.config/pi/agent/settings.base.json"
+
+if [[ ! -f "$PI_CURRENT" ]]; then
+    echo "✗ $PI_CURRENT not found"
+    exit 1
+fi
+
+if [[ ! -d "$DOTFILES_DIR" ]]; then
+    echo "✗ DOTFILES_DIR not found: $DOTFILES_DIR"
+    exit 1
+fi
+
+python3 - "$PI_CURRENT" "$DOTFILES_BASE" <<'PYEOF'
+import json, sys, os
+
+current_path = sys.argv[1]
+base_path = sys.argv[2]
+
+with open(current_path) as f:
+    current = json.load(f)
+
+# Filter runtime fields
+RUNTIME_KEYS = {"lastChangelogVersion", "trackingId"}
+base_config = {k: v for k, v in current.items() if k not in RUNTIME_KEYS}
+
+with open(base_path, "w") as f:
+    json.dump(base_config, f, indent=2)
+
+print(f"✓ Synced ~/.pi/agent/settings.json → .config/pi/agent/settings.base.json")
+print(f"  Excluded runtime: {', '.join(sorted(RUNTIME_KEYS))}")
+print(f"\n  Next: cd ~/dotfiles && git add .config/pi/agent/settings.base.json && git commit -m 'Pi settings sync'")
+PYEOF
