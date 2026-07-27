@@ -8,10 +8,6 @@
 {
     "redact_private_values": true,
     "context_servers": {
-        "claude-code": {
-            "command": "claude",
-            "args": ["mcp", "serve"]
-        }
     },
     "auto_install_extensions": {
         "astro": true,

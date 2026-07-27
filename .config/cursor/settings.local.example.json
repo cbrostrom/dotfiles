@@ -1,0 +1,19 @@
+// Cursor settings — machine-specific overrides
+// Copy to ~/.config/cursor/settings.local.json and customize per machine
+// These settings override the base settings.json
+
+{
+  // Project paths — customize per machine
+  "projectManager.git.baseFolders": [
+    "/Users/YOUR_USERNAME/Projects"
+    // Linux: "/home/YOUR_USERNAME/Projects"
+  ],
+  "projectManager.vscode.baseFolders": [
+    "/Users/YOUR_USERNAME/Projects/Workspaces"
+    // Linux: "/home/YOUR_USERNAME/Projects/Workspaces"
+  ],
+  "projectManager.any.baseFolders": [
+    "/Users/YOUR_USERNAME/Projects"
+    // Linux: "/home/YOUR_USERNAME/Projects"
+  ]
+}
