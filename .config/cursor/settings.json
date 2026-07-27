@@ -112,11 +112,11 @@
     "SolidJS",
     "NextJS",
   ],
-  "projectManager.git.baseFolders": ["/Users/Christian.Brostrom/Projects"],
+  "projectManager.git.baseFolders": ["__HOME__/Projects"],
   "projectManager.vscode.baseFolders": [
-    "/Users/Christian.Brostrom/Projects/Workspaces",
+    "__HOME__/Projects/Workspaces",
   ],
-  "projectManager.any.baseFolders": ["/Users/Christian.Brostrom/Projects"],
+  "projectManager.any.baseFolders": ["__HOME__/Projects"],
   "projectManager.git.ignoredFolders": [
     "node_modules",
     "out",

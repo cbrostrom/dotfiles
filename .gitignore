@@ -106,3 +106,8 @@ gaming/config/launch.log
 
 # Local MCP config (contains absolute paths, not shareable)
 .cursor/
+
+# Tool artifacts
+.aislop/session.jsonl
+scripts/phase5-setup.sh
+tui/scripts/
