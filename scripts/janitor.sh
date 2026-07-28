@@ -160,8 +160,8 @@ for entry in "${REVIEW[@]}"; do
 done
 
 # Stalled projects (60+ days) — AI analysis if enabled
-STALLED_COUNT=${#STALLED[@]:-0}
-if [ $STALLED_COUNT -gt 0 ]; then
+STALLED_COUNT=${#STALLED[@]}
+if (( STALLED_COUNT > 0 )); then
   for entry in "${STALLED[@]}"; do
     IFS='|' read -r PROJ_NAME LAST_MOD DAYS_OLD <<< "$entry"
     
