@@ -60,6 +60,13 @@ done
 log "--- resolve-conflicts ---"
 RESOLVED=0
 find . -name '.sync-conflict-*' -type f 2>/dev/null | while read conflict; do
+  # Skip .DS_Store conflicts (not worth tracking)
+  if [[ "$conflict" == *".DS_Store" ]]; then
+    rm -f "$conflict"
+    log "  skipped: .DS_Store conflict"
+    continue
+  fi
+  
   ORIGINAL="${conflict%%.sync-conflict-*}"
   
   if [ ! -f "$ORIGINAL" ]; then
