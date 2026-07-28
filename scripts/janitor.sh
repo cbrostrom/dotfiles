@@ -64,9 +64,17 @@ done
 [ "$APPONLY_SAFE" = false ] && err "Append-only files compromised, aborting" && exit 1
 
 # ============================================================================
-# 1. RESOLVE SYNCTHING CONFLICTS
+# 1. RESOLVE SYNCTHING CONFLICTS + CLEANUP JUNK FILES
 # ============================================================================
 log "--- resolve-conflicts ---"
+
+# Delete .DS_Store files (macOS metadata, no vault value)
+DS_COUNT=$(find . -name '.DS_Store' -type f 2>/dev/null | wc -l | tr -d ' ')
+if [ "$DS_COUNT" -gt 0 ]; then
+  find . -name '.DS_Store' -type f -delete 2>/dev/null
+  log "  deleted: $DS_COUNT .DS_Store files"
+fi
+
 RESOLVED=0
 find . -name '.sync-conflict-*' -type f 2>/dev/null | while read conflict; do
   # Skip .DS_Store conflicts (not worth tracking)
