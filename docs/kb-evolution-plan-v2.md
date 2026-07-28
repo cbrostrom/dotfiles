@@ -91,9 +91,20 @@ Snapshots:      ~/Vaults/Higgins/AI/personal/history/
 - Resolution note: What confirmed it is fixed
 ```
 
+### File structure:
+```
+[header]
+[ACTIVE entries]
+[WATCH entries]
+---
+## Resolved
+[RESOLVED entries — stay here indefinitely as institutional memory]
+```
+
 ### Staleness thresholds:
 - `Renewed` date > 30 days ago → flagged STALE by kb-review.sh
-- `Status: RESOLVED` AND `Resolved` date > 90 days ago → flagged ARCHIVE CANDIDATE
+- kb-review.sh only scans entries ABOVE the `---` divider
+- Everything under `## Resolved` is ignored by all scripts
 
 ### ID assignment rule:
 No counter file. Next ID = highest existing [G-NNN] number + 1.
@@ -220,13 +231,15 @@ date_add_days() {
 
 ### Gotcha file parser (awk):
 Outputs one line per entry: `ID|STATUS|RENEWED|TITLE`
+Stops at `---` divider — entries below `## Resolved` are never scanned.
 Skips entries without [G-NNN] format (old-format entries — graceful degradation).
 ```bash
 parse_gotchas() {
   local file="$1"
   awk '
+    /^---/ { exit }  # stop at resolved divider
     BEGIN { id=""; title=""; status=""; renewed="" }
-    /^## \[G-[0-9]+\]/ {
+    /^\.## \[G-[0-9]+\]/ {
       if (id != "") print id "|" status "|" renewed "|" title
       match($0, /\[G-[0-9]+\]/)
       id = substr($0, RSTART, RLENGTH)
