@@ -30,6 +30,15 @@ log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG"; }
 err() { echo "[ERROR] $*" | tee -a "$LOG"; }
 
 cd "$VAULT_AI"
+
+# Detect OS for date/stat compatibility
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  GET_MTIME() { stat -f%Sm -t%Y-%m-%d "$1" 2>/dev/null; }
+else
+  GET_MTIME() { stat -c%y "$1" 2>/dev/null | cut -d' ' -f1; }
+fi
+export -f GET_MTIME
+
 log "=== Janitor v3.1 started ==="
 log "Vault: $VAULT_AI"
 log "AI: $JANITOR_AI_ENABLED | Model: $JANITOR_AI_MODEL"
@@ -93,7 +102,8 @@ DELETED=0
 for old_log in "$LOG_DIR"/*.log; do
   [ -f "$old_log" ] || continue
   LOG_DATE=$(basename "$old_log" .log)
-  if [[ "$LOG_DATE" < "$CUTOFF" ]]; then
+  # Only compare if LOG_DATE has expected format YYYY-MM-DD
+  if [[ "$LOG_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && [[ "$LOG_DATE" < "$CUTOFF" ]]; then
     rm "$old_log"
     log "  deleted: $LOG_DATE (older than $CUTOFF)"
     DELETED=$((DELETED + 1))
@@ -102,28 +112,62 @@ done
 log "log-rotation: deleted $DELETED old logs"
 
 # ============================================================================
-# 3. SLIPPING PROJECTS (20d threshold, with optional Big Pickle AI)
+# 3. PROJECT ANALYSIS (mechanical preprocessing + optional AI)
 # ============================================================================
-log "--- slipping-projects ---"
+log "--- project-analysis ---"
 > "$REPORT_DIR/slipping-projects.md"
 echo "# Slipping Projects Report — $DATE" >> "$REPORT_DIR/slipping-projects.md"
 echo "" >> "$REPORT_DIR/slipping-projects.md"
-echo "Threshold: $JANITOR_SLIPPING_THRESHOLD days | AI: $JANITOR_AI_ENABLED" >> "$REPORT_DIR/slipping-projects.md"
+echo "Mechanical preprocessing: categorize by staleness, AI only on 60+ day projects" >> "$REPORT_DIR/slipping-projects.md"
 echo "" >> "$REPORT_DIR/slipping-projects.md"
-echo "| Project | Last Modified | Days Old | Assessment |" >> "$REPORT_DIR/slipping-projects.md"
-echo "|---------|---|---|---|" >> "$REPORT_DIR/slipping-projects.md"
 
-SLIPPING_COUNT=0
+# Mechanical pass 1: categorize by staleness
+set +u  # Allow unbound arrays
+declare -a ACTIVE REVIEW STALLED
+
 for proj in projects/*/; do
   [ -d "$proj" ] || continue
   PROJ_NAME=$(basename "$proj")
-  LAST_MOD=$(stat -f%Sm -t%Y-%m-%d "$proj" 2>/dev/null || echo "unknown")
-  DAYS_OLD=$(( ($(date +%s) - $(date -j -f%Y-%m-%d "$LAST_MOD" +%s 2>/dev/null || echo 0)) / 86400 ))
+  LAST_MOD=$(GET_MTIME "$proj")
+  DAYS_OLD=$(( ($(date +%s) - $(date -j -f%Y-%m-%d "$LAST_MOD" +%s 2>/dev/null || date -d "$LAST_MOD" +%s 2>/dev/null || echo 0)) / 86400 ))
   
-  if [ "$DAYS_OLD" -ge "$JANITOR_SLIPPING_THRESHOLD" ]; then
+  if [ "$DAYS_OLD" -lt 20 ]; then
+    ACTIVE+=("$PROJ_NAME|$LAST_MOD|$DAYS_OLD")
+  elif [ "$DAYS_OLD" -lt 60 ]; then
+    REVIEW+=("$PROJ_NAME|$LAST_MOD|$DAYS_OLD")
+  else
+    STALLED+=("$PROJ_NAME|$LAST_MOD|$DAYS_OLD")
+  fi
+done
+
+log "mechanical-pass-1: ACTIVE=${#ACTIVE[@]} | REVIEW=${#REVIEW[@]} | STALLED=${#STALLED[@]}"
+
+# Report table
+echo "| Tier | Project | Last Modified | Days Old | Assessment |" >> "$REPORT_DIR/slipping-projects.md"
+echo "|------|---------|---|---|---|" >> "$REPORT_DIR/slipping-projects.md"
+
+# Active projects (0-20 days)
+for entry in "${ACTIVE[@]}"; do
+  IFS='|' read -r PROJ_NAME LAST_MOD DAYS_OLD <<< "$entry"
+  echo "| Active | $PROJ_NAME | $LAST_MOD | $DAYS_OLD | Running (no action needed) |" >> "$REPORT_DIR/slipping-projects.md"
+done
+
+# Review projects (20-60 days)
+for entry in "${REVIEW[@]}"; do
+  IFS='|' read -r PROJ_NAME LAST_MOD DAYS_OLD <<< "$entry"
+  log "  $PROJ_NAME: $DAYS_OLD days (review, no AI)"
+  echo "| Review | $PROJ_NAME | $LAST_MOD | $DAYS_OLD | Check status (mechanical) |" >> "$REPORT_DIR/slipping-projects.md"
+done
+
+# Stalled projects (60+ days) — AI analysis if enabled
+STALLED_COUNT=${#STALLED[@]:-0}
+if [ $STALLED_COUNT -gt 0 ]; then
+  for entry in "${STALLED[@]}"; do
+    IFS='|' read -r PROJ_NAME LAST_MOD DAYS_OLD <<< "$entry"
+    
     if [ "$JANITOR_AI_ENABLED" = true ] && [ -n "$JANITOR_AI_KEY" ]; then
-      # Get AI assessment via Big Pickle
-      CONTEXT=$(cat "$proj/current.md" 2>/dev/null | head -3 | tr '\n' ' ' || echo "no content")
+      # AI only on genuinely stalled projects
+      CONTEXT=$(cat "projects/$PROJ_NAME/current.md" 2>/dev/null | head -3 | tr '\n' ' ' || echo "no content")
       RESPONSE=$(timeout $JANITOR_AI_TIMEOUT curl -s \
         "https://opencode.ai/zen/v1/responses" \
         -H "Authorization: Bearer $JANITOR_AI_KEY" \
@@ -132,26 +176,30 @@ for proj in projects/*/; do
       
       AI_TEXT=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "API error"' 2>/dev/null || echo "Parse error")
       ASSESSMENT="$AI_TEXT"
-      log "  $PROJ_NAME: $DAYS_OLD days (AI: $ASSESSMENT)"
+      log "  $PROJ_NAME: $DAYS_OLD days (stalled, AI: $ASSESSMENT)"
     else
-      ASSESSMENT="Needs review (mechanical: $DAYS_OLD days idle)"
-      log "  $PROJ_NAME: $DAYS_OLD days (mechanical)"
+      ASSESSMENT="Stalled, needs investigation"
+      log "  $PROJ_NAME: $DAYS_OLD days (stalled, mechanical)"
     fi
     
-    echo "| $PROJ_NAME | $LAST_MOD | $DAYS_OLD | $ASSESSMENT |" >> "$REPORT_DIR/slipping-projects.md"
-    SLIPPING_COUNT=$((SLIPPING_COUNT + 1))
-  fi
-done
+    echo "| Stalled | $PROJ_NAME | $LAST_MOD | $DAYS_OLD | $ASSESSMENT |" >> "$REPORT_DIR/slipping-projects.md"
+  done
+fi
 
 echo "" >> "$REPORT_DIR/slipping-projects.md"
-echo "**Summary:** $SLIPPING_COUNT projects flagged" >> "$REPORT_DIR/slipping-projects.md"
-log "slipping-projects: $SLIPPING_COUNT projects need review"
+echo "**Summary:** ${#ACTIVE[@]} active | ${#REVIEW[@]} review | $STALLED_COUNT stalled" >> "$REPORT_DIR/slipping-projects.md"
+log "project-analysis: ${#ACTIVE[@]} active | ${#REVIEW[@]} review | $STALLED_COUNT stalled"
 
 # ============================================================================
 # 4. ARCHIVE CLEANUP (180-day auto-consolidation)
 # ============================================================================
 log "--- archive-cleanup ---"
-ARCHIVE_CUTOFF=$(date -d "${JANITOR_ARCHIVE_THRESHOLD} days ago" +%Y-%m-%d 2>/dev/null || date -v-${JANITOR_ARCHIVE_THRESHOLD}d +%Y-%m-%d)
+# Cross-platform date calculation for archive cutoff
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  ARCHIVE_CUTOFF=$(date -v-${JANITOR_ARCHIVE_THRESHOLD}d +%Y-%m-%d)
+else
+  ARCHIVE_CUTOFF=$(date -d "${JANITOR_ARCHIVE_THRESHOLD} days ago" +%Y-%m-%d)
+fi
 ARCHIVE_MOVED=0
 find archive -type f 2>/dev/null | while read file; do
   FILE_DATE=$(stat -f%Sm -t%Y-%m-%d "$file" 2>/dev/null || echo "unknown")
@@ -189,7 +237,9 @@ cat > "$REPORT_DIR/health-$DATE.json" << HEALTH_EOF
   "vault_size": "$VAULT_SIZE",
   "projects": {
     "total": $PROJ_COUNT,
-    "slipping": $SLIPPING_COUNT
+    "active": ${#ACTIVE[@]},
+    "review": ${#REVIEW[@]},
+    "stalled": $STALLED_COUNT
   },
   "archive": {
     "files": $ARCHIVE_COUNT,
@@ -203,9 +253,10 @@ cat > "$REPORT_DIR/health-$DATE.json" << HEALTH_EOF
     "enabled": $JANITOR_AI_ENABLED,
     "model": "$JANITOR_AI_MODEL"
   }
-}
+}  
 HEALTH_EOF
 log "health-report: saved to $REPORT_DIR/health-$DATE.json"
+set -u  # Re-enable unbound variable check
 
 # ============================================================================
 # DONE
