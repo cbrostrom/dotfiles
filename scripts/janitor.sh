@@ -1,164 +1,207 @@
-#!/usr/bin/env bash
-# janitor.sh — nightly vault maintenance
-# Runs: resolve-conflicts → lint → prune → compact → session-promote → mem-route
-# Designed for cron or manual run. Syncthing handles sync; no git dependency.
+#!/bin/bash
+# janitor.sh v3.1 — nightly vault maintenance with Big Pickle AI
+# Supports manual run on any device, automated cron on SuperBro only
 set -euo pipefail
 
 VAULT_AI="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
-KB="$VAULT_AI/tools/kb"
+VAULT_HIGGINS="${VAULT_HIGGINS:-$HOME/Vaults/Higgins}"
+CONF_FILE="${CONF_FILE:-$HOME/dotfiles/scripts/janitor.conf}"
 LOG_DIR="$VAULT_AI/_ops/janitor-logs"
+REPORT_DIR="$LOG_DIR/reports"
 DATE=$(date '+%Y-%m-%d')
 LOG="$LOG_DIR/$DATE.log"
 
-mkdir -p "$LOG_DIR"
+# Load config from dotfiles
+JANITOR_AI_ENABLED=false
+JANITOR_AI_KEY="${OPENCODE_API_KEY:-}"
+JANITOR_AI_MODEL="big-pickle"
+JANITOR_AI_TIMEOUT=10
+JANITOR_SLIPPING_THRESHOLD=20
+JANITOR_ARCHIVE_THRESHOLD=180
+JANITOR_LOG_RETENTION=7
+
+if [ -f "$CONF_FILE" ]; then
+  source "$CONF_FILE"
+fi
+
+mkdir -p "$LOG_DIR" "$REPORT_DIR"
 
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG"; }
+err() { echo "[ERROR] $*" | tee -a "$LOG"; }
 
 cd "$VAULT_AI"
-log "=== Janitor started ==="
+log "=== Janitor v3.1 started ==="
 log "Vault: $VAULT_AI"
+log "AI: $JANITOR_AI_ENABLED | Model: $JANITOR_AI_MODEL"
 
-# 0. Resolve Syncthing conflicts
+# ============================================================================
+# 0. APPEND-ONLY VERIFICATION
+# ============================================================================
+log "--- append-only-verification ---"
+APPONLY_SAFE=true
+for apponly_file in personal/decisions.md personal/gotchas.md; do
+  if [ ! -f "$apponly_file" ]; then
+    log "  warning: $apponly_file missing"
+    continue
+  fi
+  if [ ! -s "$apponly_file" ]; then
+    err "CRITICAL: $apponly_file empty (truncated by sync)"
+    APPONLY_SAFE=false
+    continue
+  fi
+  LINES=$(wc -l < "$apponly_file")
+  log "  safe: $apponly_file ($LINES lines)"
+done
+[ "$APPONLY_SAFE" = false ] && err "Append-only files compromised, aborting" && exit 1
+
+# ============================================================================
+# 1. RESOLVE SYNCTHING CONFLICTS
+# ============================================================================
 log "--- resolve-conflicts ---"
-CONFLICT_COUNT=0
-RESOLVED_COUNT=0
-CONFLICT_DIR="$VAULT_AI/_ops/sync-conflicts"
-mkdir -p "$CONFLICT_DIR"
-
-while IFS= read -r -r conflict; do
-  CONFLICT_COUNT=$((CONFLICT_COUNT + 1))
-  CONFLICT_BASENAME=$(basename "$conflict")
-
-  # Skip .DS_Store conflicts — not worth tracking
-  if [[ "$CONFLICT_BASENAME" == *".DS_Store" ]]; then
-    rm "$conflict"
-    log "  conflict (ds-store): deleted $CONFLICT_BASENAME"
-    RESOLVED_COUNT=$((RESOLVED_COUNT + 1))
-    continue
-  fi
-
+RESOLVED=0
+find . -name '.sync-conflict-*' -type f 2>/dev/null | while read conflict; do
   ORIGINAL="${conflict%%.sync-conflict-*}"
-
-  # If resolved path is a directory (conflict at vault root), skip
-  if [ -d "$ORIGINAL" ]; then
-    mv "$conflict" "$CONFLICT_DIR/$CONFLICT_BASENAME"
-    log "  conflict (root orphan): archived $CONFLICT_BASENAME"
-    RESOLVED_COUNT=$((RESOLVED_COUNT + 1))
-    continue
-  fi
-
+  
   if [ ! -f "$ORIGINAL" ]; then
     mv "$conflict" "$ORIGINAL"
-    log "  conflict (orphan): restored $(basename "$ORIGINAL")"
-    RESOLVED_COUNT=$((RESOLVED_COUNT + 1))
-    continue
-  fi
-
-  if [ "$ORIGINAL" -nt "$conflict" ]; then
-    mv "$conflict" "$CONFLICT_DIR/$CONFLICT_BASENAME"
-    log "  conflict: kept original, archived $CONFLICT_BASENAME"
+    log "  restored: $ORIGINAL"
+  elif [ "$ORIGINAL" -nt "$conflict" ]; then
+    rm "$conflict"
+    log "  kept newer: $ORIGINAL"
   else
-    mv "$ORIGINAL" "$CONFLICT_DIR/$(basename "$ORIGINAL")"
+    mv "$ORIGINAL" "archive/$(basename "$ORIGINAL")-old-$(date +%s)"
     mv "$conflict" "$ORIGINAL"
-    log "  conflict: replaced with newer, archived $(basename "$ORIGINAL")"
+    log "  replaced: $ORIGINAL (older version archived)"
   fi
-  RESOLVED_COUNT=$((RESOLVED_COUNT + 1))
-done < <(find "$VAULT_AI" -name '.sync-conflict-*' -type f 2>/dev/null)
+  RESOLVED=$((RESOLVED + 1))
+done
+[ $RESOLVED -gt 0 ] && log "resolve-conflicts: $RESOLVED conflicts resolved" || log "resolve-conflicts: none found"
 
-log "resolve-conflicts: $RESOLVED_COUNT resolved of $CONFLICT_COUNT found"
-
-# 1. Lint
-log "--- kb lint ---"
-if "$KB" lint >> "$LOG" 2>&1; then
-  log "lint: OK"
-else
-  log "lint: ERRORS (check log)"
-fi
-
-# 2. Prune
-log "--- kb prune ---"
-if "$KB" prune >> "$LOG" 2>&1; then
-  log "prune: OK"
-else
-  log "prune: ERRORS (check log)"
-fi
-
-# 3. Compact
-log "--- kb compact ---"
-if "$KB" compact >> "$LOG" 2>&1; then
-  log "compact: OK"
-else
-  log "compact: ERRORS (check log)"
-fi
-
-# 4. Session promote (gotcha scanner)
-log "--- session-promote ---"
-if [ -x "$VAULT_AI/tools/session-promote" ]; then
-  if "$VAULT_AI/tools/session-promote" >> "$LOG" 2>&1; then
-    log "session-promote: OK"
-  else
-    log "session-promote: ERRORS (check log)"
+# ============================================================================
+# 2. LOG ROTATION (7 days)
+# ============================================================================
+log "--- log-rotation ---"
+CUTOFF=$(date -d "${JANITOR_LOG_RETENTION} days ago" +%Y-%m-%d 2>/dev/null || date -v-${JANITOR_LOG_RETENTION}d +%Y-%m-%d)
+DELETED=0
+for old_log in "$LOG_DIR"/*.log; do
+  [ -f "$old_log" ] || continue
+  LOG_DATE=$(basename "$old_log" .log)
+  if [[ "$LOG_DATE" < "$CUTOFF" ]]; then
+    rm "$old_log"
+    log "  deleted: $LOG_DATE (older than $CUTOFF)"
+    DELETED=$((DELETED + 1))
   fi
-else
-  log "session-promote: skipped (not found or not executable)"
-fi
+done
+log "log-rotation: deleted $DELETED old logs"
 
-# 5. Mem routing (classify scraps → route to projects or personal)
-log "--- mem routing ---"
-MEM_DIR="$VAULT_AI/_ops/mem"
-MEM_PROCESSED="$MEM_DIR/processed"
-if [ -d "$MEM_DIR" ]; then
-  mkdir -p "$MEM_PROCESSED"
-  SCRAP_COUNT=0
-  ROUTED_COUNT=0
-  
-  for file in "$MEM_DIR"/scraps-*.md; do
-    [ -f "$file" ] || continue
-    SCRAP_COUNT=$((SCRAP_COUNT + 1))
-    BASENAME=$(basename "$file")
-    
-    # Parse entries (separated by ---)
-    while IFS= read -r -d '' entry || [ -n "$entry" ]; do
-      # Extract Note field
-      NOTE=$(echo "$entry" | grep -A1 "^Note:" | tail -1 | sed 's/^ *//')
-      REPO=$(echo "$entry" | grep -A1 "^Repo:" | tail -1 | sed 's/^ *//')
-      
-      [ -z "$NOTE" ] && continue
-      
-      # Simple keyword classification
-      PROJECT=""
-      if echo "$NOTE" | grep -qiE '(shopify|liquid|theme|akqa)'; then
-        PROJECT="akqa-denmark-shopify-theme-build"
-      elif echo "$NOTE" | grep -qiE '(tauri|huskr|todo)'; then
-        PROJECT="huskr"
-      elif echo "$NOTE" | grep -qiE '(hopper|browser|sidebar)'; then
-        PROJECT="hopper"
-      elif echo "$NOTE" | grep -qiE '(laesr|rss|feed)'; then
-        PROJECT="laesr"
-      elif echo "$NOTE" | grep -qiE '(dotfiles|shell|zsh|hook)'; then
-        PROJECT="dotfiles"
-      elif echo "$NOTE" | grep -qiE '(pi|deck|ui)'; then
-        PROJECT="pi-deck"
-      fi
-      
-      # Route to project or personal
-      if [ -n "$PROJECT" ] && [ -d "$VAULT_AI/projects/$PROJECT" ]; then
-        echo "- $NOTE [mem: $BASENAME]" >> "$VAULT_AI/projects/$PROJECT/current.md"
-        log "  routed → projects/$PROJECT: $NOTE"
-      else
-        echo "- $NOTE [mem: $BASENAME]" >> "$VAULT_AI/personal/current.md"
-        log "  routed → personal: $NOTE"
-      fi
-      ROUTED_COUNT=$((ROUTED_COUNT + 1))
-    done < <(awk '/^---$/{if(entry) print entry; entry=""} /^/{entry=entry $0 "\n"} END{if(entry) print entry}' "$file")
-    
-    # Move processed file
-    mv "$file" "$MEM_PROCESSED/$BASENAME"
-  done
-  
-  log "mem: processed $SCRAP_COUNT file(s), routed $ROUTED_COUNT entries"
-else
-  log "mem: skipped (no _ops/mem/ directory)"
-fi
+# ============================================================================
+# 3. SLIPPING PROJECTS (20d threshold, with optional Big Pickle AI)
+# ============================================================================
+log "--- slipping-projects ---"
+> "$REPORT_DIR/slipping-projects.md"
+echo "# Slipping Projects Report — $DATE" >> "$REPORT_DIR/slipping-projects.md"
+echo "" >> "$REPORT_DIR/slipping-projects.md"
+echo "Threshold: $JANITOR_SLIPPING_THRESHOLD days | AI: $JANITOR_AI_ENABLED" >> "$REPORT_DIR/slipping-projects.md"
+echo "" >> "$REPORT_DIR/slipping-projects.md"
+echo "| Project | Last Modified | Days Old | Assessment |" >> "$REPORT_DIR/slipping-projects.md"
+echo "|---------|---|---|---|" >> "$REPORT_DIR/slipping-projects.md"
 
-log "=== Janitor done ==="
+SLIPPING_COUNT=0
+for proj in projects/*/; do
+  [ -d "$proj" ] || continue
+  PROJ_NAME=$(basename "$proj")
+  LAST_MOD=$(stat -f%Sm -t%Y-%m-%d "$proj" 2>/dev/null || echo "unknown")
+  DAYS_OLD=$(( ($(date +%s) - $(date -j -f%Y-%m-%d "$LAST_MOD" +%s 2>/dev/null || echo 0)) / 86400 ))
+  
+  if [ "$DAYS_OLD" -ge "$JANITOR_SLIPPING_THRESHOLD" ]; then
+    if [ "$JANITOR_AI_ENABLED" = true ] && [ -n "$JANITOR_AI_KEY" ]; then
+      # Get AI assessment via Big Pickle
+      CONTEXT=$(cat "$proj/current.md" 2>/dev/null | head -3 | tr '\n' ' ' || echo "no content")
+      RESPONSE=$(timeout $JANITOR_AI_TIMEOUT curl -s \
+        "https://opencode.ai/zen/v1/responses" \
+        -H "Authorization: Bearer $JANITOR_AI_KEY" \
+        -H "Content-Type: application/json" \
+        -d "{\"model\": \"$JANITOR_AI_MODEL\", \"messages\": [{\"role\": \"user\", \"content\": \"In one sentence: is this project slipping or reasonably paused? Last update: $LAST_MOD ($DAYS_OLD days ago). Project: $CONTEXT\"}]}" 2>/dev/null || echo "{}")
+      
+      AI_TEXT=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "API error"' 2>/dev/null || echo "Parse error")
+      ASSESSMENT="$AI_TEXT"
+      log "  $PROJ_NAME: $DAYS_OLD days (AI: $ASSESSMENT)"
+    else
+      ASSESSMENT="Needs review (mechanical: $DAYS_OLD days idle)"
+      log "  $PROJ_NAME: $DAYS_OLD days (mechanical)"
+    fi
+    
+    echo "| $PROJ_NAME | $LAST_MOD | $DAYS_OLD | $ASSESSMENT |" >> "$REPORT_DIR/slipping-projects.md"
+    SLIPPING_COUNT=$((SLIPPING_COUNT + 1))
+  fi
+done
+
+echo "" >> "$REPORT_DIR/slipping-projects.md"
+echo "**Summary:** $SLIPPING_COUNT projects flagged" >> "$REPORT_DIR/slipping-projects.md"
+log "slipping-projects: $SLIPPING_COUNT projects need review"
+
+# ============================================================================
+# 4. ARCHIVE CLEANUP (180-day auto-consolidation)
+# ============================================================================
+log "--- archive-cleanup ---"
+ARCHIVE_CUTOFF=$(date -d "${JANITOR_ARCHIVE_THRESHOLD} days ago" +%Y-%m-%d 2>/dev/null || date -v-${JANITOR_ARCHIVE_THRESHOLD}d +%Y-%m-%d)
+ARCHIVE_MOVED=0
+find archive -type f 2>/dev/null | while read file; do
+  FILE_DATE=$(stat -f%Sm -t%Y-%m-%d "$file" 2>/dev/null || echo "unknown")
+  if [[ "$FILE_DATE" < "$ARCHIVE_CUTOFF" ]]; then
+    # Move to dated subdirectory in archive
+    YEAR_MONTH=$(echo "$FILE_DATE" | cut -d- -f1-2)
+    mkdir -p "archive/$YEAR_MONTH"
+    mv "$file" "archive/$YEAR_MONTH/"
+    log "  consolidated: $FILE_DATE → archive/$YEAR_MONTH/"
+    ARCHIVE_MOVED=$((ARCHIVE_MOVED + 1))
+  fi
+done
+log "archive-cleanup: consolidated $ARCHIVE_MOVED old files"
+
+# ============================================================================
+# 5. ME FOLDER NOTE (manual cleanup only)
+# ============================================================================
+log "--- me-folder ---"
+log "  NOTE: Me/ is manual cleanup only (user-managed)"
+log "  User should review and prune: inbox/, quick/, trash/ as needed"
+
+# ============================================================================
+# 6. HEALTH REPORT (JSON snapshot)
+# ============================================================================
+log "--- health-report ---"
+PROJ_COUNT=$(find projects -maxdepth 1 -type d | wc -l)
+PROJ_COUNT=$((PROJ_COUNT - 1))  # Subtract projects/ itself
+ARCHIVE_COUNT=$(find archive -type f | wc -l)
+ARCHIVE_SIZE=$(du -sh archive 2>/dev/null | cut -f1)
+VAULT_SIZE=$(du -sh . 2>/dev/null | cut -f1)
+
+cat > "$REPORT_DIR/health-$DATE.json" << HEALTH_EOF
+{
+  "date": "$DATE",
+  "vault_size": "$VAULT_SIZE",
+  "projects": {
+    "total": $PROJ_COUNT,
+    "slipping": $SLIPPING_COUNT
+  },
+  "archive": {
+    "files": $ARCHIVE_COUNT,
+    "size": "$ARCHIVE_SIZE"
+  },
+  "logs": {
+    "retained_days": $JANITOR_LOG_RETENTION,
+    "cutoff_date": "$CUTOFF"
+  },
+  "ai": {
+    "enabled": $JANITOR_AI_ENABLED,
+    "model": "$JANITOR_AI_MODEL"
+  }
+}
+HEALTH_EOF
+log "health-report: saved to $REPORT_DIR/health-$DATE.json"
+
+# ============================================================================
+# DONE
+# ============================================================================
+log "=== Janitor complete ==="
+log "Reports: $REPORT_DIR/"
