@@ -344,7 +344,7 @@ function summarizeSession(
 
   const sessionEntry = entries.find((e) => e.type === "session");
   const date = sessionEntry?.timestamp
-    ? new Date(sessionEntry.timestamp).toISOString().split("T")[0]
+    ? new Date(sessionEntry.timestamp).toISOString()
     : "unknown";
 
   const modelEntry = entries.find((e) => e.type === "model_change");
@@ -530,35 +530,48 @@ async function updateBrainFiles(summary: SessionSummary): Promise<void> {
   }
 }
 
+// ── Logging with timestamps ────────────────────────────────────────────────
+
+function log(msg: string): void {
+  const iso = new Date().toISOString();
+  console.log(`[${iso}] ${msg}`);
+}
+
 // ── Main ────────────────────────────────────────────────────────────────────
 
 async function main() {
   const opts = parseArgs();
   const state = await loadState();
+  const startTime = Date.now();
+  const prevProcessedCount = Object.keys(state.processed).length;
 
-  console.log("🔍 Discovering sessions...");
+  log("🔍 Discovering sessions...");
   const sessions = await discoverSessions(opts.since, opts.project);
-  console.log(`   Found ${sessions.length} sessions`);
+  log(`   Found ${sessions.length} sessions`);
+  log(`   Previously processed: ${prevProcessedCount} sessions`);
 
   let extracted = 0;
   let skipped = 0;
+  let skipReasons: Record<string, number> = { "already processed": 0, "empty": 0 };
 
   for (const session of sessions) {
     if (!opts.reindex && state.processed[session.id]) {
       const processedTime = new Date(state.processed[session.id]);
       if (session.mtime <= processedTime) {
+        skipReasons["already processed"]++;
         skipped++;
         continue;
       }
     }
 
-    console.log(`\n📝 Processing: ${session.id} (${session.project})`);
+    log(`📝 Processing: ${session.id} (${session.project})`);
 
     const entries = await parseSession(session.path);
     const summary = summarizeSession(entries, session.project, session.id);
 
     if (!summary) {
-      console.log("   ⚠️  Empty session, skipping");
+      log(`   ⚠️  Empty session, skipping`);
+      skipReasons["empty"]++;
       skipped++;
       continue;
     }
@@ -569,19 +582,62 @@ async function main() {
     const year = dateParts[0] || "unknown";
     const month = dateParts[1] || "01";
     const outDir = join(VAULT_SESSIONS_DIR, year, month);
-    const outFile = join(outDir, `${summary.project}-${summary.id}.md`);
+    // Sortable filename: YYYY-MM-DD-HH-mm-ss_project_shortId.md
+    const timestamp = summary.date.split(".")[0].replace(/[T:]/g, "-"); // 2026-07-28-12-52-00
+    const shortId = summary.id.slice(0, 8);
+    const outFile = join(outDir, `${timestamp}_${summary.project}_${shortId}.md`);
 
     if (opts.dryRun) {
-      console.log("   📋 Dry run — would write:");
-      console.log(`      ${outFile}`);
-      console.log(`      ${summary.intent.slice(0, 80)}...`);
+      log(`   📋 Dry run — would write:`);
+      log(`      ${outFile}`);
+      log(`      ${summary.intent.slice(0, 80)}...`);
     } else {
       await mkdir(outDir, { recursive: true });
       await writeFile(outFile, markdown);
-      console.log(`   ✅ Written: ${outFile}`);
+      log(`   ✅ Written: ${outFile}`);
+      log(`      Timestamp: ${timestamp} | Project: ${summary.project} | ID: ${shortId}...`);
+      log(`      Intent: ${summary.intent.slice(0, 60)}...`);
 
-      // Auto-update brain files (zero-token learning)
-      await updateBrainFiles(summary);
+      // Auto-update brain files (zero-token learning) with audit trail
+      const brainDir = join(VAULT_AI, "personal");
+      await mkdir(brainDir, { recursive: true });
+
+      // Gotchas
+      const gotchaLines: string[] = [];
+      for (const { error, solution } of summary.errors) {
+        const gotcha = `- ${error.slice(0, 100)} → ${solution.slice(0, 100)}`;
+        gotchaLines.push(gotcha);
+      }
+      for (const learning of summary.learnings) {
+        if (/gotcha|pitfall|watch out|be careful|don't|never|always|caveat/i.test(learning)) {
+          gotchaLines.push(`- ${learning}`);
+        }
+      }
+      if (gotchaLines.length > 0) {
+        const gotchasFile = join(brainDir, "gotchas.md");
+        if (await appendIfNew(gotchasFile, gotchaLines)) {
+          log(`   🧠 Janitor: gotchas.md +${gotchaLines.length} (${gotchaLines.slice(0, 2).map(l => l.slice(0, 40)).join(' | ')})`);
+      }
+      }
+
+      // Current
+      const currentLines: string[] = [];
+      for (const decision of summary.decisions) {
+        if (/prefer|always use|instead of|rather than|switched to/i.test(decision)) {
+          currentLines.push(`- ${decision}`);
+        }
+      }
+      for (const learning of summary.learnings) {
+        if (/prefer|pattern|convention|style|workflow/i.test(learning)) {
+          currentLines.push(`- ${learning}`);
+        }
+      }
+      if (currentLines.length > 0) {
+        const currentFile = join(brainDir, "current.md");
+        if (await appendIfNew(currentFile, currentLines)) {
+          log(`   🧠 Janitor: current.md +${currentLines.length} (${currentLines.slice(0, 2).map(l => l.slice(0, 40)).join(' | ')})`);
+        }
+      }
 
       state.processed[session.id] = new Date().toISOString();
     }
@@ -593,8 +649,14 @@ async function main() {
     await saveState(state);
   }
 
-  console.log(`\n📊 Done: ${extracted} extracted, ${skipped} skipped`);
-  console.log(`   Vault: ${VAULT_SESSIONS_DIR}`);
+  const elapsedMs = Date.now() - startTime;
+  const newProcessedCount = Object.keys(state.processed).length;
+  log(`\n📊 Summary:`);
+  log(`   Extracted: ${extracted}`);
+  log(`   Skipped: ${skipped} (${Object.entries(skipReasons).map(([k, v]) => `${k}: ${v}`).join(", ")})`);
+  log(`   Total processed state: ${prevProcessedCount} → ${newProcessedCount}`);
+  log(`   Vault: ${VAULT_SESSIONS_DIR}`);
+  log(`   Duration: ${(elapsedMs / 1000).toFixed(1)}s`);
 }
 
 main().catch((err) => {
