@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "mcporter": {
-      "command": "npx",
-      "args": ["mcporter", "serve", "--stdio"],
+      "command": "mcporter",
+      "args": ["serve", "--stdio"],
       "env": {
         "MCPORTER_CONFIG": "${HOME}/.mcporter/mcporter.json"
       }
