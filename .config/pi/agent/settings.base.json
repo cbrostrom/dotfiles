@@ -1,12 +1,17 @@
 {
-  "defaultModel": "claude-haiku-4.5",
+  "defaultModel": "default",
   "defaultProjectTrust": "ask",
-  "defaultProvider": "github-copilot",
-  "defaultThinkingLevel": "medium",
+  "defaultProvider": "cursor",
+  "defaultThinkingLevel": "off",
   "doubleEscapeAction": "tree",
   "editorPaddingX": 1,
   "enableInstallTelemetry": false,
-  "enabledModels": [],
+  "enabledModels": [
+    "cursor/default",
+    "cursor/gpt-5.4-mini",
+    "cursor/composer-2.5",
+    "cursor/claude-sonnet-4-6"
+  ],
   "httpIdleTimeoutMs": 60000,
   "images": {
     "blockImages": false
@@ -36,7 +41,9 @@
     "npm:pi-rtk-optimizer",
     "npm:@thisux/pi-double-esc-clear",
     "npm:@diegopetrucci/pi-notify",
-    "npm:pi-effort"
+    "npm:pi-effort",
+    "npm:@schultzp2020/pi-cursor",
+    "npm:pi-mcporter"
   ],
   "quietStartup": false,
   "steeringMode": "parallel",
