@@ -11,19 +11,22 @@ as Cursor and Claude Code.
 
 ## Quick model reference
 
+Cursor subscription default. Presets live in `~/.config/pi/agent/spark.json`.
+
 | Preset | Model | Thinking | Use for |
 |--------|-------|----------|---------|
-| `fast` | Claude Opus (200k) | off | Quick edits, shell, chat |
-| `sonnet` | Claude Sonnet 5 | medium | Default work |
-| `think` | Claude Sonnet 5 | high | Planning, specs, deep review |
-| — (recap) | Claude Haiku | off | Idle/on-demand recap |
+| (default) | `cursor/default` (Auto) | off | Daily work |
+| `fast` | `cursor/gpt-5.4-mini` | off | Shell, quick edits, cheap turns |
+| `sonnet` | `cursor/default` (Auto) | off | Same as default via `/preset` |
+| `think` | `cursor/claude-sonnet-4-6` | high | Planning, specs, deep review |
+| — (recap) | `cursor/gpt-5.4-mini` | off | Idle/on-demand recap |
+| manual | `cursor/composer-2.5` | — | Deterministic agent coding via `/model` |
 
 Switch preset: `/preset fast`, `/preset sonnet`, `/preset think`
 Or start PI on a preset: `pi --preset sonnet`
-Show all models: `pi --list-models`
+Show all models: `pi --list-models cursor`
 
-**Cost control:** Using GitHub Copilot ($20/mo) with stable token consumption.
-Alternative: Install `@schultzp2020/pi-cursor` for Cursor models via OpenAI-compatible proxy (no agent spawn overhead).
+**Cost control:** Auto daily + mini for recap/shell. Escalate to Sonnet 4.6 only via `/preset think`. Avoid parallel subagents unless the win is clear.
 
 ## Installed extensions
 

@@ -44,7 +44,7 @@ export PATH
     && source "$HOME/dotfiles/modules/rbw/env-secrets.zsh"
 
 # Pi global model (overrides project-local settings)
-export PI_MODEL="github-copilot/claude-sonnet-5"
+export PI_MODEL="cursor/default"
 
 # OpenCode server override (headless only — allows git commit/push)
 if [[ -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" && -f "$HOME/.config/opencode/server.json" ]]; then
