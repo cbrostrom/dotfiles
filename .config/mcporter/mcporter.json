@@ -10,16 +10,6 @@
       "args": ["mcp"],
       "lifecycle": "keep-alive"
     },
-    "shopify-dev": {
-      "command": "npx",
-      "args": ["@shopify/mcp-server"],
-      "env": {
-        "SHOPIFY_API_KEY": "${SHOPIFY_API_KEY}",
-        "SHOPIFY_API_SECRET": "${SHOPIFY_API_SECRET}",
-        "SHOPIFY_STORE_URL": "${SHOPIFY_STORE_URL}"
-      },
-      "lifecycle": "keep-alive"
-    },
     "github": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],
