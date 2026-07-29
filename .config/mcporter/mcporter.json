@@ -2,11 +2,13 @@
   "mcpServers": {
     "kb": {
       "type": "remote",
-      "url": "http://100.100.1.50:8765/mcp"
+      "url": "http://100.100.1.50:8765/mcp",
+      "lifecycle": "keep-alive"
     },
     "deja": {
       "command": "/Users/Christian.Brostrom/.local/bin/deja",
-      "args": ["mcp"]
+      "args": ["mcp"],
+      "lifecycle": "keep-alive"
     },
     "shopify-dev": {
       "command": "npx",
@@ -15,18 +17,21 @@
         "SHOPIFY_API_KEY": "${SHOPIFY_API_KEY}",
         "SHOPIFY_API_SECRET": "${SHOPIFY_API_SECRET}",
         "SHOPIFY_STORE_URL": "${SHOPIFY_STORE_URL}"
-      }
+      },
+      "lifecycle": "keep-alive"
     },
     "github": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
-      }
+      },
+      "lifecycle": "keep-alive"
     },
     "atlassian": {
       "type": "remote",
-      "url": "https://mcp.atlassian.com/v1/mcp/authv2"
+      "url": "https://mcp.atlassian.com/v1/mcp/authv2",
+      "lifecycle": "keep-alive"
     }
   }
 }
