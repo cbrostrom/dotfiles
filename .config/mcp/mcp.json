@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "mcporter": {
+      "command": "npx",
+      "args": ["mcporter", "proxy", "--stdio"],
+      "env": {
+        "MCPORTER_CONFIG": "${HOME}/.mcporter/mcporter.json"
+      }
+    }
+  }
+}
