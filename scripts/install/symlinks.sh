@@ -332,6 +332,14 @@ create_symlink "$SCRIPT_DIR/scripts/dotfetch.sh" "$HOME/.local/bin/dotfetch" "do
 create_symlink "$SCRIPT_DIR/scripts/opencode-web.sh" "$HOME/.local/bin/opencode-web" "opencode-web (service wrapper)"
 create_symlink "$SCRIPT_DIR/scripts/opencode-web-traefik.sh" "$HOME/.local/bin/opencode-web-traefik" "opencode-web-traefik (config generator)"
 
+# rtk — Rust Token Killer (output compaction for agents)
+# Symlink Homebrew binary to ~/.local/bin so Pi extensions can find it
+if [[ "$IS_MACOS" == "true" ]] && [[ -x "/opt/homebrew/bin/rtk" ]]; then
+    create_symlink "/opt/homebrew/bin/rtk" "$HOME/.local/bin/rtk" "rtk (Homebrew → ~/.local/bin)"
+elif [[ "$IS_LINUX" == "true" ]] && [[ -x "/home/linuxbrew/.linuxbrew/bin/rtk" ]]; then
+    create_symlink "/home/linuxbrew/.linuxbrew/bin/rtk" "$HOME/.local/bin/rtk" "rtk (Linuxbrew → ~/.local/bin)"
+fi
+
 # ob — Obsidian REST API CLI
 # pi — PI coding agent shim (stable across fnm project-node switches)
 # brain / kb — knowledgebase CLI shims (require ~/Vaults/Higgins/AI — desktop only)
