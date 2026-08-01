@@ -2,6 +2,7 @@
   "enabled": true,
   "logSavings": true,
   "showUpdateEvery": 10,
+  "rtkPath": "/opt/homebrew/bin/rtk",
   "techniques": {
     "ansiStripping": true,
     "truncation": { "enabled": true, "maxChars": 10000 },
