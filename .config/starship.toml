@@ -16,11 +16,9 @@
 # =============================================================================
 # GLOBAL
 # =============================================================================
-# Bump default 500ms — fnm multishell node shims add startup latency and
-# can blow past the default, producing "command timed out" warnings.
 command_timeout = 2000
 
-format = """$hostname$directory$git_branch$git_status$package$nodejs$golang$rust$python$docker_context$aws$kubernetes$terraform$memory_usage$cmd_duration$conda$battery$fill$env_var
+format = """$hostname$directory$git_branch$git_status$package$nodejs$cmd_duration$fill$env_var
 $time$character"""
 
 # =============================================================================
@@ -37,7 +35,7 @@ error_symbol = " [✗](#e63946 bold) "
 truncation_length = 4
 truncation_symbol = ""
 truncate_to_repo = true
-format = "[ $path]($style) "
+format = "[ $path]($style) "
 style = "#e76f51 bold"
 
 # =============================================================================
@@ -63,10 +61,9 @@ symbol = " "
 style = "#f4a261 bold"
 
 [git_status]
-format = '\[ [$ahead_behind$conflicted$staged$modified$untracked$renamed$deleted$stashed]($style)\] '
+format = '\[ [$ahead_behind$staged$modified$untracked$stashed]($style)\] '
 style = "#f4a261 bold"
 
-conflicted = "🏳$count "
 ahead = "⇡$count "
 behind = "⇣$count "
 diverged = "⇕⇡$ahead_count⇣$behind_count "
@@ -74,8 +71,11 @@ untracked = "🤷$count "
 stashed = "📦$count "
 modified = "📝$count "
 staged = "++$count "
-renamed = "👅$count "
-deleted = "🗑$count "
+
+# Removed: conflicted, renamed, deleted (rarely needed, expensive)
+conflicted = ""
+renamed = ""
+deleted = ""
 
 # =============================================================================
 # LANGUAGE VERSIONS
@@ -85,22 +85,9 @@ format = '\[ [$symbol$version ]($style)\] '
 symbol = "󰎙 "
 style = "#4c566a bold"
 detect_extensions = ["js", "mjs", "cjs", "ts", "jsx", "tsx"]
-detect_files = ["package.json", "node_modules", ".nvmrc", ".node-version"]
-
-[golang]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = " "
-style = "#4c566a bold"
-
-[rust]
-format = '\[ [$symbol$version ]($style)\] '
-symbol = " "
-style = "#4c566a bold"
-
-[python]
-format = '\[ [$symbol$pyenv_prefix$version$virtualenv ]($style)\] '
-symbol = " "
-style = "#4c566a bold"
+detect_files = ["package.json", ".nvmrc", ".node-version"]
+# Skip node_modules folder scan (expensive)
+detect_folders = []
 
 [package]
 format = '\[ [$symbol$version ]($style)\] '
@@ -110,49 +97,10 @@ style = "#f6aa1c bold"
 # =============================================================================
 # SYSTEM INFORMATION
 # =============================================================================
-[memory_usage]
-format = '\[ [$symbol$ram | $swap ]($style)\] '
-symbol = "󰍛 "
-style = "#f4a261 bold dimmed"
-threshold = 75
-disabled = false
-
 [cmd_duration]
 format = '\[ [⏱ $duration ]($style)\] '
 min_time = 2000
 style = "#f6aa1c bold"
-
-# =============================================================================
-# CLOUD & INFRASTRUCTURE TOOLS
-# =============================================================================
-[aws]
-format = '\[ [$symbol$profile$region$duration ]($style)\] '
-symbol = " "
-style = "#e25822 bold"
-disabled = false
-
-[gcloud]
-format = '\[ [$symbol$account@$domain$region ]($style)\] '
-symbol = "󱇶 "
-style = "#f4a261 bold"
-disabled = true
-
-[kubernetes]
-format = '\[ [$symbol$context$namespace ]($style)\] '
-symbol = " "
-style = "#e76f51 bold"
-disabled = false
-
-[docker_context]
-format = '\[ [$symbol$context ]($style)\] '
-symbol = "󰡨 "
-style = "#f6aa1c bold"
-disabled = false
-
-[terraform]
-format = '\[ [$symbol$workspace ]($style)\] '
-style = "#e25822 bold"
-disabled = false
 
 # =============================================================================
 # TIME & UTILITY
@@ -162,23 +110,8 @@ format = '\[ [$time ]($style)\] '
 style = "#6272a4 bold"
 disabled = false
 
-[battery]
-format = '\[ [$symbol$percentage ]($style)\] '
-full_symbol = "🔋"
-charging_symbol = "⚡"
-discharging_symbol = "💀"
-unknown_symbol = "❓"
-empty_symbol = "🪫"
-disabled = false
-
-[conda]
-format = '\[ [$symbol$environment ]($style)\] '
-symbol = "🅒 "
-style = "#4c566a bold"
-ignore_base = false
-
 # =============================================================================
-# HOSTNAME — always visible so you know which machine you're on
+# HOSTNAME — SSH-only to reduce noise on local machine
 # =============================================================================
 [hostname]
 ssh_only = false
@@ -186,3 +119,49 @@ format = "[ $hostname ]($style)"
 style = "#5e81ac bold"
 trim_at = ".local"
 disabled = false
+
+# =============================================================================
+# DISABLED — Cloud tools you're not using daily
+# Enable on demand: export STARSHIP_AWS=1 / STARSHIP_K8S=1 / STARSHIP_DOCKER=1
+# =============================================================================
+[memory_usage]
+disabled = true  # Polls system every prompt — enable when debugging
+
+[aws]
+format = '\[ [$symbol$profile$region ]($style)\] '
+symbol = " "
+style = "#e25822 bold"
+disabled = true
+
+[kubernetes]
+format = '\[ [$symbol$context ]($style)\] '
+symbol = " "
+style = "#e76f51 bold"
+disabled = true
+
+[docker_context]
+format = '\[ [$symbol$context ]($style)\] '
+symbol = "󰡨 "
+style = "#f6aa1c bold"
+disabled = false
+
+[terraform]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[golang]
+disabled = true
+
+[rust]
+disabled = true
+
+[python]
+disabled = true
+
+[conda]
+disabled = true
+
+[battery]
+disabled = true
