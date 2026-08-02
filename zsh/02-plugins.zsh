@@ -42,6 +42,10 @@ _plugin_load zsh-autosuggestions \
     /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
     /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
+# Dimmed grey autosuggestions — clearly distinct from typed text
+# Using color from your Ghostty palette 8 (#d6dbe5 at ~40% opacity)
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#585858'
+
 # =============================================================================
 # FZF-TAB — must load before syntax highlighting, after compinit
 # =============================================================================
