@@ -26,8 +26,16 @@ def run_all(cfg: "HigginsConfig", *, verbose: bool = False) -> dict:
         if verbose:
             _print_result(r)
 
-    # ── Stub workers (log as pending, not run) ────────────────────────────────
-    for name in ("promoter", "triager", "reviewer"):
+    # ── Triager ──────────────────────────────────────────────────────────────
+    if cfg.janitor.workers.triager:
+        from higgins.janitor.triager import run as run_triager
+        r = _run_worker(run_triager, cfg)
+        results.append(r)
+        if verbose:
+            _print_result(r)
+
+    # ── Stub workers ─────────────────────────────────────────────────────────
+    for name in ("promoter", "reviewer"):
         if getattr(cfg.janitor.workers, name):
             stub = {"worker": name, "ran": False, "reason": "not yet implemented"}
             results.append(stub)
