@@ -180,6 +180,7 @@ Rules:
         headers={
             "Authorization":  f"Bearer {api_key}",
             "Content-Type":   "application/json",
+            "User-Agent":     "curl/7.88.1",
         },
         method="POST",
     )
@@ -189,10 +190,17 @@ Rules:
             body = json.loads(resp.read())
     except urllib.error.HTTPError as e:
         raise RuntimeError(
-            f"OpenCode API {e.code}: {e.read().decode()[:200]}"
+            f"OpenCode Zen API {e.code}: {e.read().decode()[:200]}"
         )
 
-    text = body["choices"][0]["message"]["content"].strip()
+    output = body.get("output", body.get("choices", []))
+    if output and "content" in output[0]:
+        # OpenCode Zen format: output[0].content[0].text
+        cnt = output[0]["content"]
+        text = (cnt[0].get("text") if isinstance(cnt, list) else cnt).strip()
+    else:
+        # OpenAI compat fallback: choices[0].message.content
+        text = output[0]["message"]["content"].strip()
     text = re.sub(r"^```[a-z]*\n?", "", text)
     text = re.sub(r"\n?```$", "",  text)
 
