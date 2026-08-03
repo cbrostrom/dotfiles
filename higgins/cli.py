@@ -91,6 +91,32 @@ def cmd_init(args: list[str]) -> None:
     print("Run 'higgins status' to verify.")
 
 
+def cmd_search(args: list[str]) -> None:
+    from higgins.config import load_config
+    from higgins.index import search, search_format_text
+
+    query_parts = [a for a in args if not a.startswith("--")]
+    tier = next((a.split("=", 1)[1] for a in args if a.startswith("--tier=")), "")
+
+    if not query_parts:
+        print("usage: higgins search <query> [--tier=personal|projects|modules|infra]",
+              file=sys.stderr)
+        sys.exit(1)
+
+    cfg     = load_config()
+    results = search(cfg, " ".join(query_parts), tier=tier)
+    print(search_format_text(results))
+
+
+def cmd_reindex(args: list[str]) -> None:
+    from higgins.config import load_config
+    from higgins.index import reindex
+
+    cfg = load_config()
+    n   = reindex(cfg, verbose=True)
+    print(f"Done: {n} chunks indexed.")
+
+
 def cmd_version(args: list[str]) -> None:
     print(f"higgins {_version()}")
 
@@ -109,20 +135,21 @@ _HELP = """\
 higgins — vault-aware knowledge package
 
 Commands:
-  init [vault_root]   create ~/.config/higgins/higgins.conf
-  status              show config + vault health + index state
-  version             print version
+  init [vault_root]              create ~/.config/higgins/higgins.conf
+  status                         show config + vault health + index state
+  search <query> [--tier=TIER]   full-text search (FTS5, BM25 ranked)
+  reindex                        rebuild FTS5 search index
+  version                        print version
 
-  search <query>      full-text search across vault  [step 2]
-  reindex             rebuild FTS5 search index       [step 2]
+  janitor run                    run all enabled workers  [step 3+]
+  janitor status                 last run + schedule      [step 3+]
 
-  janitor run         run all enabled workers          [step 3+]
-  janitor status      last run info + next schedule    [step 3+]
+Tiers: personal | projects | modules | infra | sessions
 
 Options:
   -h, --help          show this help
 
-Config file: ~/.config/higgins/higgins.conf  (override: $HIGGINS_CONF)
+Config: ~/.config/higgins/higgins.conf  (override: $HIGGINS_CONF)
 """
 
 
@@ -141,6 +168,8 @@ def main() -> None:
     dispatch = {
         "init":    cmd_init,
         "status":  cmd_status,
+        "search":  cmd_search,
+        "reindex": cmd_reindex,
         "version": cmd_version,
     }
 
