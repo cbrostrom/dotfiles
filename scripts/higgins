@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# higgins — shim → Higgins Python package
+# Resolves package root from script location, no hardcoded paths.
+_root="$(cd "$(dirname "$0")/.." && pwd)"
+export PYTHONPATH="$_root:${PYTHONPATH:-}"
+exec python3 -m higgins.cli "$@"
