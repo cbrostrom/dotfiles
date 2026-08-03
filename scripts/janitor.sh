@@ -44,24 +44,50 @@ log "Vault: $VAULT_AI"
 log "AI: $JANITOR_AI_ENABLED | Model: $JANITOR_AI_MODEL"
 
 # ============================================================================
-# 0. APPEND-ONLY VERIFICATION
+# 0. DELETION PROTECTION (line count floor — wiki model, not append-only)
 # ============================================================================
-log "--- append-only-verification ---"
-APPONLY_SAFE=true
-for apponly_file in personal/decisions.md personal/gotchas.md; do
-  if [ ! -f "$apponly_file" ]; then
-    log "  warning: $apponly_file missing"
-    continue
+log "--- deletion-protection ---"
+
+check_floor() {
+  local file="$1"
+  local label="$2"
+  [ -f "$file" ] || { log "  missing: $label"; return; }
+
+  # Abort on empty file — most dangerous sync truncation case
+  if [ ! -s "$file" ]; then
+    err "CRITICAL: $label is empty (possible sync truncation) — aborting"
+    exit 1
   fi
-  if [ ! -s "$apponly_file" ]; then
-    err "CRITICAL: $apponly_file empty (truncated by sync)"
-    APPONLY_SAFE=false
-    continue
+
+  local current_lines
+  current_lines=$(wc -l < "$file")
+
+  # Find most recent snapshot in history/
+  local history_dir
+  history_dir="$(dirname "$file")/history"
+  local basename_noext
+  basename_noext=$(basename "$file" .md)
+  local latest_snap
+  latest_snap=$(ls "${history_dir}/${basename_noext}-"*.md 2>/dev/null | sort | tail -1 || true)
+
+  if [ -z "$latest_snap" ]; then
+    log "  no snapshot yet: $label ($current_lines lines, floor not established)"
+    return
   fi
-  LINES=$(wc -l < "$apponly_file")
-  log "  safe: $apponly_file ($LINES lines)"
-done
-[ "$APPONLY_SAFE" = false ] && err "Append-only files compromised, aborting" && exit 1
+
+  local snap_lines floor
+  snap_lines=$(wc -l < "$latest_snap")
+  floor=$(( snap_lines * 80 / 100 ))
+
+  if [ "$current_lines" -lt "$floor" ]; then
+    log "  ALERT: $label may have been bulk-deleted! current=$current_lines, snapshot=$snap_lines, floor=$floor"
+  else
+    log "  ok: $label ($current_lines lines, floor=$floor)"
+  fi
+}
+
+check_floor "personal/gotchas.md"   "personal/gotchas.md"
+check_floor "personal/decisions.md" "personal/decisions.md"
 
 # ============================================================================
 # 1. RESOLVE SYNCTHING CONFLICTS + CLEANUP JUNK FILES
@@ -230,6 +256,154 @@ log "  NOTE: Me/ is manual cleanup only (user-managed)"
 log "  User should review and prune: inbox/, quick/, trash/ as needed"
 
 # ============================================================================
+# 5b. KB HEALTH SCAN
+# ============================================================================
+log "--- kb-health-scan ---"
+
+# ── Shared utilities (copied — do not source external file) ──────────────────
+
+_kb_days_since() {
+  local d="$1" ts
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    ts=$(date -j -f%Y-%m-%d "$d" +%s 2>/dev/null) || { echo 9999; return; }
+  else
+    ts=$(date -d "$d" +%s 2>/dev/null) || { echo 9999; return; }
+  fi
+  echo $(( ($(date +%s) - ts) / 86400 ))
+}
+
+_kb_date_is_past() {
+  local d="$1" ts today
+  today=$(date +%s)
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    ts=$(date -j -f%Y-%m-%d "$d" +%s 2>/dev/null) || return 0
+  else
+    ts=$(date -d "$d" +%s 2>/dev/null) || return 0
+  fi
+  [ "$ts" -lt "$today" ]
+}
+
+_kb_date_add_days() {
+  local d="$1" n="$2"
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    date -v+${n}d -j -f%Y-%m-%d "$d" +%Y-%m-%d 2>/dev/null || echo "unknown"
+  else
+    date -d "$d + $n days" +%Y-%m-%d 2>/dev/null || echo "unknown"
+  fi
+}
+
+_kb_parse_gotchas() {
+  local file="$1"
+  awk '
+    /^---/ { exit }
+    BEGIN { id=""; title=""; status=""; renewed="" }
+    /^## \[G-[0-9]+\]/ {
+      if (id != "") print id "|" status "|" renewed "|" title
+      match($0, /\[G-[0-9]+\]/)
+      id      = substr($0, RSTART, RLENGTH)
+      title   = substr($0, RSTART + RLENGTH + 1)
+      status  = "UNKNOWN"
+      renewed = "1970-01-01"
+    }
+    /^- Status: /  { status  = substr($0, 11) }
+    /^- Renewed: / { renewed = substr($0, 12) }
+    END { if (id != "") print id "|" status "|" renewed "|" title }
+  ' "$file"
+}
+
+_kb_parse_decisions() {
+  local file="$1"
+  awk '
+    BEGIN { id=""; title=""; status=""; validate_by="" }
+    /^## \[D-[0-9]+\]/ {
+      if (id != "") print id "|" status "|" validate_by "|" title
+      match($0, /\[D-[0-9]+\]/)
+      id          = substr($0, RSTART, RLENGTH)
+      title       = substr($0, RSTART + RLENGTH + 1)
+      status      = "UNKNOWN"
+      validate_by = "1970-01-01"
+    }
+    /^- Status: /      { status      = substr($0, 11) }
+    /^- Validate by: / { validate_by = substr($0, 16) }
+    END { if (id != "") print id "|" status "|" validate_by "|" title }
+  ' "$file"
+}
+
+# Converts space-separated IDs to JSON array: "G-001 G-003" → ["G-001","G-003"]
+to_json_array() {
+  local items="$1"
+  [ -z "$items" ] && echo "[]" && return
+  local json="[" first=true
+  for item in $items; do
+    [ "$first" = true ] && json="${json}\"${item}\"" || json="${json},\"${item}\""
+    first=false
+  done
+  echo "${json}]"
+}
+export -f to_json_array
+
+# ── Gotchas health ───────────────────────────────────────────────────────────
+
+KB_G_TOTAL=0; KB_G_ACTIVE=0; KB_G_WATCH=0; KB_G_RESOLVED=0
+KB_G_STALE=0; KB_G_STALE_LIST=""
+
+if [ -f "personal/gotchas.md" ]; then
+  while IFS='|' read -r gid status renewed title; do
+    KB_G_TOTAL=$((KB_G_TOTAL + 1))
+    case "$status" in
+      ACTIVE)   KB_G_ACTIVE=$((KB_G_ACTIVE + 1)) ;;
+      WATCH)    KB_G_WATCH=$((KB_G_WATCH + 1)) ;;
+      RESOLVED) KB_G_RESOLVED=$((KB_G_RESOLVED + 1)) ;;
+    esac
+    if [ "$status" != "RESOLVED" ]; then
+      age=$(_kb_days_since "$renewed")
+      if [ "$age" -gt 30 ]; then
+        KB_G_STALE=$((KB_G_STALE + 1))
+        KB_G_STALE_LIST="$KB_G_STALE_LIST $gid"
+      fi
+    fi
+  done < <(_kb_parse_gotchas "personal/gotchas.md")
+fi
+
+# ── Decisions health ─────────────────────────────────────────────────────────
+
+KB_D_TOTAL=0; KB_D_PENDING=0; KB_D_VALIDATED=0
+KB_D_OVERDUE=0; KB_D_OVERDUE_LIST=""
+
+if [ -f "personal/decisions.md" ]; then
+  while IFS='|' read -r did status validate_by title; do
+    KB_D_TOTAL=$((KB_D_TOTAL + 1))
+    case "$status" in
+      PENDING)   KB_D_PENDING=$((KB_D_PENDING + 1)) ;;
+      VALIDATED) KB_D_VALIDATED=$((KB_D_VALIDATED + 1)) ;;
+    esac
+    if [ "$status" = "PENDING" ] && [ "$validate_by" != "ONGOING" ]; then
+      if _kb_date_is_past "$validate_by"; then
+        KB_D_OVERDUE=$((KB_D_OVERDUE + 1))
+        KB_D_OVERDUE_LIST="$KB_D_OVERDUE_LIST $did"
+      fi
+    fi
+  done < <(_kb_parse_decisions "personal/decisions.md")
+fi
+
+# ── Last/next refresh dates ───────────────────────────────────────────────────
+
+KB_LAST_REFRESH="unknown"
+KB_NEXT_REFRESH="unknown"
+HOSTNAME_SHORT=$(hostname -s)
+LAST_LOG=$(ls "$LOG_DIR"/kb-refresh-*-${HOSTNAME_SHORT}.log 2>/dev/null | sort | tail -1 || true)
+if [ -n "$LAST_LOG" ]; then
+  KB_LAST_REFRESH=$(basename "$LAST_LOG" .log | sed "s/kb-refresh-//" | sed "s/-${HOSTNAME_SHORT}//")
+  KB_NEXT_REFRESH=$(_kb_date_add_days "$KB_LAST_REFRESH" 30)
+fi
+
+# Trim leading space
+KB_G_STALE_LIST="${KB_G_STALE_LIST# }"
+KB_D_OVERDUE_LIST="${KB_D_OVERDUE_LIST# }"
+
+log "kb-health: gotchas=$KB_G_TOTAL (stale=$KB_G_STALE) decisions=$KB_D_TOTAL (overdue=$KB_D_OVERDUE)"
+
+# ============================================================================
 # 6. HEALTH REPORT (JSON snapshot)
 # ============================================================================
 log "--- health-report ---"
@@ -260,6 +434,25 @@ cat > "$REPORT_DIR/health-$DATE.json" << HEALTH_EOF
   "ai": {
     "enabled": $JANITOR_AI_ENABLED,
     "model": "$JANITOR_AI_MODEL"
+  },
+  "kb_health": {
+    "gotchas": {
+      "total": $KB_G_TOTAL,
+      "active": $KB_G_ACTIVE,
+      "watch": $KB_G_WATCH,
+      "resolved": $KB_G_RESOLVED,
+      "stale_renewal": $KB_G_STALE,
+      "stale_ids": $(to_json_array "$KB_G_STALE_LIST")
+    },
+    "decisions": {
+      "total": $KB_D_TOTAL,
+      "pending": $KB_D_PENDING,
+      "validated": $KB_D_VALIDATED,
+      "overdue_validation": $KB_D_OVERDUE,
+      "overdue_ids": $(to_json_array "$KB_D_OVERDUE_LIST")
+    },
+    "last_refresh": "$KB_LAST_REFRESH",
+    "next_refresh": "$KB_NEXT_REFRESH"
   }
 }  
 HEALTH_EOF
