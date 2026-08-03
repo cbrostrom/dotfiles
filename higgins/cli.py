@@ -117,6 +117,83 @@ def cmd_reindex(args: list[str]) -> None:
     print(f"Done: {n} chunks indexed.")
 
 
+def cmd_janitor(args: list[str]) -> None:
+    sub  = args[0] if args else "run"
+    rest = args[1:]
+
+    if sub in ("run", "-r"):
+        _janitor_run(rest)
+    elif sub in ("status", "-s"):
+        _janitor_status(rest)
+    else:
+        print(f"higgins janitor: unknown sub-command '{sub}'", file=sys.stderr)
+        print("Usage: higgins janitor [run|status]", file=sys.stderr)
+        sys.exit(1)
+
+
+def _janitor_run(args: list[str]) -> None:
+    from higgins.config import load_config
+    from higgins.janitor.orchestrator import run_all
+
+    cfg = load_config()
+    if not cfg.janitor.enabled:
+        print("higgins: janitor is disabled in config (janitor.enabled = false)")
+        return
+
+    print(f"higgins janitor run — {_now_str()}")
+    summary = run_all(cfg, verbose=True)
+    total   = len(summary["workers"])
+    ran     = sum(1 for w in summary["workers"] if w.get("ran"))
+    print(f"Done: {ran}/{total} workers ran ({summary['duration_ms']}ms)")
+
+
+def _janitor_status(args: list[str]) -> None:
+    from higgins.config import load_config
+    from higgins.janitor.orchestrator import last_run
+    from higgins.index import should_reindex
+
+    cfg  = load_config()
+    last = last_run(cfg)
+
+    print("Janitor status:")
+    print(f"  enabled:  {cfg.janitor.enabled}")
+    print(f"  workers:  indexer={cfg.janitor.workers.indexer}  "
+          f"promoter={cfg.janitor.workers.promoter}  "
+          f"triager={cfg.janitor.workers.triager}  "
+          f"reviewer={cfg.janitor.workers.reviewer}")
+    print()
+
+    if last:
+        print(f"Last run:  {last['ts']}")
+        for w in last.get("workers", []):
+            _print_worker_line(w)
+    else:
+        print("Last run:  never")
+
+    print()
+    ok, reason = should_reindex(cfg)
+    print(f"Index:     {'needs rebuild' if ok else 'up-to-date'} ({reason})")
+
+
+def _print_worker_line(w: dict) -> None:
+    name  = w.get("worker", "?")
+    ran   = w.get("ran", False)
+    reason = w.get("reason", "")
+    error  = w.get("error")
+    if error:
+        print(f"  [{name}] ERROR — {error}")
+    elif ran:
+        extra = f", {w['chunks']} chunks" if "chunks" in w else ""
+        print(f"  [{name}] ran — {reason}{extra}")
+    else:
+        print(f"  [{name}] skipped — {reason}")
+
+
+def _now_str() -> str:
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+
 def cmd_version(args: list[str]) -> None:
     print(f"higgins {_version()}")
 
@@ -170,6 +247,7 @@ def main() -> None:
         "status":  cmd_status,
         "search":  cmd_search,
         "reindex": cmd_reindex,
+        "janitor": cmd_janitor,
         "version": cmd_version,
     }
 
