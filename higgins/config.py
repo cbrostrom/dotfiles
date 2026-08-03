@@ -65,7 +65,7 @@ class JanitorWorkers:
 class JanitorConfig:
     enabled:                     bool = True
     log_dir:                     Optional[Path] = None  # defaults to vault.ai/_ops/janitor-logs
-    ai_model:                    str = "claude-haiku-4-5"
+    ai_model:                    str = "big-pickle"
     triage_confidence_threshold: float = 0.80
     workers: JanitorWorkers = field(default_factory=JanitorWorkers)
 
@@ -113,7 +113,7 @@ def _default_raw(vault_root: Path) -> dict:
         },
         "janitor": {
             "enabled":                     True,
-            "ai_model":                    "claude-haiku-4-5",
+            "ai_model":                    "big-pickle",
             "triage_confidence_threshold": 0.80,
             "workers": {
                 "indexer":  True,
@@ -162,7 +162,7 @@ def _parse(raw: dict) -> HigginsConfig:
     janitor = JanitorConfig(
         enabled                     = bool(j.get("enabled", True)),
         log_dir                     = log_dir,
-        ai_model                    = str(j.get("ai_model", "claude-haiku-4-5")),
+        ai_model                    = str(j.get("ai_model", "big-pickle")),
         triage_confidence_threshold = float(j.get("triage_confidence_threshold", 0.80)),
         workers = JanitorWorkers(
             indexer  = bool(jw.get("indexer",  True)),
