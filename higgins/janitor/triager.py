@@ -194,13 +194,18 @@ Rules:
         )
 
     output = body.get("output", body.get("choices", []))
-    if output and "content" in output[0]:
+    if not output:
+        raise RuntimeError(f"Empty output from API. Body: {str(body)[:200]}")
+    first = output[0]
+    if "content" in first:
         # OpenCode Zen format: output[0].content[0].text
-        cnt = output[0]["content"]
-        text = (cnt[0].get("text") if isinstance(cnt, list) else cnt).strip()
+        cnt = first["content"]
+        if not cnt:
+            raise RuntimeError("Empty content array in API response")
+        text = (cnt[0].get("text", "") if isinstance(cnt, list) else str(cnt)).strip()
     else:
         # OpenAI compat fallback: choices[0].message.content
-        text = output[0]["message"]["content"].strip()
+        text = first.get("message", {}).get("content", "").strip()
     text = re.sub(r"^```[a-z]*\n?", "", text)
     text = re.sub(r"\n?```$", "",  text)
 
