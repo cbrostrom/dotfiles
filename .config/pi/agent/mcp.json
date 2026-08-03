@@ -1,0 +1,19 @@
+{
+  "settings": {
+    "toolPrefix": "mcp",
+    "hostConfigDiscovery": "on"
+  },
+  "mcpServers": {
+    "kb": {
+      "url": "http://100.100.1.50:8765/mcp",
+      "lifecycle": "keep-alive",
+      "directTools": true
+    },
+    "deja": {
+      "command": "/Users/Christian.Brostrom/.local/bin/deja",
+      "args": ["mcp"],
+      "lifecycle": "keep-alive",
+      "directTools": true
+    }
+  }
+}
