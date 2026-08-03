@@ -110,7 +110,6 @@ function buildWorkingState(entries: SessionEntry[], customInstructions?: string)
         }
       }
 
-      // Extract decisions from assistant text too
       const textDecisionPatterns = [
         /(?:decided|chose|going with)\s+(.{20,100})/gi,
       ];
@@ -133,7 +132,6 @@ function buildWorkingState(entries: SessionEntry[], customInstructions?: string)
       }
     }
 
-    // Extract errors from tool results
     if (role === "assistant") {
       const results = extractToolResults(entry);
       for (const r of results) {
