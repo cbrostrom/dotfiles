@@ -8,6 +8,7 @@ Uses stdlib urllib — no external dependencies.
 import json
 import os
 import re
+import time
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone
@@ -185,17 +186,21 @@ Rules:
         method="POST",
     )
 
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            body = json.loads(resp.read())
-    except urllib.error.HTTPError as e:
-        raise RuntimeError(
-            f"OpenCode Zen API {e.code}: {e.read().decode()[:200]}"
-        )
-
-    output = body.get("output", body.get("choices", []))
-    if not output:
-        raise RuntimeError(f"Empty output from API. Body: {str(body)[:200]}")
+    for attempt in range(2):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                body = json.loads(resp.read())
+        except urllib.error.HTTPError as e:
+            raise RuntimeError(
+                f"OpenCode Zen API {e.code}: {e.read().decode()[:200]}"
+            )
+        output = body.get("output", body.get("choices", []))
+        if output:
+            break
+        if attempt == 0:
+            time.sleep(2)  # brief pause before retry
+    else:
+        raise RuntimeError(f"Empty output after retry. Body: {str(body)[:200]}")
     first = output[0]
     if "content" in first:
         # OpenCode Zen format: output[0].content[0].text
