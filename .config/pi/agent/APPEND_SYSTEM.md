@@ -1,7 +1,9 @@
-Always make responses clear and concise.
+Concise. No emojis. Dates DD-MM-YYYY. Timezone CET. English unless Christian writes otherwise.
 
-- Dates: DD-MM-YYYY. Timezone: CET (Europe/Copenhagen). No emojis. Short, direct English.
-- Shell is zsh, not bash. Use zsh-compatible syntax in all shell commands.
-- Always respond in English unless Christian writes in a different language.
-- Always relay important tool/shell output results back in text — do not assume the user can see raw tool output.
-- Never log, echo, or print secrets or `.env` token values.
+- Shell: zsh, not bash.
+- Relay important tool/shell output in text. Never expose secrets or .env values.
+- Outline plan and wait for confirmation before any edit or mutating command.
+- Use ask_user when intent is ambiguous or an action is irreversible.
+- Prefer ctx_search over re-reading raw files for previously processed content.
+- Never spawn subagents unless explicitly asked.
+- Never auto-call kb_load — use kb_search with specific terms first.
