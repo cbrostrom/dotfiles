@@ -120,6 +120,24 @@ def _chunk_kb_output(text: str) -> list[dict]:
     return chunks
 
 
+
+def _count_vault_write() -> None:
+    """Increment higgins write counter. Best-effort, never raises."""
+    try:
+        import json as _j
+        _p = Path.home() / ".cache" / "higgins" / "meta.json"
+        _p.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            _d = _j.loads(_p.read_text())
+        except Exception:
+            _d = {}
+        _d["writes_since_index"] = _d.get("writes_since_index", 0) + 1
+        _t = _p.with_suffix(".tmp")
+        _t.write_text(_j.dumps(_d, indent=2))
+        _t.rename(_p)
+    except Exception:
+        pass
+
 # ── Cache management ──────────────────────────────────────────────────────
 
 def _get_personal_cached() -> Optional[list[dict]]:
@@ -280,7 +298,7 @@ def kb_current(slug: str = "", text: str = "") -> str:
     global _PERSONAL_CACHE
     if not slug or slug == "personal":
         _PERSONAL_CACHE = None
-    
+    _count_vault_write()
     return _run_kb(*args)
 
 
@@ -297,7 +315,7 @@ def kb_next(slug: str = "", text: str = "") -> str:
     global _PERSONAL_CACHE
     if not slug or slug == "personal":
         _PERSONAL_CACHE = None
-    
+    _count_vault_write()
     return _run_kb(*args)
 
 
@@ -314,7 +332,7 @@ def kb_gotcha(slug: str = "", text: str = "") -> str:
     global _PERSONAL_CACHE
     if not slug or slug == "personal":
         _PERSONAL_CACHE = None
-    
+    _count_vault_write()
     return _run_kb(*args)
 
 
@@ -331,7 +349,7 @@ def kb_done(slug: str = "", substr: str = "") -> str:
     global _PERSONAL_CACHE
     if not slug or slug == "personal":
         _PERSONAL_CACHE = None
-    
+    _count_vault_write()
     return _run_kb(*args)
 
 
@@ -356,7 +374,7 @@ def kb_prune(slug: str = "") -> str:
     global _PERSONAL_CACHE
     if not slug or slug == "personal":
         _PERSONAL_CACHE = None
-    
+    _count_vault_write()
     return _run_kb(*args)
 
 
@@ -370,7 +388,7 @@ def kb_compact(slug: str = "", cap: int = 5) -> str:
     global _PERSONAL_CACHE
     if not slug or slug == "personal":
         _PERSONAL_CACHE = None
-    
+    _count_vault_write()
     return _run_kb(*args)
 
 
