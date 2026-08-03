@@ -245,6 +245,8 @@ def _stage_file(
     pending = cfg.vault.ai / _TRIAGE_PENDING_DIR
     pending.mkdir(parents=True, exist_ok=True)
 
+    if not f.exists():
+        return  # file already moved — nothing to stage
     content = f.read_text(errors="replace")
     ts      = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
@@ -277,7 +279,7 @@ def _log_move(
     record   = {
         "ts":         datetime.now(timezone.utc).isoformat(),
         "src":        src_name,
-        "dst":        str(dst.relative_to(cfg.vault.ai)),
+        "dst":        str(dst.relative_to(cfg.vault.ai.parent)),
         "confidence": round(confidence, 3),
         "reason":     reason,
     }
