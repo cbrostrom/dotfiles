@@ -1,17 +1,30 @@
 #!/usr/bin/env python3
-"""kb-mcp — MCP server wrapping the kb CLI for on-demand vault access.
-Also provides tools for querying the personal vault (Me/)."""
+"""kb-mcp v2 — MCP server wrapping the kb CLI for on-demand vault access.
+
+Optimizations:
+1. Chunking: Split kb load output into logical sections
+2. Hot cache: Cache personal/ in server memory (always loaded each session)
+3. Result truncation: Limit response size to avoid token bloat
+4. Tier filtering: kb_search now accepts tier: prefix to scope results
+"""
 
 import os
 import sys
 import subprocess
+import time
 from pathlib import Path
+from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
 KB = str(Path.home() / "dotfiles" / "scripts" / "kb")
 VAULT_AI = os.environ.get("VAULT_AI", str(Path.home() / "Vaults" / "Higgins" / "AI"))
 VAULT_ME = os.environ.get("VAULT_ME", str(Path.home() / "Vaults" / "Higgins" / "Me"))
+
+# ── Global cache ──────────────────────────────────────────────────────────
+_PERSONAL_CACHE = None
+_PERSONAL_CACHE_TIME = 0
+_CACHE_TTL = 300  # 5 minutes — external edits (Syncthing) visible faster
 
 
 def _parse_args():
@@ -53,26 +66,198 @@ def _run_kb(*args: str) -> str:
         return "Error: command timed out"
 
 
-def _me_path(rel: str = "") -> Path:
-    """Resolve a path relative to the personal vault."""
-    base = Path(VAULT_ME)
-    if not rel:
-        return base
-    return base / rel
+# ── Chunking ──────────────────────────────────────────────────────────────
 
+def _chunk_kb_output(text: str) -> list[dict]:
+    """Split kb output into logical chunks at === section headers.
+    
+    Only treats === headers that START a section (not END markers).
+    Returns list of {title, content, tokens_est}
+    """
+    if not text:
+        return []
+    
+    lines = text.split('\n')
+    chunks = []
+    current_chunk_lines = []
+    
+    for line in lines:
+        # Check if this is a section START marker (not END)
+        is_start_marker = (
+            line.startswith('===') and 
+            line.endswith('===') and
+            'END' not in line  # Skip END markers
+        )
+        
+        if is_start_marker and current_chunk_lines:
+            # Save previous chunk
+            content = '\n'.join(current_chunk_lines).strip()
+            if content:
+                # Extract title from first line
+                first_line = current_chunk_lines[0]
+                title = first_line.strip('= ').strip() if first_line.startswith('===') else 'Untitled'
+                chunks.append({
+                    'title': title,
+                    'content': content,
+                    'tokens_est': len(content) // 4,
+                })
+            current_chunk_lines = []
+        
+        current_chunk_lines.append(line)
+    
+    # Final chunk
+    if current_chunk_lines:
+        content = '\n'.join(current_chunk_lines).strip()
+        if content:
+            first_line = current_chunk_lines[0]
+            title = first_line.strip('= ').strip() if first_line.startswith('===') else 'Untitled'
+            chunks.append({
+                'title': title,
+                'content': content,
+                'tokens_est': len(content) // 4,
+            })
+    
+    return chunks
+
+
+# ── Cache management ──────────────────────────────────────────────────────
+
+def _get_personal_cached() -> Optional[list[dict]]:
+    """Get cached personal context, refreshing if stale."""
+    global _PERSONAL_CACHE, _PERSONAL_CACHE_TIME
+    
+    now = time.time()
+    if _PERSONAL_CACHE and (now - _PERSONAL_CACHE_TIME) < _CACHE_TTL:
+        return _PERSONAL_CACHE
+    
+    # Cache miss or expired: refresh
+    text = _run_kb("load", "personal")
+    _PERSONAL_CACHE = _chunk_kb_output(text)
+    _PERSONAL_CACHE_TIME = now
+    return _PERSONAL_CACHE
+
+
+# ── Result truncation ────────────────────────────────────────────────────
+
+def _truncate_chunks(chunks: list[dict], max_tokens: int = 2000) -> list[dict]:
+    """Truncate chunk list to fit within token budget.
+    
+    Keeps as many complete chunks as fit within max_tokens.
+    If one chunk exceeds budget, truncates its content.
+    """
+    result = []
+    total_tokens = 0
+    
+    for chunk in chunks:
+        tokens = chunk['tokens_est']
+        if total_tokens + tokens <= max_tokens:
+            result.append(chunk)
+            total_tokens += tokens
+        elif total_tokens < max_tokens:
+            # Partial chunk: truncate content to fit
+            remaining = max_tokens - total_tokens
+            content = chunk['content']
+            lines = content.split('\n')
+            truncated_lines = []
+            line_tokens = 0
+            
+            for line in lines:
+                line_token_est = len(line) // 4
+                if line_tokens + line_token_est <= remaining:
+                    truncated_lines.append(line)
+                    line_tokens += line_token_est
+                else:
+                    break
+            
+            if truncated_lines:
+                truncated_content = '\n'.join(truncated_lines) + f"\n\n... (truncated, {len(lines) - len(truncated_lines)} more lines)"
+                result.append({
+                    'title': chunk['title'],
+                    'content': truncated_content,
+                    'tokens_est': line_tokens,
+                })
+            break
+        else:
+            # Over budget, stop
+            break
+    
+    return result
+
+
+# ── Format helpers ────────────────────────────────────────────────────────
+
+def _format_chunks(chunks: list[dict]) -> str:
+    """Format chunks back to text output."""
+    if not chunks:
+        return "(no results)"
+    
+    lines = []
+    for chunk in chunks:
+        lines.append(f"\n{chunk['content']}\n")
+    
+    return '\n'.join(lines)
+
+
+# ── Tools ─────────────────────────────────────────────────────────────────
 
 @mcp.tool()
-def kb_load(slug: str = "", full: bool = False) -> str:
+def kb_load(slug: str = "", full: bool = False, max_tokens: int = 2000) -> str:
     """Load vault context for a project slug. Returns personal context + project brain.
-    If no slug given, resolves from cwd. Use full=true for full preferences + module gotchas."""
+    
+    If no slug given, resolves from cwd. Use full=true for full preferences + module gotchas.
+    max_tokens: Limit response size (default 2000 tokens). Set to 0 for unlimited.
+    
+    OPTIMIZATION: Chunks results for precision + applies token budget.
+    """
+    # Special case: personal uses hot cache
+    if slug == "personal" or not slug:
+        chunks = _get_personal_cached()
+        if slug == "personal":
+            # Just return personal, no project
+            if max_tokens > 0:
+                chunks = _truncate_chunks(chunks, max_tokens)
+            return _format_chunks(chunks)
+    
+    # Project load: personal + project
     args = ["load"]
     if full:
         args.append("--full")
     if slug:
         args.append(slug)
-    return _run_kb(*args)
+    
+    text = _run_kb(*args)
+    chunks = _chunk_kb_output(text)
+    
+    if max_tokens > 0:
+        chunks = _truncate_chunks(chunks, max_tokens)
+    
+    return _format_chunks(chunks)
 
 
+@mcp.tool()
+def kb_search(query: str, tier: str = "", full: bool = False, max_tokens: int = 2000) -> str:
+    """Full-text search across vault (FTS5, BM25 ranked).
+    tier prefix filters scope: tier:personal, tier:projects, tier:modules, tier:infra.
+    OPTIMIZATION: Applies token budget + chunking.
+    """
+    resolved_tier = tier
+    resolved_query = query
+    if query.startswith("tier:"):
+        parts = query.split(" ", 1)
+        resolved_tier = parts[0].replace("tier:", "")
+        resolved_query = parts[1] if len(parts) > 1 else ""
+    if not resolved_query.strip():
+        return "kb_search: no query provided"
+    args = ["search", resolved_query]
+    if resolved_tier:
+        args.append(f"--tier={resolved_tier}")
+    text = _run_kb(*args)
+    if not text.strip():
+        return f"No results for: {resolved_query}"
+    chunks = _chunk_kb_output(text)
+    if max_tokens > 0:
+        chunks = _truncate_chunks(chunks, max_tokens)
+    return _format_chunks(chunks)
 @mcp.tool()
 def kb_status(slug: str = "") -> str:
     """Show dashboard for a project: modified time, file sizes, session count."""
@@ -83,13 +268,6 @@ def kb_status(slug: str = "") -> str:
 
 
 @mcp.tool()
-def kb_search(query: str, full: bool = False) -> str:
-    """Search across vault content. Returns kb load output (personal + modules + matching projects).
-    For broad search, use kb_load. This resolves slug from the query and loads it."""
-    return _run_kb("load", query) if not full else _run_kb("load", "--full", query)
-
-
-@mcp.tool()
 def kb_current(slug: str = "", text: str = "") -> str:
     """Read or update current.md. No text = read. With text = append a bullet."""
     args = ["current"]
@@ -97,6 +275,12 @@ def kb_current(slug: str = "", text: str = "") -> str:
         args.insert(1, slug)
     if text:
         args.append(text)
+    
+    # Invalidate personal cache if writing to personal
+    global _PERSONAL_CACHE
+    if not slug or slug == "personal":
+        _PERSONAL_CACHE = None
+    
     return _run_kb(*args)
 
 
@@ -108,6 +292,12 @@ def kb_next(slug: str = "", text: str = "") -> str:
         args.insert(1, slug)
     if text:
         args.append(text)
+    
+    # Invalidate personal cache if writing to personal
+    global _PERSONAL_CACHE
+    if not slug or slug == "personal":
+        _PERSONAL_CACHE = None
+    
     return _run_kb(*args)
 
 
@@ -119,6 +309,12 @@ def kb_gotcha(slug: str = "", text: str = "") -> str:
         args.insert(1, slug)
     if text:
         args.append(text)
+    
+    # Invalidate personal cache if writing to personal
+    global _PERSONAL_CACHE
+    if not slug or slug == "personal":
+        _PERSONAL_CACHE = None
+    
     return _run_kb(*args)
 
 
@@ -130,6 +326,12 @@ def kb_done(slug: str = "", substr: str = "") -> str:
         args.insert(1, slug)
     if substr:
         args.append(substr)
+    
+    # Invalidate personal cache if writing to personal
+    global _PERSONAL_CACHE
+    if not slug or slug == "personal":
+        _PERSONAL_CACHE = None
+    
     return _run_kb(*args)
 
 
@@ -150,6 +352,11 @@ def kb_prune(slug: str = "") -> str:
     args = ["prune"]
     if slug:
         args.append(slug)
+    
+    global _PERSONAL_CACHE
+    if not slug or slug == "personal":
+        _PERSONAL_CACHE = None
+    
     return _run_kb(*args)
 
 
@@ -159,6 +366,11 @@ def kb_compact(slug: str = "", cap: int = 5) -> str:
     args = ["compact"]
     if slug:
         args.append(slug)
+    
+    global _PERSONAL_CACHE
+    if not slug or slug == "personal":
+        _PERSONAL_CACHE = None
+    
     return _run_kb(*args)
 
 
@@ -180,7 +392,14 @@ def kb_map(subcommand: str = "help") -> str:
     return _run_kb("map", subcommand)
 
 
-# ── Personal vault (Me/) tools ──────────────────────────────────────────────
+# ── Personal vault (Me/) tools ────────────────────────────────────────────
+
+def _me_path(rel: str = "") -> Path:
+    """Resolve a path relative to the personal vault."""
+    base = Path(VAULT_ME)
+    if not rel:
+        return base
+    return base / rel
 
 
 @mcp.tool()
@@ -198,11 +417,11 @@ def me_list(folder: str = "") -> str:
         if item.is_dir():
             count = sum(1 for _ in item.rglob("*.md"))
             entries.append(f"  {item.name}/  ({count} notes)")
-        elif item.suffix == ".md":
+        else:
             entries.append(f"  {item.name}")
     
     if not entries:
-        return f"Empty folder: {folder or 'root'}"
+        return f"{p}/ (empty)"
     
     return f"=== {folder or 'Me/'} ===\n" + "\n".join(entries)
 
