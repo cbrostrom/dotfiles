@@ -27,9 +27,10 @@ function emitCost(pi: ExtensionAPI, ctx: ExtensionContext): void {
 }
 
 export default function (pi: ExtensionAPI): void {
-  pi.events.emit("powerbar:register-segment", { id: "cost", label: "Cost" });
-
-  pi.on("session_start",   async (_e, ctx) => emitCost(pi, ctx));
+  pi.on("session_start", async (_e, ctx) => {
+    pi.events.emit("powerbar:register-segment", { id: "cost", label: "Cost" });
+    emitCost(pi, ctx);
+  });
   pi.on("tool_result",     async (_e, ctx) => emitCost(pi, ctx));
   pi.on("turn_end",        async (_e, ctx) => emitCost(pi, ctx));
   pi.on("session_compact", async (_e, ctx) => emitCost(pi, ctx));
