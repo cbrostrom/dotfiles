@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "codebase-memory-mcp": {
+      "command": "/Users/Christian.Brostrom/.local/bin/codebase-memory-mcp",
+      "disabled": false
+    }
+  }
+}

@@ -14,6 +14,18 @@
       "args": ["mcp"],
       "lifecycle": "keep-alive",
       "directTools": true
+    },
+    "github": {
+      "disabled": true
+    },
+    "atlassian": {
+      "disabled": true
+    },
+    "codebase-memory-mcp": {
+      "disabled": true
+    },
+    "shopify-dev-mcp": {
+      "disabled": true
     }
   }
 }
