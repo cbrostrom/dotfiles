@@ -7,6 +7,7 @@
 # What this installs (symlinked from dotfiles, git-tracked):
 #   ~/.pi/agent/AGENTS.md          ← global policy adapter
 #   ~/.pi/agent/spark.json         ← Spark presets + recap config
+#   ~/.pi/web-search.json          ← focused Exa/raw web-search config
 #   ~/.pi/agent/hook/hooks.yaml    ← pi-yaml-hooks global hooks (gated)
 #
 # What this PATCHES (merged, not symlinked — PI writes runtime fields here):
@@ -64,7 +65,9 @@ _symlink() {
 
 # ── 3) symlink user-authored config files ────────────────────────────────────
 _symlink "$PI_SRC/AGENTS.md"           "$PI_DST/AGENTS.md"           "AGENTS.md"
-_symlink "$PI_SRC/spark.json"          "$PI_DST/spark.json"           "spark.json"
+_symlink "$PI_SRC/spark.json"          "$PI_DST/spark.json"          "spark.json"
+_symlink "$PI_SRC/mcp.json"            "$PI_DST/mcp.json"            "mcp.json"
+_symlink "$PI_SRC/web-search.json"     "$HOME/.pi/web-search.json"    "web-search.json"
 
 # ── 4) pi shim at ~/.local/bin/pi ────────────────────────────────────────────
 # Keeps `pi` resolvable even when fnm switches to a project-local node version.
@@ -171,8 +174,6 @@ if [[ -d "$PROMPT_SRC" ]]; then
 fi
 
 # ── 5) merge settings.base.json into settings.json ───────────────────────────
-# PI manages runtime fields (lastChangelogVersion, etc.) in settings.json.
-# We merge our desired config without overwriting runtime state.
 python3 - "$PI_SRC/settings.base.json" "$PI_DST/settings.json" <<'PYEOF'
 import json, os, sys
 
@@ -231,10 +232,12 @@ ok "settings.json patched"
 
 # ── 6) summary ────────────────────────────────────────────────────────────────
 log "PI install complete. Manual steps:"
-log "  1. Open PI and run:  /preset          (to confirm Spark presets loaded)"
-log "  2. Run:              /reload           (pick up new extensions + prompts)"
-log "  3. Run:              /hooks-validate   (to confirm hooks compatible)"
-log "  4. Trust your repos: /trust  (once, per project, inside PI)"
-log "  5. Run:              /session-extract  (to test session extraction)"
-log "  6. Update PI:        fnm use default && pi update self"
+log "  1. Verify MCP:      /mcp status         (should show kb, deja — github/atlassian/shopify-dev disabled by config)"
+log "  2. Open PI and run:  /preset            (to confirm Spark presets loaded)"
+log "  3. Run:              /reload            (pick up new extensions + prompts)"
+log "  4. Run:              /mcp reconnect <server>  (refresh direct tools after first connect)"
+log "  5. Run:              /hooks-validate    (to confirm hooks compatible)"
+log "  6. Trust your repos: /trust             (once, per project, inside PI)"
+log "  7. Run:              /session-extract   (to test session extraction)"
+log "  8. Update PI:        fnm use default && pi update self"
 log "     (always update from fnm default so the shim stays aligned)"

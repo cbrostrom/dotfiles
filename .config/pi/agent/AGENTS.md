@@ -20,12 +20,21 @@ The key rules from dotfiles/AGENTS.md that apply here:
 CLI: `kb` (in PATH via `~/.local/bin/kb`); `~/dotfiles/scripts/brain` is a shim that execs `kb`.
 Vault: `~/Vaults/Higgins/AI` (macOS, git-backed) — tier map: `personal/`, `modules/`, `projects/`, `infra/`, `sessions/`, `_ops/`
 
-At the start of each session, if context is unclear, run:
-```bash
-kb load
+**MCP server (v2)**: kb-mcp running on superbro at `http://100.100.1.50:8765/mcp` (Tailscale-accessible).
+- Chunked output at section boundaries
+- Personal context cached (1hr TTL)
+- Token budget enforced (default 2000, customizable)
+- Tier hints: `kb_search("tier:personal ...")` for narrowing scope
+
+**Never auto-call `kb_load()` at session start.** Vault lookups go through `kb_search` (live BM25 via kb-mcp) — no context load needed. `ctx_search` covers session/event memory (auto-captured events + indexed docs), not the vault.
+Use `kb_load` or `kb_search` only when the user explicitly asks or a task clearly requires personal/project context.
+
+For targeted lookups:
+```
+kb_search("<3-5 specific technical terms>")  # avoid vague queries
 ```
 
-Slug resolution: explicit `--slug` > `$KB_SLUG` env > `personal` (when cwd is inside `$VAULT_AI`) > active plan `repo:` > `git` basename > `$PWD` basename.
+See `~/dotfiles/.agents/skills/kb/SKILL.md` for full MCP tool reference and tiered loading protocol.
 
 Signals:
 - `.remember` / `.r` — run `kb digest` (scans recent sessions, auto-prunes, proposes gotchas/current updates)
@@ -61,14 +70,23 @@ Key shared skills available: `dotfiles`, `kb`, `code-reviewer`, `problem-solver`
 ## PI-specific
 
 - See `~/.config/pi/agent/README.md` for full architecture and package list.
-- Model selection: use spark presets via `/preset`. `fast` (Composer 2.5) for shell/edits,
-  `sonnet` (Sonnet 4.6) for regular work, `think` (Sonnet 5) for planning/review.
-- Memory pipeline (zero-token):
-  1. `working-state` extension — deterministic compaction (strips thinking, preserves state)
-  2. `pi-rtk-optimizer` — output compaction + source filtering
-  3. `context-mode` — FTS5 knowledge base for vault lookups
-  4. `/session-extract` EOD — sessions → vault markdown + auto-learning
-- MCP servers: `pi-mcp-adapter` auto-loads `~/.cursor/mcp.json` servers (github, shopify-dev).
+- Model selection: use spark presets via `/preset`. Default model = `opencode/big-pickle` (free zen proxy, $0 — daily driver).
+  `fast` (gpt-5.4-mini) for shell/edits, `sonnet` (cursor/default Auto) for regular work, `think` (claude-sonnet-4-6) for planning/review.
+- Memory pipeline — three complementary layers, one brain:
+  1. `pi-observational-memory` — in-session working memory. Captures observations + reflections
+     in the background; makes compaction fast and preserves decision rationale across compactions.
+     Ephemeral working state (per session/branch), never durable truth. Config under
+     `observational-memory` in settings.json; workers use github-copilot/claude-haiku-4.5.
+  2. `pi-rtk-optimizer` — output compaction + source filtering (zero-token).
+  3. `context-mode` — machine-local FTS5 retrieval index (`~/.pi/context-mode/`, NOT synced,
+     NOT human-editable). Fast cross-session search over auto-captured events + indexed docs on
+     THIS machine. An accelerator, not the brain.
+  4. `/session-extract` EOD — distils session signal (OM reflections first, context-mode events
+     as fallback) into vault Markdown candidates; human-gated `kb digest` writes to Higgins.
+  The durable, portable, human+AI-editable brain is the Higgins vault (`kb` + kb-mcp), maintained
+  by the Janitor. OM and context-mode feed it; neither replaces it.
+- MCP servers: `kb` (vault) + `deja` (session search) enabled in `~/.pi/agent/mcp.json`.
+  github/atlassian/shopify-dev-mcp deliberately disabled (tool-restraint).
 - Project trust: use `/trust` once in trusted repos. Keep `defaultProjectTrust` at `"ask"`.
 - Hooks: if `pi-yaml-hooks` is installed, run `/hooks-status` to verify on first session.
 - Subagentura: use `subagent_isolated` for narrow, parallelisable tasks. Default to the
@@ -77,7 +95,7 @@ Key shared skills available: `dotfiles`, `kb`, `code-reviewer`, `problem-solver`
 ## Token awareness
 
 RTK has no PI mode yet. Prefer scoped reads, Grep before reading large files,
-and `pi --list-models cursor` rather than reading the raw model-list JSON.
+and `pi --list-models` rather than reading the raw model-list JSON.
 
 <!-- BEGIN COMPOUND PI TOOL MAP -->
 ## Compound Engineering (Pi compatibility)

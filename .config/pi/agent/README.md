@@ -18,10 +18,8 @@ Installed via `modules/pi/install.sh` — opt-in per machine.
 │                       PI Coding Agent                        │
 ├─────────────────────────────────────────────────────────────┤
 │  Extensions (symlinked from dotfiles)                        │
-│  ├─ working-state.ts   — deterministic compaction            │
 │  ├─ kb-project.ts      — project-aware kb context            │
 │  ├─ rtk.ts             — RTK optimizer integration           │
-│  ├─ whimsical.ts       — quality-of-life helpers             │
 │  └─ working-indicator.ts — session activity indicator        │
 ├─────────────────────────────────────────────────────────────┤
 │  Extensions (npm packages)                                   │
@@ -34,11 +32,9 @@ Installed via `modules/pi/install.sh` — opt-in per machine.
 ├─────────────────────────────────────────────────────────────┤
 │  Hooks (symlinked)                                            │
 │  ├─ session-ready      — startup notification                │
-│  ├─ vault-ctx-index    — index vault into FTS5 on start     │
 │  ├─ idle-kb-tidy       — silent prune + compact              │
 │  ├─ aislop-after-edit  — code quality check                  │
-│  ├─ guard-destructive  — block force-push, publish           │
-│  └─ kb-write-reindex   — re-index FTS5 after kb writes      │
+│  └─ guard-destructive  — block force-push, publish           │
 ├─────────────────────────────────────────────────────────────┤
 │  Prompt templates (/commands)                                 │
 │  ├─ /end              — EOD vault save + re-index            │
@@ -58,7 +54,6 @@ Four layers, no overlap:
 | Layer | What | When | Token cost |
 |---|---|---|---|
 | **pi-rtk-optimizer** | Compacts tool outputs, filters source noise | Every tool result | Zero |
-| **working-state** | Strips thinking, preserves goal/decisions/files/errors | Every compaction | Zero |
 | **context-mode** | FTS5 index → search instead of raw load | Every file read | Zero |
 | **session-extract** | Sessions → structured vault markdown | EOD (`/session-extract`) | Zero |
 
@@ -120,11 +115,9 @@ Recap: `gemma4:31b-cloud` (auto-summary every 5m idle)
 | Hook | Event | What it does |
 |---|---|---|
 | `session-ready` | session.created | Notifies PI is ready with vault search |
-| `vault-ctx-index` | session.created | Indexes personal/ + modules/ into FTS5 |
 | `idle-kb-tidy` | session.idle | Silently prunes + compacts brain files |
 | `aislop-after-edit` | file.changed | AI slop quality check on code edits |
 | `guard-destructive` | tool.before.bash | Blocks force-push, publish commands |
-| `kb-write-reindex` | tool.after.bash | Re-indexes FTS5 after kb write operations |
 
 ## Files
 
@@ -135,10 +128,8 @@ dotfiles/.config/pi/agent/
 ├── AGENTS.md                  # Global policy adapter
 ├── README.md                  # This file
 ├── extensions/                # Homegrown extensions
-│   ├── working-state.ts       # Deterministic compaction
 │   ├── kb-project.ts          # Project-aware kb
 │   ├── rtk.ts                 # RTK integration glue
-│   ├── whimsical.ts           # QoL helpers
 │   └── working-indicator.ts   # Activity indicator
 ├── hook/
 │   └── hooks.yaml             # Global hooks config
