@@ -30,7 +30,7 @@ settings.base.json
 - `statusline.sh` → statusLine command
 
 **Cursor** — `~/.cursor/hooks.json` (managed by `scripts/cursor/install-cursor-config.sh`):
-- `sessionStart`: brain-load via `run-hook.sh`
+- `sessionStart`: MCP-only (no vault dump); agent uses `kb_load` / `kb_search` on demand
 - `preToolUse[Shell]`: `rtk hook cursor` via `run-hook.sh`
 - `afterFileEdit`: `aislop hook cursor` via `run-hook.sh`
 - `run-hook.sh` wraps all hooks; logs failures/slow runs to `~/.local/state/cursor-hooks/hooks.log`

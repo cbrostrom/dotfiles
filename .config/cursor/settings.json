@@ -226,4 +226,12 @@
   "cursor.general.glassShowWarningNotifications": true,
   "workbench.reduceMotion": "off",
   "cursor.composer.editorConversationDensity": "compact-ungrouped",
+  "yaml.disableSchemaDetection": [
+    "**/.github/workflows/*.yml",
+    "**/.github/workflows/*.yaml",
+    "**/.gitea/workflows/*.yml",
+    "**/.gitea/workflows/*.yaml",
+    "**/.forgejo/workflows/*.yml",
+    "**/.forgejo/workflows/*.yaml"
+  ],
 }
