@@ -54,7 +54,7 @@ Four layers, no overlap:
 | Layer | What | When | Token cost |
 |---|---|---|---|
 | **pi-rtk-optimizer** | Compacts tool outputs, filters source noise | Every tool result | Zero |
-| **context-mode** | FTS5 index → search instead of raw load | Every file read | Zero |
+| **context-mode** | Session/event memory + explicitly indexed docs (not vault) | Every search | Zero |
 | **session-extract** | Sessions → structured vault markdown | EOD (`/session-extract`) | Zero |
 
 ## Installed Packages
@@ -64,7 +64,7 @@ Four layers, no overlap:
 | Package | Purpose |
 |---|---|
 | `pi-rtk-optimizer` | Read compaction, output compaction, source filtering |
-| `context-mode` | FTS5 knowledge base — search indexed vault content |
+| `context-mode` | FTS5 session/event memory + indexed docs (vault via kb_search) |
 | `pi-yaml-hooks` | Hook system for PI lifecycle events |
 | `pi-spark` | Model presets (`fast`, `sonnet`, `think`) |
 | `pi-subagents` | Parallel subagent execution |
