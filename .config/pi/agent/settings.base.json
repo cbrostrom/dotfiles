@@ -1,39 +1,42 @@
 {
-  "defaultModel": "default",
+  "defaultModel": "big-pickle",
   "defaultProjectTrust": "ask",
-  "defaultProvider": "cursor",
-  "defaultThinkingLevel": "off",
+  "defaultProvider": "opencode",
+  "defaultThinkingLevel": "medium",
   "doubleEscapeAction": "tree",
   "editorPaddingX": 1,
   "enableInstallTelemetry": false,
-  "enabledModels": [
-    "cursor/default",
-    "cursor/gpt-5.4-mini",
-    "cursor/composer-2.5",
-    "cursor/claude-sonnet-4-6"
-  ],
-  "httpIdleTimeoutMs": 60000,
+  "enabledModels": [],
+  "httpIdleTimeoutMs": 300000,
   "images": {
     "blockImages": false
   },
+  "observational-memory": {
+    "observeAfterTokens": 10000,
+    "reflectAfterTokens": 20000,
+    "compactAfterTokens": 81000,
+    "compactAfterTokensMode": "calibrated",
+    "compactAfterTokensRatio": 0.68,
+    "observationsPoolMaxTokens": 20000,
+    "observationsPoolTargetTokens": 10000,
+    "agentMaxTurns": 12,
+    "model": {
+      "provider": "github-copilot",
+      "id": "claude-haiku-4.5",
+      "thinking": "low"
+    },
+    "passive": false,
+    "debugLog": false
+  },
   "packages": [
     "npm:@juanibiapina/pi-extension-settings",
-    "npm:pi-stats-ext",
     "npm:pi-spark",
     "npm:pi-yaml-hooks",
     "npm:pi-ask-user",
     "npm:pi-web-access",
-    "npm:pi-prompt-template-model",
     "npm:@juanibiapina/pi-powerbar",
-    "npm:@tmustier/pi-raw-paste",
-    "npm:pi-interactive-shell",
-    "git:github.com/davebcn87/pi-autoresearch",
-    "npm:@tmustier/pi-ralph-wiggum",
-    "npm:@victor-software-house/pi-curated-themes",
-    "npm:pi-intercom",
     "git:github.com/v2nic/pi-caveman",
     "npm:@narumitw/pi-caffeinate",
-    "npm:@narumitw/pi-chrome-devtools",
     "npm:@gotgenes/pi-subagents",
     "npm:context-mode",
     "npm:pi-mcp-adapter",
@@ -41,16 +44,13 @@
     "npm:pi-rtk-optimizer",
     "npm:@thisux/pi-double-esc-clear",
     "npm:@diegopetrucci/pi-notify",
-    "npm:pi-effort",
-    "npm:@schultzp2020/pi-cursor",
-    "npm:pi-mcporter"
+    "npm:pi-observational-memory"
   ],
   "quietStartup": false,
-  "steeringMode": "parallel",
   "terminal": {
     "showTerminalProgress": true
   },
-  "theme": "dark",
+  "theme": "github-dark-default",
   "transport": "auto",
   "treeFilterMode": "default"
 }

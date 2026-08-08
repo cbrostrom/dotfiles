@@ -15,25 +15,24 @@ Cursor subscription default. Presets live in `~/.config/pi/agent/spark.json`.
 
 | Preset | Model | Thinking | Use for |
 |--------|-------|----------|---------|
-| (default) | `cursor/default` (Auto) | off | Daily work |
+| (default) | `opencode/big-pickle` | medium | Daily work (free zen proxy, $0) |
 | `fast` | `cursor/gpt-5.4-mini` | off | Shell, quick edits, cheap turns |
 | `sonnet` | `cursor/default` (Auto) | off | Same as default via `/preset` |
 | `think` | `cursor/claude-sonnet-4-6` | high | Planning, specs, deep review |
-| — (recap) | `cursor/gpt-5.4-mini` | off | Idle/on-demand recap |
+| — (recap) | `opencode/big-pickle` | off | Idle/on-demand recap |
 | manual | `cursor/composer-2.5` | — | Deterministic agent coding via `/model` |
 
 Switch preset: `/preset fast`, `/preset sonnet`, `/preset think`
 Or start PI on a preset: `pi --preset sonnet`
 Show all models: `pi --list-models cursor`
 
-**Cost control:** Auto daily + mini for recap/shell. Escalate to Sonnet 4.6 only via `/preset think`. Avoid parallel subagents unless the win is clear.
+**Cost control:** Default driver `big-pickle` (opencode zen, $0 — no token spend). Escalate to Cursor subscription models only via `/preset` (fast/sonnet/think). Avoid parallel subagents unless the win is clear.
 
 ## Installed extensions
 
 ```
 pi-mcp-adapter     2.10.0  — Lazy MCP proxy (auto-picks up ~/.cursor/mcp.json)
 pi-spark           0.15.0  — Presets, recap, compact TUI
-pi-stats-ext       0.1.0   — Token/cost dashboard (/pi-stats)
 @gotgenes/pi-subagents  — In-process subagents (subagent, get_subagent_result, steer_subagent)
 ```
 
@@ -45,9 +44,9 @@ List installed: `pi list`
 
 ## MCP adapter
 
-`pi-mcp-adapter` auto-reads `~/.cursor/mcp.json`. Your github and shopify-dev-mcp
-servers are available in PI with no extra config. One proxied `mcp` tool instead of
-the full tool blast.
+`pi-mcp-adapter` auto-reads `~/.cursor/mcp.json`, but `~/.pi/agent/mcp.json` deliberately disables
+github/atlassian/shopify-dev-mcp (tool-restraint). Active servers: `kb` (Higgins vault MCP on
+superbro) + `deja` (cross-harness session search). One proxied `mcp` tool instead of the full tool blast.
 
 ## Subagent usage (@gotgenes/pi-subagents)
 
@@ -61,7 +60,7 @@ the full tool blast.
 PI does not auto-load the brain the way Claude Code does via SessionStart hook.
 Run `brain load` manually at the start of meaningful sessions, or type `.recall`.
 
-Save context: `.remember` / `.r` triggers the context-bridge skill.
+Save context: `.remember` / `.r` → `kb digest` (see kb skill).
 Single note: `.note <text>` → `brain current "<text>"`.
 Gotcha: `.gotcha <text>` → `brain gotcha "<text>"`.
 

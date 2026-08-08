@@ -2,7 +2,7 @@
 # Source: ~/dotfiles/.config/pi/agent/hook/hooks.yaml
 # Install: modules/pi/install.sh (symlinked to ~/.pi/agent/hook/hooks.yaml)
 #
-# Compatibility: pi-yaml-hooks 2026.6.x, PI 0.79.x (tested on 0.80.x — run /hooks-validate)
+# Compatibility: pi-yaml-hooks 2026.6.x, PI 0.84.x (run /hooks-validate)
 #
 # To verify: inside PI run /hooks-validate then /hooks-status
 # To disable: remove or comment out individual hook entries
@@ -10,44 +10,14 @@
 hooks:
   # ── Session start: readiness notification ────────────────────────────────────
   # A lightweight signal that global hooks loaded. Does not inject brain into
-  # model context (PI hook stdout ≠ additional_context). Run `kb load` manually
-  # or type `.remember` if you want a full digest + prune pass.
+  # model context (PI hook stdout ≠ additional_context). Use `kb_search` for
+  # vault lookups (live BM25 via kb-mcp), `ctx_search` for session/event memory.
   - id: session-ready
     event: session.created
     actions:
       - notify:
-          text: "PI ready. `ctx_search` for vault lookups. `/session-extract` EOD."
+          text: "PI ready. `kb_search` for vault, `ctx_search` for session memory. `/session-extract` EOD."
           level: info
-
-  # ── Session start: vault knowledge index ─────────────────────────────────────
-  # Indexes personal/ + modules/ + active project brain into context-mode's FTS5
-  # DB for the current working directory. This makes vault knowledge searchable
-  # via ctx_search without loading files into context. Re-indexing unchanged files
-  # is a no-op (~100ms/path). Excludes sessions/ and history/ (noisy, not knowledge).
-  # Requires context-mode extension (npm:context-mode) to be installed in PI.
-  - id: vault-ctx-index
-    event: session.created
-    actions:
-      - bash: |
-          CTX="$HOME/.pi/agent/npm/node_modules/.bin/context-mode"
-          [[ -x "$CTX" ]] || exit 0
-          VAULT="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
-          [[ -d "$VAULT" ]] || exit 0
-          # Determine active project slug (mirrors kb slug resolution)
-          if git rev-parse --git-dir >/dev/null 2>&1; then
-            SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
-          else
-            SLUG="$(basename "$PWD")"
-          fi
-          # Index into current project's DB so ctx_search works without --project flag
-          "$CTX" index "$VAULT/personal/" --project "$PWD" --ext .md 2>/dev/null || true
-          "$CTX" index "$VAULT/modules/"  --project "$PWD" --ext .md 2>/dev/null || true
-          # Active project brain only (skip history/ and archive/ — not knowledge)
-          if [[ -d "$VAULT/projects/$SLUG" ]]; then
-            "$CTX" index "$VAULT/projects/$SLUG/" \
-              --project "$PWD" --ext .md \
-              --exclude "history/**" --exclude "archive/**" 2>/dev/null || true
-          fi
 
   # ── Idle: auto-prune + compact + nudge ───────────────────────────────────────
   # Fires after turn completion with no pending messages.
@@ -99,29 +69,3 @@ hooks:
               echo "[pi-guard] Blocked: $cmd" >&2
               exit 2
           fi
-
-  # ── After kb write: re-index vault into context-mode ─────────────────────────
-  # Keeps the FTS5 index fresh whenever kb mutates vault files (save/wrap/compact).
-  # Fires only on matching kb commands, ~100ms overhead, fully silent.
-  - id: kb-write-reindex
-    event: tool.after.bash
-    actions:
-      - bash: |
-          cmd="$(echo "$PI_TOOL_ARGS_COMMAND" 2>/dev/null || true)"
-          # Only trigger on kb write operations
-          echo "$cmd" | grep -qE '\bkb (save|wrap|compact|prune)\b' || exit 0
-          CTX="$HOME/.pi/agent/npm/node_modules/.bin/context-mode"
-          [[ -x "$CTX" ]] || exit 0
-          VAULT="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
-          [[ -d "$VAULT" ]] || exit 0
-          if git rev-parse --git-dir >/dev/null 2>&1; then
-            SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
-          else
-            SLUG="$(basename "$PWD")"
-          fi
-          "$CTX" index "$VAULT/personal/" --project "$PWD" --ext .md 2>/dev/null || true
-          "$CTX" index "$VAULT/modules/"  --project "$PWD" --ext .md 2>/dev/null || true
-          [[ -d "$VAULT/projects/$SLUG" ]] && \
-            "$CTX" index "$VAULT/projects/$SLUG/" \
-              --project "$PWD" --ext .md \
-              --exclude "history/**" --exclude "archive/**" 2>/dev/null || true
