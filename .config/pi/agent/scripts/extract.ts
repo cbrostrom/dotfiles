@@ -15,7 +15,7 @@
 
 import { readdir, readFile, writeFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
-import { join, basename } from "path";
+import { join } from "path";
 import { homedir } from "os";
 
 // ── Config ──────────────────────────────────────────────────────────────────

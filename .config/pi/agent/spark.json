@@ -1,5 +1,6 @@
 {
   "editor": false,
+  "footer": false,
   "presets": {
     "fast": {
       "provider": "cursor",
@@ -19,8 +20,8 @@
   },
   "recap": {
     "idle": "5m",
-    "provider": "cursor",
-    "model": "gpt-5.4-mini",
+    "provider": "opencode",
+    "model": "big-pickle",
     "thinkingLevel": "off"
   }
 }
