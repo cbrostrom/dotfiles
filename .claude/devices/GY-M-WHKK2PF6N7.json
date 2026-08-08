@@ -3,7 +3,7 @@
   "os": "macos",
   "arch": "arm64",
   "profile": "desktop-full",
-  "last_synced": "2026-07-21T20:25:33Z",
+  "last_synced": "2026-07-29T09:02:51Z",
   "marketplaces": [
     "cavekit-marketplace",
     "caveman",
@@ -31,7 +31,6 @@
   ],
   "mcp_servers_settings": [
     "apple-mcp",
-    "engram",
     "github"
   ],
   "mcp_servers_list": [

@@ -3,6 +3,12 @@ set -euo pipefail
 . "$DOTFILES_DIR/modules/_lib/log.sh"
 . "$DOTFILES_DIR/modules/_lib/lists.sh"
 
+# ── 3) Register Claude Code MCP servers (conditional) ─────────────────────────
+if ! command -v claude >/dev/null 2>&1; then
+    warn "Claude Code not installed — skipping Claude MCP server registration"
+    exit 0
+fi
+
 base="$DOTFILES_DIR/.claude/mcp-servers.list"
 [[ -f "$base" ]] || { warn "mcp-servers.list not found at $base"; exit 0; }
 

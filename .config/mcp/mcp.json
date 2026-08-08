@@ -1,11 +1,7 @@
 {
   "mcpServers": {
-    "mcporter": {
-      "command": "mcporter",
-      "args": ["serve", "--stdio"],
-      "env": {
-        "MCPORTER_CONFIG": "${HOME}/.mcporter/mcporter.json"
-      }
+    "context-mode": {
+      "command": "context-mode"
     }
   }
 }
