@@ -111,3 +111,4 @@ gaming/config/launch.log
 .aislop/session.jsonl
 scripts/phase5-setup.sh
 tui/scripts/
+.aislop/history.jsonl
