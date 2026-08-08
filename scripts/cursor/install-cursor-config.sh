@@ -5,12 +5,12 @@
 #   ~/.cursor/rules/*.mdc → dotfiles/.cursor/rules/*.mdc
 #
 # hooks.json patches (idempotent):
-#   sessionStart  → brain-load.sh through run-hook.sh
+#   sessionStart  → no vault dump (MCP-only: agent calls kb_load/kb_search)
 #   preToolUse    → rtk hook cursor through run-hook.sh
 #   afterFileEdit → aislop hook cursor through run-hook.sh, if aislop installed
 #   stop          → vault-save.sh through run-hook.sh
 #   preCompact    → brain-save-inject.sh through run-hook.sh
-#   cleanup       → remove dead Code Island and legacy lean-ctx/rtk adapters
+#   cleanup       → remove dead Code Island, legacy lean-ctx/rtk, and vault dump hooks
 set -euo pipefail
 
 BLUE='\033[0;34m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
@@ -53,7 +53,7 @@ info "Targeting Cursor config at: $CURSOR_DIR"
 mkdir -p "$CURSOR_DIR/hooks"
 
 # --- Hook symlinks/copies ---
-for hook in brain-load.sh run-hook.sh vault-save.sh; do
+for hook in run-hook.sh vault-save.sh; do
   src="$CURSOR_SRC/hooks/$hook"
   dst="$CURSOR_DIR/hooks/$hook"
   if [[ ! -f "$src" ]]; then
@@ -70,6 +70,15 @@ for hook in brain-load.sh run-hook.sh vault-save.sh; do
   else
       ln -sf "$src" "$dst"
       success "Linked hooks/$hook"
+  fi
+done
+
+# Drop legacy vault-dump sessionStart scripts if present (MCP-only cold start)
+for legacy in brain-load.sh kb-load.sh; do
+  dst="$CURSOR_DIR/hooks/$legacy"
+  if [[ -e "$dst" || -L "$dst" ]]; then
+    rm -f "$dst"
+    success "Removed legacy hooks/$legacy (MCP-only sessionStart)"
   fi
 done
 
@@ -130,16 +139,24 @@ def managed_command(command):
         "rtk hook cursor",
         "aislop hook cursor",
         "bash './hooks/brain-load.sh'",
+        "bash './hooks/kb-load.sh'",
         "bash './hooks/vault-save.sh'",
     )
     wrapped = (
         "bash './hooks/run-hook.sh' rtk -- rtk hook cursor",
         "bash './hooks/run-hook.sh' aislop -- aislop hook cursor",
         "bash './hooks/run-hook.sh' brain-load -- bash './hooks/brain-load.sh'",
+        "bash './hooks/run-hook.sh' kb-load -- bash './hooks/kb-load.sh'",
         "bash './hooks/run-hook.sh' vault-save -- bash './hooks/vault-save.sh'",
         "bash './hooks/run-hook.sh' brain-save --",
     )
-    return any(part in command for part in legacy) or command in wrapped
+    # brain-load / kb-load are retired (MCP-only) — always strip, never re-add
+    dump_retired = ("brain-load", "kb-load")
+    return (
+        any(part in command for part in legacy)
+        or command in wrapped
+        or any(tag in command for tag in dump_retired)
+    )
 
 def cleanup_event(name):
     global changed
@@ -172,12 +189,8 @@ def add_entry(event, entry):
     else:
         print(f"\033[0;34m[cursor]\033[0m hook already present in {event}: {entry['command']}")
 
-# brain-load: sessionStart
-brain_entry = {
-    "command": "bash './hooks/run-hook.sh' brain-load -- bash './hooks/brain-load.sh'",
-    "timeout": 5,
-}
-add_entry("sessionStart", brain_entry)
+# sessionStart: MCP-only — do not inject vault dumps (agent uses kb_load/kb_search)
+print("\033[0;34m[cursor]\033[0m sessionStart vault dump hooks retired (MCP-only)")
 
 # RTK native hook: preToolUse Shell
 rtk_entry = {

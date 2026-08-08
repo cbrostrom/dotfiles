@@ -50,6 +50,69 @@ Slug format: `lowercase-kebab` only.
 kb                           # dashboard: active slug, file sizes, history count
 kb load [slug]               # 3-tier context dump (personal + module index + project brain)
 kb load --full [slug]        # also includes preferences.md + all module gotchas (~4k tokens)
+```
+
+## MCP tools (agent-facing, v2+)
+
+kb-mcp exposes these via MCP (auto-discovered by agents):
+
+```
+kb_load(slug, full=False, max_tokens=2000)
+  → Chunked output, token budget enforced. Default 2000 tokens.
+     max_tokens=0 for unlimited.
+  → Responses split at section headers (PERSONAL, MODULES, PROJECT)
+
+kb_search(query, tier="", max_tokens=2000)
+  → Tier hints: tier:personal, tier:projects, tier:modules, tier:infra
+  → Applies token budget (default 2000)
+
+kb_current(slug, text)          → Append to current.md
+kb_next(slug, text)             → Append to next.md  
+kb_gotcha(slug, text)           → Append to gotchas.md
+kb_done(slug, substr)           → Mark item done
+kb_save(slug, text)             → Write history snapshot
+kb_prune(slug)                  → Move [done:] items
+kb_compact(slug)                → Cap current.md at 5 bullets
+kb_lint()                       → Validate vault schema
+kb_resolve()                    → Get resolved slug for current session
+kb_status(slug)                 → Show modified times, file sizes
+kb_map(subcommand)              → Project registry, CODEBASE generator
+
+me_list(folder)                 → List personal notes (Me/ vault)
+me_read(path)                   → Read personal note
+me_search(query, folder)        → Search personal notes
+me_folders()                    → Vault structure
+me_recent(limit)                → Recently modified notes
+```
+
+### Query discipline (MCP v2)
+- Use 3-5 specific technical terms per query (e.g., "dotfiles fnm node upgrade")
+- Avoid vague queries ("dotfiles", "issues") — triggers broad noise
+- Tier hints for cross-project work: `kb_search("tier:personal debug logs")` narrows scope
+
+### Tiered loading protocol (v2)
+- **Personal session**: `kb_load("personal")` only (always cached)
+- **Project session**: `kb_load("<slug>")` (includes personal internally)
+- **Cross-project work**: `kb_load("personal")` only, then targeted `kb_search` queries
+- **Infra/deploy**: `kb_load("personal")` + `kb_load("infra/superbro")` when needed
+
+### Token budgets
+- `max_tokens=2000` (default) — safe for most queries
+- `max_tokens=1000` — tight budgets, cross-project work
+- `max_tokens=0` — unlimited (opt-out, use sparingly)
+
+### Chunking behavior
+- kb-mcp v2 splits output at `=== SECTION ===` boundaries
+- Personal context cached in memory (1hr TTL, auto-invalidates on write)
+- Partial chunks truncated at token budget boundary
+- See: `~/Vaults/Higgins/AI/plans/kb-mcp-optimization.md` for architecture
+
+```
+```
+
+CLI shortcuts (terminal/shell use):
+
+```bash
 kb current "<fact>"          # append to current.md (≤5 bullets hard cap)
 kb next "<action>"           # append to next.md
 kb gotcha "<trap>"           # append to gotchas.md (append-only)
@@ -63,7 +126,6 @@ kb compact [slug]            # cap current.md at 5 bullets, overflow → history
 kb lint                      # validate vault against _schema/ (also runs pre-commit)
 kb path                      # print active brain dir
 kb slug                      # print resolved slug
-```
 
 `brain` is a transition shim → execs `kb`.
 
@@ -97,7 +159,7 @@ kb slug                      # print resolved slug
 ### Cursor IDE
 | Event | What happens |
 |---|---|
-| `sessionStart` | `brain-load.sh` calls `kb load <slug>` → `additional_context` injected |
+| `sessionStart` | No vault dump (MCP-only). Agent loads via `kb_load` / `kb_search` on demand. |
 | `stop` | `vault-save.sh`: session marker → `sessions/YYYY/MM/`, TF-IDF background, prune+compact, AI nudge |
 | `preCompact` | `brain-save-inject.sh`: instructs agent to persist facts before compaction |
 | `afterFileEdit` | aislop code quality gate |
