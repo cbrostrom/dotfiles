@@ -291,6 +291,14 @@ if [[ "$(uname -s)" == "Linux" ]]; then
 fi
 
 # =============================================================================
+# PI CODING AGENT LAUNCHERS
+# =============================================================================
+# Low-noise research mode: keep web search + URL fetching, hide source checking.
+if command -v pi >/dev/null 2>&1; then
+    alias pi-search='pi --exclude-tools source_check'
+fi
+
+# =============================================================================
 # CLAUDE CODE LAUNCHERS
 # =============================================================================
 # Core — herdr tracks agent state via hooks; plain claude everywhere.
