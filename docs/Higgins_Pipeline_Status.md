@@ -1,19 +1,20 @@
 # Project: The Higgins Pipeline (Global Memory & Synthesis)
-# Status: Implementation Phase
-# Last Updated: 2026-07-18
+# Status: Operational — kb-mcp v2 live, higgins package in progress
+# Last Updated: 2026-08-10
 
-## 🎯 Goal
+## Goal
 Create a "Digital Twin" knowledge engine that captures raw data from all workstations, synthesizes it on a central server (SuperBro) using a local LLM, and provides surgical retrieval via an MCP server.
 
-## 🛠 Current Architecture
+## Current Architecture
 - **Senses (Capture):** Two capture layers feeding `~/Vaults/Higgins/AI/_ops`:
-  - `mem` CLI tool (manual) $\rightarrow$ Appends context-aware notes to `AI/_ops/mem/`.
-  - `deja sync export` (automatic) $\rightarrow$ Dumps session history as JSONL batches to `AI/_ops/deja/<hostname>/`. Secrets redacted at export time. Incremental with watermarks.
-- **Metabolism (Synthesis):** Bash "Janitor" on SuperBro $\rightarrow$ Daily cron job to process `_ops` into the structured Vault. Handles both mem scraps and deja JSONL batches, classifying entries (work → AI projects, personal → Me/).
-- **Consciousness (Retrieval):** MCP servers $\rightarrow$ kb-mcp for vault queries, ZenNotes for personal notes. Zero tokens at session start.
-- **Transport:** Syncthing "One-Way Valve" (Workstations: Send Only $\rightarrow$ SuperBro: Receive Only) for the `~/Vaults/Higgins/` folder.
+  - `mem` CLI tool (manual) — appends context-aware notes to `AI/_ops/mem/`.
+  - `deja sync export` (automatic) — dumps session history as JSONL batches to `AI/_ops/deja/<hostname>/`. Secrets redacted at export time. Incremental with watermarks.
+- **Metabolism (Synthesis):** Bash "Janitor" on SuperBro — daily cron job to process `_ops` into the structured Vault. Handles both mem scraps and deja JSONL batches. Local variant (monthly refresh workflow) implemented in `~/dotfiles/scripts/` (janitor.sh + kb-review.sh + kb-refresh.sh).
+- **Consciousness (Retrieval):** MCP servers — kb-mcp v2 for vault queries (deployed: local for Cursor via `.cursor/mcp.minimal.json`, remote on SuperBro `http://100.100.1.50:8765/mcp` for PI). Zero tokens at session start — agents use `kb_search` on demand.
+- **Index/Telemetry:** `higgins/` Python package (sqlite-backed) — Steps 1–2 done: package scaffold, `config.py`, `vault.py`, `index.py`, janitor subpackage (orchestrator/triager/indexer). kb-mcp v2 feeds it write counters (`~/.cache/higgins/meta.json`).
+- **Transport:** Syncthing "One-Way Valve" (Workstations: Send Only → SuperBro: Receive Only) for the `~/Vaults/Higgins/` folder.
 
-## 📂 Ops Directory Structure
+## Ops Directory Structure
 ```
 ~/Vaults/Higgins/AI/_ops/
   mem/                          ← manual notes (from mem tool)
@@ -28,7 +29,7 @@ Create a "Digital Twin" knowledge engine that captures raw data from all worksta
   digest-*.md                   ← session digests
 ```
 
-## ✅ Completed
+## Completed
 - [x] Spec defined and locked.
 - [x] Unified `~/Vaults/Higgins` structure created.
 - [x] Context-aware `mem` tool deployed and fixed to write to `~/Vaults/Higgins/AI/_ops/mem/`.
@@ -38,39 +39,40 @@ Create a "Digital Twin" knowledge engine that captures raw data from all worksta
 - [x] deja-vu installed and indexed on macbro (1089 Cursor + 61 OpenCode sessions).
 - [x] Inbox directory structure created: `mem/`, `deja/macbro/`, `deja/_processed/`.
 - [x] deja sync export tested: 101 records exported to JSONL.
-- [x] OpenCode deja-sync plugin created with:
-  - [x] `session.idle` event handler
-  - [x] 3-retry logic (1s delay between attempts)
-  - [x] Log rotation (10MB max, keeps 3 rotations)
-  - [x] Non-blocking background execution
-  - [x] Logging to `~/.config/opencode/logs/deja-sync.log`
+- [x] OpenCode deja-sync plugin created (session.idle trigger, retry, rotation, non-blocking).
 - [x] **MCP-first architecture:** kb-mcp server built, kb-load + wrappers deleted, AGENTS.md + core.mdc updated.
+- [x] **kb-mcp v2:** chunking, hot cache (1h TTL), tier-filtered `kb_search` (FTS5/BM25), higgins write counter. Verified with Cursor.
 - [x] **Vault restructure:** Inbox/deja/ → AI/_ops/deja/, Me/Brains/ → AI/projects/, mem path updated.
+- [x] **higgins package:** Step 1 (scaffold + config + CLI) and Step 2 (vault.py, index.py, write counting). Chose sqlite over postgres.
+- [x] **Monthly refresh workflow:** janitor.sh + janitor.conf + kb-review.sh + kb-refresh.sh (per kb-evolution-plan).
 
-## 🚧 In-Progress / Next Steps
+## In-Progress / Next Steps
 1. **Janitor Expansion:**
    - [ ] Expand janitor to read from `AI/_ops/mem/` and classify entries
    - [ ] Route work items → AI projects, personal items → Me/
+   - [ ] Set up janitor cron on SuperBro (pending — server-side)
 2. **Remote Setup:**
    - [ ] Install ZenNotes MCP on SuperBro
-   - [ ] Set up janitor cron on SuperBro
-3. **Verification:** Test kb-mcp tools with Cursor to ensure on-demand vault access works.
+3. **higgins as MCP (future):** grow a native MCP server entry inside the `higgins/` package; kb-mcp wrapper retires when that lands. Naming: keep `kb-mcp` as the deployed wrapper name until then (see Decisions).
 4. **Documentation:** Update remaining path references across vault files.
 
-## 🔑 Key Paths & Configs
+## Key Paths & Configs
 - **Workstation `mem` path:** `~/dotfiles/bin/mem` → `~/Vaults/Higgins/AI/_ops/mem/`
 - **deja-vu index:** `~/.cache/deja/index.db` (per workstation, local only)
 - **deja-sync plugin:** `~/.config/opencode/plugins/deja-sync.js`
 - **deja-sync logs:** `~/.config/opencode/logs/deja-sync.log` (rotated at 10MB, keeps 3 backups)
 - **SuperBro Janitor path:** `~/Vaults/Higgins/AI/tools/janitor.sh`
+- **Local MCP server:** `~/dotfiles/scripts/kb-mcp` (kb-mcp v2)
+- **Remote MCP endpoint:** `http://100.100.1.50:8765/mcp` (SuperBro, used by PI)
+- **Cursor MCP config:** `~/.cursor/mcp.minimal.json`
+- **PI MCP config:** `~/.config/pi/agent/mcp.json`
 - **Vault Root:** `~/Vaults/Higgins`
 - **AI Vault:** `~/Vaults/Higgins/AI`
 - **Personal Vault:** `~/Vaults/Higgins/Me`
 - **Ops Directory:** `~/Vaults/Higgins/AI/_ops`
-- **MCP Config:** `~/.cursor/mcp.minimal.json` (kb-mcp + zennotes servers)
 - **Model:** `llama3:8b` (Local Ollama)
 
-## 📐 Janitor Input Format
+## Janitor Input Format
 
 ### mem scraps (existing)
 ```markdown
@@ -89,7 +91,7 @@ LastChange: some commit message
 ```
 Each line is one message. Group by `session_id` to reconstruct full sessions. Already redacted. Watermarked export = idempotent re-runs.
 
-## 🧠 Agent Integration
+## Agent Integration
 Each workstation gets deja-vu as a **local agent memory layer** independent of Higgins:
 - OpenCode plugin: auto-recalls relevant past sessions at SessionStart (2KB context cap)
 - MCP tools: `recall` (snippets) and `recall_context` (markdown digest) available during sessions
@@ -114,7 +116,9 @@ Each workstation gets deja-vu as a **local agent memory layer** independent of H
 - Rotation: Automatic at 10MB, keeps 3 previous rotations (`.1`, `.2`, `.3`)
 - Performance: Async, non-blocking, minimal overhead
 
-## 📋 Decisions Made
+## Decisions Made
 - [x] **`mem` path:** Fixed to write to `~/Vaults/Higgins/AI/_ops/mem/` ✓
 - [x] **Sync frequency:** OpenCode plugin triggers `deja sync export` on `session.idle` event ✓
+- [x] **Storage:** sqlite over postgres for higgins ✓
+- [x] **Naming:** keep `kb-mcp` as deployed wrapper name; higgins package owns product identity. Rename when higgins ships its own MCP entry (single coordinated change: file + cursor config + SuperBro remote).
 - [ ] **Janitor model for sessions:** `llama3:8b` for both mem scraps and deja sessions (or larger for sessions — TBD)
