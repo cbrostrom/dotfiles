@@ -10,6 +10,7 @@
 
 # Backup files
 *.backup.*
+vault_higgins.zip
 *.backup_*
 *.bak
 *.bak.*
