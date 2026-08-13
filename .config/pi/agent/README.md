@@ -18,17 +18,22 @@ Installed via `modules/pi/install.sh` — opt-in per machine.
 │                       PI Coding Agent                        │
 ├─────────────────────────────────────────────────────────────┤
 │  Extensions (symlinked from dotfiles)                        │
-│  ├─ kb-project.ts      — project-aware kb context            │
 │  ├─ rtk.ts             — RTK optimizer integration           │
-│  └─ working-indicator.ts — session activity indicator        │
+│  ├─ footer/            — 2-row status bar (pikit)            │
+│  ├─ styled-outputs/    — full TUI visual design (pikit)      │
+│  ├─ chat-mode/         — /chat read-only toggle (pikit)      │
+│  ├─ plan-mode/         — /plan tool-locked planning (pikit)  │
+│  ├─ chat-input/        — styled input border (pikit)         │
+│  ├─ startup/           — session welcome header (pikit)      │
+│  ├─ env-loader/        — .env injection at startup (pikit)   │
+│  └─ protected-paths/   — AI-safe path deny list (pikit)      │
 ├─────────────────────────────────────────────────────────────┤
 │  Extensions (npm packages)                                   │
 │  ├─ pi-rtk-optimizer   — output compaction, source filtering │
 │  ├─ context-mode       — FTS5 knowledge base                 │
-│  ├─ pi-tool-display    — compact tool pills                  │
 │  ├─ pi-caffeinate      — keep terminal alive                 │
 │  ├─ pi-spark           — model presets                       │
-│  └─ 20 more (see packages list)                              │
+│  └─ 18 more (see packages list)                              │
 ├─────────────────────────────────────────────────────────────┤
 │  Hooks (symlinked)                                            │
 │  ├─ session-ready      — startup notification                │
