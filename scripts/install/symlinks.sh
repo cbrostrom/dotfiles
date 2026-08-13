@@ -355,9 +355,16 @@ fi
 if [[ "$IS_HEADLESS" == "false" ]]; then
 if [[ -d "$SCRIPT_DIR/.config/pi/agent/extensions" ]]; then
     mkdir -p "$HOME/.pi/agent/extensions"
+    # Single-file extensions (.ts)
     for ext in "$SCRIPT_DIR/.config/pi/agent/extensions/"*.ts; do
         [[ -f "$ext" ]] || continue
         create_symlink "$ext" "$HOME/.pi/agent/extensions/$(basename "$ext")" "pi extension: $(basename "$ext")"
+    done
+    # Directory extensions (multi-file)
+    for ext_dir in "$SCRIPT_DIR/.config/pi/agent/extensions/"/; do
+        [[ -d "$ext_dir" ]] || continue
+        ext_name="$(basename "$ext_dir")"
+        create_symlink "$ext_dir" "$HOME/.pi/agent/extensions/$ext_name" "pi extension dir: $ext_name"
     done
 fi
 
