@@ -1,6 +1,6 @@
 ---
 name: dot-doctor
-description: Dotfiles health check specialist. Runs doctor.sh and claude-settings doctor, interprets output intelligently — distinguishes real issues from expected warnings, proposes fix commands. Triggered by 'dot-doctor', 'dotfiles health', 'check setup', 'is my setup broken'.
+description: Run dotfiles health check. Reads doctor.sh + claude-settings doctor output, tells real issues from expected warnings, proposes fixes. Triggers: dot-doctor, dotfiles health, check setup, is my setup broken.
 group: dotfiles
 ---
 

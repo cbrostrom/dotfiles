@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: Release notes and changelog generator. Takes a git range or tag → groups commits by type → writes release notes in your voice using stored templates. Can learn and save new templates. Triggered by 'release notes', 'changelog', 'what changed since', 'generate release', 'draft release'.
+description: Generate release notes and changelogs. Takes a git range or tag, groups commits by type, writes in your voice using stored templates. Triggers: release notes, changelog, what changed since, generate release.
 group: productivity
 ---
 

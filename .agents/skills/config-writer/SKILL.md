@@ -1,6 +1,6 @@
 ---
 name: config-writer
-description: Decides where to store new AI/agent behavior (AGENTS.md, shared skill, Cursor agent, or rule) and creates or updates it. Use when adding or changing how an agent behaves — writing skills, agents, rules, or central config entries. Knows our thin-wrapper architecture. Triggered by `.add`, "add behavior", "where does this go", "create a rule for", "make a skill that", "new agent for".
+description: Create or update agent behavior: AGENTS.md entries, shared skills, Cursor rules. Knows the thin-wrapper architecture. Triggers: .add, add behavior, where does this go, create a rule, make a skill, new agent.
 group: meta
 ---
 
