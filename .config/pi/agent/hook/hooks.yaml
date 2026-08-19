@@ -8,9 +8,9 @@
 # To disable: remove or comment out individual hook entries
 
 hooks:
-  # ── Session start: readiness notification ────────────────────────────────────
+  # Session start: readiness notification
   # A lightweight signal that global hooks loaded. Does not inject brain into
-  # model context (PI hook stdout ≠ additional_context). Use `kb_search` for
+  # model context (PI hook stdout != additional_context). Use `kb_search` for
   # vault lookups (live BM25 via kb-mcp), `ctx_search` for session/event memory.
   - id: session-ready
     event: session.created
@@ -19,10 +19,9 @@ hooks:
           text: "PI ready. `kb_search` for vault, `ctx_search` for session memory. `/session-extract` EOD."
           level: info
 
-  # ── Idle: auto-prune + compact + nudge ───────────────────────────────────────
+  # Idle: auto-prune + compact
   # Fires after turn completion with no pending messages.
-  # Silently runs kb prune + compact to keep brains tidy, then nudges if
-  # there was meaningful activity (kb prune/compact prints output when it acts).
+  # Silently runs kb prune + compact to keep brains tidy.
   # Does NOT auto-save narrative context — that requires agent judgement (.remember).
   - id: idle-kb-tidy
     event: session.idle
@@ -39,7 +38,7 @@ hooks:
           "$KB" prune "$SLUG" 2>/dev/null || true
           "$KB" compact "$SLUG" 2>/dev/null || true
 
-  # ── File changed: aislop quality check ───────────────────────────────────────
+  # File changed: aislop quality check
   # Runs after PI writes/edits code files. aislop --pi checks score regression.
   # Exit code 2 would block (aislop hook pi uses PI hook protocol).
   - id: aislop-after-edit
@@ -49,22 +48,31 @@ hooks:
     actions:
       - bash: "aislop hook pi"
 
-  # ── Before bash: destructive command guard ────────────────────────────────────
+  # Before bash: destructive command guard
   # Blocks patterns that should never run silently. Exit code 2 = hard stop.
-  # Covers the most obvious force-push / publish / scorched-earth patterns.
+  # Reads the bash command from hook stdin JSON (.tool_args.command).
+  # Falls back to raw payload substring match if jq is unavailable.
   # Intentionally narrow — don't over-block legitimate dev commands.
+  # NOTE: pi-permissions.jsonc is the primary guard; this is a defence-in-depth layer.
   - id: guard-destructive
     event: tool.before.bash
     actions:
       - bash: |
-          cmd="$(echo "$PI_TOOL_ARGS_COMMAND" 2>/dev/null || true)"
+          payload=$(cat)
+          # Extract command from stdin JSON; fall back to raw payload if jq missing
+          if command -v jq >/dev/null 2>&1; then
+            cmd=$(printf '%s' "$payload" | jq -r '.tool_args.command // empty' 2>/dev/null)
+          else
+            cmd="$payload"
+          fi
+          [[ -z "$cmd" ]] && exit 0
           blocked=0
-          # Force push to any remote
-          echo "$cmd" | grep -qE 'git push.*(--force|-f)' && blocked=1
+          # Force push (including --force-with-lease)
+          echo "$cmd" | grep -qE 'git push.*(--force|--force-with-lease|-f\b)' && blocked=1
           # rm -rf on root/home dirs
-          echo "$cmd" | grep -qE 'rm -rf (/|~|/home|/Users)' && blocked=1
-          # gh release create / pr merge / npm publish / cargo publish
-          echo "$cmd" | grep -qE '(gh release create|gh pr merge|npm publish|cargo publish|pip publish)' && blocked=1
+          echo "$cmd" | grep -qE 'rm -rf (/[^/]|~|/home|/Users)' && blocked=1
+          # publish / release / pr merge
+          echo "$cmd" | grep -qE '(gh release create|gh pr merge|npm publish|cargo publish|twine upload)' && blocked=1
           if [[ "$blocked" == "1" ]]; then
               echo "[pi-guard] Blocked: $cmd" >&2
               exit 2

@@ -5,10 +5,11 @@
 # Opt-in per machine: add "pi" to ~/.config/dotfiles/modules.conf
 #
 # What this installs (symlinked from dotfiles, git-tracked):
-#   ~/.pi/agent/AGENTS.md          ← global policy adapter
-#   ~/.pi/agent/spark.json         ← Spark presets + recap config
-#   ~/.pi/web-search.json          ← focused Exa/raw web-search config
-#   ~/.pi/agent/hook/hooks.yaml    ← pi-yaml-hooks global hooks (gated)
+#   ~/.pi/agent/AGENTS.md          <- global policy adapter
+#   ~/.pi/agent/spark.json         <- Spark presets + recap config
+#   ~/.pi/web-search.json          <- focused Exa/raw web-search config
+#   ~/.pi/agent/hook/hooks.yaml    <- pi-yaml-hooks global hooks (gated)
+#   ~/.pi/agent/pi-permissions.jsonc <- pi-permission-system policy
 #
 # What this PATCHES (merged, not symlinked — PI writes runtime fields here):
 #   ~/.pi/agent/settings.json      ← packages, model, trust defaults
@@ -67,6 +68,7 @@ _symlink() {
 _symlink "$PI_SRC/AGENTS.md"           "$PI_DST/AGENTS.md"           "AGENTS.md"
 _symlink "$PI_SRC/spark.json"          "$PI_DST/spark.json"          "spark.json"
 _symlink "$PI_SRC/mcp.json"            "$PI_DST/mcp.json"            "mcp.json"
+_symlink "$PI_SRC/pi-permissions.jsonc" "$PI_DST/pi-permissions.jsonc" "pi-permissions.jsonc"
 _symlink "$PI_SRC/web-search.json"     "$HOME/.pi/web-search.json"    "web-search.json"
 
 # ── 4) pi shim at ~/.local/bin/pi ────────────────────────────────────────────
