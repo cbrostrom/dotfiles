@@ -1,6 +1,6 @@
 ---
 name: dotfiles
-description: Dotfiles architecture and implementation knowledge for Christian's dotfiles repo at ~/dotfiles. Use when asking how the dotfiles setup works, tracing config paths, understanding settings layers, hook flows, skill routing, module install, device snapshots, or brain integration. Also use when making approved changes to dotfiles — hooks, settings layers, modules, install scripts, skills config, symlinks. Always present a plan with complexity estimate and ask for permission before any edit.
+description: Architecture and implementation knowledge for ~/dotfiles. Use when tracing config paths, settings layers, hook flows, skill routing, module install, or brain integration. Also use before editing hooks, install scripts, skills, or symlinks — outlines plan with complexity estimate before any edit. Triggers: how does X work, dotfiles setup, config path, hook flow.
 ---
 
 # Dotfiles Skill

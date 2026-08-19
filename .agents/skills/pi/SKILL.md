@@ -1,6 +1,6 @@
 ---
 name: pi
-description: PI coding agent daily-driver reference. Use when working inside PI, checking preset/recap/model choices, wiring MCP or subagentura, verifying hook health, or when asked how to use PI alongside the agnostic dotfiles setup. Also use when another agent needs to explain PI usage to the user.
+description: Pi daily-driver reference. Use when checking presets, models, MCP wiring, hook health, or Pi usage alongside dotfiles. Triggers: Pi preset, model selection, MCP setup, hooks, subagentura, Pi config.
 ---
 
 # PI Daily-Driver Skill

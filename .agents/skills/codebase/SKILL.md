@@ -1,6 +1,6 @@
 ---
 name: codebase
-description: Codebase router. Reads CODEBASE.md and maps the current task to the 2-3 files worth reading next — prevents redundant searches. Offers to generate CODEBASE.md if missing. Triggered by 'codebase', 'where is X', 'what files do I need', 'map this repo', 'orient me'.
+description: Maps the current task to 2-3 files to read. Reads CODEBASE.md; generates it if missing. Triggers: codebase, where is X, what files do I need, map this repo, orient me.
 group: productivity
 ---
 

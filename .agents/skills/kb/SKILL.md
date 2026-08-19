@@ -1,6 +1,6 @@
 ---
 name: kb
-description: Knowledgebase (kb) vault protocol for all agents. Covers vault path detection, tier map (personal/modules/projects/infra), load/save protocol via the kb CLI, session capture, and slug resolution. Use when loading session context, saving learnings/decisions, running kb remember/digest, or at session boundaries. Triggered by 'load kb', 'save kb', 'load vault', 'save brain', 'update vault', 'kb context', '.remember', 'kb remember', 'kb digest', or at session boundaries.
+description: Vault (kb) protocol for all agents. Covers tier map, load/save via kb CLI, session capture, slug resolution. Use when loading context, saving decisions, running kb digest, or at session boundaries. Triggers: load kb, save kb, load vault, .remember, kb digest.
 group: kb
 ---
 

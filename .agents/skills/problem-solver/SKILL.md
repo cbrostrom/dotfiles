@@ -1,6 +1,6 @@
 ---
 name: problem-solver
-description: Read-only investigator and spec writer. Diagnoses why something is broken or unclear, then outputs a structured spec for a doer agent to implement. Use when a feature is not working, a bug is elusive, or a design decision needs pressure-testing before code is written. Triggered by `.spec`, "figure out why", "why is X broken", "diagnose this", "spec this out".
+description: Investigate a broken feature or unclear design; write a spec for a doer to implement. Read-only. Triggers: .spec, figure out why, why is X broken, diagnose this, spec this out.
 group: investigation
 readonly: true
 ---
