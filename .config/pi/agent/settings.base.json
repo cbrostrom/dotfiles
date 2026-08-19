@@ -21,10 +21,10 @@
     "observationsPoolTargetTokens": 10000,
     "agentMaxTurns": 12,
     "model": {
-      "provider": "github-copilot",
-      "id": "claude-haiku-4.5",
-      "thinking": "low"
+      "provider": "ollama",
+      "id": "gpt-oss:20b-cloud"
     },
+    "showWorkerNotifications": false,
     "passive": false,
     "debugLog": false
   },
@@ -42,7 +42,9 @@
     "npm:pi-rtk-optimizer",
     "npm:@thisux/pi-double-esc-clear",
     "npm:@diegopetrucci/pi-notify",
-    "npm:pi-observational-memory"
+    "npm:pi-observational-memory",
+    "npm:@shift-labs/pi-peer",
+    "npm:@nguyenquangthai/pi-todo"
   ],
   "quietStartup": false,
   "terminal": {

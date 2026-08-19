@@ -92,6 +92,64 @@ Key shared skills available: `dotfiles`, `kb`, `code-reviewer`, `problem-solver`
 - Subagentura: use `subagent_isolated` for narrow, parallelisable tasks. Default to the
   main thread for anything requiring full context.
 
+## Output style (attention-kind)
+
+Default response format — answer-first, scan-friendly:
+
+- **Lead with the bottom line.** First sentence = single most important takeaway. Short reply = that sentence is the reply.
+- **Say the least that fully answers, then stop.** No padding, no re-summarising, no openers ("Great question", "Sure", "Certainly").
+- **`→` marker format.** Each distinct point: `**→ Lead-in.** rest` as its own paragraph, blank line between. Not `-` bullets (terminals collapse them).
+- **Bold carries the whole answer.** Bold lead-ins + key terms/numbers/warnings. Skim-only-bold must still yield the full answer and every warning.
+- **One idea per block.** Blank-line-separated blocks in every reply, even short ones. One unbroken paragraph is a bug.
+- **Deliverable purity.** Asked to produce a thing (email, commit, snippet)? Output only that thing, nothing wrapped around it.
+- **Warnings ride with the point they guard.** Never defer or trim a risk/caveat.
+- **One question at a time.** Options as short bullets.
+- **Suspend brevity when asked to go deep** ("really explain", "walk me through", "full picture") — give it all in scannable blocks, don't defer.
+- No em-dashes. No re-stating the answer at the end.
+
+## Web fetching — moli vs fetch_content
+
+Moli (`~/.local/bin/moli`) is the preferred page fetcher. Use it for all page fetches:
+
+```bash
+moli fetch --dump markdown --wait-until done "<url>"
+```
+
+Markdown is the most token-efficient output — strips nav/footer/scripts, gives clean prose.
+`--dump semantic_tree_text` is verbose (adds role labels + node IDs to every element) — avoid unless you need accessibility tree structure specifically.
+Use `fetch_content` only if moli is unavailable.
+
+Keep using `web_search` for discovery. Moli handles subsequent page fetches.
+
+See `/skill:moli-webfetch` for waits, crawl, screenshots, and recipes.
+
+## pi-peer — cross-session messaging
+
+`pi-peer` is installed (`pi install npm:@shift-labs/pi-peer`). Every Pi session auto-registers on startup.
+
+**Two tools added to every session:**
+- `list_peers` — shows other Pi sessions, their cwd, and status (idle/working/unresponsive)
+- `message_peer` — sends plain text to another session by name
+
+**Usage:** ask in words; the model picks the tool.
+```
+/peers                              # list current sessions
+Tell the other session main moved.  # send a message
+```
+
+**Cross-machine (Redis on superbro):**
+See `~/Vaults/Higgins/AI/infra/superbro/redis-setup.md` for full setup.
+Once Redis is running, set on each machine:
+```bash
+export PI_PEER_REMOTE=redis
+export PI_PEER_REDIS_URL=redis://:PASSWORD@100.100.1.50:6379
+export PI_PEER_NAMESPACE=christian-pi
+export PI_PEER_INBOUND_REMOTE=ask
+```
+Or configure interactively: `/peer-remote` inside any Pi session.
+
+**Inbound policy:** `PI_PEER_INBOUND=accept` (local), `PI_PEER_INBOUND_REMOTE=ask` (remote) — prompts before the model sees cross-machine messages.
+
 ## Token awareness
 
 RTK has no PI mode yet. Prefer scoped reads, Grep before reading large files,
