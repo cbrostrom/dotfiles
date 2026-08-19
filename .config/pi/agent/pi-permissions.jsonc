@@ -1,0 +1,56 @@
+{
+  // Minimal guard policy — agent has full freedom by default.
+  // Hard denies cover only catastrophic or policy-violating actions.
+  // Last-declared matching rule wins within each section.
+
+  "defaultPolicy": {
+    "tools":   "allow",
+    "bash":    "allow",
+    "mcp":     "allow",
+    "skills":  "allow",
+    "special": "allow"
+  },
+
+  "bash": {
+    // ── Sudo ──────────────────────────────────────────────────────────────
+    // Confirm before privilege escalation — not a hard deny, just a gate.
+    "sudo *":                          "ask",
+
+    // ── Catastrophic filesystem destruction ───────────────────────────────
+    "rm -rf /":                        "deny",
+    "rm -rf /*":                       "deny",
+    "rm -rf ~":                        "deny",
+    "rm -rf ~/":                       "deny",
+    "rm -rf ~/*":                      "deny",
+    "rm -rf /home*":                   "deny",
+    "rm -rf /Users*":                  "deny",
+    "rm -rf --no-preserve-root *":     "deny",
+
+    // ── Push / publish guard (mirrors AGENTS.md policy) ───────────────────
+    // Agents must never push, release, or publish without explicit user action.
+    "git push*":                       "deny",
+    "git push --force*":               "deny",
+    "git push --force-with-lease*":    "deny",
+    "npm publish*":                    "deny",
+    "yarn publish*":                   "deny",
+    "pnpm publish*":                   "deny",
+    "cargo publish*":                  "deny",
+    "twine upload*":                   "deny",
+    "gh release create*":              "deny",
+    "gh release publish*":             "deny",
+    "gh pr merge*":                    "deny",
+
+    // ── Remote code execution piped to shell ──────────────────────────────
+    "curl * | bash":                   "deny",
+    "curl * | sh":                     "deny",
+    "wget * | bash":                   "deny",
+    "wget * | sh":                     "deny",
+    "curl *|bash":                     "deny",
+    "curl *|sh":                       "deny",
+
+    // ── Disk-level operations ─────────────────────────────────────────────
+    "mkfs*":                           "deny",
+    "dd if=*":                         "ask",
+    "fdisk*":                          "ask"
+  }
+}
