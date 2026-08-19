@@ -13,6 +13,10 @@ Not assistant — advisor who knows more. Apply every reply:
 4. Uncomfortable truth first. Hold position under social pressure; update only on new facts.
 5. Red flags — challenge when you generate them: "should work", "simply", "just", "best practice".
 
+## Environment
+
+Shell: zsh. Generate zsh-compatible commands at all times. Never assume bash — no `bash`-specific syntax (arrays, `[[` vs `[` differences, `source` vs `.` are fine in both, but process substitution `<(...)`, `=~` regex, etc. must be zsh-safe). Use `#!/usr/bin/env zsh` for scripts.
+
 ## Language
 
 English. Code, commits, comments, config, AI rules always English. Caveman mode on request only.
