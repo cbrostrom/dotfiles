@@ -17,7 +17,7 @@ The key rules from dotfiles/AGENTS.md that apply here:
 
 ## Memory (Higgins)
 
-CLI: `kb` (in PATH via `~/.local/bin/kb`); `~/dotfiles/scripts/brain` is a shim that execs `kb`.
+CLI: `higgins` (Go binary at `~/.local/bin/higgins`). `kb` and `brain` are deprecated shims that forward to `higgins` with a notice; they will be removed at Stage 4.
 Vault: `~/Vaults/Higgins/AI` (macOS, git-backed) — tier map: `personal/`, `modules/`, `projects/`, `infra/`, `sessions/`, `_ops/`
 
 **MCP server (v2)**: kb-mcp running on superbro at `http://100.100.1.50:8765/mcp` (Tailscale-accessible).
@@ -37,25 +37,27 @@ kb_search("<3-5 specific technical terms>")  # avoid vague queries
 See `~/dotfiles/.agents/skills/kb/SKILL.md` for full MCP tool reference and tiered loading protocol.
 
 Signals:
-- `.remember` / `.r` — run `kb digest` (scans recent sessions, auto-prunes, proposes gotchas/current updates)
-- `.note <text>` / `.n <text>` — `kb current "<text>"`
-- `.gotcha <text>` / `.g <text>` — `kb gotcha "<text>"`
+- `.remember` / `.r` — run `higgins digest` (scans recent sessions, auto-prunes, proposes gotchas/current updates)
+- `.note <text>` / `.n <text>` — `higgins current "<text>"`
+- `.gotcha <text>` / `.g <text>` — `higgins gotcha "<text>"`
 
-Key `kb` commands:
+Key `higgins` commands:
 ```bash
-kb                     # dashboard for current slug
-kb load [slug]         # inject brain context into session
-kb current "<fact>"    # append to current.md (≤5 bullets enforced)
-kb next "<action>"     # append to next.md
-kb gotcha "<trap>"     # append to gotchas.md
-kb prune [slug]        # move [done:] items → history/
-kb compact [slug]      # cap current.md at 5 bullets, overflow → history/
-kb digest [slug]       # scan sessions + propose updates (auto-runs prune+compact)
-kb lint                # validate vault against _schema/
+higgins                     # dashboard for current slug
+higgins load [slug]         # inject brain context into session
+higgins current "<fact>"    # append to current.md (≤5 bullets enforced)
+higgins next "<action>"     # append to next.md
+higgins gotcha "<trap>"     # append to gotchas.md
+higgins prune [slug]        # move [done:] items → history/
+higgins compact [slug]      # cap current.md at 5 bullets, overflow → history/
+higgins digest [slug]       # scan sessions + propose updates (auto-runs prune+compact)
+higgins lint                # validate vault against _schema/
 ```
 
+(`kb <cmd>` still works via the deprecated shim — prints a notice to stderr.)
+
 ### Higgins Workflow Integration
-- **Ralph-Wiggum**: During the "Reflection" phase of a `ralph` loop, ALWAYS update the project brain via `kb current` or `kb next` to persist progress across potential session resets.
+- **Ralph-Wiggum**: During the "Reflection" phase of a `ralph` loop, ALWAYS update the project brain via `higgins current` or `higgins next` to persist progress across potential session resets.
 - **Pi-Compound**: When compounding a solution, write the final pattern to the appropriate Higgins module (`modules/<name>/patterns.md`) or project brain (`projects/<slug>/gotchas.md`) rather than generic docs.
 
 ## Skills
@@ -82,10 +84,10 @@ Key shared skills available: `dotfiles`, `kb`, `code-reviewer`, `problem-solver`
      NOT human-editable). Fast cross-session search over auto-captured events + indexed docs on
      THIS machine. An accelerator, not the brain.
   4. `/session-extract` EOD — distils session signal (OM reflections first, context-mode events
-     as fallback) into vault Markdown candidates; human-gated `kb digest` writes to Higgins.
-  The durable, portable, human+AI-editable brain is the Higgins vault (`kb` + kb-mcp), maintained
+     as fallback) into vault Markdown candidates; human-gated `higgins digest` writes to Higgins.
+  The durable, portable, human+AI-editable brain is the Higgins vault (`higgins` + kb-mcp), maintained
   by the Janitor. OM and context-mode feed it; neither replaces it.
-- MCP servers: `kb` (vault) + `deja` (session search) enabled in `~/.pi/agent/mcp.json`.
+- MCP servers: `kb` (vault, kb-mcp) + `deja` (session search) enabled in `~/.pi/agent/mcp.json`.
   github/atlassian/shopify-dev-mcp deliberately disabled (tool-restraint).
 - Project trust: use `/trust` once in trusted repos. Keep `defaultProjectTrust` at `"ask"`.
 - Hooks: if `pi-yaml-hooks` is installed, run `/hooks-status` to verify on first session.
