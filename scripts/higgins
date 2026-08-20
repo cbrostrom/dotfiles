@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-# higgins — thin wrapper; the Go binary lives at ~/.local/bin/higgins.
-# This script exists so dotfiles/scripts/higgins stays on PATH alongside
-# the installed binary. Once the binary is the only reference, this can be removed.
-exec "$HOME/.local/bin/higgins" "$@"
