@@ -1,6 +1,6 @@
 ---
 name: codebase
-description: Maps the current task to 2-3 files to read. Reads CODEBASE.md; generates it if missing. Triggers: codebase, where is X, what files do I need, map this repo, orient me.
+description: "Maps the current task to 2-3 files to read. Reads CODEBASE.md; generates it if missing. Triggers: codebase, where is X, what files do I need, map this repo, orient me."
 group: productivity
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: Generate release notes and changelogs. Takes a git range or tag, groups commits by type, writes in your voice using stored templates. Triggers: release notes, changelog, what changed since, generate release.
+description: "Generate release notes and changelogs. Takes a git range or tag, groups commits by type, writes in your voice using stored templates. Triggers: release notes, changelog, what changed since, generate release."
 group: productivity
 ---
 

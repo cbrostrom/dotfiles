@@ -1,6 +1,6 @@
 ---
 name: config-writer
-description: Create or update agent behavior: AGENTS.md entries, shared skills, Cursor rules. Knows the thin-wrapper architecture. Triggers: .add, add behavior, where does this go, create a rule, make a skill, new agent.
+description: "Create or update agent behavior: AGENTS.md entries, shared skills, Cursor rules. Knows the thin-wrapper architecture. Triggers: .add, add behavior, where does this go, create a rule, make a skill, new agent."
 group: meta
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: sparring
-description: Adversarial ideation partner. Challenges ideas, stress-tests assumptions, pushes creative and technical thinking with brutal honesty. Uses web search freely. Triggers: /sparring, spar on this, challenge this idea, stress-test this, be my sparring partner.
+description: "Adversarial ideation partner. Challenges ideas, stress-tests assumptions, pushes creative and technical thinking with brutal honesty. Uses web search freely. Triggers: /sparring, spar on this, challenge this idea, stress-test this, be my sparring partner."
 group: thinking
 user-invocable: true
 argument-hint: "[topic or idea to spar on]"

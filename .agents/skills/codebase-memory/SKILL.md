@@ -1,6 +1,6 @@
 ---
 name: codebase-memory
-description: Query the codebase knowledge graph for structural analysis: call chains, callers, dependencies, dead code, fan-out, refactor candidates. Triggers: explore codebase, who calls this, trace call chain, show dependencies, impact analysis, dead code, graph query.
+description: "Query the codebase knowledge graph for structural analysis: call chains, callers, dependencies, dead code, fan-out, refactor candidates. Triggers: explore codebase, who calls this, trace call chain, show dependencies, impact analysis, dead code, graph query."
 ---
 
 # Codebase Memory — Knowledge Graph Tools

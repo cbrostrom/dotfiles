@@ -1,6 +1,6 @@
 ---
 name: unslop
-description: Cut AI tells from writing. Add human voice. 31 patterns. Triggers: unslop, humanize, write, draft, polish, edit, rewrite.
+description: "Cut AI tells from writing. Add human voice. 31 patterns. Triggers: unslop, humanize, write, draft, polish, edit, rewrite."
 ---
 
 # Unslop
