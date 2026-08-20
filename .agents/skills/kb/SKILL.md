@@ -1,6 +1,6 @@
 ---
 name: kb
-description: "Vault (kb) protocol for all agents. Covers tier map, load/save via kb CLI, session capture, slug resolution. Use when loading context, saving decisions, running kb digest, or at session boundaries. Triggers: load kb, save kb, load vault, .remember, kb digest."
+description: "Vault (Higgins) protocol for all agents. Covers tier map, load/save via higgins CLI, session capture, slug resolution. Use when loading context, saving decisions, running higgins digest, or at session boundaries. Triggers: load vault, save vault, .remember, higgins digest."
 group: kb
 ---
 
@@ -47,9 +47,9 @@ Slug format: `lowercase-kebab` only.
 ## Full CLI reference
 
 ```bash
-kb                           # dashboard: active slug, file sizes, history count
-kb load [slug]               # 3-tier context dump (personal + module index + project brain)
-kb load --full [slug]        # also includes preferences.md + all module gotchas (~4k tokens)
+higgins                           # dashboard: active slug, file sizes, history count
+higgins load [slug]               # 3-tier context dump (personal + module index + project brain)
+higgins load --full [slug]        # also includes preferences.md + all module gotchas (~4k tokens)
 ```
 
 ## MCP tools (agent-facing, v2+)
@@ -113,35 +113,35 @@ me_recent(limit)                → Recently modified notes
 CLI shortcuts (terminal/shell use):
 
 ```bash
-kb current "<fact>"          # append to current.md (≤5 bullets hard cap)
-kb next "<action>"           # append to next.md
-kb gotcha "<trap>"           # append to gotchas.md (append-only)
-kb done <substr>             # mark matching next item [done: YYYY-MM-DD]
-kb save "<summary>"          # write history/YYYY-MM-DD-HHMM.md
-kb wrap "<summary>" [topic]  # save snapshot + set new current focus
-kb remember [slug]           # full digest: scan sessions, propose updates, auto-prune+compact
-kb digest [slug]             # alias for remember
-kb prune [slug]              # move [done:] items → history/
-kb compact [slug]            # cap current.md at 5 bullets, overflow → history/
-kb lint                      # validate vault against _schema/ (also runs pre-commit)
-kb path                      # print active brain dir
-kb slug                      # print resolved slug
+higgins current "<fact>"          # append to current.md (≤5 bullets hard cap)
+higgins next "<action>"           # append to next.md
+higgins gotcha "<trap>"           # append to gotchas.md (append-only)
+higgins done <substr>             # mark matching next item [done: YYYY-MM-DD]
+higgins save "<summary>"          # write history/YYYY-MM-DD-HHMM.md
+higgins wrap "<summary>" [topic]  # save snapshot + set new current focus
+higgins remember [slug]           # full digest: scan sessions, propose updates, auto-prune+compact
+higgins digest [slug]             # alias for remember
+higgins prune [slug]              # move [done:] items → history/
+higgins compact [slug]            # cap current.md at 5 bullets, overflow → history/
+higgins lint                      # validate vault against _schema/ (also runs pre-commit)
+higgins path                      # print active brain dir
+higgins slug                      # print resolved slug
 
-`brain` is a transition shim → execs `kb`.
+`kb` and `brain` are deprecated shims → forward to `higgins` with a notice. Remove at Stage 4.
 
 ## Save protocol — when to use what
 
 | Situation | Command |
 |---|---|
-| Discovered a non-obvious trap | `kb gotcha "<trap>"` — immediately, don't wait |
-| New action item | `kb next "<action>"` |
-| State changed (decision made, thing completed) | `kb current "<fact>"` |
-| Topic shift or chunk completed | `kb wrap "<what-done>" [new-topic]` |
-| End of big session / before compaction | `kb remember` |
+| Discovered a non-obvious trap | `higgins gotcha "<trap>"` — immediately, don't wait |
+| New action item | `higgins next "<action>"` |
+| State changed (decision made, thing completed) | `higgins current "<fact>"` |
+| Topic shift or chunk completed | `higgins wrap "<what-done>" [new-topic]` |
+| End of big session / before compaction | `higgins remember` |
 | Mid-session capture (alias) | `.remember` (PI keyword) |
 
 **Do not save:** noise, obvious things, temporary debugging notes, things already in `current.md`.
-**Never edit vault files directly.** Only `kb` writes.
+**Never edit vault files directly.** Only `higgins` writes.
 
 ## How context loads per session
 
@@ -149,7 +149,7 @@ kb slug                      # print resolved slug
 - `personal/current.md` + `personal/gotchas.md` (always, dense)
 - Module index: one-line description per module (names + purpose only)
 - `projects/<slug>/INDEX.md` + `current.md` + `next.md` (active items only)
-- Note: `personal/preferences.md` omitted; module gotchas omitted — on-demand via `kb load --full`
+- Note: `personal/preferences.md` omitted; module gotchas omitted — on-demand via `higgins load --full`
 
 ### Full (on-demand, ~4,000 tokens)
 - Everything above, plus `personal/preferences.md` + all `modules/*/gotchas.md`
@@ -167,11 +167,11 @@ kb slug                      # print resolved slug
 ### PI (`pi-yaml-hooks`)
 | Event | What happens |
 |---|---|
-| `session.created` | Notify: `kb load` available |
+| `session.created` | Notify: `higgins load` available |
 | `session.idle` | Silent prune+compact; nudge to `.remember` |
 | `session.deleted` | Final prune+compact (best-effort) |
 
-**PI limitation:** hook stdout ≠ `additional_context`. Context injection requires agent to call `kb load` explicitly.
+**PI limitation:** hook stdout ≠ `additional_context`. Context injection requires agent to call `higgins load` explicitly.
 
 ## The promotion flywheel
 
@@ -179,15 +179,15 @@ kb slug                      # print resolved slug
 Session work
   → (auto) sessions/YYYY/MM/<slug>-session.md  ← TF-IDF appended on stop
   → (weekly) ./tools/session-promote            ← grep scan → sessions/candidates.md
-  → (you review) kb gotcha / kb current         ← promote survivors
+  → (you review) higgins gotcha / higgins current         ← promote survivors
   → (next session) denser additional_context    ← cheaper, more accurate
 ```
 
-`kb remember` shortcut: scans last 7 days of sessions, auto-prunes, proposes entries.
+`higgins remember` shortcut: scans last 7 days of sessions, auto-prunes, proposes entries.
 
 ## Schema enforcement
 
-`kb lint` validates (runs pre-commit):
+`higgins lint` validates (runs pre-commit):
 - `projects/<slug>/`: required files, slug format, ≤5 bullets, no orphans, no stubs
 - `modules/<name>/`: `MODULE.md gotchas.md patterns.md decisions.md references.md`
 - `personal/`: `current.md preferences.md gotchas.md`

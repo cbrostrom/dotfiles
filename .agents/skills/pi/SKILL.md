@@ -46,7 +46,7 @@ List installed: `pi list`
 
 `pi-mcp-adapter` auto-reads `~/.cursor/mcp.json`, but `~/.pi/agent/mcp.json` deliberately disables
 github/atlassian/shopify-dev-mcp (tool-restraint). Active servers: `kb` (Higgins vault MCP on
-superbro) + `deja` (cross-harness session search). One proxied `mcp` tool instead of the full tool blast.
+superbro, tool prefix `kb_*`) + `deja` (cross-harness session search). One proxied `mcp` tool instead of the full tool blast.
 
 ## Subagent usage (@gotgenes/pi-subagents)
 
@@ -58,11 +58,11 @@ superbro) + `deja` (cross-harness session search). One proxied `mcp` tool instea
 ## Brain and memory
 
 PI does not auto-load the brain the way Claude Code does via SessionStart hook.
-Run `brain load` manually at the start of meaningful sessions, or type `.recall`.
+Run `higgins load` manually at the start of meaningful sessions, or type `.recall`.
 
-Save context: `.remember` / `.r` → `kb digest` (see kb skill).
-Single note: `.note <text>` → `brain current "<text>"`.
-Gotcha: `.gotcha <text>` → `brain gotcha "<text>"`.
+Save context: `.remember` / `.r` → `higgins digest` (see kb skill).
+Single note: `.note <text>` → `higgins current "<text>"`.
+Gotcha: `.gotcha <text>` → `higgins gotcha "<text>"`.
 
 ## Skills
 
