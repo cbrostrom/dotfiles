@@ -1,6 +1,6 @@
 ---
 name: jira-assistant
-description: Read and draft Jira tickets. Gives structured feedback (missing AC, unclear scope, risks). Drafts tickets and comments for you to paste — never auto-writes to Jira. Routes to fiskars vs akqa MCP by project. Triggers: jira, ticket, write ticket, review ticket, create issue, triage bug.
+description: "Read and draft Jira tickets. Gives structured feedback (missing AC, unclear scope, risks). Drafts tickets and comments for you to paste — never auto-writes to Jira. Routes to fiskars vs akqa MCP by project. Triggers: jira, ticket, write ticket, review ticket, create issue, triage bug."
 group: project-management
 ---
 

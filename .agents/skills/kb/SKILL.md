@@ -1,6 +1,6 @@
 ---
 name: kb
-description: Vault (kb) protocol for all agents. Covers tier map, load/save via kb CLI, session capture, slug resolution. Use when loading context, saving decisions, running kb digest, or at session boundaries. Triggers: load kb, save kb, load vault, .remember, kb digest.
+description: "Vault (kb) protocol for all agents. Covers tier map, load/save via kb CLI, session capture, slug resolution. Use when loading context, saving decisions, running kb digest, or at session boundaries. Triggers: load kb, save kb, load vault, .remember, kb digest."
 group: kb
 ---
 

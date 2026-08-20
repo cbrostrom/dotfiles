@@ -1,6 +1,6 @@
 ---
 name: problem-solver
-description: Investigate a broken feature or unclear design; write a spec for a doer to implement. Read-only. Triggers: .spec, figure out why, why is X broken, diagnose this, spec this out.
+description: "Investigate a broken feature or unclear design; write a spec for a doer to implement. Read-only. Triggers: .spec, figure out why, why is X broken, diagnose this, spec this out."
 group: investigation
 readonly: true
 ---

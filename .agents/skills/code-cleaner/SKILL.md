@@ -1,6 +1,6 @@
 ---
 name: code-cleaner
-description: Audit code quality using aislop and fallow. Reads findings, estimates fix complexity per tier, recommends a model for each. Never fixes without permission. Triggers: audit code health, detect AI slop, find duplication, unused code, complexity.
+description: "Audit code quality using aislop and fallow. Reads findings, estimates fix complexity per tier, recommends a model for each. Never fixes without permission. Triggers: audit code health, detect AI slop, find duplication, unused code, complexity."
 ---
 
 # Code Cleaner

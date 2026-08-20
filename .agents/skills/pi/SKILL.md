@@ -1,6 +1,6 @@
 ---
 name: pi
-description: Pi daily-driver reference. Use when checking presets, models, MCP wiring, hook health, or Pi usage alongside dotfiles. Triggers: Pi preset, model selection, MCP setup, hooks, subagentura, Pi config.
+description: "Pi daily-driver reference. Use when checking presets, models, MCP wiring, hook health, or Pi usage alongside dotfiles. Triggers: Pi preset, model selection, MCP setup, hooks, subagentura, Pi config."
 ---
 
 # PI Daily-Driver Skill
