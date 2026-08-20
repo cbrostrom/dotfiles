@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
-# brain — shim → execs canonical kb CLI (prefer `kb` directly)
-VAULT_AI="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
-exec "$VAULT_AI/tools/kb" "$@"
+# brain/kb — deprecated; forwards to higgins
+# Stage 1 shim: prints one notice to stderr, then execs the Go binary.
+# Remove after Stage 4 (when kb is fully retired).
+echo "kb: deprecated — use 'higgins' directly (this shim will be removed in Stage 4)" >&2
+exec higgins "$@"
