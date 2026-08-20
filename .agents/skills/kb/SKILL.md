@@ -27,7 +27,6 @@ $VAULT_AI/
   projects/<slug>/       # per-project live state
   infra/<host>/          # per-machine state (superbro, monsterbro, linuxbro, homelab, cloudcli)
   sessions/YYYY/MM/      # auto-captured TF-IDF summaries (zero-token, never hand-edited)
-  tools/kb               # canonical CLI
   tools/session-promote  # zero-token grep → sessions/candidates.md
   _ops/                  # curator reports, migration logs
   archive/               # retired projects/modules
