@@ -23,8 +23,8 @@ fi
 
 cat <<EOF
 Context compaction imminent. Before context is lost:
-1. Run \`kb current "state: ..."\` with current state
-2. Run \`kb save "summary"\` with session summary
-3. Run \`kb gotcha "trap"\` for any non-obvious traps discovered
+1. Run \`higgins current "state: ..."\` with current state
+2. Run \`higgins save "summary"\` with session summary
+3. Run \`higgins gotcha "trap"\` for any non-obvious traps discovered
 Then let compaction proceed.
 EOF

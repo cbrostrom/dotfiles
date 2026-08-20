@@ -17,7 +17,7 @@ from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
-KB = str(Path.home() / "dotfiles" / "scripts" / "kb")
+KB = "higgins"  # Go binary on PATH (~/.local/bin/higgins)
 VAULT_AI = os.environ.get("VAULT_AI", str(Path.home() / "Vaults" / "Higgins" / "AI"))
 VAULT_ME = os.environ.get("VAULT_ME", str(Path.home() / "Vaults" / "Higgins" / "Me"))
 
@@ -47,7 +47,7 @@ mcp = FastMCP(
 
 
 def _run_kb(*args: str) -> str:
-    """Run kb CLI and return stdout."""
+    """Run higgins CLI and return stdout."""
     env = {**os.environ, "VAULT_AI": VAULT_AI}
     try:
         r = subprocess.run(
@@ -61,7 +61,7 @@ def _run_kb(*args: str) -> str:
             return f"Error: {r.stderr.strip()}" if r.stderr else "Error: command failed"
         return r.stdout.strip()
     except FileNotFoundError:
-        return f"Error: kb not found at {KB}"
+        return f"Error: higgins not found (expected at ~/.local/bin/higgins, ensure it is on PATH)"
     except subprocess.TimeoutExpired:
         return "Error: command timed out"
 

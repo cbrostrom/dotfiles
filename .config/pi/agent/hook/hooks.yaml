@@ -21,22 +21,20 @@ hooks:
 
   # Idle: auto-prune + compact
   # Fires after turn completion with no pending messages.
-  # Silently runs kb prune + compact to keep brains tidy.
+  # Silently runs higgins prune + compact to keep brains tidy.
   # Does NOT auto-save narrative context — that requires agent judgement (.remember).
   - id: idle-kb-tidy
     event: session.idle
     actions:
       - bash: |
-          KB="${VAULT_AI:-$HOME/Vaults/Higgins/AI}/tools/kb"
-          [[ -x "$KB" ]] || exit 0
-          # Determine slug from cwd (mirrors kb slug resolution)
+          # Determine slug from cwd (mirrors higgins slug resolution)
           if git rev-parse --git-dir >/dev/null 2>&1; then
             SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
           else
             SLUG="$(basename "$PWD")"
           fi
-          "$KB" prune "$SLUG" 2>/dev/null || true
-          "$KB" compact "$SLUG" 2>/dev/null || true
+          higgins prune "$SLUG" 2>/dev/null || true
+          higgins compact "$SLUG" 2>/dev/null || true
 
   # File changed: aislop quality check
   # Runs after PI writes/edits code files. aislop --pi checks score regression.
