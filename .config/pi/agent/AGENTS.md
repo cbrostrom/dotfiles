@@ -20,21 +20,20 @@ The key rules from dotfiles/AGENTS.md that apply here:
 CLI: `higgins` (Go binary at `~/.local/bin/higgins`). `kb` and `brain` are deprecated shims that forward to `higgins` with a notice; they will be removed at Stage 4.
 Vault: `~/Vaults/Higgins/AI` (macOS, git-backed) — tier map: `personal/`, `modules/`, `projects/`, `infra/`, `sessions/`, `_ops/`
 
-**MCP server (v2)**: kb-mcp running on superbro at `http://100.100.1.50:8765/mcp` (Tailscale-accessible).
+**MCP server**: local `higgins mcp` binary (stdio), registered as server `higgins` in `~/.pi/agent/mcp.json`. 13 tools, no `kb_*`/`me_*` duplicates (removed 26-08-2026).
 - Chunked output at section boundaries
-- Personal context cached (1hr TTL)
-- Token budget enforced (default 2000, customizable)
-- Tier hints: `kb_search("tier:personal ...")` for narrowing scope
+- Token budget enforced (default 2000, customizable via `max_tokens`)
+- `search` scope param: `ai` (default, privacy-safe), `me` (personal notes), `all`
+- Tier hints: `search(query, tier="personal")` for narrowing scope
 
-**Never auto-call `kb_load()` at session start.** Vault lookups go through `kb_search` (live BM25 via kb-mcp) — no context load needed. `ctx_search` covers session/event memory (auto-captured events + indexed docs), not the vault.
-Use `kb_load` or `kb_search` only when the user explicitly asks or a task clearly requires personal/project context.
+**Never auto-load at session start.** Start-context loads nothing from the vault. Use `search` with 3-5 specific terms when a task needs a fact, or read a tier `INDEX.md` for the map. Use `load <slug>` only when the user explicitly asks or a task clearly needs the full project brain.
 
 For targeted lookups:
 ```
-kb_search("<3-5 specific technical terms>")  # avoid vague queries
+search("<3-5 specific technical terms>")  # avoid vague queries
 ```
 
-See `~/dotfiles/.agents/skills/kb/SKILL.md` for full MCP tool reference and tiered loading protocol.
+See `~/dotfiles/.agents/skills/higgins/SKILL.md` for full MCP tool reference and tiered loading protocol.
 
 Signals:
 - `.remember` / `.r` — run `higgins digest` (scans recent sessions, auto-prunes, proposes gotchas/current updates)
@@ -65,7 +64,7 @@ higgins lint                # validate vault against _schema/
 Shared skills live in `~/.agents/skills/`. PI discovers these automatically.
 Use `/skill:<name>` to load and run a skill.
 
-Key shared skills available: `dotfiles`, `kb`, `code-reviewer`, `problem-solver`,
+Key shared skills available: `dotfiles`, `higgins`, `code-reviewer`, `problem-solver`,
 `standup`, `morning-brief`, `dot-doctor`, `jira-assistant`,
 `code-cleaner`, `shopify`, `pi` (PI-specific daily-driver reference).
 
@@ -87,8 +86,12 @@ Key shared skills available: `dotfiles`, `kb`, `code-reviewer`, `problem-solver`
      as fallback) into vault Markdown candidates; human-gated `higgins digest` writes to Higgins.
   The durable, portable, human+AI-editable brain is the Higgins vault (`higgins` + kb-mcp), maintained
   by the Janitor. OM and context-mode feed it; neither replaces it.
-- MCP servers: `kb` (vault, kb-mcp) + `deja` (session search) enabled in `~/.pi/agent/mcp.json`.
-  github/atlassian/shopify-dev-mcp deliberately disabled (tool-restraint).
+- MCP servers: `higgins` (vault, local Go binary, 13 tools post-cleanup) + `deja` (session search) enabled in `~/.pi/agent/mcp.json`.
+  github/atlassian/codebase-memory-mcp/shopify-dev-mcp deliberately disabled (tool-restraint).
+  `dockhand-linuxbro`/`dockhand-superbro` are disabled by default (context cost: ~612 tool defs
+  across both). For infra/Docker sessions, flip `"disabled": false` for the one you need in
+  `~/.pi/agent/mcp.json`, then `/reload`. (`/mcp enable` is not a confirmed Pi command as of this
+  writing — use the flag-flip + `/reload` method.)
 - Project trust: use `/trust` once in trusted repos. Keep `defaultProjectTrust` at `"ask"`.
 - Hooks: if `pi-yaml-hooks` is installed, run `/hooks-status` to verify on first session.
 - Subagentura: use `subagent_isolated` for narrow, parallelisable tasks. Default to the
