@@ -340,10 +340,6 @@ if command -v pi &>/dev/null; then
     alias piv='cd ~/Vaults && pi'                    # vault session
     alias pid='cd ~/dotfiles && pi'                  # dotfiles session
 
-    # Presets
-    alias pif='pi --preset fast'                     # Composer 2.5, thinking off
-    alias pit='pi --preset think'                    # Sonnet 5 / high
-
     # Resume / session
     alias pir='pi -r'                                # resume picker
 
@@ -365,14 +361,9 @@ pi-help() {
 PI coding agent — quick reference
 
   Start
-    pis / pi            Current directory, default model (Sonnet 4.6 / medium)
+    pis / pi            Current directory, default model (cursor Auto)
     piv                 ~/Vaults session
     pid                 ~/dotfiles session
-
-  Presets  (switch inside PI with /preset <name>)
-    pif                 --preset fast   → Composer 2.5, no thinking
-    pi                  --preset sonnet → Sonnet 4.6 / medium  (default)
-    pit                 --preset think  → Sonnet 5 / high
 
   Sessions
     pir                 Resume picker
@@ -395,15 +386,17 @@ PI coding agent — quick reference
     /trust              Trust current project dir
 
   Vault / memory
-    kb load             Load brain context into session
-    .remember / .r      Full session save to vault
-    .note <text>        Single fact → kb current
-    .gotcha <text>      Trap → kb gotcha
+    higgins load        Load brain context into session
+    .remember / .r      higgins digest
+    .note <text>        higgins current
+    .gotcha <text>      higgins gotcha
 
   Model tools
-    /preset             Show / switch Spark presets
-    /recap              Generate session recap (Haiku 4.5)
-    /pi-stats           Token + cost dashboard
+    Ctrl+P / Shift+Ctrl+P   Cycle scoped models (enabledModels)
+    /scoped-models          List scoped models
+    /model                  Pick any model from registry
+    /recap                  smart-recap (/recap, /recap save)
+    /pi-stats               Token + cost dashboard
     /cursor-refresh-models  Refresh live Cursor model list
 
   Diagnostics
@@ -419,10 +412,8 @@ if command -v herdr &>/dev/null; then
     alias work='herdr'
 fi
 
-# Higgins (kb memory system) — personality alias
-alias higgins='kb'
-
-# Engram removed — Higgins (kb) is the sole memory system
+# Higgins vault CLI (binary at ~/.local/bin/higgins)
+# Engram removed — Higgins is the sole memory system
 
 # =============================================================================
 # SYSTEM UPDATE ALIASES
