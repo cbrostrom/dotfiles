@@ -49,21 +49,21 @@ _config_parse_file() {
         else
             _CONFIG_FILE_ENABLES+=("$line")
         fi
-    done < "$file"
+    done <"$file"
 }
 
 _config_load_file() {
     [[ "$_config_loaded_file" == "1" ]] && return 0
     _config_loaded_file=1
-    _config_parse_file "$_REPO_MODULES_CONF"   # repo-wide baseline
-    _config_parse_file "$CONFIG_FILE"           # per-host overrides (wins on conflict)
+    _config_parse_file "$_REPO_MODULES_CONF" # repo-wide baseline
+    _config_parse_file "$CONFIG_FILE"        # per-host overrides (wins on conflict)
 }
 
 _csv_contains() {
     local needle="$1" csv="$2"
     [[ -z "$csv" ]] && return 1
     local item
-    IFS=',' read -ra _items <<< "$csv"
+    IFS=',' read -ra _items <<<"$csv"
     for item in "${_items[@]}"; do
         item="${item// /}"
         [[ "$item" == "$needle" ]] && return 0
@@ -72,7 +72,8 @@ _csv_contains() {
 }
 
 _array_contains() {
-    local needle="$1"; shift
+    local needle="$1"
+    shift
     local item
     for item in "$@"; do
         [[ "$item" == "$needle" ]] && return 0
@@ -105,18 +106,22 @@ config_module_state() {
 
     # CLI --skip / env DOTFILES_DISABLED hard-disable
     if _csv_contains "$name" "${_DOTFILES_CLI_SKIP:-}"; then
-        echo "disabled"; return
+        echo "disabled"
+        return
     fi
     if _csv_contains "$name" "${DOTFILES_DISABLED:-}"; then
-        echo "disabled"; return
+        echo "disabled"
+        return
     fi
 
     # File-level overrides
     if _array_contains "$name" "${_CONFIG_FILE_DISABLES[@]:-}"; then
-        echo "disabled"; return
+        echo "disabled"
+        return
     fi
     if _array_contains "$name" "${_CONFIG_FILE_ENABLES[@]:-}"; then
-        echo "enabled"; return
+        echo "enabled"
+        return
     fi
 
     # Manifest default

@@ -4,7 +4,7 @@ set -uo pipefail
 
 name="${1:-hook}"
 if [[ "${2:-}" != "--" ]]; then
-  exit 0
+    exit 0
 fi
 shift 2
 
@@ -19,7 +19,8 @@ trap 'rm -f "$input_file" "$stdout_file" "$stderr_file"' EXIT HUP INT TERM
 
 cat >"$input_file" 2>/dev/null || true
 
-start_ms="$(python3 - <<'PY' 2>/dev/null || date +%s000
+start_ms="$(
+    python3 - <<'PY' 2>/dev/null || date +%s000
 import time
 print(int(time.time() * 1000))
 PY
@@ -28,7 +29,8 @@ PY
 "$@" <"$input_file" >"$stdout_file" 2>"$stderr_file"
 status=$?
 
-end_ms="$(python3 - <<'PY' 2>/dev/null || date +%s000
+end_ms="$(
+    python3 - <<'PY' 2>/dev/null || date +%s000
 import time
 print(int(time.time() * 1000))
 PY
@@ -38,14 +40,14 @@ elapsed_ms=$((end_ms - start_ms))
 cat "$stdout_file"
 
 if [[ $status -ne 0 || $elapsed_ms -gt 1000 || -s "$stderr_file" ]]; then
-  {
-    printf '%s\t%s\tstatus=%s\tms=%s\tcmd=' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$name" "$status" "$elapsed_ms"
-    printf '%q ' "$@"
-    printf '\n'
-    if [[ -s "$stderr_file" ]]; then
-      sed 's/^/stderr: /' "$stderr_file" | head -20
-    fi
-  } >>"$log_file" 2>/dev/null || true
+    {
+        printf '%s\t%s\tstatus=%s\tms=%s\tcmd=' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$name" "$status" "$elapsed_ms"
+        printf '%q ' "$@"
+        printf '\n'
+        if [[ -s "$stderr_file" ]]; then
+            sed 's/^/stderr: /' "$stderr_file" | head -20
+        fi
+    } >>"$log_file" 2>/dev/null || true
 fi
 
 exit "$status"

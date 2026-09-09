@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Install Cursor config from dotfiles.
 #
 # Symlinks/Copies:
@@ -12,10 +13,14 @@
 #   cleanup       → remove dead Code Island, legacy lean-ctx/rtk, and vault dump hooks
 set -euo pipefail
 
-BLUE='\033[0;34m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
-info()    { echo -e "${BLUE}[cursor]${NC} $1"; }
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+info() { echo -e "${BLUE}[cursor]${NC} $1"; }
 success() { echo -e "${GREEN}[cursor]${NC} $1"; }
-warn()    { echo -e "${YELLOW}[cursor]${NC} $1"; }
+warn() { echo -e "${YELLOW}[cursor]${NC} $1"; }
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CURSOR_SRC="$DOTFILES/.cursor"
@@ -29,7 +34,7 @@ if grep -q Microsoft /proc/version 2>/dev/null; then
     WIN_USER=$(grep "user" /etc/wsl.conf 2>/dev/null | awk '{print $2}' || echo "$USER")
     # Most common WSL setup: /mnt/c/Users/<User>/AppData/Roaming/Cursor
     CURSOR_DIR="/mnt/c/Users/$WIN_USER/AppData/Roaming/Cursor"
-    
+
     # Verification: ensure the target directory actually exists
     if [[ ! -d "$CURSOR_DIR" ]]; then
         warn "Cursor directory not found at $CURSOR_DIR. Checking alternative paths..."
@@ -53,32 +58,32 @@ mkdir -p "$CURSOR_DIR/hooks"
 
 # --- Hook symlinks/copies ---
 for hook in run-hook.sh vault-save.sh; do
-  src="$CURSOR_SRC/hooks/$hook"
-  dst="$CURSOR_DIR/hooks/$hook"
-  if [[ ! -f "$src" ]]; then
-    warn "Hook source not found: $src — skipping"
-    continue
-  fi
-  chmod +x "$src"
-  
-  # Symlinks don't work across WSL -> Windows (Plan 9/9P) boundaries for these specific files
-  # Use copy for Windows host targets to ensure execution
-  if [[ "$CURSOR_DIR" == /mnt/* ]]; then
-      cp "$src" "$dst"
-      success "Copied hooks/$hook to Windows host"
-  else
-      ln -sf "$src" "$dst"
-      success "Linked hooks/$hook"
-  fi
+    src="$CURSOR_SRC/hooks/$hook"
+    dst="$CURSOR_DIR/hooks/$hook"
+    if [[ ! -f "$src" ]]; then
+        warn "Hook source not found: $src — skipping"
+        continue
+    fi
+    chmod +x "$src"
+
+    # Symlinks don't work across WSL -> Windows (Plan 9/9P) boundaries for these specific files
+    # Use copy for Windows host targets to ensure execution
+    if [[ "$CURSOR_DIR" == /mnt/* ]]; then
+        cp "$src" "$dst"
+        success "Copied hooks/$hook to Windows host"
+    else
+        ln -sf "$src" "$dst"
+        success "Linked hooks/$hook"
+    fi
 done
 
 # Drop legacy vault-dump sessionStart scripts if present (MCP-only cold start)
 for legacy in brain-load.sh kb-load.sh; do
-  dst="$CURSOR_DIR/hooks/$legacy"
-  if [[ -e "$dst" || -L "$dst" ]]; then
-    rm -f "$dst"
-    success "Removed legacy hooks/$legacy (MCP-only sessionStart)"
-  fi
+    dst="$CURSOR_DIR/hooks/$legacy"
+    if [[ -e "$dst" || -L "$dst" ]]; then
+        rm -f "$dst"
+        success "Removed legacy hooks/$legacy (MCP-only sessionStart)"
+    fi
 done
 
 # --- Rule symlinks/copies (source of truth: dotfiles/.cursor/rules/) ---
@@ -86,28 +91,28 @@ RULES_SRC="$CURSOR_SRC/rules"
 RULES_DST="$CURSOR_DIR/rules"
 mkdir -p "$RULES_DST"
 for rule in core.mdc context-mode.mdc session-brain.mdc; do
-  src="$RULES_SRC/$rule"
-  dst="$RULES_DST/$rule"
-  if [[ ! -f "$src" ]]; then
-    warn "Rule source not found: $src — skipping"
-    continue
-  fi
-  
-  if [[ "$CURSOR_DIR" == /mnt/* ]]; then
-      cp "$src" "$dst"
-      success "Copied rules/$rule to Windows host"
-  else
-      ln -sf "$src" "$dst"
-      success "Linked rules/$rule"
-  fi
+    src="$RULES_SRC/$rule"
+    dst="$RULES_DST/$rule"
+    if [[ ! -f "$src" ]]; then
+        warn "Rule source not found: $src — skipping"
+        continue
+    fi
+
+    if [[ "$CURSOR_DIR" == /mnt/* ]]; then
+        cp "$src" "$dst"
+        success "Copied rules/$rule to Windows host"
+    else
+        ln -sf "$src" "$dst"
+        success "Linked rules/$rule"
+    fi
 done
 
 # --- Patch hooks.json: keep managed Cursor hooks lean and seconds-based ---
 HOOKS_JSON="$CURSOR_DIR/hooks.json"
 
 if [[ ! -f "$HOOKS_JSON" ]]; then
-  info "Creating hooks.json at $HOOKS_JSON"
-  printf '{\n  "hooks": {},\n  "version": 1\n}\n' >"$HOOKS_JSON"
+    info "Creating hooks.json at $HOOKS_JSON"
+    printf '{\n  "hooks": {},\n  "version": 1\n}\n' >"$HOOKS_JSON"
 fi
 
 python3 - "$HOOKS_JSON" <<'PYEOF'

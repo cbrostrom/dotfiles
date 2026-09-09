@@ -11,11 +11,12 @@
 set -euo pipefail
 
 # Re-exec with bash 4+ if the shebang resolved to /bin/bash (3.2 on macOS).
-if (( BASH_VERSINFO[0] < 4 )); then
+if ((BASH_VERSINFO[0] < 4)); then
     for _b in /opt/homebrew/bin/bash /usr/local/bin/bash; do
         [[ -x "$_b" ]] && exec "$_b" "$0" "$@"
     done
-    echo "${0##*/}: bash 4+ required (found $BASH_VERSION)" >&2; exit 1
+    echo "${0##*/}: bash 4+ required (found $BASH_VERSION)" >&2
+    exit 1
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -34,12 +35,12 @@ cmd="${1:-help}"
 shift 2>/dev/null || true
 
 case "$cmd" in
-    scan)     _run map-scan.sh    "$@" ;;
-    list)     _run map-list.sh    "$@" ;;
+    scan) _run map-scan.sh "$@" ;;
+    list) _run map-list.sh "$@" ;;
     codebase) _run map-codebase.sh "$@" ;;
-    init)     _run map-init.sh    "$@" ;;
-    doctor)   _run map-doctor.sh  "$@" ;;
-    help|-h|--help)
+    init) _run map-init.sh "$@" ;;
+    doctor) _run map-doctor.sh "$@" ;;
+    help | -h | --help)
         cat <<'EOF'
 kb map — project registry and CODEBASE generator
 

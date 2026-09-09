@@ -25,7 +25,7 @@ export TERM="xterm-256color"
 
 # Create proper .inputrc
 log_info "Creating .inputrc for proper backspace handling..."
-cat > "$HOME/.inputrc" << 'EOF'
+cat >"$HOME/.inputrc" <<'EOF'
 # Fix backspace and meta key issues
 set input-meta on
 set output-meta on
@@ -51,16 +51,16 @@ fi
 # Add to shell profile for persistence
 log_info "Adding terminal configuration to shell profile..."
 if ! grep -q "export TERM.*xterm-256color" "$HOME/.bashrc"; then
-    echo '# Force terminal type for Linux/Debian compatibility' >> "$HOME/.bashrc"
-    echo 'export TERM="xterm-256color"' >> "$HOME/.bashrc"
+    echo '# Force terminal type for Linux/Debian compatibility' >>"$HOME/.bashrc"
+    echo 'export TERM="xterm-256color"' >>"$HOME/.bashrc"
 fi
 
 if ! grep -q "bind.*inputrc" "$HOME/.bashrc"; then
-    echo '# Apply inputrc for proper backspace handling' >> "$HOME/.bashrc"
-    echo 'bind -f ~/.inputrc 2>/dev/null || true' >> "$HOME/.bashrc"
+    echo '# Apply inputrc for proper backspace handling' >>"$HOME/.bashrc"
+    echo 'bind -f ~/.inputrc 2>/dev/null || true' >>"$HOME/.bashrc"
 fi
 
 log_success "=== Terminal Fix Complete! ==="
 log_info "Current terminal type: $TERM"
 log_info "Backspace should now work correctly"
-log_info "You may need to start a new shell session for all changes to take effect" 
+log_info "You may need to start a new shell session for all changes to take effect"

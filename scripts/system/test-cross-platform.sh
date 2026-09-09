@@ -129,4 +129,4 @@ fi
 
 log_success "=== Cross-Platform Test Complete ==="
 log_info "Your system appears to be compatible with the dotfiles installation!"
-log_info "You can now run: ./install-symlinks.sh" 
+log_info "You can now run: ./install-symlinks.sh"

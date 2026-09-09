@@ -21,12 +21,31 @@ ROLLBACK_FILE=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --execute) MODE="execute"; shift ;;
-        --dry-run) MODE="dry-run"; shift ;;
-        --rollback) MODE="rollback"; ROLLBACK_FILE="${2:?--rollback needs path}"; shift 2 ;;
-        --plan) PLAN="${2:?--plan needs path}"; shift 2 ;;
-        -h|--help) sed -n '2,8p' "$0"; exit 0 ;;
-        *) err "Unknown arg: $1"; exit 1 ;;
+        --execute)
+            MODE="execute"
+            shift
+            ;;
+        --dry-run)
+            MODE="dry-run"
+            shift
+            ;;
+        --rollback)
+            MODE="rollback"
+            ROLLBACK_FILE="${2:?--rollback needs path}"
+            shift 2
+            ;;
+        --plan)
+            PLAN="${2:?--plan needs path}"
+            shift 2
+            ;;
+        -h | --help)
+            sed -n '2,8p' "$0"
+            exit 0
+            ;;
+        *)
+            err "Unknown arg: $1"
+            exit 1
+            ;;
     esac
 done
 
@@ -35,7 +54,10 @@ mkdir -p "$JOURNAL_DIR"
 
 # ---------- Rollback ----------
 if [[ "$MODE" == "rollback" ]]; then
-    [[ -f "$ROLLBACK_FILE" ]] || { err "Journal not found: $ROLLBACK_FILE"; exit 1; }
+    [[ -f "$ROLLBACK_FILE" ]] || {
+        err "Journal not found: $ROLLBACK_FILE"
+        exit 1
+    }
     log "Rolling back operations in $ROLLBACK_FILE"
     # Read in reverse, undo each MOVE
     tac "$ROLLBACK_FILE" 2>/dev/null || tail -r "$ROLLBACK_FILE" | while IFS=$'\t' read -r ts op from to; do
@@ -56,10 +78,13 @@ if [[ "$MODE" == "rollback" ]]; then
     exit 0
 fi
 
-[[ -f "$PLAN" ]] || { err "Plan not found: $PLAN. Copy plan.template.yml → plan.yml and edit it."; exit 1; }
+[[ -f "$PLAN" ]] || {
+    err "Plan not found: $PLAN. Copy plan.template.yml → plan.yml and edit it."
+    exit 1
+}
 
 JOURNAL="$JOURNAL_DIR/$(date +%Y%m%d-%H%M%S).log"
-[[ "$MODE" == "execute" ]] && : > "$JOURNAL"
+[[ "$MODE" == "execute" ]] && : >"$JOURNAL"
 
 log "Mode: $MODE"
 log "Plan: $PLAN"
@@ -112,9 +137,14 @@ parse_plan() {
 }
 
 # Counters
-moves_total=0; moves_done=0; moves_skipped=0; moves_failed=0
-deletes_total=0; deletes_done=0
-assets_total=0; assets_done=0
+moves_total=0
+moves_done=0
+moves_skipped=0
+moves_failed=0
+deletes_total=0
+deletes_done=0
+assets_total=0
+assets_done=0
 security_total=0
 
 run_move() {
@@ -134,7 +164,7 @@ run_move() {
     if [[ "$MODE" == "execute" ]]; then
         mkdir -p "$(dirname "$to_abs")"
         mv "$from_abs" "$to_abs"
-        printf '%s\tMOVE\t%s\t%s\n' "$(date -u +%FT%TZ)" "$from_abs" "$to_abs" >> "$JOURNAL"
+        printf '%s\tMOVE\t%s\t%s\n' "$(date -u +%FT%TZ)" "$from_abs" "$to_abs" >>"$JOURNAL"
     fi
 
     printf '  %s%s%s → %s  %s(%s)%s\n' \
@@ -146,7 +176,10 @@ run_move() {
 run_delete() {
     local path_rel="$1" reason="$2"
     local path_abs="$PROJECTS_ROOT/$path_rel"
-    [[ -e "$path_abs" ]] || { warn "skip (missing): $path_rel"; return 1; }
+    [[ -e "$path_abs" ]] || {
+        warn "skip (missing): $path_rel"
+        return 1
+    }
 
     # Archive non-empty paths first
     if [[ -d "$path_abs" ]] && [[ -n "$(ls -A "$path_abs" 2>/dev/null)" ]]; then
@@ -154,7 +187,7 @@ run_delete() {
         if [[ "$MODE" == "execute" ]]; then
             mkdir -p "$(dirname "$tgz")"
             tar -czf "$tgz" -C "$PROJECTS_ROOT" "$path_rel"
-            printf '%s\tARCHIVE_TGZ\t%s\t%s\n' "$(date -u +%FT%TZ)" "$path_abs" "$tgz" >> "$JOURNAL"
+            printf '%s\tARCHIVE_TGZ\t%s\t%s\n' "$(date -u +%FT%TZ)" "$path_abs" "$tgz" >>"$JOURNAL"
         fi
         printf '  %sARCHIVE+DELETE%s %s → %s  %s(%s)%s\n' \
             "$C_YLW" "$C_RST" "$path_rel" "${tgz#"$PROJECTS_ROOT/"}" \
@@ -166,7 +199,7 @@ run_delete() {
 
     if [[ "$MODE" == "execute" ]]; then
         rm -rf "$path_abs"
-        printf '%s\tDELETE\t%s\t-\n' "$(date -u +%FT%TZ)" "$path_abs" >> "$JOURNAL"
+        printf '%s\tDELETE\t%s\t-\n' "$(date -u +%FT%TZ)" "$path_abs" >>"$JOURNAL"
     fi
     return 0
 }
@@ -178,15 +211,15 @@ echo "=== MOVES ==="
 while IFS=$'\x1f' read -r section from to action approved reason extra; do
     case "$section" in
         moves)
-            moves_total=$((moves_total+1))
+            moves_total=$((moves_total + 1))
             if [[ "$approved" != "true" ]]; then
-                moves_skipped=$((moves_skipped+1))
+                moves_skipped=$((moves_skipped + 1))
                 continue
             fi
             if run_move "$from" "$to" "$reason"; then
-                moves_done=$((moves_done+1))
+                moves_done=$((moves_done + 1))
             else
-                moves_failed=$((moves_failed+1))
+                moves_failed=$((moves_failed + 1))
             fi
             ;;
     esac
@@ -197,9 +230,9 @@ echo "=== DELETES ==="
 while IFS=$'\x1f' read -r section from to action approved reason extra; do
     case "$section" in
         deletes)
-            deletes_total=$((deletes_total+1))
+            deletes_total=$((deletes_total + 1))
             [[ "$approved" == "true" ]] || continue
-            run_delete "$extra" "$reason" && deletes_done=$((deletes_done+1)) || true
+            run_delete "$extra" "$reason" && deletes_done=$((deletes_done + 1)) || true
             ;;
     esac
 done < <(parse_plan "$PLAN")
@@ -209,9 +242,9 @@ echo "=== ASSETS ==="
 while IFS=$'\x1f' read -r section from to action approved reason extra; do
     case "$section" in
         assets)
-            assets_total=$((assets_total+1))
+            assets_total=$((assets_total + 1))
             [[ "$approved" == "true" ]] || continue
-            run_move "$from" "$to" "${reason:-asset}" && assets_done=$((assets_done+1)) || true
+            run_move "$from" "$to" "${reason:-asset}" && assets_done=$((assets_done + 1)) || true
             ;;
     esac
 done < <(parse_plan "$PLAN")
@@ -221,7 +254,7 @@ echo "=== SECURITY (review only, never auto-acted) ==="
 while IFS=$'\x1f' read -r section from to action approved reason extra; do
     case "$section" in
         security)
-            security_total=$((security_total+1))
+            security_total=$((security_total + 1))
             printf '  %s%s%s — %s\n' "$C_RED" "$extra" "$C_RST" "$reason"
             ;;
     esac

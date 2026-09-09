@@ -19,7 +19,7 @@ fi
 
 # Write anchor rule if missing
 if [[ ! -f "$ANCHOR_FILE" ]]; then
-    cat > "$ANCHOR_FILE" << 'ANCHOR'
+    cat >"$ANCHOR_FILE" <<'ANCHOR'
 rdr pass on lo0 inet proto tcp from any to any port 443 -> 127.0.0.1 port 8443
 ANCHOR
     echo "Created $ANCHOR_FILE"

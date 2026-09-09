@@ -13,11 +13,15 @@
 
 set -euo pipefail
 
-RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
-log_info()    { echo -e "${BLUE}[zed]${NC} $1"; }
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+log_info() { echo -e "${BLUE}[zed]${NC} $1"; }
 log_success() { echo -e "${GREEN}[zed]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[zed]${NC} $1"; }
-log_error()   { echo -e "${RED}[zed]${NC} $1" >&2; }
+log_error() { echo -e "${RED}[zed]${NC} $1" >&2; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ZED_SOURCE="$SCRIPT_DIR/.config/zed"
@@ -102,7 +106,10 @@ bash "$SCRIPT_DIR/scripts/zed/zed-update-local.sh"
 # git is the backup for dotfiles-tracked files).
 link_file() {
     local src="$1" dst="$2" label="$3"
-    [[ ! -e "$src" ]] && { log_warning "Source missing, skipping: $src"; return 0; }
+    [[ ! -e "$src" ]] && {
+        log_warning "Source missing, skipping: $src"
+        return 0
+    }
     [[ -L "$dst" ]] && rm "$dst"
     [[ -e "$dst" ]] && rm -rf "$dst"
     ln -sf "$src" "$dst"
@@ -113,7 +120,10 @@ link_file() {
 # No backups: git tracks dotfiles; Windows edits are promoted via reverse_sync_if_newer.
 copy_file() {
     local src="$1" dst="$2" label="$3"
-    [[ ! -e "$src" ]] && { log_warning "Source missing, skipping: $src"; return 0; }
+    [[ ! -e "$src" ]] && {
+        log_warning "Source missing, skipping: $src"
+        return 0
+    }
     [[ -L "$dst" ]] && rm "$dst"
     if [[ -e "$dst" ]] && diff -rq "$src" "$dst" >/dev/null 2>&1; then
         log_success "Copied $label (unchanged)"
@@ -130,11 +140,11 @@ reverse_sync_if_newer() {
     local src="$1" win="$2" label="$3"
     [[ ! -f "$win" ]] && return 0
     [[ ! -f "$src" ]] && return 0
-    diff -q "$src" "$win" >/dev/null 2>&1 && return 0  # identical — skip
+    diff -q "$src" "$win" >/dev/null 2>&1 && return 0 # identical — skip
     local src_ts win_ts
     src_ts=$(stat -c '%Y' "$src" 2>/dev/null || stat -f '%m' "$src" 2>/dev/null)
     win_ts=$(stat -c '%Y' "$win" 2>/dev/null || stat -f '%m' "$win" 2>/dev/null)
-    if (( win_ts > src_ts )); then
+    if ((win_ts > src_ts)); then
         cp "$win" "$src"
         log_success "Promoted $label from Windows → dotfiles (Windows was newer)"
     fi
@@ -145,12 +155,12 @@ if $IS_WSL; then
     # For user-editable files (keymap, tasks): promote from Windows first if newer,
     # so edits made in Zed on Windows aren't silently overwritten.
     reverse_sync_if_newer "$ZED_SOURCE/keymap.json" "$ZED_TARGET/keymap.json" "keymap.json"
-    reverse_sync_if_newer "$ZED_SOURCE/tasks.json"  "$ZED_TARGET/tasks.json"  "tasks.json"
+    reverse_sync_if_newer "$ZED_SOURCE/tasks.json" "$ZED_TARGET/tasks.json" "tasks.json"
 
-    copy_file "$LOCAL"                    "$ZED_TARGET/settings.json" "settings.json (copy)"
-    copy_file "$ZED_SOURCE/keymap.json"   "$ZED_TARGET/keymap.json"   "keymap.json"
-    copy_file "$ZED_SOURCE/tasks.json"    "$ZED_TARGET/tasks.json"    "tasks.json"
-    copy_file "$ZED_SOURCE/rules"         "$ZED_TARGET/rules"         "rules"
+    copy_file "$LOCAL" "$ZED_TARGET/settings.json" "settings.json (copy)"
+    copy_file "$ZED_SOURCE/keymap.json" "$ZED_TARGET/keymap.json" "keymap.json"
+    copy_file "$ZED_SOURCE/tasks.json" "$ZED_TARGET/tasks.json" "tasks.json"
+    copy_file "$ZED_SOURCE/rules" "$ZED_TARGET/rules" "rules"
     # Copy each theme individually (Windows cannot follow WSL symlinks)
     if [[ -d "$ZED_SOURCE/themes" ]]; then
         [[ -L "$ZED_TARGET/themes" ]] && rm "$ZED_TARGET/themes"
@@ -162,11 +172,11 @@ if $IS_WSL; then
     fi
 else
     # Mac/Linux: symlinks work — Zed writes back through symlink to settings.local.json
-    link_file "$LOCAL"                    "$ZED_TARGET/settings.json" "settings.json → settings.local.json"
-    link_file "$ZED_SOURCE/keymap.json"   "$ZED_TARGET/keymap.json"   "keymap.json"
-    link_file "$ZED_SOURCE/rules"         "$ZED_TARGET/rules"         "rules"
-    link_file "$ZED_SOURCE/snippets"      "$ZED_TARGET/snippets"      "snippets/"
-    link_file "$ZED_SOURCE/tasks.json"    "$ZED_TARGET/tasks.json"    "tasks.json"
+    link_file "$LOCAL" "$ZED_TARGET/settings.json" "settings.json → settings.local.json"
+    link_file "$ZED_SOURCE/keymap.json" "$ZED_TARGET/keymap.json" "keymap.json"
+    link_file "$ZED_SOURCE/rules" "$ZED_TARGET/rules" "rules"
+    link_file "$ZED_SOURCE/snippets" "$ZED_TARGET/snippets" "snippets/"
+    link_file "$ZED_SOURCE/tasks.json" "$ZED_TARGET/tasks.json" "tasks.json"
     # Link each theme individually so user-installed themes in target are preserved
     if [[ -d "$ZED_SOURCE/themes" ]]; then
         mkdir -p "$ZED_TARGET/themes"
@@ -181,4 +191,4 @@ log_success "Zed config installed."
 log_info "Promote settings changes to base: bash scripts/zed/zed-diff-base.sh"
 
 # Write sync timestamp for status display
-date -Iseconds > "$SCRIPT_DIR/.zed-sync-ts" 2>/dev/null || true
+date -Iseconds >"$SCRIPT_DIR/.zed-sync-ts" 2>/dev/null || true

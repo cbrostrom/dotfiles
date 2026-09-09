@@ -46,7 +46,8 @@ write_host_block() {
     local begin="# >>> dotfiles:fleet:$name >>>"
     local end="# <<< dotfiles:fleet:$name <<<"
     local block
-    block="$(cat <<EOF
+    block="$(
+        cat <<EOF
 
 $begin
 Host $name
@@ -62,7 +63,7 @@ Host $name
     ControlPersist 600
 $end
 EOF
-)"
+    )"
     if grep -qF "$begin" "$ssh_config"; then
         log "refreshing SSH config block for $name"
         local tmp
@@ -71,13 +72,13 @@ EOF
             $0 == b { skip=1; next }
             skip && $0 == e { skip=0; next }
             !skip { print }
-        ' "$ssh_config" > "$tmp"
-        cat "$tmp" > "$ssh_config"
+        ' "$ssh_config" >"$tmp"
+        cat "$tmp" >"$ssh_config"
         rm -f "$tmp"
     else
         log "adding SSH config block for $name"
     fi
-    printf '%s\n' "$block" >> "$ssh_config"
+    printf '%s\n' "$block" >>"$ssh_config"
     chmod 600 "$ssh_config"
 }
 
@@ -107,7 +108,7 @@ keyscan_host() {
 
     log "scanning $name host key ($host:$port, timeout 5s) …"
     if scan="$(ssh-keyscan -T 5 -p "$port" -H "${host},${name}" 2>/dev/null)" && [[ -n "$scan" ]]; then
-        printf "%s\n" "$scan" >> "$known_hosts"
+        printf "%s\n" "$scan" >>"$known_hosts"
         log "added $name to $known_hosts"
     else
         log "could not reach $name for keyscan — Tailscale up? Re-run: bash scripts/install/ssh-superbro.sh"
@@ -130,8 +131,8 @@ strip_legacy_block() {
         $0 == b { skip=1; next }
         skip && $0 == e { skip=0; next }
         !skip { print }
-    ' "$ssh_config" > "$tmp"
-    cat "$tmp" > "$ssh_config"
+    ' "$ssh_config" >"$tmp"
+    cat "$tmp" >"$ssh_config"
     rm -f "$tmp"
     chmod 600 "$ssh_config"
 }
@@ -140,7 +141,7 @@ strip_legacy_block "# >>> dotfiles:superbro >>>" "# <<< dotfiles:superbro <<<"
 strip_legacy_block "# >>> dotfiles:linuxbro >>>" "# <<< dotfiles:linuxbro <<<"
 
 for entry in "${FLEET_SSH[@]}"; do
-    IFS='|' read -r name address port user _profile _push _paseo _notes <<< "$entry"
+    IFS='|' read -r name address port user _profile _push _paseo _notes <<<"$entry"
     [[ "$name" == "mac" ]] && continue
     write_host_block "$name" "$address" "$port" "$user"
     keyscan_host "$name"

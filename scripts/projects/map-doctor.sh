@@ -7,11 +7,12 @@
 
 set -euo pipefail
 
-if (( BASH_VERSINFO[0] < 4 )); then
+if ((BASH_VERSINFO[0] < 4)); then
     for _b in /opt/homebrew/bin/bash /usr/local/bin/bash; do
         [[ -x "$_b" ]] && exec "$_b" "$0" "$@"
     done
-    echo "${0##*/}: bash 4+ required" >&2; exit 1
+    echo "${0##*/}: bash 4+ required" >&2
+    exit 1
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -25,7 +26,10 @@ SAVE=0
 for arg in "$@"; do
     case "$arg" in
         --save) SAVE=1 ;;
-        -h|--help) sed -n '2,6p' "$0"; exit 0 ;;
+        -h | --help)
+            sed -n '2,6p' "$0"
+            exit 0
+            ;;
     esac
 done
 
@@ -36,9 +40,9 @@ DOTFILES_AGENTS="$DOTFILES_DIR/.agents/skills"
 
 declare -a FIX REVIEW INFO
 
-_fix()    { FIX+=("$*"); }
+_fix() { FIX+=("$*"); }
 _review() { REVIEW+=("$*"); }
-_info()   { INFO+=("$*"); }
+_info() { INFO+=("$*"); }
 
 # ── 1. Skill layer duplicates ──────────────────────────────────────────────────
 # Canonical: ~/.agents/skills/  Source: dotfiles/.agents/skills/
@@ -59,12 +63,12 @@ done
 
 # ── 3. Cursor cache size ──────────────────────────────────────────────────────
 cursor_size_kb=$(du -sk "$HOME/.cursor" 2>/dev/null | awk '{print $1}')
-cursor_size_mb=$(( cursor_size_kb / 1024 ))
+cursor_size_mb=$((cursor_size_kb / 1024))
 if [[ $cursor_size_mb -gt 1500 ]]; then
     # Find the real large subdirs, not assumed paths
-    large=$(du -sh "$HOME/.cursor"/*/  2>/dev/null \
-        | sort -rh | awk -F'\t' '$1~/[0-9]M|[0-9]G/ {printf "%s (%s)  ", $2, $1}' \
-        | sed "s|$HOME/||g")
+    large=$(du -sh "$HOME/.cursor"/*/ 2>/dev/null |
+        sort -rh | awk -F'\t' '$1~/[0-9]M|[0-9]G/ {printf "%s (%s)  ", $2, $1}' |
+        sed "s|$HOME/||g")
     _fix "~/.cursor is ${cursor_size_mb}MB — large subdirs: ${large}. Safe: rm -rf ~/.cursor/acp-sessions ~/.cursor/ai-tracking. extensions/ = installed extensions (keep). projects/ = per-project state (prune old manually)."
 elif [[ $cursor_size_mb -gt 500 ]]; then
     _review "~/.cursor is ${cursor_size_mb}MB — run: du -sh ~/.cursor/*/ | sort -rh | head -8"
@@ -75,7 +79,7 @@ fi
 # cursor-agent cache
 if [[ -d "$HOME/.local/share/cursor-agent" ]]; then
     ca_size_kb=$(du -sk "$HOME/.local/share/cursor-agent" 2>/dev/null | awk '{print $1}')
-    ca_size_mb=$(( ca_size_kb / 1024 ))
+    ca_size_mb=$((ca_size_kb / 1024))
     if [[ $ca_size_mb -gt 200 ]]; then
         _review "~/.local/share/cursor-agent is ${ca_size_mb}MB — review contents before clearing"
     else
@@ -93,7 +97,7 @@ if [[ -f "$modules_conf" ]]; then
         if [[ -d "$mod_dir" ]]; then
             _review "Disabled module '!$mod' still has directory: modules/$mod/ — archive or delete if truly abandoned"
         fi
-    done < "$modules_conf"
+    done <"$modules_conf"
 fi
 
 # ── 5. lean-ctx remnants ──────────────────────────────────────────────────────
@@ -102,13 +106,13 @@ _lean_ctx_hits() {
     grep -r "lean-ctx\|lean_ctx" "$DOTFILES_DIR" \
         --include="*.md" --include="*.sh" --include="*.json" \
         --include="*.yaml" --include="*.yml" --include="*.mdc" \
-        -l 2>/dev/null \
-        | grep -v "map-doctor\|\.codex/\.tmp" \
-        | while IFS= read -r f; do
+        -l 2>/dev/null |
+        grep -v "map-doctor\|\.codex/\.tmp" |
+        while IFS= read -r f; do
             # Skip if all matches are policy/doc notes or legacy-cleanup tuples
-            if grep -q "lean-ctx\|lean_ctx" "$f" 2>/dev/null \
-               && ! grep "lean-ctx\|lean_ctx" "$f" 2>/dev/null \
-                    | grep -qE "No lean-ctx|lean-ctx — removed|legacy lean-ctx|lean-ctx-rewrite"; then
+            if grep -q "lean-ctx\|lean_ctx" "$f" 2>/dev/null &&
+                ! grep "lean-ctx\|lean_ctx" "$f" 2>/dev/null |
+                grep -qE "No lean-ctx|lean-ctx — removed|legacy lean-ctx|lean-ctx-rewrite"; then
                 echo "$f"
             fi
         done
@@ -123,7 +127,7 @@ graphify_count=$(find "$HOME" -maxdepth 4 \( -name 'graphify-out*' -o -name '.gr
 [[ $graphify_count -gt 0 ]] && _review "$graphify_count graphify artifact(s) found under ~ — delete or add to .gitignore"
 
 # ── 7. Disabled skill dirs (.disabled-*) ─────────────────────────────────────
-for skills_dir in "$AGENTS_SKILLS"; do
+for skills_dir in "$AGENTS_SKILLS" "$CURSOR_SKILLS"; do
     [[ -d "$skills_dir" ]] || continue
     while IFS= read -r d; do
         _fix "Disabled skill dir: $d — delete (git history preserves it)"
@@ -150,7 +154,6 @@ except Exception:
         _info "$mcp_count MCP servers in $label"
     fi
 done
-
 
 # ── 9. Project farm ──────────────────────────────────────────────────────────
 if [[ -d "$HOME/.zellij-projects" ]]; then
@@ -190,6 +193,6 @@ if [[ $SAVE -eq 1 ]]; then
     ops_dir="$VAULT_AI/_ops"
     mkdir -p "$ops_dir"
     out="$ops_dir/ai-audit-$(date +%F).md"
-    _print_report > "$out"
+    _print_report >"$out"
     printf '\nSaved: %s\n' "$out" >&2
 fi

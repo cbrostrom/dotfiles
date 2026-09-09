@@ -54,8 +54,8 @@ if [[ -d "$FZF_TAB_DIR/.git" ]]; then
     ok "fzf-tab up to date"
 else
     log "cloning fzf-tab → $FZF_TAB_DIR …"
-    git clone --depth=1 https://github.com/Aloxaf/fzf-tab "$FZF_TAB_DIR" \
-        || warn "fzf-tab clone failed — tab completion will fall back to default"
+    git clone --depth=1 https://github.com/Aloxaf/fzf-tab "$FZF_TAB_DIR" ||
+        warn "fzf-tab clone failed — tab completion will fall back to default"
     ok "fzf-tab installed"
 fi
 

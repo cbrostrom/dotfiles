@@ -3,9 +3,9 @@ set -euo pipefail
 . "$DOTFILES_DIR/modules/_lib/log.sh"
 
 log "installing Python MCP tools via pipx …"
-pipx install mcp-atlassian 2>/dev/null \
-    || pipx upgrade mcp-atlassian 2>/dev/null \
-    || warn "mcp-atlassian install failed (non-fatal)"
+pipx install mcp-atlassian 2>/dev/null ||
+    pipx upgrade mcp-atlassian 2>/dev/null ||
+    warn "mcp-atlassian install failed (non-fatal)"
 ok "mcp-atlassian ready: $(command -v mcp-atlassian 2>/dev/null || echo 'not found')"
 
 # uv / uvx — used by MCP wrappers and Python tooling
@@ -16,8 +16,8 @@ else
     if pipx install uv 2>/dev/null; then
         :
     else
-        curl -LsSf https://astral.sh/uv/install.sh | sh 2>/dev/null \
-            || warn "uv install failed (non-fatal)"
+        curl -LsSf https://astral.sh/uv/install.sh | sh 2>/dev/null ||
+            warn "uv install failed (non-fatal)"
     fi
     ok "uv ready: $(command -v uvx 2>/dev/null || echo "$HOME/.local/bin/uvx (post-install PATH refresh needed)")"
 fi

@@ -26,12 +26,14 @@ else
     if [[ "$(uname -s)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
         brew install herdr >/dev/null && ok "herdr installed via brew"
     else
-        curl -fsSL https://herdr.dev/install.sh | sh \
-            && ok "herdr installed" \
-            || { warn "herdr install failed (non-fatal)"; exit 0; }
+        curl -fsSL https://herdr.dev/install.sh | sh &&
+            ok "herdr installed" ||
+            {
+                warn "herdr install failed (non-fatal)"
+                exit 0
+            }
     fi
 fi
-
 
 # ── 3) config symlink ─────────────────────────────────────────────────────────
 # We pre-created ~/.config/herdr above; replace it with a symlink to dotfiles.
@@ -47,7 +49,7 @@ if [[ -d "$HERDR_CONFIG_SRC" ]]; then
                 rmdir "$HERDR_CONFIG_DST"
             else
                 warn "$HOME/.config/herdr has existing files — skipping symlink (manual config preserved)"
-                HERDR_CONFIG_SRC=""  # prevent symlink below
+                HERDR_CONFIG_SRC="" # prevent symlink below
             fi
         fi
         if [[ -n "$HERDR_CONFIG_SRC" ]]; then
@@ -67,7 +69,7 @@ _install_launchd() {
     # so Homebrew tools (fzf, etc.) must be injected here for autostarted servers.
     herdr_path="/opt/homebrew/bin:/opt/homebrew/sbin:${HOME}/.local/bin:${HOME}/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
     mkdir -p "$(dirname "$plist_dst")" "$HOME/Library/Logs"
-    cat > "$plist_dst" <<EOF
+    cat >"$plist_dst" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -87,8 +89,8 @@ _install_launchd() {
 </plist>
 EOF
     launchctl unload "$plist_dst" 2>/dev/null || true
-    launchctl load "$plist_dst" && ok "herdr LaunchAgent loaded (autostart)" \
-        || warn "launchctl load failed (non-fatal)"
+    launchctl load "$plist_dst" && ok "herdr LaunchAgent loaded (autostart)" ||
+        warn "launchctl load failed (non-fatal)"
 }
 
 _install_systemd() {
@@ -100,7 +102,7 @@ _install_systemd() {
     local herdr_bin
     herdr_bin="$(command -v herdr)"
     mkdir -p "$unit_dir"
-    cat > "$unit_dir/herdr.service" <<EOF
+    cat >"$unit_dir/herdr.service" <<EOF
 [Unit]
 Description=Herdr terminal session server
 After=default.target
@@ -115,9 +117,9 @@ RestartSec=5
 WantedBy=default.target
 EOF
     systemctl --user daemon-reload
-    systemctl --user enable --now herdr.service 2>/dev/null \
-        && ok "herdr systemd-user service enabled (autostart)" \
-        || warn "systemd enable failed (non-fatal)"
+    systemctl --user enable --now herdr.service 2>/dev/null &&
+        ok "herdr systemd-user service enabled (autostart)" ||
+        warn "systemd enable failed (non-fatal)"
 }
 
 autostart_state="$(config_module_state "herdr-autostart" "false")"

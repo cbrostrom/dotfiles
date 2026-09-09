@@ -8,11 +8,15 @@
 
 set -euo pipefail
 
-RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
-log_info()    { echo -e "${BLUE}[zed-update]${NC} $1"; }
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+log_info() { echo -e "${BLUE}[zed-update]${NC} $1"; }
 log_success() { echo -e "${GREEN}[zed-update]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[zed-update]${NC} $1"; }
-log_error()   { echo -e "${RED}[zed-update]${NC} $1" >&2; }
+log_error() { echo -e "${RED}[zed-update]${NC} $1" >&2; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ZED_SOURCE="$SCRIPT_DIR/.config/zed"
@@ -20,7 +24,8 @@ BASE="$ZED_SOURCE/settings.base.json"
 LOCAL="$ZED_SOURCE/settings.local.json"
 
 if [[ ! -f "$BASE" ]]; then
-    log_error "Base not found: $BASE"; exit 1
+    log_error "Base not found: $BASE"
+    exit 1
 fi
 
 if [[ ! -f "$LOCAL" ]]; then
@@ -62,7 +67,8 @@ local = load_jsonc(sys.argv[2])
 print(json.dumps(deep_merge(base, local), indent=4, ensure_ascii=False))
 PYEOF
     else
-        log_error "python3 not found"; exit 1
+        log_error "python3 not found"
+        exit 1
     fi
 }
 
@@ -70,7 +76,7 @@ MERGED="$(merge_into_local)"
 
 # Atomic write via temp file
 TMP="$(mktemp "${LOCAL}.tmp.XXXXXX")"
-echo "$MERGED" > "$TMP"
+echo "$MERGED" >"$TMP"
 mv "$TMP" "$LOCAL"
 
 log_success "settings.local.json updated (base merged in, local values preserved)"

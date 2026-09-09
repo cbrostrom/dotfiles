@@ -50,8 +50,8 @@ _sync_plugin() {
     tmp="$(mktemp -d)"
 
     log "sync $id from $repo${subpath:+:$subpath} @ $ref"
-    git clone --depth 1 --branch "$ref" "$url" "$tmp/repo" >/dev/null 2>&1 \
-        || git clone --depth 1 "$url" "$tmp/repo" >/dev/null
+    git clone --depth 1 --branch "$ref" "$url" "$tmp/repo" >/dev/null 2>&1 ||
+        git clone --depth 1 "$url" "$tmp/repo" >/dev/null
 
     rm -rf "$dest"
     if [[ -n "$subpath" ]]; then
