@@ -1,0 +1,9 @@
+name = "svarr"
+group = "Personal"
+working_dir = "~/Projects/personal/svarr"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

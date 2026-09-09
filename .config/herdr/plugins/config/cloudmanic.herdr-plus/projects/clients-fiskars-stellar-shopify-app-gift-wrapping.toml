@@ -1,0 +1,9 @@
+name = "gift-wrapping"
+group = "Fiskars"
+working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-gift-wrapping"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

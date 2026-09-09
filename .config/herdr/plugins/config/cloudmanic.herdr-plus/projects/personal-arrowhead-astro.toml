@@ -1,0 +1,9 @@
+name = "arrowhead-astro"
+group = "Personal"
+working_dir = "~/Projects/personal/arrowhead-astro"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

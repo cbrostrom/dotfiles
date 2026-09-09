@@ -1,0 +1,9 @@
+name = "tessera-descent"
+group = "Personal"
+working_dir = "~/Projects/personal/tessera-descent"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

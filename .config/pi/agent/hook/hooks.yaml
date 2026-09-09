@@ -8,16 +8,8 @@
 # To disable: remove or comment out individual hook entries
 
 hooks:
-  # Session start: readiness notification
-  # A lightweight signal that global hooks loaded. Does not inject brain into
-  # model context (PI hook stdout != additional_context). Use `kb_search` for
-  # vault lookups (live BM25 via kb-mcp), `ctx_search` for session/event memory.
-  - id: session-ready
-    event: session.created
-    actions:
-      - notify:
-          text: "PI ready. `kb_search` for vault, `ctx_search` for session memory. `/session-extract` EOD."
-          level: info
+  # Session-start readiness notify → pane-notify extension (pi-extensions).
+  # Re-enable here only if pane-notify is removed.
 
   # Idle: auto-prune + compact
   # Fires after turn completion with no pending messages.

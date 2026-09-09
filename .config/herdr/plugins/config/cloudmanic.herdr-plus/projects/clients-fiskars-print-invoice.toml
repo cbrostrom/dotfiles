@@ -1,0 +1,9 @@
+name = "print-invoice"
+group = "Fiskars"
+working_dir = "~/Projects/clients/Fiskars/print-invoice"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

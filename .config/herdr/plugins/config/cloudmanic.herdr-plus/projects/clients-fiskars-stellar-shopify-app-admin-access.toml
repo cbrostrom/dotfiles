@@ -1,0 +1,9 @@
+name = "admin-access"
+group = "Fiskars"
+working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-admin-access"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

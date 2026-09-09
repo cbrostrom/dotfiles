@@ -1,0 +1,9 @@
+name = "consumer-id-orchestrator"
+group = "Fiskars"
+working_dir = "~/Projects/clients/Fiskars/stellar-consumer-id-orchestrator"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

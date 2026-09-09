@@ -1,9 +1,6 @@
 import { Markdown } from "@earendil-works/pi-tui";
 import { CONFIG } from "../config.js";
-import { getVisibleWidth, hasVisibleContent, currentTheme, applyColor } from "../utils.js";
-
-const ASSISTANT_PREFIX_WIDTH = getVisibleWidth(CONFIG.assistantMessage.prefix) + 2;
-const PADDING_PREFIX = " ".repeat(ASSISTANT_PREFIX_WIDTH);
+import { renderMessageStyle } from "./frame.js";
 
 export interface AssistantMessage {
   invalidate(): void;
@@ -24,27 +21,14 @@ export function createAssistantMessage(text: string, markdownTheme: any): Assist
   function render(width: number): string[] {
     if (cachedLines && cachedWidth === width) return cachedLines;
 
-    if (width <= ASSISTANT_PREFIX_WIDTH) {
-      cachedWidth = width;
-      const prefix = currentTheme
-        ? applyColor(currentTheme, CONFIG.assistantMessage.color, CONFIG.assistantMessage.prefix)
-        : CONFIG.assistantMessage.prefix;
-      cachedLines = [` ${prefix} `];
-      return cachedLines;
-    }
-
-    const mdLines = md.render(width - ASSISTANT_PREFIX_WIDTH);
-    let dotPlaced = false;
-
-    const rendered = mdLines.map((line: string) => {
-      if (!dotPlaced && hasVisibleContent(line)) {
-        dotPlaced = true;
-        const prefix = currentTheme
-          ? applyColor(currentTheme, CONFIG.assistantMessage.color, CONFIG.assistantMessage.prefix)
-          : CONFIG.assistantMessage.prefix;
-        return ` ${prefix} ${line}`;
-      }
-      return `${PADDING_PREFIX}${line}`;
+    const rendered = renderMessageStyle(CONFIG.assistantMessage.style, md, width, {
+      prefix: CONFIG.assistantMessage.prefix,
+      rail: CONFIG.assistantMessage.rail,
+      title: "Assistant",
+      colors: {
+        accent: CONFIG.assistantMessage.color,
+        border: CONFIG.assistantMessage.borderColor,
+      },
     });
 
     cachedWidth = width;
