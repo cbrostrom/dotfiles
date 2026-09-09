@@ -1,3 +1,0 @@
-# Claude Code MCP servers overlay for the `server-headless` profile.
-# Active on hosts where profile_tag == server-headless (e.g. linuxbro, superbro).
-# Dockhand is NOT universal — add per-host in mcp-servers.host-<name>.list when installed.

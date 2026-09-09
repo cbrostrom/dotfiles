@@ -6,16 +6,14 @@ Read this before searching. Jump directly to the right file.
 
 | File | Purpose |
 |------|---------|
-| `AGENTS.md` | AI agent policy, approval gate, memory/kb protocol, push guard |
+| `AGENTS.md` | AI agent policy, approval gate, Higgins protocol, push guard |
 | `AGENT_SKILLS.md` | Skill inventory for all agents |
-| `CLAUDE.md` | Claude Code–specific adapter (settings layers, key hooks) |
 | `CODEBASE.md` | This file — directory/file index |
 | `Brewfile` | macOS Homebrew packages |
 | `install.sh` | Bootstrap entry point |
 | `dotfiles.sh` | Main CLI (`dotfiles --update`, `dotfiles --status`) |
 | `modules.conf` | Repo-wide module defaults (read by bootstrap before per-host config) |
 | `modules.conf.example` | Template for `~/.config/dotfiles/modules.conf` (per-host overrides) |
-| `skills-lock.json` | Pinned skill versions |
 | `VERSION` | Current dotfiles version |
 
 ## Key directories
@@ -25,17 +23,16 @@ Install units. Each module has `install.sh` + optional `doctor.sh`.
 
 | Module | Purpose |
 |--------|---------|
-| `claude-settings/` | Merge `settings.base.json` → OS layer → `settings.local.json` |
-| `claude-config/` | Claude Code config sync |
-| `claude-plugins/` | Plugin list management |
-| `mcp-servers/` | MCP server list installation |
+| `mcp-servers/` | MCP registration helpers (Claude path soft-fails if CLI absent) |
 | `skills/` | Agent skill installation (`~/.agents/skills/`, `~/.cursor/skills`) |
 | `symlinks/` | Dotfile symlink definitions |
 | `zsh/` | Zsh config module |
 | `packages/` | Cross-platform package install |
 | `starship/` | Starship prompt config |
-| `herdr/` | Herdr terminal multiplexer — standby, opt-in per-host |
+| `herdr/` | Herdr terminal multiplexer — opt-in per-host |
 | `pi/` | PI coding agent daily-driver — opt-in per-host |
+| `opencode/` | OpenCode config symlink — opt-in |
+| `rbw/` | Bitwarden CLI secrets — opt-in |
 | `_lib/` | Shared module helpers |
 
 ### `zsh/`
@@ -45,76 +42,47 @@ Numbered zsh config files sourced in order:
 |------|---------|
 | `00-performance.zsh` | Profiling / lazy loading |
 | `01-environment.zsh` | `PATH`, env vars |
-| `02-plugins.zsh` | Plugin manager (zgenom) |
+| `02-plugins.zsh` | Direct-source plugins |
 | `03-aliases.zsh` | Shell aliases |
 | `04-functions.zsh` | Shell functions |
 | `05-integrations.zsh` | Tool integrations (fzf, zoxide, etc.) |
 | `06-autoupdate.zsh` | Autoupdate logic |
-| `08-workflow.zsh` | `DOTFILES_WORKFLOWS` switch, MCP list loading |
-| `09-herdr.zsh` | Herdr integration |
+| `08-workflow.zsh` | Workflow switches |
+| `09-herdr.zsh` / `09-cmux.zsh` | Multiplexer integrations |
 | `lib/` | Shared zsh helpers |
 
 ### `scripts/`
-Standalone tools symlinked to `~/.local/bin/`.
+Standalone tools and install helpers.
 
 | Script | Purpose |
 |--------|---------|
-| `brain` | Shim → `kb` (knowledgebase CLI); both symlinked to `~/.local/bin/` |
-| `project-mcp.sh` | Per-project MCP injection |
-| `agentsync.sh` | Sync agent core files to servers |
-| `agent-core-sync.sh` | Sync `.agents/` layer |
 | `doctor.sh` | Dotfiles health check |
-| `audit.sh` | Security/config audit |
-| `ob` | Obsidian vault opener |
-| `rtk` | Token-compression wrapper for shell commands |
+| `janitor.sh` | Vault / session maintenance |
+| `ob` | Obsidian REST API CLI |
+| `pi` | PI coding agent shim |
+| `rtk/` | Token-compression rewrite policy |
 | `cursor/` | Cursor-specific helpers |
-| `claude/` | Claude Code–specific helpers |
-| `session-check` | Session integrity check |
-| `session-summarize` | Session summarizer |
+| `install/` | Symlink and package installers |
 | `vault/` | Vault helpers |
 | `zsh/` | Zsh helpers |
 
-### `.claude/`
-Claude Code config (not symlinked — read in place by CC).
-
-| Path | Purpose |
-|------|---------|
-| `hooks/` | CC hooks: effort-classifier, brain-load, brain-save-inject, git-push-guard, rtk-rewrite, statusline |
-| `skills/` | Legacy layer — empty. All skills live in `.agents/skills/`. |
-| `devices/` | Per-host Claude snapshots |
-| `settings.base.json` | Base Claude settings |
-| `settings.darwin.json` | macOS overrides |
-| `settings.local.json` | Merged output — never edit directly |
-| `mcp-servers.*.list` | MCP server lists per workflow |
-| `push-whitelist.txt` | Repos where `git push` is allowed |
-
 ### `.cursor/`
-Cursor IDE config.
+Cursor IDE config: `rules/`, `hooks/`, `agents/`.
 
-| Path | Purpose |
-|------|---------|
-| `rules/` | Cursor rules (core.mdc, token-efficiency.mdc, etc.) |
-| `hooks/` | Cursor hooks |
-| `agents/` | Cursor agent config |
+### `.config/pi/`
+PI agent config: extensions, hooks, settings layers, prompts.
 
 ### `.agents/skills/`
-Shared, agent-agnostic skills. Available to all agents (CC, Cursor, Codex, etc.).
-See `AGENT_SKILLS.md` for full inventory.
+Shared, agent-agnostic skills. See `AGENT_SKILLS.md`.
+
+### `higgins/`
+Higgins vault tooling (janitor, etc.). Durable brain is `~/Vaults/Higgins/AI`.
 
 ### `hooks/`
-Git hooks (pre-commit: syntax check + device snapshot, pre-push: guard).
+Git hooks (pre-commit, pre-push).
 
-### `macos/`
-macOS-specific: `defaults.sh`, Ghostty config, LaunchAgents, LaunchDaemons, Defender exclusions.
-
-### `linux/`
-Linux-specific: install scripts, security config, Ghostty config, fstab example.
-
-### `wsl/`
-WSL-specific: Windows Terminal config.
+### `macos/` / `linux/` / `wsl/`
+Platform-specific Ghostty / defaults / Windows Terminal.
 
 ### `tui/`
-Interactive update TUI (`dotfiles --update`): banner, install, status, tools.
-
-### `modules/_lib/`
-Shared bash helpers used by all modules.
+Interactive `dotfiles` CLI screens (gum): banner, install, status, update, reset.

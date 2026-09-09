@@ -1,6 +1,6 @@
 ---
 name: dotfiles
-description: "Architecture and implementation knowledge for ~/dotfiles. Use when tracing config paths, settings layers, hook flows, skill routing, module install, or brain integration. Also use before editing hooks, install scripts, skills, or symlinks — outlines plan with complexity estimate before any edit. Triggers: how does X work, dotfiles setup, config path, hook flow."
+description: "Architecture and implementation knowledge for ~/dotfiles. Use when tracing config paths, settings layers, hook flows, skill routing, module install, or Higgins vault integration. Also use before editing hooks, install scripts, skills, or symlinks — outlines plan with complexity estimate before any edit. Triggers: how does X work, dotfiles setup, config path, hook flow."
 ---
 
 # Dotfiles Skill
@@ -9,70 +9,50 @@ Reference for Christian's dotfiles at `~/dotfiles`. Covers architecture understa
 
 ## Architecture
 
-### Settings Layers
+### Settings Layers (Pi)
 ```
-settings.base.json
-  → settings.{darwin,linux,wsl}.json
-  → settings.override.json (gitignored, per-machine)
-  → settings.local.json   (generated on SessionStart — NEVER edit directly)
+.settings.base.json (in .config/pi/agent/)
+  → platform overlays where present
+  → local/runtime fields patched by install (not fully symlinked)
 ```
-- Merge rules: `_merge-config.json` (replace-by-command, replace-by-matcher+command strategies per key)
-- Doctor/repair: `./modules/claude-settings/doctor.sh --fix`
+Cursor settings live under `.config/cursor/` and `~/.cursor/` via install scripts.
 
 ### Hooks
-**Claude Code** — `.claude/hooks/`:
-- `effort-classifier.sh` UserPromptSubmit → tier hint
-- `brain-save-inject.sh` PreCompact + UserPromptSubmit → vault save
-- `brain-load.sh` SessionStart → vault context injection
-- `git-push-guard.sh` PreToolUse[Bash] → whitelist guard
-- `rtk hook claude` PreToolUse[Bash] → token compression (native RTK hook, no wrapper script)
-- `fast-mode-guard.sh` UserPromptSubmit → Opus cost warning
-- `statusline.sh` → statusLine command
 
 **Cursor** — `~/.cursor/hooks.json` (managed by `scripts/cursor/install-cursor-config.sh`):
-- `sessionStart`: MCP-only (no vault dump); agent uses `kb_load` / `kb_search` on demand
+- `sessionStart`: MCP-only (no vault dump); agent uses Higgins search on demand
 - `preToolUse[Shell]`: `rtk hook cursor` via `run-hook.sh`
 - `afterFileEdit`: `aislop hook cursor` via `run-hook.sh`
-- `run-hook.sh` wraps all hooks; logs failures/slow runs to `~/.local/state/cursor-hooks/hooks.log`
 - Timeouts are **seconds** in Cursor; never use ms values there.
+
+**Pi** — hooks via `~/.pi/agent/hook/hooks.yaml` (pi-yaml-hooks) and Pi extensions.
 
 ### Skills
 | Layer | Path | Visible to |
 |---|---|---|
 | Shared agnostic | `.agents/skills/` → `~/.agents/skills/` | All agents |
 | Cursor | `~/.cursor/skills` → `~/.agents/skills` (symlink) | Cursor |
-| Claude-only | `.claude/skills/` | Claude Code only |
-| Codex-only | `.codex/skills/` | Codex only |
+| Pi extras | `~/.pi/agent/skills/` (CE compound, moli, etc.) | Pi |
 | Cursor built-ins | `~/.cursor/skills-cursor/` | Cursor (do not touch) |
 
-Promotion rule: when a workflow should work in any agent, write it in `.agents/skills/<name>/SKILL.md`. Keep tool glue in adapters.
+Promotion rule: cross-agent workflows go in `.agents/skills/<name>/SKILL.md`.
 
 ### Subagents
 `.cursor/agents/*.md` — user-level, all Cursor projects.
-Wrappers reference `.agents/skills/` for reusable logic; Cursor-specific routing/model/context-isolation in the agent file itself.
 
 ### Modules
 - `modules/<name>/module.sh`, `install.sh`, optional `uninstall.sh`
 - Controlled by `modules.conf` (opt-in per machine)
-- Key modules: `claude-settings`, `mcp-servers`, `skills`, `symlinks`, `fonts`, `herdr`, `engram`
+- Key modules: `pi`, `herdr`, `mcp-servers`, `skills`, `symlinks`, `fonts`, `packages`, `zsh`
 
-### Brain (Memory)
-- CLI: `~/.local/bin/brain` → `~/dotfiles/scripts/brain` (Python, no deps)
-- Vault: `~/Vaults/AI/brains/<slug>/` — `current.md`, `next.md`, `gotchas.md`, `history/`
-- SessionStart hook loads vault context automatically in both Claude Code and Cursor
-
-### Devices
-- `.claude/devices/` — per-host snapshots auto-updated by pre-commit hook
-- Canonical names: lowercase hostname (`linuxbro.json`, `superbro.json`, `GY-M-WHKK2PF6N7.json`)
+### Memory (Higgins)
+- CLI: `higgins` (`~/.local/bin/higgins`)
+- Vault: `~/Vaults/Higgins/AI` — tiers: `personal/`, `modules/`, `projects/`, `infra/`, `sessions/`, `_ops/`
+- Never auto-load at session start. Prefer `search` with specific terms; `load` only when asked.
 
 ### RTK (Token Compression)
 - Rewrite policy: `scripts/rtk/rewrite-command.sh`
-- Covers: git, gh, cargo, npm, pnpm, docker, kubectl, pytest, vitest, eslint, ruff, go, curl, ls, grep, etc.
-- Claude Code: auto via `rtk hook claude`; Cursor: auto via `rtk hook cursor`; Others: use `rtk <cmd>` manually
-
-### Push Guard
-- `~/.claude/push-whitelist.txt` — repos allowed to push
-- Client repos (`~/Projects/Clients`, `~/Projects/Shopify`, `~/Work`) never whitelisted
+- Cursor: auto via `rtk hook cursor`; others: `rtk <cmd>` or Pi RTK optimizer
 
 ### Propagation
 - `dotfiles --update` — local only
@@ -81,34 +61,23 @@ Wrappers reference `.agents/skills/` for reusable logic; Cursor-specific routing
 ## Implementation Rules
 
 **Before any edit:**
-1. State what files will be touched, what the change does, what could break, and verification steps.
-2. Estimate complexity and recommend a model:
-
-| Complexity | Criteria | Model |
-|---|---|---|
-| Trivial | 1-2 files, mechanical | `composer-2.5` |
-| Medium | 2-4 files, logic changes | `claude-4.6-sonnet-medium-thinking` |
-| Complex | 5+ files, cross-cutting | `claude-4.6-opus-high-thinking` — recommend splitting |
-
-3. Ask for permission. Never proceed without explicit approval.
+1. State files touched, change intent, break risk, verification.
+2. Ask for permission. Never proceed without explicit approval.
 
 **What can be changed:**
-- Settings layers: `settings.base.json`, `settings.{darwin,linux,wsl}.json`, `_merge-config.json`
-- Hooks: `.claude/hooks/`, `.cursor/hooks/`, `scripts/cursor/install-cursor-config.sh`
-- Skills: `.agents/skills/`, `.claude/skills/`, skill promotion
-- Modules: `modules/*/install.sh`, module creation
-- Install scripts: `scripts/install/symlinks.sh`, `scripts/cursor/`, `scripts/claude/`
-- Agent config: `AGENTS.md`, `.cursor/rules/core.mdc`, `.cursor/agents/`, `.claude/CLAUDE.md`
-- Brain: `scripts/brain`
+- Modules, symlinks, zsh, Brewfile
+- Skills: `.agents/skills/`
+- Cursor: `.cursor/`, `scripts/cursor/`
+- Pi: `.config/pi/`, `modules/pi/`
+- Agent policy: `AGENTS.md`, `.cursor/rules/core.mdc`
 
-**What must not be changed:**
-- `settings.local.json` (generated, wiped on SessionStart)
-- `settings.override.json` (local gitignored overrides)
+**What must not be changed casually:**
+- Generated/local override files
 - `~/.cursor/skills-cursor/` (Cursor-managed)
 - Push to remote without whitelist approval
 
 **After every change:**
 1. `bash -n <script>` for shell; `python3 -m json.tool <file>` for JSON
-2. `./modules/claude-settings/doctor.sh --fix` if settings layers touched
+2. `./bootstrap.sh --list` if modules touched
 3. `scripts/cursor/install-cursor-config.sh` if Cursor hooks touched
 4. Report what was done and what to verify manually
