@@ -258,7 +258,7 @@ log "  User should review and prune: inbox/, quick/, trash/ as needed"
 # ============================================================================
 # 5b. KB HEALTH SCAN
 # ============================================================================
-log "--- kb-health-scan ---"
+log "--- vault-health-scan ---"
 
 # ── Shared utilities (copied — do not source external file) ──────────────────
 
@@ -401,7 +401,7 @@ fi
 KB_G_STALE_LIST="${KB_G_STALE_LIST# }"
 KB_D_OVERDUE_LIST="${KB_D_OVERDUE_LIST# }"
 
-log "kb-health: gotchas=$KB_G_TOTAL (stale=$KB_G_STALE) decisions=$KB_D_TOTAL (overdue=$KB_D_OVERDUE)"
+log "vault-health: gotchas=$KB_G_TOTAL (stale=$KB_G_STALE) decisions=$KB_D_TOTAL (overdue=$KB_D_OVERDUE)"
 
 # ============================================================================
 # 6. HEALTH REPORT (JSON snapshot)

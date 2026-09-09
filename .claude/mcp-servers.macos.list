@@ -1,6 +1,0 @@
-# Claude Code MCP servers — Mac-only (loaded in addition to mcp-servers.list)
-# Format identical to mcp-servers.list. Only processed on Darwin hosts.
-
-# Apple MCP moved to mcp-servers.apple.list — opt-in via DOTFILES_WORKFLOWS=...,apple
-
-# Dockhand moved to mcp-servers.infra.list — add "infra" to DOTFILES_WORKFLOWS to load.

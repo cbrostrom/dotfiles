@@ -1,4 +1,0 @@
-# Claude Code MCP servers — Memory overlay (opt-in)
-# Load via: DOTFILES_WORKFLOWS=developer,memory
-# Engram = manual-only per CLAUDE.md. Graphiti = disabled until needed at scale.
-

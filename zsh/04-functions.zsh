@@ -356,8 +356,7 @@ gwtgo() {
     fi
 }
 
-# code / vs — open Zed (primary); VSCodium fallback on non-mac or if Zed missing
-# WSL: Zed not available — falls back to codium.exe path conversion
+# code / vs — open Zed (primary); optional codium CLI on WSL/Linux
 code() {
     if is_macos && command -v zed >/dev/null 2>&1; then
         zed "${@:-.}"
@@ -374,10 +373,10 @@ code() {
         codium.exe "${converted[@]}"
     elif command -v codium >/dev/null 2>&1; then
         codium "$@"
-    elif is_macos && [[ -d /Applications/VSCodium.app ]]; then
-        open -a VSCodium "$@"
+    elif command -v zed >/dev/null 2>&1; then
+        zed "${@:-.}"
     else
-        echo "code: Zed/VSCodium not found" >&2
+        echo "code: Zed (or codium) not found" >&2
         return 127
     fi
 }
@@ -498,6 +497,113 @@ cloudcli-sessions() {
     local script="$HOME/dotfiles/scripts/cloudcli-sessions-cleanup.sh"
     [[ -x "$script" ]] || chmod +x "$script"
     "$script" "$@"
+}
+
+# llmtrim manual recovery — fail-open helpers for this shell (+ Cursor settings)
+_LLMTRIM_CURSOR_SETTINGS="$HOME/Library/Application Support/Cursor/User/settings.json"
+_LLMTRIM_NO_PROXY='localhost,127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,fd00::/8,*.local,*.cursor.sh,*.cursor.com,cursor.sh,cursor.com,api2.cursor.sh'
+
+_llmtrim_cursor_proxy() {
+    # $1 = on|off — sync Cursor User settings.json (GUI does not read .zprofile)
+    local mode="$1"
+    local settings="$_LLMTRIM_CURSOR_SETTINGS"
+    [[ -f "$settings" ]] || return 0
+    python3 - "$settings" "$mode" <<'PY' 2>/dev/null || true
+import json, sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+mode = sys.argv[2]
+try:
+    data = json.loads(path.read_text())
+except Exception:
+    sys.exit(0)
+
+keys = (
+    "http.proxy",
+    "http.proxySupport",
+    "http.proxyStrictSSL",
+    "http.noProxy",
+    "llmtrim.managedProxy",
+)
+managed = {
+    "http.proxy": "http://127.0.0.1:43117",
+    "http.proxySupport": "override",
+    "http.proxyStrictSSL": False,
+    "http.noProxy": "localhost,127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,*.local,*.cursor.sh,*.cursor.com,cursor.sh,cursor.com,api2.cursor.sh",
+    "llmtrim.managedProxy": True,
+}
+
+if mode == "on":
+    data.update(managed)
+elif mode == "off":
+    # Only strip when we previously marked ownership, or values still point at llmtrim
+    owned = data.get("llmtrim.managedProxy") is True
+    proxy = str(data.get("http.proxy") or "")
+    if owned or "43117" in proxy:
+        for k in keys:
+            data.pop(k, None)
+else:
+    sys.exit(0)
+
+path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+PY
+}
+
+llmtrim-off() {
+    llmtrim stop >/dev/null 2>&1 || true
+    unset HTTPS_PROXY HTTP_PROXY ALL_PROXY
+    unset https_proxy http_proxy all_proxy
+    unset NODE_EXTRA_CA_CERTS SSL_CERT_FILE CURL_CA_BUNDLE NODE_USE_ENV_PROXY
+    unset NO_PROXY no_proxy
+    _llmtrim_cursor_proxy off
+    echo "llmtrim disabled for this shell (+ Cursor proxy settings cleared); fully quit/reopen Cursor to apply"
+}
+
+llmtrim-on() {
+    llmtrim start >/dev/null 2>&1
+
+    if llmtrim _alive >/dev/null 2>&1; then
+        export HTTPS_PROXY='http://127.0.0.1:43117'
+        export HTTP_PROXY='http://127.0.0.1:43117'
+        export NO_PROXY="$_LLMTRIM_NO_PROXY"
+        export no_proxy="$_LLMTRIM_NO_PROXY"
+        export NODE_USE_ENV_PROXY=1
+        export NODE_EXTRA_CA_CERTS="$HOME/.llmtrim/ca.pem"
+        export SSL_CERT_FILE="$HOME/.llmtrim/ca-bundle.pem"
+        export CURL_CA_BUNDLE="$HOME/.llmtrim/ca-bundle.pem"
+        _llmtrim_cursor_proxy on
+        echo "llmtrim enabled for this shell (+ Cursor settings); fully quit/reopen Cursor to apply"
+    else
+        unset HTTPS_PROXY HTTP_PROXY ALL_PROXY
+        unset https_proxy http_proxy all_proxy
+        unset NODE_EXTRA_CA_CERTS SSL_CERT_FILE CURL_CA_BUNDLE NODE_USE_ENV_PROXY
+        unset NO_PROXY no_proxy
+        _llmtrim_cursor_proxy off
+        echo "llmtrim failed to start; direct connections remain enabled" >&2
+        return 1
+    fi
+}
+
+llmtrim-check() {
+    llmtrim status
+    printf '\nProxy environment:\n'
+    env | grep -Ei '^(https?_proxy|all_proxy|no_proxy|node_extra_ca_certs|ssl_cert_file|curl_ca_bundle|node_use_env_proxy)=' || true
+    printf '\nProxy listener:\n'
+    lsof -nP -iTCP:43117 -sTCP:LISTEN || true
+    if [[ -f "$_LLMTRIM_CURSOR_SETTINGS" ]]; then
+        printf '\nCursor settings:\n'
+        python3 - "$_LLMTRIM_CURSOR_SETTINGS" <<'PY' 2>/dev/null || true
+import json, sys
+from pathlib import Path
+data = json.loads(Path(sys.argv[1]).read_text())
+for k in ("http.proxy", "http.proxySupport", "http.proxyStrictSSL", "http.noProxy", "llmtrim.managedProxy"):
+    if k in data:
+        print(f"  {k}={data[k]!r}")
+if "http.proxy" not in data:
+    print("  (no http.proxy — Cursor not routed through llmtrim)")
+PY
+    fi
 }
 
 
