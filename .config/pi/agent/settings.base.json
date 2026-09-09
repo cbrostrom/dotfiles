@@ -1,56 +1,55 @@
 {
-  "defaultModel": "big-pickle",
+  "defaultModel": "default",
   "defaultProjectTrust": "ask",
-  "defaultProvider": "opencode",
+  "defaultProvider": "cursor",
   "defaultThinkingLevel": "medium",
   "doubleEscapeAction": "tree",
   "editorPaddingX": 1,
   "enableInstallTelemetry": false,
-  "enabledModels": [],
+  "enabledModels": [
+    "default",
+    "composer-2.5",
+    "gpt-5.6-sol@1m",
+    "gpt-5.6-terra@1m",
+    "gpt-5.6-luna@1m",
+    "fable-5-1@1m",
+    "opus-5@1m",
+    "github-copilot/claude-sonnet-5",
+    "github-copilot/claude-opus-5",
+    "github-copilot/gpt-5.6-sol",
+    "github-copilot/gpt-5.6-terra",
+    "github-copilot/gpt-5.6-luna",
+    "github-copilot/claude-haiku-4.5",
+    "github-copilot/gpt-5.4-mini",
+    "github-copilot/gpt-5-mini",
+    "github-copilot/gemini-3.5-flash",
+    "opencode/big-pickle"
+  ],
+  "showCacheMissNotices": false,
   "httpIdleTimeoutMs": 300000,
   "images": {
     "blockImages": false
   },
-  "observational-memory": {
-    "observeAfterTokens": 10000,
-    "reflectAfterTokens": 20000,
-    "compactAfterTokens": 81000,
-    "compactAfterTokensMode": "calibrated",
-    "compactAfterTokensRatio": 0.68,
-    "observationsPoolMaxTokens": 20000,
-    "observationsPoolTargetTokens": 10000,
-    "agentMaxTurns": 12,
-    "model": {
-      "provider": "ollama",
-      "id": "gpt-oss:20b-cloud"
-    },
-    "showWorkerNotifications": false,
-    "passive": false,
-    "debugLog": false
-  },
   "packages": [
     "npm:@juanibiapina/pi-extension-settings",
-    "npm:pi-spark",
+    "npm:pi-cursor-sdk",
     "npm:pi-yaml-hooks",
     "npm:pi-ask-user",
     "npm:pi-web-access",
-    "git:github.com/v2nic/pi-caveman",
     "npm:@narumitw/pi-caffeinate",
     "npm:@gotgenes/pi-subagents",
     "npm:context-mode",
     "npm:pi-mcp-adapter",
     "npm:pi-rtk-optimizer",
-    "npm:@thisux/pi-double-esc-clear",
-    "npm:@diegopetrucci/pi-notify",
-    "npm:pi-observational-memory",
+    "git:github.com/bybrostrom/pi-extensions",
     "npm:@shift-labs/pi-peer",
-    "npm:@nguyenquangthai/pi-todo"
+    "npm:@juicesharp/rpiv-todo"
   ],
   "quietStartup": false,
   "terminal": {
     "showTerminalProgress": true
   },
-  "theme": "github-dark-default",
+  "theme": "pi-desktop-github-dark",
   "transport": "auto",
   "treeFilterMode": "default"
 }

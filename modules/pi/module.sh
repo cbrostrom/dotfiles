@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 MODULE_NAME="pi"
-MODULE_DESC="PI coding agent — daily-driver config, Spark presets, agnostic skill + hook integration"
+MODULE_DESC="PI coding agent — daily-driver config, agnostic skill + hook integration"
 MODULE_CATEGORY="tools"
 MODULE_PLATFORMS="macos linux"
 MODULE_PROFILES="all"
