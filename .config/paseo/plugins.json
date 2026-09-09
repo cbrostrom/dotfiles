@@ -1,0 +1,39 @@
+{
+  "catalog": "https://github.com/paseo-cafe/paseo-cafe",
+  "legacyCatalog": "https://github.com/omercnet/awesome-paseo-plugins",
+  "plugins": [
+    {
+      "id": "pi-tasks-timeline",
+      "repo": "mcowger/paseo-plugins",
+      "path": "pi-tasks-timeline",
+      "ref": "main",
+      "patch": "v0.8"
+    },
+    {
+      "id": "reasoning-display",
+      "repo": "mcowger/paseo-plugins",
+      "path": "reasoning-display",
+      "ref": "main",
+      "patch": "v0.8"
+    },
+    {
+      "id": "subagent-activity",
+      "repo": "mcowger/paseo-plugins",
+      "path": "subagent-activity",
+      "ref": "main",
+      "patch": "v0.8"
+    },
+    {
+      "id": "workspace-activity",
+      "repo": "ABorakati/paseo-workspace-activity",
+      "ref": "main",
+      "patch": "v0.8"
+    },
+    {
+      "id": "usage-sidebar",
+      "repo": "RUIIIOVO/paseo-usage-sidebar",
+      "ref": "main",
+      "patch": "v0.8"
+    }
+  ]
+}
