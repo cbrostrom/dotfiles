@@ -3,6 +3,15 @@ export type MessageStyle = "prefix" | "framed" | "labeled";
 /** @deprecated Use MessageStyle */
 export type UserMessageStyle = MessageStyle;
 
+export interface AttentionBlocksUserConfig {
+  /** Parse **→ Lead-in.** paragraphs into tinted boxes. Default: true. */
+  enabled?: boolean;
+  /** Interior tint. Default: customMessageBg */
+  backgroundColor?: string;
+  borderColor?: string;
+  accentColor?: string;
+}
+
 export interface AssistantMessageUserConfig {
   /** Visual wrap style. Default: framed. */
   style?: MessageStyle;
@@ -12,6 +21,7 @@ export interface AssistantMessageUserConfig {
   color?: string;
   /** Rule / box border color. Default: border */
   borderColor?: string;
+  attentionBlocks?: AttentionBlocksUserConfig;
 }
 
 export interface UserMessageUserConfig {

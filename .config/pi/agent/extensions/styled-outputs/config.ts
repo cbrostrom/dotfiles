@@ -12,6 +12,12 @@ export const DEFAULT_CONFIG = {
     RAIL: "│",
     COLOR: "text",
     BORDER_COLOR: "border",
+    ATTENTION_BLOCKS: {
+      ENABLED: true,
+      BACKGROUND_COLOR: "customMessageBg",
+      BORDER_COLOR: "border",
+      ACCENT_COLOR: "accent",
+    },
   },
 
   // User message
@@ -135,6 +141,20 @@ export const CONFIG = {
     color: userConfig.assistantMessage?.color ?? DEFAULT_CONFIG.ASSISTANT_MESSAGE.COLOR,
     borderColor:
       userConfig.assistantMessage?.borderColor ?? DEFAULT_CONFIG.ASSISTANT_MESSAGE.BORDER_COLOR,
+    attentionBlocks: {
+      enabled:
+        userConfig.assistantMessage?.attentionBlocks?.enabled ??
+        DEFAULT_CONFIG.ASSISTANT_MESSAGE.ATTENTION_BLOCKS.ENABLED,
+      backgroundColor:
+        userConfig.assistantMessage?.attentionBlocks?.backgroundColor ??
+        DEFAULT_CONFIG.ASSISTANT_MESSAGE.ATTENTION_BLOCKS.BACKGROUND_COLOR,
+      borderColor:
+        userConfig.assistantMessage?.attentionBlocks?.borderColor ??
+        DEFAULT_CONFIG.ASSISTANT_MESSAGE.ATTENTION_BLOCKS.BORDER_COLOR,
+      accentColor:
+        userConfig.assistantMessage?.attentionBlocks?.accentColor ??
+        DEFAULT_CONFIG.ASSISTANT_MESSAGE.ATTENTION_BLOCKS.ACCENT_COLOR,
+    },
   },
   skills: {
     prefix: userConfig.skills?.prefix ?? DEFAULT_CONFIG.SKILLS.PREFIX,

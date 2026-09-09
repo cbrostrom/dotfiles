@@ -1,3 +1,5 @@
 # Cloned at install time by modules/paseo/install.sh — not tracked in dotfiles.
 *
 !.gitignore
+!attention-blocks-timeline/
+!attention-blocks-timeline/**

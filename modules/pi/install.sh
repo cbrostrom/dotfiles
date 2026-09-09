@@ -237,6 +237,16 @@ PYEOF
 
 ok "settings.json patched"
 
+# ── 5d) pi-ask-user schema patch (accept options[].label alias) ───────────────
+PATCH_SCRIPT="$PI_SRC/patches/apply-pi-ask-user-label-patch.sh"
+if [[ -x "$PATCH_SCRIPT" ]]; then
+    "$PATCH_SCRIPT"
+elif [[ -f "$PATCH_SCRIPT" ]]; then
+    bash "$PATCH_SCRIPT"
+else
+    warn "pi-ask-user patch script missing — skip"
+fi
+
 # ── 6) summary ────────────────────────────────────────────────────────────────
 log "PI install complete. Manual steps:"
 log "  1. Verify MCP:      /mcp status         (higgins, deja directTools)"
