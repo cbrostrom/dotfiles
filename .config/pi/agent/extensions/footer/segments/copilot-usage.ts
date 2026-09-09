@@ -4,7 +4,7 @@
  *
  * Polls GET /copilot_internal/user with Pi's Copilot OAuth token
  * (~/.pi/agent/auth.json). Cache TTL 60s. Bypasses HTTP(S)_PROXY
- * because llmtrim (:43117) breaks TLS to api.github.com.
+ * so inherited proxy env cannot break TLS to api.github.com.
  */
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
@@ -61,7 +61,7 @@ async function readOAuthToken(): Promise<string | null> {
   }
 }
 
-/** Fetch via curl --noproxy. llmtrim HTTP_PROXY breaks Node TLS to api.github.com. */
+/** Fetch via curl --noproxy so proxy env cannot break TLS to api.github.com. */
 async function fetchCopilotUser(token: string): Promise<CopilotUser> {
   const { spawn } = await import("node:child_process");
   const out = await new Promise<string>((resolve, reject) => {

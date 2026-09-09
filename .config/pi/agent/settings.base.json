@@ -1,19 +1,16 @@
 {
   "defaultModel": "default",
-  "defaultProjectTrust": "ask",
   "defaultProvider": "cursor",
   "defaultThinkingLevel": "medium",
-  "doubleEscapeAction": "tree",
   "editorPaddingX": 1,
   "enableInstallTelemetry": false,
+  "quietStartup": true,
+  "collapseChangelog": true,
+  "tuiMode": "regular",
+  "theme": "pi-desktop-github-dark",
   "enabledModels": [
     "default",
     "composer-2.5",
-    "gpt-5.6-sol@1m",
-    "gpt-5.6-terra@1m",
-    "gpt-5.6-luna@1m",
-    "fable-5-1@1m",
-    "opus-5@1m",
     "github-copilot/claude-sonnet-5",
     "github-copilot/claude-opus-5",
     "github-copilot/gpt-5.6-sol",
@@ -25,11 +22,6 @@
     "github-copilot/gemini-3.5-flash",
     "opencode/big-pickle"
   ],
-  "showCacheMissNotices": false,
-  "httpIdleTimeoutMs": 300000,
-  "images": {
-    "blockImages": false
-  },
   "packages": [
     "npm:@juanibiapina/pi-extension-settings",
     "npm:pi-cursor-sdk",
@@ -40,16 +32,10 @@
     "npm:@gotgenes/pi-subagents",
     "npm:context-mode",
     "npm:pi-mcp-adapter",
+    "npm:pi-mcporter",
     "npm:pi-rtk-optimizer",
     "git:github.com/bybrostrom/pi-extensions",
     "npm:@shift-labs/pi-peer",
     "npm:@juicesharp/rpiv-todo"
-  ],
-  "quietStartup": false,
-  "terminal": {
-    "showTerminalProgress": true
-  },
-  "theme": "pi-desktop-github-dark",
-  "transport": "auto",
-  "treeFilterMode": "default"
+  ]
 }

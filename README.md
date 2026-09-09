@@ -52,6 +52,10 @@ See `modules/README.md` for module authoring details.
 - `./scripts/doctor.sh` – Health check
 - `./uninstall.sh` – Remove symlinks, restore backups
 
+## Fleet
+
+Multi-host topology for agents: [`infra/fleet.md`](infra/fleet.md) (markdown) · [`infra/infra.html`](infra/infra.html) (browser). SSH source of truth: `config/fleet-hosts.conf`.
+
 ## Profiles
 
 | Profile | Machines | Notes |

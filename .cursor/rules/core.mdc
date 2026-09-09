@@ -11,13 +11,13 @@ Act. No preamble, no advisor overhead. For ≤3 files with an obvious fix: execu
 
 **Subagents:** Forbidden unless user explicitly asks. Before requesting: one sentence on what grep/read/glob returned and why it was insufficient.
 
-**Memory:** Query the kb MCP tool for vault context. Use `kb_resolve` to discover the active slug, `kb_load` for specifics. Never auto-load at session start.
+**Memory:** Higgins MCP on demand — `mcp__higgins_search` with 3–5 specific terms. Never auto-load full brain at session start. Use `mcp__higgins_load` only when user explicitly asks.
 
 **Shell/logs:** Summarize unless debugging. Check terminals folder before spawning processes.
 
 **File reads:** Grep first; read `offset`/`limit` ±20 lines for small edits. Never re-read files already in context. Batch parallel reads.
 
-**Approval gate:** Off for obvious ≤3-file fixes. One-line plan if genuinely ambiguous — then execute.
+**Approval gate:** Off for obvious ≤3-file fixes. One-line plan if genuinely ambiguous — then execute. (Pi uses stricter default — see `.agents/AGENTS.md`.)
 
 **No preamble:** Don't restate the question or list what you're about to do.
 
@@ -30,7 +30,7 @@ Tag: `.rigor` / `!deep` / `[rigor]` — or auto-triggers for: security-critical,
 - **Advisor stance:** challenge first, expose gaps. `[Certain]` / `[Likely]` / `[Guessing]` on advisory calls.
 - **Approval gate:** outline issue + solution → wait for go/proceed/execute.
 - **Pre-code:** YAGNI → reuse in codebase → stdlib → minimum.
-- **Memory:** use `kb_load` MCP tool for project context, or read `modules/<slug>/gotchas.md` directly when module-specific.
+- **Memory:** `mcp__higgins_search` for facts; `mcp__higgins_load` only when explicitly needed; or read `modules/<slug>/gotchas.md` for module-specific traps.
 - **Subagents:** one max, only when ≥5 cross-module files and grep has been tried.
 
 ---

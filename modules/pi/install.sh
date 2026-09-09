@@ -6,6 +6,8 @@
 #
 # What this installs (symlinked from dotfiles, git-tracked):
 #   ~/.pi/agent/AGENTS.md          <- global policy adapter
+#   ~/.pi/agent/mcp.json           <- classic MCP (higgins/deja hot path)
+#   ~/.pi/agent/mcporter.json      <- pi-mcporter exposure policy (index default)
 #   ~/.pi/web-search.json          <- focused Exa/raw web-search config
 #   ~/.pi/agent/hook/hooks.yaml    <- pi-yaml-hooks global hooks (gated)
 #   ~/.pi/agent/pi-permissions.jsonc <- pi-permission-system policy
@@ -66,6 +68,7 @@ _symlink() {
 # ── 3) symlink user-authored config files ────────────────────────────────────
 _symlink "$PI_SRC/AGENTS.md"           "$PI_DST/AGENTS.md"           "AGENTS.md"
 _symlink "$PI_SRC/mcp.json"            "$PI_DST/mcp.json"            "mcp.json"
+_symlink "$PI_SRC/mcporter.json"       "$PI_DST/mcporter.json"       "mcporter.json"
 _symlink "$PI_SRC/pi-permissions.jsonc" "$PI_DST/pi-permissions.jsonc" "pi-permissions.jsonc"
 _symlink "$PI_SRC/web-search.json"     "$HOME/.pi/web-search.json"    "web-search.json"
 
@@ -236,12 +239,13 @@ ok "settings.json patched"
 
 # ── 6) summary ────────────────────────────────────────────────────────────────
 log "PI install complete. Manual steps:"
-log "  1. Verify MCP:      /mcp status         (higgins, deja — github/atlassian/shopify-dev disabled)"
-log "  2. Cursor auth:     /login → API key → Cursor (or CURSOR_API_KEY)"
-log "  3. Run:              /reload            (pick up extensions + prompts)"
-log "  4. Scoped models:    /scoped-models     (Ctrl+P cycles enabledModels)"
-log "  5. Run:              /hooks-validate    (to confirm hooks compatible)"
-log "  6. Trust your repos: /trust             (once, per project, inside PI)"
-log "  7. Update PI:        fnm use default && pi update self"
+log "  1. Verify MCP:      /mcp status         (higgins, deja directTools)"
+log "  2. MCPorter:         /mcporter status    (index exposure via pi-mcporter)"
+log "  3. Cursor auth:     /login → API key → Cursor (or CURSOR_API_KEY)"
+log "  4. Run:              /reload            (pick up extensions + prompts)"
+log "  5. Scoped models:    /scoped-models     (Ctrl+P cycles enabledModels)"
+log "  6. Run:              /hooks-validate    (to confirm hooks compatible)"
+log "  7. Trust your repos: /trust             (once, per project, inside PI)"
+log "  8. Update PI:        fnm use default && pi update self"
 log "     (always update from fnm default so the shim stays aligned)"
-log "  8. Cursor spend:     set on-demand limit to \$0 in Cursor dashboard"
+log "  9. Cursor spend:     set on-demand limit to \$0 in Cursor dashboard"

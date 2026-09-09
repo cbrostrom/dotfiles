@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "defaultExposure": "index",
+  "callTimeoutMs": 30000,
+  "discoveryTimeoutMs": 2000,
+  "maxMatchedTools": 8,
+  "servers": {
+    "github": {
+      "exposure": "index"
+    },
+    "codebase-memory-mcp": {
+      "exposure": "index"
+    },
+    "shopify-dev-mcp": {
+      "exposure": "index"
+    },
+    "atlassian-akqa": {
+      "exposure": "index"
+    },
+    "atlassian-fiskars": null,
+    "dockhand-linuxbro": {
+      "exposure": "on-demand"
+    },
+    "dockhand-superbro": {
+      "exposure": "on-demand"
+    }
+  }
+}

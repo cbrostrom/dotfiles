@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fleet — Christian's homelab</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2f3f;
+      --text: #e6e8ef;
+      --muted: #9aa3b5;
+      --accent: #6ea8fe;
+      --green: #3dd68c;
+      --yellow: #f5c542;
+      --red: #f07178;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      margin: 0;
+      padding: 2rem 1.5rem 4rem;
+      max-width: 1100px;
+      margin-inline: auto;
+    }
+    h1 { font-size: 1.75rem; margin: 0 0 0.25rem; }
+    .subtitle { color: var(--muted); margin-bottom: 2rem; }
+    h2 {
+      font-size: 1.15rem;
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid var(--border);
+    }
+    a { color: var(--accent); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    tr:hover td { background: rgba(110, 168, 254, 0.04); }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-ok { background: rgba(61, 214, 140, 0.15); color: var(--green); }
+    .badge-warn { background: rgba(245, 197, 66, 0.15); color: var(--yellow); }
+    .badge-no { background: rgba(240, 113, 120, 0.15); color: var(--red); }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+    }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1rem; }
+    .card p { margin: 0.35rem 0; color: var(--muted); font-size: 0.9rem; }
+    .card p strong { color: var(--text); }
+    pre {
+      background: #0a0c10;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      overflow-x: auto;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+    code { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+    .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .topology {
+      font-family: ui-monospace, monospace;
+      font-size: 0.78rem;
+      white-space: pre;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    footer { margin-top: 3rem; color: var(--muted); font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>Fleet registry</h1>
+  <p class="subtitle">Machine topology for agents · source: <code>infra/fleet.md</code> · updated 09-09-2026</p>
+
+  <h2>Hosts</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Host</th>
+        <th>Role</th>
+        <th>Profile</th>
+        <th>Tailscale</th>
+        <th>SSH</th>
+        <th>Paseo</th>
+        <th>Push</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Mac</strong></td>
+        <td>Control plane, author</td>
+        <td><code>desktop-full</code></td>
+        <td>yes</td>
+        <td>—</td>
+        <td><span class="badge badge-ok">local</span></td>
+        <td><span class="badge badge-ok">allowed</span></td>
+      </tr>
+      <tr>
+        <td><strong>MonsterBro</strong></td>
+        <td>Work engine (WSL)</td>
+        <td><code>wsl</code></td>
+        <td><code>100.100.1.255</code></td>
+        <td><code>monsterbro</code></td>
+        <td><span class="badge badge-ok">ssh://</span></td>
+        <td><span class="badge badge-ok">allowed</span></td>
+      </tr>
+      <tr>
+        <td><strong>LinuxBro</strong></td>
+        <td>Homelab / docker / media</td>
+        <td><code>server-headless</code></td>
+        <td><code>100.100.1.100</code></td>
+        <td><code>linuxbro</code></td>
+        <td><span class="badge badge-warn">optional</span></td>
+        <td><span class="badge badge-no">never</span></td>
+      </tr>
+      <tr>
+        <td><strong>SuperBro</strong></td>
+        <td>VPS / janitor</td>
+        <td><code>server-headless</code></td>
+        <td><code>100.100.1.50</code></td>
+        <td><code>superbro</code></td>
+        <td><span class="badge badge-warn">optional</span></td>
+        <td><span class="badge badge-no">never</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Host cards</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Mac</h3>
+      <p><strong>Purpose:</strong> Author dotfiles, Cursor/Pi, Paseo orchestration.</p>
+      <p><strong>Dispatch:</strong> <code>paseo --host ssh://monsterbro …</code></p>
+      <p><strong>MCP:</strong> mcporter full catalog; dockhand on-demand.</p>
+    </div>
+    <div class="card">
+      <h3>MonsterBro</h3>
+      <p><strong>OS:</strong> Win11 + Debian 12 WSL2 (systemd).</p>
+      <p><strong>Purpose:</strong> Builds, parallel agents, client repos.</p>
+      <p><strong>Caveat:</strong> Sometimes off — ping before propagate.</p>
+    </div>
+    <div class="card">
+      <h3>LinuxBro</h3>
+      <p><strong>HW:</strong> NUC i5-8259U, 16 GB, ~31 containers.</p>
+      <p><strong>MCP:</strong> dockhand <code>:8092</code></p>
+      <p><strong>Fit:</strong> Light chores; RAM tight under load.</p>
+    </div>
+    <div class="card">
+      <h3>SuperBro</h3>
+      <p><strong>Role:</strong> Janitor, graphiti, pi-peer Redis.</p>
+      <p><strong>MCP:</strong> dockhand <code>:8080</code>, graphiti <code>:8000</code></p>
+      <p><strong>Vault:</strong> rbw → vault.superbro.dk</p>
+    </div>
+  </div>
+
+  <h2>Security</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Rule</th></tr></thead>
+    <tbody>
+      <tr><td>Network</td><td>Tailscale mesh only; no public Paseo binds</td></tr>
+      <tr><td>Paseo</td><td>Password on non-localhost; relay off on servers</td></tr>
+      <tr><td>SSH</td><td>Key auth, ControlMaster, accept-new TOFU</td></tr>
+      <tr><td>Credentials</td><td>Local per host; never in dotfiles git</td></tr>
+      <tr><td>Git push</td><td>Mac + MonsterBro only</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Topology</h2>
+  <pre class="topology">                    ┌─────────────────────────┐
+                    │  Higgins vault (brain)  │
+                    └───────────┬─────────────┘
+                                │
+        ┌─────── Tailscale ─────┼──────────────────────┐
+        ▼                       ▼                      ▼
+   Mac (orchestrator)    MonsterBro WSL         LinuxBro / SuperBro
+   Paseo local           Paseo daemon           dockhand MCP
+   mcporter ───────────────────────────────────► :8092 / :8080
+        │
+        └── paseo --host ssh://monsterbro</pre>
+
+  <h2>Remote MCP</h2>
+  <table>
+    <thead><tr><th>Name</th><th>URL</th><th>Host</th></tr></thead>
+    <tbody>
+      <tr><td>dockhand-linuxbro</td><td><code>http://100.100.1.100:8092/mcp</code></td><td>LinuxBro</td></tr>
+      <tr><td>dockhand-superbro</td><td><code>http://100.100.1.50:8080/mcp</code></td><td>SuperBro</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Quick commands</h2>
+  <pre><code># SSH hardening + known_hosts
+bash ~/dotfiles/scripts/install/ssh-superbro.sh
+
+# List agents on MonsterBro
+paseo --host ssh://monsterbro ls
+
+# Dispatch work
+paseo --host ssh://monsterbro run --provider codex/gpt-5.4 \
+  --cwd ~/dotfiles "Run ./scripts/doctor.sh; failures only"
+
+# Propagate dotfiles (MonsterBro, if online)
+ping -c1 monsterbro && ssh monsterbro \
+  'git -C ~/dotfiles pull && DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=wsl \
+   ~/dotfiles/bootstrap.sh --only=symlinks,opencode'</code></pre>
+
+  <h2>MonsterBro bootstrap</h2>
+  <ol style="color: var(--muted); font-size: 0.9rem;">
+    <li>Windows: AC never sleep, Tailscale, OpenSSH :27789</li>
+    <li>WSL: <code>systemd=true</code> in <code>/etc/wsl.conf</code></li>
+    <li>Clone dotfiles, <code>PROFILE=wsl</code>, bootstrap</li>
+    <li><code>npm i -g paseo</code>, set password, create projects</li>
+    <li>systemd user unit for daemon autostart</li>
+    <li>Verify from Mac via <code>ssh://monsterbro</code></li>
+  </ol>
+
+  <footer>
+    Markdown source: <a href="fleet.md">fleet.md</a> · Config: <code>config/fleet-hosts.conf</code>
+  </footer>
+</body>
+</html>

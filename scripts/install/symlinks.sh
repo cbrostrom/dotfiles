@@ -124,6 +124,10 @@ fi
 
 # Config directories
 create_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml" "starship config"
+
+# MCPorter canonical server defs (credentials stay in ~/.mcporter/credentials.json)
+mkdir -p "$HOME/.mcporter"
+create_symlink "$SCRIPT_DIR/.config/mcporter/mcporter.json" "$HOME/.mcporter/mcporter.json" "mcporter config"
 # Ghostty: macos/ghostty or linux/ghostty - handled by main install.sh
 create_symlink "$SCRIPT_DIR/.config/lazygit" "$HOME/.config/lazygit" "lazygit config"
 create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
@@ -137,10 +141,12 @@ create_symlink "$SCRIPT_DIR/wezterm" "$HOME/.config/wezterm" "wezterm config"
 # Codex CLI config
 create_symlink "$SCRIPT_DIR/.codex" "$HOME/.codex" "codex config"
 
-# Cursor config — rules, agents, hook scripts, built-in skill cache
+# Cursor config — rules, agents, hook scripts, built-in skill cache, MCP bridge
 # Skipped on headless servers
 if [[ "$IS_HEADLESS" == "false" ]]; then
 mkdir -p "$HOME/.cursor/rules" "$HOME/.cursor/agents" "$HOME/.cursor/hooks"
+
+create_symlink "$SCRIPT_DIR/.cursor/mcp.json" "$HOME/.cursor/mcp.json" "cursor mcp (mcporter serve)"
 
 if [[ -d "$SCRIPT_DIR/.cursor/rules" ]]; then
     for rule in "$SCRIPT_DIR/.cursor/rules/"*.mdc; do
