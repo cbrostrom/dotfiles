@@ -81,7 +81,7 @@ _lists_paths() {
     # Set in ~/.zshrc.local or modules.conf on machines that opt into workflows.
     if [[ -n "${DOTFILES_WORKFLOWS:-}" ]]; then
         local wf
-        IFS=',' read -ra _wf_arr <<< "$DOTFILES_WORKFLOWS"
+        IFS=',' read -ra _wf_arr <<<"$DOTFILES_WORKFLOWS"
         for wf in "${_wf_arr[@]}"; do
             wf="${wf#"${wf%%[![:space:]]*}"}"
             wf="${wf%"${wf##*[![:space:]]}"}"
@@ -121,7 +121,7 @@ lists_merge() {
                 key="$(_lists_key "${line#!}")"
                 [[ -n "$key" ]] && disabled_keys="$disabled_keys:$key:"
             fi
-        done < "$f"
+        done <"$f"
     done
 
     # Second pass: emit kept entries, deduped by key.
@@ -139,7 +139,7 @@ lists_merge() {
             [[ "$seen_keys" == *":$key:"* ]] && continue
             seen_keys="$seen_keys:$key:"
             entries+=("$line")
-        done < "$f"
+        done <"$f"
     done
 
     local e

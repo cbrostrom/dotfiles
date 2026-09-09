@@ -57,9 +57,9 @@ run_reset() {
 
     gum style --foreground 8 "  Pick modules to reset. Space toggles, Enter confirms."
     local picked
-    picked="$(printf '%s\n' "${labels[@]}" | \
+    picked="$(printf '%s\n' "${labels[@]}" |
         gum choose --no-limit \
-            --header "modules with an uninstall.sh (nothing pre-selected)" )" || picked=""
+            --header "modules with an uninstall.sh (nothing pre-selected)")" || picked=""
 
     if [[ -z "$picked" ]]; then
         gum style --foreground 220 "  Nothing selected — aborting."
@@ -73,14 +73,17 @@ run_reset() {
         [[ -z "$label" ]] && continue
         local mod="${label%% *}"
         sel_names+=("$mod")
-    done <<< "$picked"
+    done <<<"$picked"
 
     local sel_csv
-    sel_csv="$(IFS=,; echo "${sel_names[*]}")"
+    sel_csv="$(
+        IFS=,
+        echo "${sel_names[*]}"
+    )"
 
     # Action menu — preview / execute / cancel.
     local action
-    action="$(printf 'Dry-run (preview)\nExecute reset\nCancel' | \
+    action="$(printf 'Dry-run (preview)\nExecute reset\nCancel' |
         gum choose --header "what next for: $sel_csv ?")" || action="Cancel"
 
     case "$action" in

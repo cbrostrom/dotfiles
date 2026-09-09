@@ -19,11 +19,11 @@ declare -a _PROG_DONE=()
 
 _prog_bar() {
     local width=14
-    local filled=$(( _PROG_TOTAL > 0 ? (_PROG_CURRENT * width) / _PROG_TOTAL : 0 ))
-    local empty=$(( width - filled ))
+    local filled=$((_PROG_TOTAL > 0 ? (_PROG_CURRENT * width) / _PROG_TOTAL : 0))
+    local empty=$((width - filled))
     local bar="" i
-    for (( i=0; i<filled; i++ )); do bar+="█"; done
-    for (( i=0; i<empty; i++ )); do bar+="░"; done
+    for ((i = 0; i < filled; i++)); do bar+="█"; done
+    for ((i = 0; i < empty; i++)); do bar+="░"; done
     printf '%s' "$bar"
 }
 
@@ -50,12 +50,12 @@ render_progress() {
                 ;;
             MODULE_DONE:*)
                 _PROG_DONE+=("${line#MODULE_DONE:}")
-                (( _PROG_CURRENT++ )) || true
+                ((_PROG_CURRENT++)) || true
                 _prog_line
                 ;;
             MODULE_FAIL:*)
                 _PROG_FAILED+=("${line#MODULE_FAIL:}")
-                (( _PROG_CURRENT++ )) || true
+                ((_PROG_CURRENT++)) || true
                 _prog_line
                 ;;
         esac
@@ -66,7 +66,7 @@ render_progress() {
     local ok_count="${#_PROG_DONE[@]}"
     local fail_count="${#_PROG_FAILED[@]}"
 
-    if (( fail_count == 0 )); then
+    if ((fail_count == 0)); then
         gum style --foreground 10 --bold "  ✓ Done — $ok_count module(s) complete"
     else
         gum style --foreground 9 --bold "  ✗ $ok_count ok, $fail_count failed:"

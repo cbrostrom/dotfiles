@@ -10,11 +10,12 @@
 
 set -euo pipefail
 
-if (( BASH_VERSINFO[0] < 4 )); then
+if ((BASH_VERSINFO[0] < 4)); then
     for _b in /opt/homebrew/bin/bash /usr/local/bin/bash; do
         [[ -x "$_b" ]] && exec "$_b" "$0" "$@"
     done
-    echo "${0##*/}: bash 4+ required" >&2; exit 1
+    echo "${0##*/}: bash 4+ required" >&2
+    exit 1
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -23,23 +24,38 @@ CONFIG_FILE="$DOTFILES_DIR/config/projects-map.conf"
 
 # shellcheck source=lib.sh
 source "$SCRIPT_DIR/lib.sh"
-[[ -f "$CONFIG_FILE" ]] || { err "Missing config: $CONFIG_FILE"; exit 1; }
+[[ -f "$CONFIG_FILE" ]] || {
+    err "Missing config: $CONFIG_FILE"
+    exit 1
+}
 # shellcheck source=../../config/projects-map.conf
 source "$CONFIG_FILE"
 
 require_cmd git
 
 # ── Flags ─────────────────────────────────────────────────────────────────────
-ALL=0; MISSING_ONLY=0; FORCE=0; TARGET=""
+ALL=0
+MISSING_ONLY=0
+FORCE=0
+TARGET=""
 
 for arg in "$@"; do
     case "$arg" in
-        --all)           ALL=1 ;;
-        --missing-only)  MISSING_ONLY=1 ;;
-        --force)         FORCE=1; CODEBASE_FORCE=1 ;;
-        -h|--help)       sed -n '2,9p' "$0"; exit 0 ;;
-        -*)              err "Unknown flag: $arg"; exit 1 ;;
-        *)               TARGET="$arg" ;;
+        --all) ALL=1 ;;
+        --missing-only) MISSING_ONLY=1 ;;
+        --force)
+            FORCE=1
+            CODEBASE_FORCE=1
+            ;;
+        -h | --help)
+            sed -n '2,9p' "$0"
+            exit 0
+            ;;
+        -*)
+            err "Unknown flag: $arg"
+            exit 1
+            ;;
+        *) TARGET="$arg" ;;
     esac
 done
 
@@ -73,18 +89,18 @@ _generate() {
     # Root files (non-hidden, depth 1, skip dirs)
     local -a root_files
     mapfile -t root_files < <(
-        find "$abs" -maxdepth 1 -not -name '.*' -type f \
-            | xargs -I{} basename {} 2>/dev/null | sort
+        find "$abs" -maxdepth 1 -not -name '.*' -type f |
+            xargs -I{} basename {} 2>/dev/null | sort
     )
 
     # Top dirs (non-hidden, depth 1, exclude standard build/dep dirs)
     local -a top_dirs
     mapfile -t top_dirs < <(
         find "$abs" -maxdepth 1 -not -name '.*' -type d \
-            ! -path "$abs" \
-            | xargs -I{} basename {} 2>/dev/null \
-            | grep -vE '^(node_modules|\.git|vendor|\.next|dist|build|target|\.venv|venv|__pycache__|\.turbo|\.cache|coverage|\.pnpm-store|\.yarn|out)$' \
-            | sort | head -8
+            ! -path "$abs" |
+            xargs -I{} basename {} 2>/dev/null |
+            grep -vE '^(node_modules|\.git|vendor|\.next|dist|build|target|\.venv|venv|__pycache__|\.turbo|\.cache|coverage|\.pnpm-store|\.yarn|out)$' |
+            sort | head -8
     )
 
     {
@@ -99,23 +115,23 @@ _generate() {
         for f in "${root_files[@]}"; do
             local purpose=""
             case "$f" in
-                package.json)       purpose="Node project manifest" ;;
-                Cargo.toml)         purpose="Rust project manifest" ;;
-                go.mod)             purpose="Go module" ;;
-                composer.json)      purpose="PHP composer manifest" ;;
-                pyproject.toml|requirements.txt) purpose="Python project" ;;
-                Gemfile)            purpose="Ruby/Rails project" ;;
-                README.md)          purpose="${readme_first:-project readme}" ;;
-                AGENTS.md)          purpose="Agent policy" ;;
-                CODEBASE.md)        continue ;;  # skip self
-                docker-compose.yml|docker-compose.yaml) purpose="Docker compose stack" ;;
-                Dockerfile)         purpose="Docker image definition" ;;
-                *.sh)               purpose="Shell script" ;;
-                *.config.ts|*.config.js|*.config.mjs) purpose="Build/tool config" ;;
-                tsconfig.json)      purpose="TypeScript config" ;;
-                .gitignore)         continue ;;
-                .env.example)       purpose="Env var template" ;;
-                *)                  purpose="" ;;
+                package.json) purpose="Node project manifest" ;;
+                Cargo.toml) purpose="Rust project manifest" ;;
+                go.mod) purpose="Go module" ;;
+                composer.json) purpose="PHP composer manifest" ;;
+                pyproject.toml | requirements.txt) purpose="Python project" ;;
+                Gemfile) purpose="Ruby/Rails project" ;;
+                README.md) purpose="${readme_first:-project readme}" ;;
+                AGENTS.md) purpose="Agent policy" ;;
+                CODEBASE.md) continue ;; # skip self
+                docker-compose.yml | docker-compose.yaml) purpose="Docker compose stack" ;;
+                Dockerfile) purpose="Docker image definition" ;;
+                *.sh) purpose="Shell script" ;;
+                *.config.ts | *.config.js | *.config.mjs) purpose="Build/tool config" ;;
+                tsconfig.json) purpose="TypeScript config" ;;
+                .gitignore) continue ;;
+                .env.example) purpose="Env var template" ;;
+                *) purpose="" ;;
             esac
             printf '| `%s` | %s |\n' "$f" "$purpose"
         done
@@ -128,43 +144,49 @@ _generate() {
             for d in "${top_dirs[@]}"; do
                 local dpurpose=""
                 case "$d" in
-                    src)        dpurpose="Source tree" ;;
-                    app)        dpurpose="Application code" ;;
-                    lib)        dpurpose="Shared libraries" ;;
-                    modules)    dpurpose="Feature modules" ;;
+                    src) dpurpose="Source tree" ;;
+                    app) dpurpose="Application code" ;;
+                    lib) dpurpose="Shared libraries" ;;
+                    modules) dpurpose="Feature modules" ;;
                     components) dpurpose="UI components" ;;
-                    scripts)    dpurpose="Scripts" ;;
-                    config)     dpurpose="Configuration files" ;;
-                    public)     dpurpose="Static assets" ;;
-                    assets)     dpurpose="Static assets" ;;
-                    tests|test|__tests__) dpurpose="Tests" ;;
-                    docs)       dpurpose="Documentation" ;;
-                    .github)    dpurpose="GitHub Actions / CI" ;;
-                    *)          dpurpose="" ;;
+                    scripts) dpurpose="Scripts" ;;
+                    config) dpurpose="Configuration files" ;;
+                    public) dpurpose="Static assets" ;;
+                    assets) dpurpose="Static assets" ;;
+                    tests | test | __tests__) dpurpose="Tests" ;;
+                    docs) dpurpose="Documentation" ;;
+                    .github) dpurpose="GitHub Actions / CI" ;;
+                    *) dpurpose="" ;;
                 esac
                 printf '| `%s/` | %s |\n' "$d" "$dpurpose"
             done
         fi
-    } > "$out"
+    } >"$out"
 
     ok "wrote: ${out/#$HOME/\~}"
 }
 
 # ── Dispatch ──────────────────────────────────────────────────────────────────
 if [[ $ALL -eq 1 ]]; then
-    [[ -f "$REGISTRY_PATH" ]] || { err "Registry not found — run: kb map scan"; exit 1; }
+    [[ -f "$REGISTRY_PATH" ]] || {
+        err "Registry not found — run: kb map scan"
+        exit 1
+    }
 
-    generated=0; skipped=0
+    generated=0
+    skipped=0
     while IFS='|' read -r _pre slug path rest; do
         # Table rows: | slug | path | ... — first field is empty (before leading |)
-        slug="${slug// /}"; path="${path// /}"
+        slug="${slug// /}"
+        path="${path// /}"
         [[ "$slug" == "slug" || "$slug" == "---"* || -z "$slug" ]] && continue
         abs="${path/#\~/$HOME}"
         [[ -d "$abs" ]] || continue
         if [[ $MISSING_ONLY -eq 1 ]] && has_codebase "$abs"; then
-            skipped=$((skipped+1)); continue
+            skipped=$((skipped + 1))
+            continue
         fi
-        _generate "$abs" && generated=$((generated+1)) || true
+        _generate "$abs" && generated=$((generated + 1)) || true
     done < <(grep '^|' "$REGISTRY_PATH")
 
     printf '\nDone: %d generated, %d skipped (already have CODEBASE.md)\n' "$generated" "$skipped"
@@ -184,9 +206,13 @@ elif [[ -n "$TARGET" ]]; then
             abs="${raw_path/#\~/$HOME}"
         fi
     fi
-    [[ -d "$abs" ]] || { err "Cannot resolve repo: $TARGET"; exit 1; }
+    [[ -d "$abs" ]] || {
+        err "Cannot resolve repo: $TARGET"
+        exit 1
+    }
     _generate "$abs"
 
 else
-    sed -n '2,9p' "$0"; exit 1
+    sed -n '2,9p' "$0"
+    exit 1
 fi

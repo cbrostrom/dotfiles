@@ -126,7 +126,7 @@ write_default_config() {
             local tmp
             tmp=$(mktemp)
             # Insert after opening brace
-            sed "s|{|{\n    \"base_url\": \"$base_url\",|" "$RBW_CONFIG_FILE" > "$tmp" && mv "$tmp" "$RBW_CONFIG_FILE"
+            sed "s|{|{\n    \"base_url\": \"$base_url\",|" "$RBW_CONFIG_FILE" >"$tmp" && mv "$tmp" "$RBW_CONFIG_FILE"
             chmod 600 "$RBW_CONFIG_FILE"
             ok "patched base_url → $base_url"
         else
@@ -153,7 +153,7 @@ write_default_config() {
     fi
 
     mkdir -p "$RBW_CONFIG_DIR"
-    cat > "$RBW_CONFIG_FILE" <<EOF
+    cat >"$RBW_CONFIG_FILE" <<EOF
 {
     "email": "$RBW_EMAIL_DEFAULT",
     "base_url": "$base_url",
@@ -169,7 +169,10 @@ EOF
 
 install_unlock_helper() {
     local unlock_script="${DOTFILES_DIR}/modules/rbw/rbw-unlock-if-locked.sh"
-    [[ -f "${unlock_script}" ]] || { warn "rbw unlock helper not found — skipping"; return 0; }
+    [[ -f "${unlock_script}" ]] || {
+        warn "rbw unlock helper not found — skipping"
+        return 0
+    }
     chmod +x "${unlock_script}"
     ok "rbw unlock helper executable → ${unlock_script}"
 }
@@ -179,10 +182,16 @@ install_launchagent() {
     local plist_src="${DOTFILES_DIR}/modules/rbw/dk.brostrom.rbw-unlock.plist"
     local plist_dst="${HOME}/Library/LaunchAgents/dk.brostrom.rbw-unlock.plist"
     local unlock_script="${DOTFILES_DIR}/modules/rbw/rbw-unlock-if-locked.sh"
-    [[ -f "${plist_src}" ]] || { warn "rbw unlock plist not found — skipping LaunchAgent"; return 0; }
-    [[ -x "${unlock_script}" ]] || { warn "rbw unlock helper missing — run install_unlock_helper first"; return 0; }
+    [[ -f "${plist_src}" ]] || {
+        warn "rbw unlock plist not found — skipping LaunchAgent"
+        return 0
+    }
+    [[ -x "${unlock_script}" ]] || {
+        warn "rbw unlock helper missing — run install_unlock_helper first"
+        return 0
+    }
     mkdir -p "$(dirname "${plist_dst}")"
-    sed "s|__DOTFILES_DIR__|${DOTFILES_DIR}|g" "${plist_src}" > "${plist_dst}"
+    sed "s|__DOTFILES_DIR__|${DOTFILES_DIR}|g" "${plist_src}" >"${plist_dst}"
     launchctl unload "${plist_dst}" 2>/dev/null || true
     launchctl load "${plist_dst}" && ok "rbw-unlock LaunchAgent loaded (Touch ID at login)" || warn "launchctl load failed"
 }

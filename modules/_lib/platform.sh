@@ -19,20 +19,23 @@ if [[ "${_DOTFILES_PLATFORM_LOADED:-}" == "1" ]]; then
 fi
 _DOTFILES_PLATFORM_LOADED=1
 
-is_macos()   { [[ "$(uname -s)" == "Darwin" ]]; }
-is_linux()   { [[ "$(uname -s)" == "Linux" ]]; }
-is_wsl()     { is_linux && { [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qiE '(microsoft|wsl)' /proc/version 2>/dev/null; }; }
+is_macos() { [[ "$(uname -s)" == "Darwin" ]]; }
+is_linux() { [[ "$(uname -s)" == "Linux" ]]; }
+is_wsl() { is_linux && { [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qiE '(microsoft|wsl)' /proc/version 2>/dev/null; }; }
 is_native_linux() { is_linux && ! is_wsl; }
-is_debian()  { is_linux && [[ -f /etc/debian_version ]]; }
-is_arch()    { is_linux && [[ -f /etc/arch-release ]]; }
-is_fedora()  { is_linux && [[ -f /etc/fedora-release ]]; }
-has()        { command -v "$1" >/dev/null 2>&1; }
+is_debian() { is_linux && [[ -f /etc/debian_version ]]; }
+is_arch() { is_linux && [[ -f /etc/arch-release ]]; }
+is_fedora() { is_linux && [[ -f /etc/fedora-release ]]; }
+has() { command -v "$1" >/dev/null 2>&1; }
 
 # Echo the current platform tag (macos | wsl | linux).
 platform_tag() {
-    if is_macos; then echo "macos"
-    elif is_wsl; then echo "wsl"
-    else echo "linux"
+    if is_macos; then
+        echo "macos"
+    elif is_wsl; then
+        echo "wsl"
+    else
+        echo "linux"
     fi
 }
 
@@ -60,8 +63,8 @@ profile_tag() {
     fi
     if [[ -f "$HOME/.local-config" ]]; then
         local p
-        p="$(grep -E '^PROFILE=' "$HOME/.local-config" 2>/dev/null \
-             | head -1 | cut -d= -f2 | tr -d '"' | tr -d "'")"
+        p="$(grep -E '^PROFILE=' "$HOME/.local-config" 2>/dev/null |
+            head -1 | cut -d= -f2 | tr -d '"' | tr -d "'")"
         if [[ -n "$p" ]]; then
             echo "$p"
             return
@@ -75,10 +78,14 @@ profile_tag() {
         echo "server-headless"
         return
     fi
-    if is_wsl; then echo "wsl"
-    elif is_macos; then echo "desktop-full"
-    elif [[ -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" ]]; then echo "server-headless"
-    else echo "desktop-full"
+    if is_wsl; then
+        echo "wsl"
+    elif is_macos; then
+        echo "desktop-full"
+    elif [[ -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" ]]; then
+        echo "server-headless"
+    else
+        echo "desktop-full"
     fi
 }
 

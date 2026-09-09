@@ -66,11 +66,11 @@ _symlink() {
 }
 
 # ── 3) symlink user-authored config files ────────────────────────────────────
-_symlink "$PI_SRC/AGENTS.md"           "$PI_DST/AGENTS.md"           "AGENTS.md"
-_symlink "$PI_SRC/mcp.json"            "$PI_DST/mcp.json"            "mcp.json"
-_symlink "$PI_SRC/mcporter.json"       "$PI_DST/mcporter.json"       "mcporter.json"
+_symlink "$PI_SRC/AGENTS.md" "$PI_DST/AGENTS.md" "AGENTS.md"
+_symlink "$PI_SRC/mcp.json" "$PI_DST/mcp.json" "mcp.json"
+_symlink "$PI_SRC/mcporter.json" "$PI_DST/mcporter.json" "mcporter.json"
 _symlink "$PI_SRC/pi-permissions.jsonc" "$PI_DST/pi-permissions.jsonc" "pi-permissions.jsonc"
-_symlink "$PI_SRC/web-search.json"     "$HOME/.pi/web-search.json"    "web-search.json"
+_symlink "$PI_SRC/web-search.json" "$HOME/.pi/web-search.json" "web-search.json"
 
 # ── 4) pi shim at ~/.local/bin/pi ────────────────────────────────────────────
 # Keeps `pi` resolvable even when fnm switches to a project-local node version.
@@ -117,7 +117,7 @@ fi
 # ── 5) hooks.yaml — only if pi-yaml-hooks is installed or will be ─────────────
 # We always symlink so the file is ready; pi-yaml-hooks picks it up automatically
 # when installed. Run /hooks-validate inside PI to confirm compatibility.
-_symlink "$PI_SRC/hook/hooks.yaml"     "$PI_DST/hook/hooks.yaml"      "hook/hooks.yaml"
+_symlink "$PI_SRC/hook/hooks.yaml" "$PI_DST/hook/hooks.yaml" "hook/hooks.yaml"
 log "hooks.yaml symlinked — install pi-yaml-hooks and run /hooks-validate to activate"
 
 # ── 5a) pi-tool-display config — write ownership off (avoid extension conflicts)
@@ -151,7 +151,7 @@ print('[pi] pi-tool-display config: write ownership disabled')
 else
     # No config — create it
     mkdir -p "$(dirname "$TDD_CFG")"
-    cat > "$TDD_CFG" << 'JSON'
+    cat >"$TDD_CFG" <<'JSON'
 {
   "registerToolOverrides": {
     "read": true,

@@ -23,9 +23,9 @@ echo ""
 if [[ ! -d "$LINUXBRO_BASE/4tb" ]]; then
     echo -e "${YELLOW}Warning: LinuxBro media share not accessible at $LINUXBRO_BASE${NC}"
     echo "Triggering automount by accessing the directory..."
-    ls "$LINUXBRO_BASE" > /dev/null 2>&1 || true
+    ls "$LINUXBRO_BASE" >/dev/null 2>&1 || true
     sleep 2
-    
+
     if [[ ! -d "$LINUXBRO_BASE/4tb" ]]; then
         echo -e "${YELLOW}Error: Cannot access LinuxBro. Make sure:${NC}"
         echo "  1. LinuxBro (192.168.1.100) is online"
@@ -40,13 +40,13 @@ create_symlink() {
     local target="$1"
     local link="$2"
     local description="$3"
-    
+
     # Check if target exists
     if [[ ! -e "$target" ]]; then
         echo -e "${YELLOW}⚠ Skipping: $description (target doesn't exist: $target)${NC}"
         return
     fi
-    
+
     # Remove existing symlink if it exists
     if [[ -L "$link" ]]; then
         echo -e "  Removing old symlink: $link"
@@ -55,13 +55,13 @@ create_symlink() {
         echo -e "${YELLOW}⚠ Warning: $link exists but is not a symlink. Skipping.${NC}"
         return
     fi
-    
+
     # Create parent directory if needed
     local parent_dir="$(dirname "$link")"
     if [[ ! -d "$parent_dir" ]]; then
         sudo mkdir -p "$parent_dir"
     fi
-    
+
     # Create symlink
     sudo ln -s "$target" "$link"
     echo -e "${GREEN}✓ Created: $link → $target${NC}"

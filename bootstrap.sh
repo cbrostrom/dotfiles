@@ -35,7 +35,7 @@
 # =============================================================================
 
 # Require bash 4+ (declare -g, associative arrays). macOS ships 3.2.
-if (( BASH_VERSINFO[0] < 4 )); then
+if ((BASH_VERSINFO[0] < 4)); then
     for _candidate in /opt/homebrew/bin/bash /usr/local/bin/bash /home/linuxbrew/.linuxbrew/bin/bash; do
         if [[ -x "$_candidate" ]]; then
             exec "$_candidate" "$0" "$@"
@@ -77,13 +77,13 @@ unset _host_conf
 # -----------------------------------------------------------------------------
 # Argument parsing
 # -----------------------------------------------------------------------------
-MODE="full"           # full | update | list | doctor | info | diff | reset
+MODE="full" # full | update | list | doctor | info | diff | reset
 FIX_FLAG=""
 ONLY=""
 SKIP=""
 INFO_TARGET=""
 DIFF_TARGET=""
-RESET_TARGETS=""      # comma list (empty == every module with an uninstall.sh)
+RESET_TARGETS="" # comma list (empty == every module with an uninstall.sh)
 DRY_RUN=""
 
 # Legacy aliases collected here so we can apply them after parsing.
@@ -95,24 +95,40 @@ print_help() {
 
 for arg in "$@"; do
     case "$arg" in
-        --update|-u)        MODE="update" ;;
-        --list)             MODE="list" ;;
-        --status)           MODE="list" ;;
-        --info=*)           MODE="info"; INFO_TARGET="${arg#--info=}" ;;
-        --diff=*)           MODE="diff"; DIFF_TARGET="${arg#--diff=}" ;;
-        --doctor)           MODE="doctor" ;;
-        --fix)              FIX_FLAG="--fix" ;;
-        --reset)            MODE="reset" ;;
-        --reset=*)          MODE="reset"; RESET_TARGETS="${arg#--reset=}" ;;
-        --dry-run)          DRY_RUN="1" ;;
-        --only=*)           ONLY="${arg#--only=}" ;;
-        --skip=*)           SKIP="${arg#--skip=}" ;;
-        --link-only)        _LEGACY_ONLY="symlinks" ;;
-        --packages-only)    _LEGACY_ONLY="packages" ;;
-        --mcp-only)         _LEGACY_ONLY="python-tools,ssh-superbro" ;;
-        --profile=*)        export PROFILE="${arg#--profile=}" ;;
-        -h|--help)          print_help; exit 0 ;;
-        *)                  err "unknown arg: $arg"; print_help; exit 2 ;;
+        --update | -u) MODE="update" ;;
+        --list) MODE="list" ;;
+        --status) MODE="list" ;;
+        --info=*)
+            MODE="info"
+            INFO_TARGET="${arg#--info=}"
+            ;;
+        --diff=*)
+            MODE="diff"
+            DIFF_TARGET="${arg#--diff=}"
+            ;;
+        --doctor) MODE="doctor" ;;
+        --fix) FIX_FLAG="--fix" ;;
+        --reset) MODE="reset" ;;
+        --reset=*)
+            MODE="reset"
+            RESET_TARGETS="${arg#--reset=}"
+            ;;
+        --dry-run) DRY_RUN="1" ;;
+        --only=*) ONLY="${arg#--only=}" ;;
+        --skip=*) SKIP="${arg#--skip=}" ;;
+        --link-only) _LEGACY_ONLY="symlinks" ;;
+        --packages-only) _LEGACY_ONLY="packages" ;;
+        --mcp-only) _LEGACY_ONLY="python-tools,ssh-superbro" ;;
+        --profile=*) export PROFILE="${arg#--profile=}" ;;
+        -h | --help)
+            print_help
+            exit 0
+            ;;
+        *)
+            err "unknown arg: $arg"
+            print_help
+            exit 2
+            ;;
     esac
 done
 
@@ -157,7 +173,7 @@ case "$MODE" in
             log "RESET — removing dotfiles-owned state"
         fi
         if [[ -n "$RESET_TARGETS" ]]; then
-            IFS=',' read -ra _targets <<< "$RESET_TARGETS"
+            IFS=',' read -ra _targets <<<"$RESET_TARGETS"
             modules_reset "${_targets[@]}"
         else
             modules_reset

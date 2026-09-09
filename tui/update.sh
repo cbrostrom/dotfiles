@@ -28,11 +28,17 @@ _module_freshness() {
     local fail_file="$_RUN_STATE_DIR_TUI/$name.failed"
     local module_dir="$DOTFILES_DIR/modules/$name"
 
-    [[ -f "$fail_file" ]] && { echo "failed"; return; }
-    [[ ! -f "$state_file" ]] && { echo "new"; return; }
+    [[ -f "$fail_file" ]] && {
+        echo "failed"
+        return
+    }
+    [[ ! -f "$state_file" ]] && {
+        echo "new"
+        return
+    }
 
-    if [[ -d "$module_dir" ]] && \
-       find "$module_dir" -name "*.sh" -newer "$state_file" 2>/dev/null | grep -q .; then
+    if [[ -d "$module_dir" ]] &&
+        find "$module_dir" -name "*.sh" -newer "$state_file" 2>/dev/null | grep -q .; then
         echo "stale"
     else
         echo "current"
@@ -41,9 +47,9 @@ _module_freshness() {
 
 _workflow_selector() {
     local current=""
-    [[ -f "$HOME/.zshrc.local" ]] && \
-        current="$(grep -E '^export DOTFILES_WORKFLOWS=' "$HOME/.zshrc.local" 2>/dev/null \
-            | head -1 | sed 's/.*=//;s/"//g;s/'"'"'//g')"
+    [[ -f "$HOME/.zshrc.local" ]] &&
+        current="$(grep -E '^export DOTFILES_WORKFLOWS=' "$HOME/.zshrc.local" 2>/dev/null |
+            head -1 | sed 's/.*=//;s/"//g;s/'"'"'//g')"
 
     gum style --foreground 8 "  Active workflows: ${current:-none}"
     echo
@@ -64,10 +70,10 @@ _workflow_selector() {
 
     local chosen="" _wf_tmp
     _wf_tmp="$(mktemp)"
-    printf '%s\n' "${wf_opts[@]}" | \
+    printf '%s\n' "${wf_opts[@]}" |
         gum choose --no-limit \
             --header "Workflows (Space=toggle, Enter=confirm):" \
-            > "$_wf_tmp" 2>/dev/null || true
+            >"$_wf_tmp" 2>/dev/null || true
     chosen="$(<"$_wf_tmp")"
     rm -f "$_wf_tmp"
 
@@ -77,7 +83,7 @@ _workflow_selector() {
     if [[ -f "$HOME/.zshrc.local" ]] && grep -q "DOTFILES_WORKFLOWS" "$HOME/.zshrc.local"; then
         sed -i "s|^export DOTFILES_WORKFLOWS=.*|export DOTFILES_WORKFLOWS=\"$new_wf\"|" "$HOME/.zshrc.local"
     else
-        echo "export DOTFILES_WORKFLOWS=\"$new_wf\"" >> "$HOME/.zshrc.local"
+        echo "export DOTFILES_WORKFLOWS=\"$new_wf\"" >>"$HOME/.zshrc.local"
     fi
     gum style --foreground 10 "  ✓ Workflows → ${new_wf:-none}"
     export DOTFILES_WORKFLOWS="$new_wf"
@@ -117,7 +123,7 @@ run_update() {
             gum style --foreground 9 "  Conflicted files (resolve before re-running update):"
             while IFS= read -r _f; do
                 gum style --foreground 9 "    $_f"
-            done <<< "$_unmerged"
+            done <<<"$_unmerged"
             gum style --foreground 8 "  Fix: git add <file> && git commit  —or—  git checkout -- <file> to discard local"
         else
             gum style --foreground 8 "  Hints: SSH agent forwarding? Try: ssh -A  |  git pull manually  |  check remote: git remote -v"
@@ -136,7 +142,12 @@ run_update() {
 
     if [[ ${#names[@]} -eq 0 ]]; then
         gum style --foreground 220 "  No applicable modules for this host."
-        echo; [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key to return…" -n1; echo; }; return
+        echo
+        [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && {
+            read -rsp "Press any key to return…" -n1
+            echo
+        }
+        return
     fi
 
     local -a labels=() presels=()
@@ -149,12 +160,16 @@ run_update() {
     done
 
     local presel_csv=""
-    [[ ${#presels[@]} -gt 0 ]] && presel_csv="$(IFS=,; echo "${presels[*]}")"
+    [[ ${#presels[@]} -gt 0 ]] && presel_csv="$(
+        IFS=,
+        echo "${presels[*]}"
+    )"
 
     # Non-interactive + all current — nothing to do, skip picker entirely.
     if [[ ${#presels[@]} -eq 0 ]] && [[ -n "${DOTFILES_NONINTERACTIVE:-}" ]]; then
         gum style --foreground 10 "  All modules up to date."
-        echo; return
+        echo
+        return
     fi
 
     gum style --foreground 8 "  (new/stale/failed) = pre-selected    (current) = skip"
@@ -165,18 +180,19 @@ run_update() {
     if [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]]; then
         local -a _gum_pick_args=(--no-limit --header "Space=toggle  Enter=confirm")
         [[ -n "$presel_csv" ]] && _gum_pick_args+=(--selected="$presel_csv")
-        printf '%s\n' "${labels[@]}" | \
-            gum choose "${_gum_pick_args[@]}" > "$_pick_tmp" 2>/dev/null || true
+        printf '%s\n' "${labels[@]}" |
+            gum choose "${_gum_pick_args[@]}" >"$_pick_tmp" 2>/dev/null || true
     else
         # No TTY — auto-run pre-selected (new/stale/failed) modules unattended.
-        printf '%s\n' "${presels[@]}" > "$_pick_tmp"
+        printf '%s\n' "${presels[@]}" >"$_pick_tmp"
     fi
     picked="$(<"$_pick_tmp")"
     rm -f "$_pick_tmp"
 
     if [[ -z "$picked" ]]; then
         gum style --foreground 10 "  All modules up to date."
-        echo; return
+        echo
+        return
     fi
 
     # Extract bare module names (before the first space)
@@ -184,10 +200,13 @@ run_update() {
     while IFS= read -r lbl; do
         [[ -z "$lbl" ]] && continue
         sel_names+=("${lbl%%[[:space:]]*}")
-    done <<< "$picked"
+    done <<<"$picked"
 
     local sel_csv
-    sel_csv="$(IFS=,; echo "${sel_names[*]}")"
+    sel_csv="$(
+        IFS=,
+        echo "${sel_names[*]}"
+    )"
 
     echo
     gum style --foreground 8 "  Running: $sel_csv"
@@ -204,30 +223,33 @@ run_update() {
         printf 'Workflows: %s\n' "${DOTFILES_WORKFLOWS:-none}"
         printf 'Modules:   %s\n' "$sel_csv"
         printf '\n'
-    } > "$log_file"
+    } >"$log_file"
 
     # 5. Run with structured output — TUI renders live progress bar
     render_progress "$log_file" < <(
         DOTFILES_STRUCTURED=1 \
-        DOTFILES_RUN_LOG="$log_file" \
-        DOTFILES_SKIP_DOCTOR=1 \
-        bash "$DOTFILES_DIR/bootstrap.sh" --only="$sel_csv" 2>>"$log_file"
+            DOTFILES_RUN_LOG="$log_file" \
+            DOTFILES_SKIP_DOCTOR=1 \
+            bash "$DOTFILES_DIR/bootstrap.sh" --only="$sel_csv" 2>>"$log_file"
     )
 
     # 6. Doctor: full output to log, issue count to screen
     local doctor_issues=0
-    bash "$DOTFILES_DIR/scripts/doctor.sh" --quiet >> "$log_file" 2>&1 || doctor_issues=$?
-    if (( doctor_issues > 0 )); then
+    bash "$DOTFILES_DIR/scripts/doctor.sh" --quiet >>"$log_file" 2>&1 || doctor_issues=$?
+    if ((doctor_issues > 0)); then
         gum style --foreground 220 "  ⚠  Doctor: $doctor_issues issue(s) — see log"
     else
         gum style --foreground 10 "  ✓  Doctor: clean"
     fi
 
     # 7. Cleanup orphaned agent worktrees
-    bash "$DOTFILES_DIR/scripts/cleanup-agent-worktrees.sh" >> "$log_file" 2>&1 || true
+    bash "$DOTFILES_DIR/scripts/cleanup-agent-worktrees.sh" >>"$log_file" 2>&1 || true
 
     echo
-    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key to return…" -n1; echo; }
+    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && {
+        read -rsp "Press any key to return…" -n1
+        echo
+    }
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then run_update; fi

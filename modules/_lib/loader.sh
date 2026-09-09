@@ -61,7 +61,7 @@ modules_init() {
 _source_manifest() {
     local manifest="$1"
     unset MODULE_NAME MODULE_DESC MODULE_CATEGORY MODULE_PLATFORMS MODULE_PROFILES \
-          MODULE_CORE MODULE_DEPENDS MODULE_REQUIRES MODULE_DEFAULT_ENABLED
+        MODULE_CORE MODULE_DEPENDS MODULE_REQUIRES MODULE_DEFAULT_ENABLED
     . "$manifest"
 }
 
@@ -110,7 +110,10 @@ modules_list_all() {
 modules_status() {
     local name="$1"
     local d="${_MODULES_DIR[$name]:-}"
-    [[ -z "$d" ]] && { echo "missing"; return; }
+    [[ -z "$d" ]] && {
+        echo "missing"
+        return
+    }
     if [[ -x "$d/status.sh" ]]; then
         if bash "$d/status.sh" >/dev/null 2>&1; then
             echo "clean"
@@ -128,10 +131,10 @@ modules_last_run() {
     local f="$_RUN_STATE_DIR/$name"
     if [[ -f "$f" ]]; then
         if has stat; then
-            stat -c '%y' "$f" 2>/dev/null | cut -d'.' -f1 \
-                || stat -f '%Sm' -t '%Y-%m-%d %H:%M:%S' "$f" 2>/dev/null \
-                || date -r "$f" '+%Y-%m-%d %H:%M:%S' 2>/dev/null \
-                || echo "?"
+            stat -c '%y' "$f" 2>/dev/null | cut -d'.' -f1 ||
+                stat -f '%Sm' -t '%Y-%m-%d %H:%M:%S' "$f" 2>/dev/null ||
+                date -r "$f" '+%Y-%m-%d %H:%M:%S' 2>/dev/null ||
+                echo "?"
         else
             echo "?"
         fi
@@ -143,7 +146,7 @@ modules_last_run() {
 # Topological order. Echoes deps before dependents.
 _modules_topo_order() {
     local -a roots=("$@")
-    local -A seen=() done=()
+    local -A seen=() finished=()
     local -a ordered=()
 
     _visit() {
@@ -152,7 +155,7 @@ _modules_topo_order() {
             err "module dependency cycle detected at '$n'"
             return 2
         fi
-        [[ "${done[$n]:-}" == "1" ]] && return 0
+        [[ "${finished[$n]:-}" == "1" ]] && return 0
         if [[ -z "${_MODULES_DIR[$n]:-}" ]]; then
             err "unknown module: $n"
             return 2
@@ -163,7 +166,7 @@ _modules_topo_order() {
             _visit "$dep" || return $?
         done
         seen[$n]="visited"
-        done[$n]=1
+        finished[$n]=1
         ordered+=("$n")
     }
 
@@ -191,23 +194,28 @@ _modules_dependents() {
 _decide_module_action() {
     local name="$1"
     if ! platform_matches "${_MODULES_PLATFORMS[$name]}"; then
-        echo "skip-platform"; return
+        echo "skip-platform"
+        return
     fi
     if ! profile_matches "${_MODULES_PROFILES[$name]}"; then
-        echo "skip-profile"; return
+        echo "skip-profile"
+        return
     fi
     local state
     state="$(config_module_state "$name" "${_MODULES_DEFAULT_ENABLED[$name]}")"
     if [[ "$state" == "only-other" ]]; then
-        echo "skip-not-selected"; return
+        echo "skip-not-selected"
+        return
     fi
     if [[ "$state" == "disabled" ]]; then
-        echo "skip-disabled"; return
+        echo "skip-disabled"
+        return
     fi
     local req
     for req in ${_MODULES_REQUIRES[$name]:-}; do
         if ! has "$req"; then
-            echo "skip-missing-req:$req"; return
+            echo "skip-missing-req:$req"
+            return
         fi
     done
     echo "run"
@@ -217,22 +225,22 @@ _decide_module_action() {
 
 _color_state() {
     case "$1" in
-        enabled)  printf "%s%-9s%s" "$_C_GREEN"  "$1" "$_C_RESET" ;;
-        disabled) printf "%s%-9s%s" "$_C_DIM"    "$1" "$_C_RESET" ;;
-        off)      printf "%s%-9s%s" "$_C_DIM"    "$1" "$_C_RESET" ;;
-        N/A)      printf "%s%-9s%s" "$_C_RED"    "$1" "$_C_RESET" ;;
-        blocked)  printf "%s%-9s%s" "$_C_YELLOW" "$1" "$_C_RESET" ;;
-        *)        printf "%-9s" "$1" ;;
+        enabled) printf "%s%-9s%s" "$_C_GREEN" "$1" "$_C_RESET" ;;
+        disabled) printf "%s%-9s%s" "$_C_DIM" "$1" "$_C_RESET" ;;
+        off) printf "%s%-9s%s" "$_C_DIM" "$1" "$_C_RESET" ;;
+        N/A) printf "%s%-9s%s" "$_C_RED" "$1" "$_C_RESET" ;;
+        blocked) printf "%s%-9s%s" "$_C_YELLOW" "$1" "$_C_RESET" ;;
+        *) printf "%-9s" "$1" ;;
     esac
 }
 
 _color_status() {
     case "$1" in
-        clean)    printf "%s%-9s%s" "$_C_GREEN"  "$1" "$_C_RESET" ;;
-        dirty)    printf "%s%-9s%s" "$_C_YELLOW" "$1" "$_C_RESET" ;;
-        unknown)  printf "%s%-9s%s" "$_C_DIM"    "$1" "$_C_RESET" ;;
-        missing)  printf "%s%-9s%s" "$_C_RED"    "$1" "$_C_RESET" ;;
-        *)        printf "%-9s" "$1" ;;
+        clean) printf "%s%-9s%s" "$_C_GREEN" "$1" "$_C_RESET" ;;
+        dirty) printf "%s%-9s%s" "$_C_YELLOW" "$1" "$_C_RESET" ;;
+        unknown) printf "%s%-9s%s" "$_C_DIM" "$1" "$_C_RESET" ;;
+        missing) printf "%s%-9s%s" "$_C_RED" "$1" "$_C_RESET" ;;
+        *) printf "%-9s" "$1" ;;
     esac
 }
 
@@ -266,7 +274,10 @@ modules_print_table() {
     local -a known=("${_CATEGORY_ORDER[@]}") leftover=()
     for c in "${!bucket[@]}"; do
         local found=0
-        for k in "${known[@]}"; do [[ "$k" == "$c" ]] && { found=1; break; }; done
+        for k in "${known[@]}"; do [[ "$k" == "$c" ]] && {
+            found=1
+            break
+        }; done
         [[ "$found" == "0" ]] && leftover+=("$c")
     done
     if [[ ${#leftover[@]} -gt 0 ]]; then
@@ -280,12 +291,12 @@ modules_print_table() {
         for name in ${bucket[$c]}; do
             action="$(_decide_module_action "$name")"
             case "$action" in
-                run)               state_label="enabled"  ;;
-                skip-platform)     state_label="N/A"      ;;
-                skip-profile)      state_label="N/A"      ;;
-                skip-disabled)     state_label="disabled" ;;
-                skip-not-selected) state_label="off"      ;;
-                skip-missing-req*) state_label="blocked"  ;;
+                run) state_label="enabled" ;;
+                skip-platform) state_label="N/A" ;;
+                skip-profile) state_label="N/A" ;;
+                skip-disabled) state_label="disabled" ;;
+                skip-not-selected) state_label="off" ;;
+                skip-missing-req*) state_label="blocked" ;;
             esac
             status="$(modules_status "$name")"
             state_color="$(_color_state "$state_label")"
@@ -312,19 +323,19 @@ modules_info() {
     last_run="$(modules_last_run "$name")"
 
     case "$action" in
-        run)               state_label="enabled"  ;;
-        skip-platform)     state_label="N/A on $(platform_tag) (supports: ${_MODULES_PLATFORMS[$name]})" ;;
-        skip-profile)      state_label="N/A on profile '$(profile_tag)' (supports: ${_MODULES_PROFILES[$name]})" ;;
-        skip-disabled)     state_label="disabled by user config" ;;
+        run) state_label="enabled" ;;
+        skip-platform) state_label="N/A on $(platform_tag) (supports: ${_MODULES_PLATFORMS[$name]})" ;;
+        skip-profile) state_label="N/A on profile '$(profile_tag)' (supports: ${_MODULES_PROFILES[$name]})" ;;
+        skip-disabled) state_label="disabled by user config" ;;
         skip-not-selected) state_label="not in --only / DOTFILES_ENABLED list" ;;
         skip-missing-req:*) state_label="blocked: missing '${action#skip-missing-req:}' on PATH" ;;
     esac
 
     # Resolve transitive deps + dependents (tolerate empty output under set -e).
     local deps_transitive dependents
-    deps_transitive="$(_modules_topo_order "$name" 2>/dev/null \
-        | { grep -v "^${name}$" || true; } \
-        | tr '\n' ' ' | sed 's/ $//')"
+    deps_transitive="$(_modules_topo_order "$name" 2>/dev/null |
+        { grep -v "^${name}$" || true; } |
+        tr '\n' ' ' | sed 's/ $//')"
     dependents="$(_modules_dependents "$name" | tr '\n' ' ' | sed 's/ $//')"
 
     printf "%s%s%s\n" "$_C_BOLD" "$name" "$_C_RESET"
@@ -408,15 +419,15 @@ _run_one() {
             cd "$DOTFILES_DIR"
             printf '\n=== %s — %s ===\n' "$name" "${_MODULES_DESC[$name]:-}"
             bash "$d/$script"
-        ) >> "$log" 2>&1 || rc=$?
+        ) >>"$log" 2>&1 || rc=$?
         mkdir -p "$_RUN_STATE_DIR" 2>/dev/null || true
-        if (( rc == 0 )); then
+        if ((rc == 0)); then
             printf 'MODULE_DONE:%s\n' "$name"
-            : > "$_RUN_STATE_DIR/$name" 2>/dev/null || true
+            : >"$_RUN_STATE_DIR/$name" 2>/dev/null || true
             rm -f "$_RUN_STATE_DIR/$name.failed" 2>/dev/null || true
         else
             printf 'MODULE_FAIL:%s\n' "$name"
-            : > "$_RUN_STATE_DIR/$name.failed" 2>/dev/null || true
+            : >"$_RUN_STATE_DIR/$name.failed" 2>/dev/null || true
         fi
         return $rc
     fi
@@ -432,7 +443,7 @@ _run_one() {
     ); then
         ok "[$name] done"
         mkdir -p "$_RUN_STATE_DIR" 2>/dev/null || true
-        : > "$_RUN_STATE_DIR/$name" 2>/dev/null || true
+        : >"$_RUN_STATE_DIR/$name" 2>/dev/null || true
         return 0
     else
         err "[$name] failed"
@@ -445,7 +456,7 @@ modules_run_all() {
         local sel="${_DOTFILES_CLI_ONLY:-${DOTFILES_ENABLED:-}}"
         local -a roots=()
         local m
-        IFS=',' read -ra _items <<< "$sel"
+        IFS=',' read -ra _items <<<"$sel"
         for m in "${_items[@]}"; do
             m="${m// /}"
             [[ -n "$m" ]] && roots+=("$m")
@@ -455,7 +466,7 @@ modules_run_all() {
             local expanded=""
             while IFS= read -r m; do
                 [[ -n "$m" ]] && expanded+="${expanded:+,}$m"
-            done <<< "$ordered"
+            done <<<"$ordered"
             export _DOTFILES_CLI_ONLY="$expanded"
         fi
         modules_run "${roots[@]}"
@@ -509,7 +520,7 @@ modules_reset() {
     local -a reversed=()
     while IFS= read -r m; do
         [[ -n "$m" ]] && reversed=("$m" "${reversed[@]}")
-    done <<< "$ordered"
+    done <<<"$ordered"
 
     local fail_count=0 n
     for n in "${reversed[@]}"; do
@@ -538,8 +549,8 @@ modules_run() {
         local _sc=0 _sn
         while IFS= read -r _sn; do
             [[ -z "$_sn" ]] && continue
-            [[ "$(_decide_module_action "$_sn")" == "run" ]] && (( _sc++ )) || true
-        done <<< "$ordered"
+            [[ "$(_decide_module_action "$_sn")" == "run" ]] && ((_sc++)) || true
+        done <<<"$ordered"
         printf 'MODULE_COUNT:%d\n' "$_sc"
     fi
 
@@ -590,7 +601,7 @@ modules_run() {
                 warn "[$name] required command '$req' not found — skipping"
                 ;;
         esac
-    done <<< "$ordered"
+    done <<<"$ordered"
 
     if [[ $fail_count -gt 0 ]]; then
         err "$fail_count module(s) failed"
