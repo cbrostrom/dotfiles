@@ -30,7 +30,6 @@ for arg in "$@"; do
 done
 
 VAULT_AI="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
-CLAUDE_SKILLS="$HOME/.claude/skills"
 AGENTS_SKILLS="$HOME/.agents/skills"
 CURSOR_SKILLS="$HOME/.cursor/skills"
 DOTFILES_AGENTS="$DOTFILES_DIR/.agents/skills"
@@ -43,24 +42,12 @@ _info()   { INFO+=("$*"); }
 
 # ── 1. Skill layer duplicates ──────────────────────────────────────────────────
 # Canonical: ~/.agents/skills/  Source: dotfiles/.agents/skills/
-# .claude/skills/ should only have: symlinks → ~/.agents/ OR dotfiles-local skills
-if [[ -d "$CLAUDE_SKILLS" ]]; then
-    while IFS= read -r entry; do
-        name=$(basename "$entry")
-        [[ "$name" == ".gitignore" || "$name" == "skills.list" ]] && continue
-        if [[ -d "$entry" && ! -L "$entry" ]]; then
-            # Real dir in .claude/skills/ — check if same skill exists in .agents/
-            if [[ -d "$AGENTS_SKILLS/$name" ]]; then
-                _fix "Skill duplicate: ~/.claude/skills/$name/ is a real dir but ~/.agents/skills/$name/ exists — promote or remove the claude copy"
-            else
-                _review "Skill in ~/.claude/skills/$name/ has no counterpart in ~/.agents/skills/ — consider promoting to shared layer"
-            fi
-        fi
-    done < <(find "$CLAUDE_SKILLS" -maxdepth 1 -mindepth 1 2>/dev/null)
+if [[ -d "$AGENTS_SKILLS" && -d "$DOTFILES_AGENTS" ]]; then
+    _info "Skills source: $DOTFILES_AGENTS → discovery via $AGENTS_SKILLS"
 fi
 
 # ── 2. Orphan symlinks ────────────────────────────────────────────────────────
-for skills_dir in "$CLAUDE_SKILLS" "$CURSOR_SKILLS"; do
+for skills_dir in "$AGENTS_SKILLS" "$CURSOR_SKILLS"; do
     [[ -d "$skills_dir" ]] || continue
     while IFS= read -r link; do
         target=$(readlink "$link" 2>/dev/null || echo "")
@@ -136,7 +123,7 @@ graphify_count=$(find "$HOME" -maxdepth 4 \( -name 'graphify-out*' -o -name '.gr
 [[ $graphify_count -gt 0 ]] && _review "$graphify_count graphify artifact(s) found under ~ — delete or add to .gitignore"
 
 # ── 7. Disabled skill dirs (.disabled-*) ─────────────────────────────────────
-for skills_dir in "$CLAUDE_SKILLS" "$AGENTS_SKILLS"; do
+for skills_dir in "$AGENTS_SKILLS"; do
     [[ -d "$skills_dir" ]] || continue
     while IFS= read -r d; do
         _fix "Disabled skill dir: $d — delete (git history preserves it)"
@@ -144,22 +131,26 @@ for skills_dir in "$CLAUDE_SKILLS" "$AGENTS_SKILLS"; do
 done
 
 # ── 8. MCP server sprawl check ────────────────────────────────────────────────
-claude_json="$HOME/.claude.json"
-if [[ -f "$claude_json" ]]; then
-    mcp_count=$(python3 -c "
+cursor_json="$HOME/.cursor/mcp.json"
+pi_json="$HOME/.pi/agent/mcp.json"
+for mcp_json in "$cursor_json" "$pi_json"; do
+    [[ -f "$mcp_json" ]] || continue
+    mcp_count=$(python3 -c '
 import json, sys
 try:
-    d = json.load(open('$claude_json'))
-    mcps = d.get('mcpServers', {})
-    print(len(mcps))
-except: print(0)
-" 2>/dev/null || echo 0)
+    d = json.load(open(sys.argv[1]))
+    print(len(d.get("mcpServers", {})))
+except Exception:
+    print(0)
+' "$mcp_json" 2>/dev/null || echo 0)
+    label="${mcp_json/#$HOME/~}"
     if [[ "$mcp_count" -gt 15 ]]; then
-        _review "$mcp_count MCP servers in ~/.claude.json — verify all are managed by dotfiles modules (run: project-mcp list)"
+        _review "$mcp_count MCP servers in $label — trim with tool-restraint"
     else
-        _info "$mcp_count MCP servers in ~/.claude.json"
+        _info "$mcp_count MCP servers in $label"
     fi
-fi
+done
+
 
 # ── 9. Project farm ──────────────────────────────────────────────────────────
 if [[ -d "$HOME/.zellij-projects" ]]; then

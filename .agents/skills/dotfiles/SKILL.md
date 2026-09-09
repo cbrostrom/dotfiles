@@ -43,7 +43,7 @@ Promotion rule: cross-agent workflows go in `.agents/skills/<name>/SKILL.md`.
 ### Modules
 - `modules/<name>/module.sh`, `install.sh`, optional `uninstall.sh`
 - Controlled by `modules.conf` (opt-in per machine)
-- Key modules: `pi`, `herdr`, `mcp-servers`, `skills`, `symlinks`, `fonts`, `packages`, `zsh`
+- Key modules: `pi`, `herdr`, `skills`, `symlinks`, `fonts`, `packages`, `zsh`
 
 ### Memory (Higgins)
 - CLI: `higgins` (`~/.local/bin/higgins`)

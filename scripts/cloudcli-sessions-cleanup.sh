@@ -4,7 +4,7 @@ set -euo pipefail
 # Purge CloudCLI session index + transcript files.
 #
 # Archive-only cleanup does NOT stick: the session watcher rescans
-# ~/.claude/projects, ~/.cursor/projects, etc. and createSession() sets
+# ~/.cursor/projects, ~/.pi/agent/sessions, etc. and createSession() sets
 # isArchived=0 on every upsert. Use purge (delete DB rows + jsonl files).
 
 readonly DATABASE_PATH="${CLOUDCLI_DATABASE_PATH:-$HOME/.cloudcli/auth.db}"

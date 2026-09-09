@@ -298,37 +298,6 @@ if command -v pi >/dev/null 2>&1; then
     alias pi-search='pi --exclude-tools source_check'
 fi
 
-# =============================================================================
-# CLAUDE CODE LAUNCHERS
-# =============================================================================
-# Core — herdr tracks agent state via hooks; plain claude everywhere.
-alias cc='claude'
-alias ccc='claude --continue'
-alias ccr='claude --resume'                        # built-in resume picker
-alias ccf='claude --continue --fork-session'       # fork most recent into new session
-
-# Custom pickers (~/.local/bin)
-alias ccp='claude-pick'                            # fuzzy-pick project to start in
-alias ccrp='claude-resume-pick'                    # fuzzy-pick past session to resume
-alias ccw='claude-worktree-pick'                   # fuzzy-pick git worktree
-
-# Modes
-alias ccy='claude --dangerously-skip-permissions'  # YOLO: skip permission prompts
-alias ccb='claude --bare'                          # minimal mode (no hooks/MCP/skills)
-alias ccd='claude --debug'                         # debug mode
-alias cci='claude --ide'                           # auto-connect IDE
-alias ccq='claude -p'                              # one-shot print (non-interactive)
-
-# Subcommands
-alias ccdoc='claude doctor'
-alias ccup='claude update'
-alias ccmcp='claude mcp'
-alias ccpl='claude plugins'
-alias ccag='claude agents'
-alias ccauth='claude auth'
-
-# PR resume (interactive picker if no arg)
-alias ccpr='claude --from-pr'
 
 # =============================================================================
 # PI CODING AGENT

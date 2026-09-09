@@ -22,7 +22,7 @@
 # Backward-compat (legacy flags):
 #   --link-only      → --only=symlinks
 #   --packages-only  → --only=packages
-#   --mcp-only       → --only=python-tools,ssh-superbro,mcp-servers
+#   --mcp-only       → --only=python-tools,ssh-superbro (legacy alias)
 #
 # Environment overrides:
 #   PROFILE=...                         override detected profile
@@ -109,7 +109,7 @@ for arg in "$@"; do
         --skip=*)           SKIP="${arg#--skip=}" ;;
         --link-only)        _LEGACY_ONLY="symlinks" ;;
         --packages-only)    _LEGACY_ONLY="packages" ;;
-        --mcp-only)         _LEGACY_ONLY="python-tools,ssh-superbro,mcp-servers" ;;
+        --mcp-only)         _LEGACY_ONLY="python-tools,ssh-superbro" ;;
         --profile=*)        export PROFILE="${arg#--profile=}" ;;
         -h|--help)          print_help; exit 0 ;;
         *)                  err "unknown arg: $arg"; print_help; exit 2 ;;

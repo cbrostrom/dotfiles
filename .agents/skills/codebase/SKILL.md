@@ -85,6 +85,6 @@ Rules for generation:
 - Infer purpose from filenames and directory names only — do not read file contents
 - One line per entry, no speculation
 - Skip compiled/generated files (`.zwc`, `dist/`, `build/`, lockfiles)
-- Skip dot-dirs unless they contain meaningful config (`.claude/`, `.cursor/` yes — `.git/` no)
+- Skip dot-dirs unless they contain meaningful config (`.cursor/`, `.config/pi/` yes — `.git/` no)
 
 After writing, run the router from step 2.

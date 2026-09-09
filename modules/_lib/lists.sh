@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # List-file overlay helper.
 #
-# Given a base list file path (e.g. .claude/plugins.list), emit a merged stream
+# Given a base list file path (e.g. mcp-servers.list), emit a merged stream
 # of non-comment, non-blank lines from the base + matching overlays:
 #
 #   <base>                       (always loaded if present)

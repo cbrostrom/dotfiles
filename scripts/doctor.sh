@@ -83,7 +83,7 @@ if is_wsl; then
     fi
 fi
 
-# Headless servers skip Claude/Cursor/engram/graphiti/MCP sections
+# Headless servers skip Cursor/graphiti/MCP sections
 is_headless=false
 [[ "$profile" == "server-headless" ]] && is_headless=true
 
@@ -201,103 +201,12 @@ else
     warn "~/.config/opencode/skills missing — opencode won't discover shared skills"
 fi
 
-# ----- claude -----
-# Skipped on headless servers (opencode is the agent)
-if [[ "$is_headless" == "false" ]]; then
-hdr "Claude Code"
-claude_dir="$HOME/.claude"
 
-check_claude_link() {
-    local dst="$1" label="$2" fix="$3"
-    if [[ -L "$dst" ]]; then
-        ok "$label → $(readlink "$dst")"
-    elif [[ -e "$dst" ]]; then
-        warn "$label er ikke symlink — Fix: $fix"
-    else
-        bad "$label mangler — Fix: $fix"
-    fi
-}
 
-check_claude_link "$claude_dir/settings.json" "~/.claude/settings.json" \
-    "bash $DOTFILES_DIR/scripts/claude/install-claude-config.sh"
-check_claude_link "$claude_dir/CLAUDE.md" "~/.claude/CLAUDE.md" \
-    "bash $DOTFILES_DIR/scripts/claude/install-claude-config.sh"
-
-for hook in effort-classifier.sh; do
-    hpath="$claude_dir/hooks/$hook"
-    if [[ -L "$hpath" ]]; then
-        if [[ -x "$hpath" ]]; then
-            ok "hooks/$hook (symlink, eksekverbar)"
-        else
-            warn "hooks/$hook ikke eksekverbar — Fix: chmod +x $hpath"
-            $FIX_MODE && chmod +x "$hpath" && ok "  → fixed"
-        fi
-    elif [[ -e "$hpath" ]]; then
-        warn "hooks/$hook er ikke symlink"
-    else
-        bad "hooks/$hook mangler — Fix: bash $DOTFILES_DIR/scripts/claude/install-claude-config.sh"
-    fi
-done
-
-# Token check (source secrets first)
-# shellcheck disable=SC1090
-[[ -f "$HOME/.local-secrets" ]] && set -a && source "$HOME/.local-secrets" 2>/dev/null && set +a
-if [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]]; then
-    ok "GITHUB_PERSONAL_ACCESS_TOKEN sat"
-else
-    warn "GITHUB_PERSONAL_ACCESS_TOKEN mangler — tilføj til ~/.local-secrets"
-fi
-fi # is_headless
-
-# ----- MCP drift -----
+# ----- shared rules (Cursor) -----
 # Skipped on headless servers
 if [[ "$is_headless" == "false" ]]; then
-# Reads ~/.claude.json directly instead of `claude mcp list` to avoid
-# spawning every stdio server for health checks.
-# Uses lists_merge for proper platform/profile/host overlay resolution.
-hdr "MCP drift (mcp-servers.list vs ~/.claude.json)"
-mcp_base="$DOTFILES_DIR/.claude/mcp-servers.list"
-claude_json="$HOME/.claude.json"
-if [[ ! -f "$claude_json" ]]; then
-    warn "$claude_json missing — skipping MCP drift check"
-elif ! command -v jq >/dev/null 2>&1; then
-    warn "jq not found — skipping MCP drift check (install jq to enable)"
-elif [[ ! -f "$mcp_base" ]]; then
-    warn "$mcp_base missing — skipping MCP drift check"
-else
-    . "$DOTFILES_DIR/modules/_lib/platform.sh"
-    . "$DOTFILES_DIR/modules/_lib/lists.sh"
-
-    declared="$(lists_merge "$mcp_base" | awk -F'|' '
-        /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
-        { gsub(/[[:space:]]/, "", $1); if ($1 != "") print $1 }
-    ' | sort -u)"
-
-    registered="$(jq -r '.mcpServers // {} | keys[]' "$claude_json" 2>/dev/null | sort -u)"
-
-    missing="$(comm -23 <(echo "$declared") <(echo "$registered"))"
-    extra="$(comm -13 <(echo "$declared") <(echo "$registered"))"
-
-    if [[ -z "$missing" && -z "$extra" ]]; then
-        ok "MCP servers in sync ($(echo "$declared" | wc -l | tr -d ' ') entries)"
-    fi
-    if [[ -n "$missing" ]]; then
-        while IFS= read -r n; do
-            [[ -n "$n" ]] && bad "MCP missing locally: $n — Fix: ./bootstrap.sh --mcp-only"
-        done <<< "$missing"
-    fi
-    if [[ -n "$extra" ]]; then
-        while IFS= read -r n; do
-            [[ -n "$n" ]] && warn "MCP registered but not in list: $n — Fix: claude mcp remove $n --scope user (or add to mcp-servers.list)"
-        done <<< "$extra"
-    fi
-fi
-fi # is_headless
-
-# ----- shared rules (cross-tool: Claude + Cursor) -----
-# Skipped on headless servers
-if [[ "$is_headless" == "false" ]]; then
-hdr "Shared rules (Claude + Cursor)"
+hdr "Shared rules (Cursor)"
 shared_rules_dir="$DOTFILES_DIR/.shared-rules"
 cursor_marker="$shared_rules_dir/.cursor-synced"
 
@@ -317,7 +226,7 @@ if command -v rbw >/dev/null 2>&1; then
     rbw_ver="$(rbw --version 2>/dev/null | head -1 || echo unknown)"
     ok "rbw installed: $rbw_ver"
     if rbw status 2>/dev/null | grep -q -i "locked"; then
-        warn "rbw vault locked — Fix: rbw unlock (then restart shells / Cursor / Claude to refresh env)"
+        warn "rbw vault locked — Fix: rbw unlock (then restart shells / Cursor / Pi to refresh env)"
     elif rbw status 2>/dev/null | grep -q -i "unlocked"; then
         ok "rbw vault unlocked"
     fi
@@ -343,41 +252,18 @@ if [[ -f "$rbw_env_script" ]]; then
     fi
 fi
 
-# ----- Cursor MCP drift (~/.cursor/mcp.json vs ~/.claude.json) -----
+# ----- Cursor MCP config hygiene -----
 # Skipped on headless servers
 if [[ "$is_headless" == "false" ]]; then
-# Goal: keep Cursor and Claude in lock-step on MCP servers. User explicitly
-# wants alignment; this surfaces drift fast.
-hdr "Cursor MCP parity (vs Claude)"
+hdr "Cursor MCP"
 cursor_json="$HOME/.cursor/mcp.json"
 if [[ ! -f "$cursor_json" ]]; then
     skip "$cursor_json missing — Cursor MCP not configured on this host"
 elif ! command -v jq >/dev/null 2>&1; then
-    warn "jq not found — skipping Cursor MCP parity check"
-elif [[ ! -f "$claude_json" ]]; then
-    skip "$claude_json missing — cannot compare"
+    warn "jq not found — skipping Cursor MCP check"
 else
-    cursor_keys="$(jq -r '.mcpServers // {} | keys[]' "$cursor_json" 2>/dev/null | sort -u)"
-    claude_keys="$(jq -r '.mcpServers // {} | keys[]' "$claude_json" 2>/dev/null | sort -u)"
-
-    only_claude="$(comm -23 <(echo "$claude_keys") <(echo "$cursor_keys"))"
-    only_cursor="$(comm -13 <(echo "$claude_keys") <(echo "$cursor_keys"))"
-
-    if [[ -z "$only_claude" && -z "$only_cursor" ]]; then
-        ok "Cursor MCP matches Claude ($(echo "$cursor_keys" | wc -l | tr -d ' ') servers)"
-    fi
-    if [[ -n "$only_claude" ]]; then
-        while IFS= read -r n; do
-            [[ -n "$n" ]] && warn "MCP in Claude but not Cursor: $n — Fix: add to ~/.cursor/mcp.json"
-        done <<< "$only_claude"
-    fi
-    if [[ -n "$only_cursor" ]]; then
-        while IFS= read -r n; do
-            [[ -n "$n" ]] && warn "MCP in Cursor but not Claude: $n — Fix: add to ~/.claude.json"
-        done <<< "$only_cursor"
-    fi
-
-    # Check Cursor has no inline tokens in env (security)
+    cursor_n="$(jq -r '.mcpServers // {} | keys | length' "$cursor_json" 2>/dev/null || echo 0)"
+    ok "Cursor MCP servers: $cursor_n"
     if jq -e '.mcpServers | to_entries[] | select(.value.env? | (objects | values[]?) | tostring | test("^(ghp_|gho_|ghs_|sk-|xoxb-|atlas)"; "i"))' "$cursor_json" >/dev/null 2>&1; then
         bad "Cursor mcp.json contains likely inline secret in env — Fix: move to env var sourced from .zshenv (rbw)"
     else
@@ -385,12 +271,6 @@ else
     fi
 fi
 fi # is_headless
-
-
-# ----- engram local + sync diagnostic -----
-# REMOVED in favor of local vaults (Higgins)
-# This section is intentionally left empty or can be removed.
-:
 
 # ----- graphiti remote health -----
 # Skipped on headless servers
@@ -417,9 +297,9 @@ fi # is_headless
 if [[ "$is_headless" == "false" ]]; then
 # Reports last-modified time on MCP config files vs running non-engram-related
 # processes. Useful when "MCP updates aren't coming through" — usually it's
-# because Cursor / Claude need a session restart.
+# because Cursor / Pi need a session restart.
 hdr "MCP config freshness"
-for cfg in "$HOME/.cursor/mcp.json" "$HOME/.claude.json"; do
+for cfg in "$HOME/.cursor/mcp.json" "$HOME/.pi/agent/mcp.json"; do
     if [[ -f "$cfg" ]]; then
         mtime="$(stat -f '%Sm' -t '%Y-%m-%d %H:%M:%S' "$cfg" 2>/dev/null \
               || stat -c '%y' "$cfg" 2>/dev/null | cut -d'.' -f1)"
@@ -433,7 +313,7 @@ running_mcp="$(ps -A -o pid,command 2>/dev/null \
     | wc -l | tr -d ' ')"
 echo "  Running MCP-related processes (this host): $running_mcp"
 if (( running_mcp == 0 )); then
-    warn "No MCP processes running. Cursor/Claude load mcp.json at session start — restart the agent after editing config."
+    warn "No MCP processes running. Cursor/Pi load mcp.json at session start — restart the agent after editing config."
 else
     if (( running_mcp > 30 )); then
         warn "Unusually high MCP process count ($running_mcp). Possible leaked processes from previous agent sessions — Fix: pkill -f 'graphiti|mcp-mermaid|tailwindcss-mcp|shopify.*dev-mcp|apple-mcp|server-github' (then relaunch agent)"
