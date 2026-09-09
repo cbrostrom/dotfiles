@@ -1,0 +1,9 @@
+name = "kigr"
+group = "Personal"
+working_dir = "~/Projects/personal/kigr"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

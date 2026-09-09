@@ -1,0 +1,9 @@
+name = "akqa-den-cb-tickets-nextjs"
+group = "Carlsberg"
+working_dir = "~/Projects/clients/Carlsberg/akqa-den-cb-tickets-nextjs"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

@@ -1,0 +1,4 @@
+name = "Pi"
+description = "Start pi in current directory"
+type = "command"
+command = "pi"

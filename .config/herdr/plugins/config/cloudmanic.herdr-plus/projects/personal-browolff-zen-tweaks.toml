@@ -1,0 +1,9 @@
+name = "browolff-zen-tweaks"
+group = "Personal"
+working_dir = "~/Projects/personal/browolff-zen-tweaks"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

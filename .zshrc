@@ -89,6 +89,9 @@ if [[ -d "$ZSH_MODULES_DIR" ]]; then
     # 09 - Herdr agent state integration
     [[ -f "$ZSH_MODULES_DIR/09-herdr.zsh" ]] && source "$ZSH_MODULES_DIR/09-herdr.zsh"
 
+    # 10 - Cmux orchestration helpers
+    [[ -f "$ZSH_MODULES_DIR/09-cmux.zsh" ]] && source "$ZSH_MODULES_DIR/09-cmux.zsh"
+
     # Per-host overrides BEFORE Zellij auto-attach so a host can opt out
     [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
 else
@@ -139,3 +142,50 @@ fi
 
 # Added by codebase-memory-mcp install
 export PATH="/Users/Christian.Brostrom/.local/bin:$PATH"
+# >>> llmtrim >>>
+# Self-healing, fail-open llmtrim proxy configuration.
+
+_llmtrim_clear_env() {
+    unset HTTPS_PROXY HTTP_PROXY ALL_PROXY
+    unset https_proxy http_proxy all_proxy
+    unset NODE_EXTRA_CA_CERTS SSL_CERT_FILE CURL_CA_BUNDLE NODE_USE_ENV_PROXY
+    unset NO_PROXY no_proxy
+}
+
+_llmtrim_enable_env() {
+    export HTTPS_PROXY='http://127.0.0.1:43117'
+    export HTTP_PROXY='http://127.0.0.1:43117'
+    # Cursor control plane bypasses MITM (vendor gateway); LLM provider hosts stay proxied.
+    export NO_PROXY='localhost,127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,fd00::/8,*.local,*.cursor.sh,*.cursor.com,cursor.sh,cursor.com,api2.cursor.sh'
+    export no_proxy='localhost,127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,fd00::/8,*.local,*.cursor.sh,*.cursor.com,cursor.sh,cursor.com,api2.cursor.sh'
+    export NODE_USE_ENV_PROXY=1
+    export NODE_EXTRA_CA_CERTS="$HOME/.llmtrim/ca.pem"
+    export SSL_CERT_FILE="$HOME/.llmtrim/ca-bundle.pem"
+    export CURL_CA_BUNDLE="$HOME/.llmtrim/ca-bundle.pem"
+}
+
+# Remove inherited or stale llmtrim settings first.
+_llmtrim_clear_env
+
+if command -v llmtrim >/dev/null 2>&1; then
+    if ! llmtrim _alive >/dev/null 2>&1; then
+        llmtrim start >/dev/null 2>&1
+
+        # Poll briefly instead of using a long fixed delay.
+        for _llmtrim_attempt in 1 2 3 4; do
+            llmtrim _alive >/dev/null 2>&1 && break
+            sleep 0.25
+        done
+        unset _llmtrim_attempt
+    fi
+
+    if llmtrim _alive >/dev/null 2>&1; then
+        _llmtrim_enable_env
+    else
+        # Fail open: leave proxy and custom CA variables unset.
+        _llmtrim_clear_env
+    fi
+fi
+
+unset -f _llmtrim_clear_env _llmtrim_enable_env
+# <<< llmtrim <<<

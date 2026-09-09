@@ -1,9 +1,7 @@
 import { Markdown } from "@earendil-works/pi-tui";
 import { CONFIG } from "../config.js";
-import { getVisibleWidth, hasVisibleContent, currentTheme, applyColor } from "../utils.js";
-
-const USER_PREFIX_WIDTH = getVisibleWidth(CONFIG.userMessage.prefix) + 2;
-const PADDING_PREFIX = " ".repeat(USER_PREFIX_WIDTH);
+import { currentTheme, applyColor } from "../utils.js";
+import { renderMessageStyle } from "./frame.js";
 
 export interface UserMessage {
   invalidate(): void;
@@ -29,27 +27,14 @@ export function createUserMessage(text: string, markdownTheme: any): UserMessage
   function render(width: number): string[] {
     if (cachedLines && cachedWidth === width) return cachedLines;
 
-    if (width <= USER_PREFIX_WIDTH) {
-      cachedWidth = width;
-      const prefix = currentTheme
-        ? applyColor(currentTheme, CONFIG.userMessage.color, CONFIG.userMessage.prefix)
-        : CONFIG.userMessage.prefix;
-      cachedLines = [` ${prefix} `];
-      return cachedLines;
-    }
-
-    const mdLines = md.render(width - USER_PREFIX_WIDTH);
-    let prefixPlaced = false;
-
-    const rendered = mdLines.map((line: string) => {
-      if (!prefixPlaced && hasVisibleContent(line)) {
-        prefixPlaced = true;
-        const prefix = currentTheme
-          ? applyColor(currentTheme, CONFIG.userMessage.color, CONFIG.userMessage.prefix)
-          : CONFIG.userMessage.prefix;
-        return ` ${prefix} ${line}`;
-      }
-      return `${PADDING_PREFIX}${line}`;
+    const rendered = renderMessageStyle(CONFIG.userMessage.style, md, width, {
+      prefix: CONFIG.userMessage.prefix,
+      rail: CONFIG.userMessage.rail,
+      title: "User",
+      colors: {
+        accent: CONFIG.userMessage.color,
+        border: CONFIG.userMessage.borderColor,
+      },
     });
 
     cachedWidth = width;

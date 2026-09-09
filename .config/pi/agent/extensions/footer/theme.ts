@@ -24,6 +24,8 @@ const DEFAULT_COLORS: ColorScheme = {
   tokens: "muted",
   separator: "#4e4c49",
   modeIndicator: "muted",
+  activityReady: "dim",
+  activityWorking: "accent",
 };
 
 function isHexColor(color: ColorValue): color is `#${string}` {

@@ -1,0 +1,9 @@
+name = "discount-information"
+group = "Fiskars"
+working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-discount-information"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

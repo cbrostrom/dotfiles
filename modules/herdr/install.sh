@@ -72,8 +72,11 @@ fi
 
 _install_launchd() {
     local plist_dst="$HOME/Library/LaunchAgents/dev.herdr.server.plist"
-    local herdr_bin
+    local herdr_bin herdr_path
     herdr_bin="$(command -v herdr)"
+    # launchd gives a minimal PATH (/usr/bin:/bin:…) — plugin overlay panes inherit it,
+    # so Homebrew tools (fzf, etc.) must be injected here for autostarted servers.
+    herdr_path="/opt/homebrew/bin:/opt/homebrew/sbin:${HOME}/.local/bin:${HOME}/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
     mkdir -p "$(dirname "$plist_dst")" "$HOME/Library/Logs"
     cat > "$plist_dst" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -82,6 +85,11 @@ _install_launchd() {
 <dict>
     <key>Label</key>             <string>dev.herdr.server</string>
     <key>ProgramArguments</key> <array><string>${herdr_bin}</string><string>server</string></array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>${herdr_path}</string>
+    </dict>
     <key>RunAtLoad</key>         <true/>
     <key>KeepAlive</key>         <true/>
     <key>StandardOutPath</key>   <string>${HOME}/Library/Logs/herdr.log</string>
@@ -110,6 +118,7 @@ After=default.target
 
 [Service]
 ExecStart=${herdr_bin} server
+Environment="PATH=/opt/homebrew/bin:/opt/homebrew/sbin:${HOME}/.local/bin:${HOME}/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 Restart=on-failure
 RestartSec=5
 

@@ -27,10 +27,22 @@ export type SemanticColor =
   | "cost"
   | "tokens"
   | "separator"
-  | "modeIndicator";
+  | "modeIndicator"
+  | "activityReady"
+  | "activityWorking";
 
 // Color scheme mapping semantic names to actual colors
 export type ColorScheme = Partial<Record<SemanticColor, ColorValue>>;
+
+/** Named rail layouts inspired by pi-atelier presets. */
+export type FooterPreset = "editorial" | "minimal" | "classic" | "custom";
+
+export type ActivityState = "ready" | "working";
+
+export interface ActivitySnapshot {
+  state: ActivityState;
+  toolName?: string;
+}
 
 // Segment identifiers
 export type StatusLineSegmentId =
@@ -50,6 +62,8 @@ export type StatusLineSegmentId =
   | "caveman"
   | "plan_mode"
   | "chat_mode"
+  | "activity"
+  | "copilot_usage"
   | "separator"
   | `text:${string}`;
 
@@ -103,9 +117,12 @@ export interface SegmentContext {
   usageStats: UsageStats;
   contextPercent: number;
   contextWindow: number;
+  contextWarning: number;
+  contextDanger: number;
   usingSubscription: boolean;
   sessionStartTime: number;
   git: GitStatus;
+  activity: ActivitySnapshot;
   options: StatusLineSegmentOptions;
   width: number;
   theme: Theme;
@@ -144,6 +161,12 @@ export interface RenderedSegment {
 
 // User configuration from footer.json
 export interface FooterUserConfig {
+  /** Named layout. Named presets ignore row* overrides until preset is "custom". */
+  preset?: FooterPreset;
+  /** Context % at which the label switches to warning color. Default 70. */
+  contextWarning?: number;
+  /** Context % at which the label switches to error color. Default 90. */
+  contextDanger?: number;
   row1LeftSegments?: StatusLineSegmentId[];
   row1RightSegments?: StatusLineSegmentId[];
   row2LeftSegments?: StatusLineSegmentId[];
@@ -151,4 +174,17 @@ export interface FooterUserConfig {
   colors?: ColorScheme;
   segmentOptions?: StatusLineSegmentOptions;
   icons?: Partial<IconSet>;
+}
+
+export interface FooterEffectiveConfig {
+  preset: FooterPreset;
+  contextWarning: number;
+  contextDanger: number;
+  row1LeftSegments: StatusLineSegmentId[];
+  row1RightSegments: StatusLineSegmentId[];
+  row2LeftSegments: StatusLineSegmentId[];
+  row2RightSegments: StatusLineSegmentId[];
+  colors: ColorScheme;
+  segmentOptions: StatusLineSegmentOptions;
+  icons: Partial<IconSet>;
 }

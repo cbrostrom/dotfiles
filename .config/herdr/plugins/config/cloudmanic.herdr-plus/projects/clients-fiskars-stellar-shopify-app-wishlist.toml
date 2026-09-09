@@ -1,0 +1,9 @@
+name = "wishlist"
+group = "Fiskars"
+working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-wishlist"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

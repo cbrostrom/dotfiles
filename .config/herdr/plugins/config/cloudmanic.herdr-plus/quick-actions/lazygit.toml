@@ -1,0 +1,4 @@
+name = "Lazygit"
+description = "Git TUI in current directory"
+type = "command"
+command = "lazygit"

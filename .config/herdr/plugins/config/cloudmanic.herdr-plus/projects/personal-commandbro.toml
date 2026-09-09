@@ -1,0 +1,9 @@
+name = "commandbro"
+group = "Personal"
+working_dir = "~/Projects/personal/commandbro"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

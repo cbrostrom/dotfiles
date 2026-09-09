@@ -1,0 +1,9 @@
+name = "hunovitch.com"
+group = "Personal"
+working_dir = "~/Projects/personal/hunovitch.com"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

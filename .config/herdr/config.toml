@@ -1,4 +1,6 @@
 onboarding = false
+
+[terminal]
 default_shell = "/bin/zsh"
 new_cwd       = "follow"
 
@@ -13,20 +15,149 @@ show_agent_labels_on_pane_borders = true
 agent_panel_scope = "all"
 
 agent_panel_sort = "spaces"
+# "dots" = color marks; "symbols" = distinct glyphs per agent state
+status_indicators = "symbols"
+accent = "#7aa2f7"
+
+[ui.sidebar.agents]
+row_gap = 1
+rows = [
+  ["state_icon", { token = "$title", fg = "#c0caf5", bold = true }],
+  [
+    { token = "agent", fg = "#7aa2f7" },
+    { token = "$limit", fg = "#565f89", dim = true },
+  ],
+  [{ token = "$context", fg = "#bb9af7", dim = true }],
+  [{ token = "$task", fg = "#9ece6a", dim = true }],
+  [
+    { token = "$turn", fg = "#e0af68", dim = true },
+    { token = "$age", fg = "#565f89", dim = true },
+  ],
+]
+
+[ui.sidebar.spaces]
+row_gap = 1
+rows = [
+  [
+    "state_icon",
+    { token = "workspace", fg = "#c0caf5", bold = true },
+  ],
+  [
+    { token = "branch", fg = "#9ece6a", dim = true },
+    { token = "git_status", fg = "#e0af68" },
+  ],
+]
+
 [theme]
-name = "one-dark"
+name = "tokyo-night"
+[theme.custom]
+sidebar_bg = "#16161e"
+active_row_bg = "#1a1b26"
+selection_bg = "#292e42"
+accent = "#7aa2f7"
 
 [advanced]
-pane_history              = true
 scrollback_limit_bytes    = 20971520  # 20 MB
-kitty_clipboard_protocol  = false
 
 [ui.toast]
-delivery = "terminal"
+delivery = "herdr"
+
+[ui.toast.herdr]
+position = "bottom-left"
 
 [ui.sound]
 enabled = false
 
+[session]
+# Resume pi/claude/etc. panes into their native conversation sessions after
+# a herdr server restart (e.g. after the launchd autostart kicks in).
+resume_agents_on_restore = true
+
 [experimental]
 pane_history = true
 switch_ascii_input_source_in_prefix = false
+
+# Plugin key map (prefix = ctrl+b by default)
+#   p          command palette (all plugin actions)
+#   up         herdr-plus projects
+#   down       herdr-plus quick actions
+#   b          sidebar toggle (explorer + SCM)
+#   g          source control pane toggle
+#   shift+l    llmtrim savings dashboard
+#   shift+s    llmtrim session summary
+#   shift+i    llmtrim diagnose
+#   ctrl+shift+u  agent usage limits pane
+#   ctrl+shift+m  refresh usage meters
+#   shift+p    plugin manager (also in command palette)
+# auto-title: no actions (startup daemon only)
+#
+# herdr-sidebar stability (runtime state, not this file):
+#   ~/.local/state/herdr/plugins/herdr-sidebar/state.json
+#   Prefer: auto_open=false (no focus-burst double-dock), dock_right=true,
+#   strict_toggle=true. Toggle with prefix+b / prefix+g only.
+
+[[keys.command]]
+key = "prefix+p"
+type = "plugin_action"
+command = "jt.command-palette.open"
+description = "Command palette"
+
+[[keys.command]]
+key = "prefix+up"
+type = "plugin_action"
+command = "cloudmanic.herdr-plus.projects"
+description = "Projects"
+
+[[keys.command]]
+key = "prefix+down"
+type = "plugin_action"
+command = "cloudmanic.herdr-plus.quick-actions"
+description = "Quick actions"
+
+[[keys.command]]
+key = "prefix+b"
+type = "plugin_action"
+command = "herdr-sidebar.open-sidebar"
+description = "Toggle sidebar"
+
+[[keys.command]]
+key = "prefix+g"
+type = "plugin_action"
+command = "herdr-sidebar.open-git"
+description = "Toggle source control"
+
+[[keys.command]]
+key = "prefix+shift+l"
+type = "plugin_action"
+command = "llmtrim.proxy.open-dashboard"
+description = "llmtrim dashboard"
+
+[[keys.command]]
+key = "prefix+shift+s"
+type = "plugin_action"
+command = "llmtrim.proxy.summary"
+description = "llmtrim session summary"
+
+[[keys.command]]
+key = "prefix+shift+i"
+type = "plugin_action"
+command = "llmtrim.proxy.diagnose"
+description = "llmtrim diagnose"
+
+[[keys.command]]
+key = "ctrl+shift+u"
+type = "plugin_action"
+command = "usagebar.open-limits"
+description = "Agent Usage: open limits pane"
+
+[[keys.command]]
+key = "ctrl+shift+m"
+type = "plugin_action"
+command = "usagebar.refresh"
+description = "Agent Usage: refresh sidebar meters"
+
+[[keys.command]]
+key = "prefix+shift+p"
+type = "plugin_action"
+command = "ray.plugin-manager.open"
+description = "Plugin manager"

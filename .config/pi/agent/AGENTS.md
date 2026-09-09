@@ -71,21 +71,23 @@ Key shared skills available: `dotfiles`, `higgins`, `code-reviewer`, `problem-so
 ## PI-specific
 
 - See `~/.config/pi/agent/README.md` for full architecture and package list.
-- Model selection: use spark presets via `/preset`. Default model = `opencode/big-pickle` (free zen proxy, $0 — daily driver).
-  `fast` (gpt-5.4-mini) for shell/edits, `sonnet` (cursor/default Auto) for regular work, `think` (claude-sonnet-4-6) for planning/review.
-- Memory pipeline — three complementary layers, one brain:
-  1. `pi-observational-memory` — in-session working memory. Captures observations + reflections
-     in the background; makes compaction fast and preserves decision rationale across compactions.
-     Ephemeral working state (per session/branch), never durable truth. Config under
-     `observational-memory` in settings.json; workers use github-copilot/claude-haiku-4.5.
-  2. `pi-rtk-optimizer` — output compaction + source filtering (zero-token).
-  3. `context-mode` — machine-local FTS5 retrieval index (`~/.pi/context-mode/`, NOT synced,
+- Model selection: use spark presets via `/preset`. Default model = `cursor/default` (work account Auto — included pool).
+  `fast` (gpt-5.4-mini) for shell/edits, `composer` (cursor/composer-2.5) for Composer pool, `big-pickle` (opencode) when off work Cursor.
+- Memory pipeline — two complementary layers, one brain (pi-observational-memory removed:
+  broke on Copilot Enterprise routing, 421 Misdirected Request on every observer/reflector call —
+  not fixable client-side, see upstream earendil-works/pi#7579, #6768):
+  1. `pi-rtk-optimizer` — output compaction + source filtering (zero-token).
+  2. `context-mode` — machine-local FTS5 retrieval index (`~/.pi/context-mode/`, NOT synced,
      NOT human-editable). Fast cross-session search over auto-captured events + indexed docs on
      THIS machine. An accelerator, not the brain.
-  4. `/session-extract` EOD — distils session signal (OM reflections first, context-mode events
-     as fallback) into vault Markdown candidates; human-gated `higgins digest` writes to Higgins.
-  The durable, portable, human+AI-editable brain is the Higgins vault (`higgins` + kb-mcp), maintained
-  by the Janitor. OM and context-mode feed it; neither replaces it.
+  3. `/handover` EOD — distils session signal (context-mode events, session JSONL) into vault
+     Markdown candidates written to `personal/{current,gotchas}.md`; a handoff artifact per
+     https://dictionary-of-ai-coding.com — self-contained enough that a zero-context session
+     can act on it without relitigating.
+  The durable, portable, human+AI-editable brain is the Higgins vault (`higgins` + higgins MCP),
+  maintained by the Janitor. context-mode and /handover feed it; neither replaces it. For very
+  long sessions, prefer periodic `/handover` + fresh session over one marathon session — cheaper
+  and leaves a clean vault trail instead of an ever-growing context window.
 - MCP servers: `higgins` (vault, local Go binary, 13 tools post-cleanup) + `deja` (session search) enabled in `~/.pi/agent/mcp.json`.
   github/atlassian/codebase-memory-mcp/shopify-dev-mcp deliberately disabled (tool-restraint).
   `dockhand-linuxbro`/`dockhand-superbro` are disabled by default (context cost: ~612 tool defs
