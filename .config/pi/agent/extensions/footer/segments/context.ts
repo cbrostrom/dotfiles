@@ -71,7 +71,15 @@ export const contextPctSegment = {
     bar += "\x1b[0m";
 
     const pctLabel = `${pct.toFixed(1)}%`;
-    const pctStr = color(ctx, "contextLabel", pctLabel);
+    // Discrete warn/danger thresholds (Atelier-style) on the percentage label.
+    // Bar keeps its gradient; label jumps to semantic colors past the cutoffs.
+    const warnAt = ctx.contextWarning;
+    const dangerAt = ctx.contextDanger;
+    let pctSemantic: "contextLabel" | "contextWarn" | "contextError" = "contextLabel";
+    if (pct >= dangerAt) pctSemantic = "contextError";
+    else if (pct >= warnAt) pctSemantic = "contextWarn";
+
+    const pctStr = color(ctx, pctSemantic, pctLabel);
     const tokensLabel = `/ ${formatTokens(ctx.contextWindow)}`;
     const tokensStr = color(ctx, "contextLabel", tokensLabel);
 

@@ -15,40 +15,49 @@
 
 import { readdir, readFile, writeFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
-import { join } from "path";
+import { join, basename } from "path";
 import { homedir } from "os";
 
-// ── Config ──────────────────────────────────────────────────────────────────
+// Minimal ambient declaration for the one Bun global this script touches —
+// avoids pulling in the full bun-types package/tsconfig just for this.
+declare const Bun: { file(path: string): { lastModified: number } };
 
 const PI_SESSIONS_DIR = join(homedir(), ".pi/agent/sessions");
 const VAULT_AI = process.env.VAULT_AI || join(homedir(), "Vaults/Higgins/AI");
 const VAULT_SESSIONS_DIR = join(VAULT_AI, "sessions");
 const STATE_FILE = join(VAULT_SESSIONS_DIR, ".extract-state.json");
 
-// ── Types ───────────────────────────────────────────────────────────────────
+// Per-run caps: keep raw regex extraction from flooding curated brain files.
+// Ongoing pruning is Higgins' job (idle-kb-tidy hook runs prune + compact);
+// this just stops admitting an unbounded amount of noise in one pass.
+const MAX_GOTCHAS_PER_RUN = 5;
+const MAX_CURRENT_PER_RUN = 5;
+
+// Real PI session JSONL schema (verified against live session files —
+// NOT the tool_use/tool_result/exitCode shape an earlier version assumed).
+interface ContentBlock {
+  type: string; // "text" | "thinking" | "toolCall" | "image" | ...
+  text?: string;
+  thinking?: string;
+  name?: string; // toolCall
+  arguments?: Record<string, unknown>; // toolCall
+}
 
 interface SessionEntry {
-  type: string;
+  type: string; // "session" | "message" | "model_change" | ...
   id?: string;
   timestamp?: string;
-  cwd?: string;
+  cwd?: string; // present on the "session" entry only
   version?: number;
   message?: {
-    role: string;
-    content?: Array<{
-      type: string;
-      text?: string;
-      thinking?: string;
-      tool_use?: { name: string; input?: Record<string, unknown> };
-      tool_result?: { content?: string; output?: string; exitCode?: number };
-    }>;
+    role: string; // "user" | "assistant" | "toolResult"
+    content?: ContentBlock[];
+    toolCallId?: string;
+    toolName?: string;
+    details?: { error?: string; [k: string]: unknown };
+    isError?: boolean;
   };
-  command?: string;
-  output?: string;
-  exitCode?: number;
   modelId?: string;
-  provider?: string;
-  thinkingLevel?: string;
 }
 
 interface SessionSummary {
@@ -72,8 +81,6 @@ interface ExtractState {
   processed: Record<string, string>; // sessionId -> lastModified ISO
 }
 
-// ── Argument parsing ────────────────────────────────────────────────────────
-
 function parseArgs() {
   const args = process.argv.slice(2);
   const opts: {
@@ -92,8 +99,6 @@ function parseArgs() {
   return opts;
 }
 
-// ── State management ────────────────────────────────────────────────────────
-
 async function loadState(): Promise<ExtractState> {
   if (existsSync(STATE_FILE)) {
     return JSON.parse(await readFile(STATE_FILE, "utf-8"));
@@ -106,6 +111,23 @@ async function saveState(state: ExtractState): Promise<void> {
 }
 
 // ── Session discovery ───────────────────────────────────────────────────────
+
+/**
+ * Best-effort fallback slug decoder for session directories that lack a
+ * "session" entry with `cwd` (very old sessions). PI encodes a cwd's `/` as
+ * `-`, which is ambiguous with a literal `-` already in a directory name
+ * (e.g. "stellar-shopify" vs a path separator) — this WILL misattribute
+ * dashed project names sometimes. Prefer the real `cwd` field whenever it's
+ * available (see discoverSessions).
+ */
+function decodeSlugFromDirName(dirName: string): string {
+  const decoded = dirName
+    .replace(/^--Users-Christian\.Brostrom--$/, "home")
+    .replace(/^--Users-Christian\.Brostrom-/, "")
+    .replace(/--$/, "")
+    .replace(/-/g, "/");
+  return decoded.split("/").pop() || dirName;
+}
 
 async function discoverSessions(
   since?: string,
@@ -124,19 +146,7 @@ async function discoverSessions(
     const projPath = join(PI_SESSIONS_DIR, projDir);
     if (!existsSync(projPath)) continue;
 
-    // Decode project slug from directory name
-    const projSlug = projDir
-      .replace(/^--Users-Christian\.Brostrom--$/, "home")
-      .replace(/^--Users-Christian\.Brostrom-/, "")
-      .replace(/--$/, "")
-      .replace(/-/g, "/")
-      .split("/")
-      .pop() || projDir;
-
-    // Filter by project if specified
-    if (project && !projSlug.toLowerCase().includes(project.toLowerCase())) {
-      continue;
-    }
+    const fallbackSlug = decodeSlugFromDirName(projDir);
 
     const files = await readdir(projPath).catch(() => []);
     for (const file of files) {
@@ -148,32 +158,49 @@ async function discoverSessions(
       const info = Bun.file(filePath);
       const mtime = new Date(info.lastModified);
 
-      // Filter by date if specified
       if (since) {
         const sinceDate = new Date(since);
         if (mtime < sinceDate) continue;
       }
 
-      // Extract session ID from filename
+      // Resolve the real project slug from the session's own cwd field
+      // rather than reverse-engineering the dash-encoded directory name.
+      let slug = fallbackSlug;
+      const firstLine = await firstLineOf(filePath);
+      if (firstLine) {
+        try {
+          const parsed = JSON.parse(firstLine) as SessionEntry;
+          if (parsed.type === "session" && parsed.cwd) {
+            slug = basename(parsed.cwd);
+          }
+        } catch {
+          // fall through to fallbackSlug
+        }
+      }
+
+      if (project && !slug.toLowerCase().includes(project.toLowerCase())) {
+        continue;
+      }
+
       const sessionId = file.replace(".jsonl", "").split("_").pop() || file;
 
-      sessions.push({
-        path: filePath,
-        id: sessionId,
-        project: projSlug,
-        mtime,
-      });
+      sessions.push({ path: filePath, id: sessionId, project: slug, mtime });
     }
   }
 
   return sessions.sort((a, b) => a.mtime.getTime() - b.mtime.getTime());
 }
 
+async function firstLineOf(filePath: string): Promise<string | null> {
+  const content = await readFile(filePath, "utf-8");
+  const newlineIdx = content.indexOf("\n");
+  const line = newlineIdx === -1 ? content : content.slice(0, newlineIdx);
+  return line.trim() || null;
+}
+
 // ── Session parsing ─────────────────────────────────────────────────────────
 
-async function parseSession(
-  filePath: string
-): Promise<SessionEntry[]> {
+async function parseSession(filePath: string): Promise<SessionEntry[]> {
   const content = await readFile(filePath, "utf-8");
   const lines = content.split("\n").filter(Boolean);
   const entries: SessionEntry[] = [];
@@ -189,111 +216,144 @@ async function parseSession(
   return entries;
 }
 
-function extractTextFromContent(
-  content: Array<{ type: string; text?: string; thinking?: string }>
-): string {
+function extractTextFromContent(content: ContentBlock[]): string {
   return content
     .filter((c) => c.type === "text" && c.text)
     .map((c) => c.text!)
     .join("\n");
 }
 
-function extractThinkingFromContent(
-  content: Array<{ type: string; thinking?: string }>
-): string {
+function extractThinkingFromContent(content: ContentBlock[]): string {
   return content
     .filter((c) => c.type === "thinking" && c.thinking)
     .map((c) => c.thinking!)
     .join("\n");
 }
 
-function extractFilePaths(text: string): string[] {
+/** Combined reasoning+visible text for an assistant turn — decisions and
+ * learnings can show up in either, not just extended-thinking blocks. */
+function extractReasoningText(content: ContentBlock[]): string {
+  return [extractThinkingFromContent(content), extractTextFromContent(content)]
+    .filter(Boolean)
+    .join("\n");
+}
+
+const FILE_MUTATION_TOOLS = new Set(["edit", "write", "multiedit"]);
+
+/** Files actually touched, read from real toolCall arguments (path/file_path)
+ * rather than guessed from prose. Falls back to a light regex scan over the
+ * conversation text only when no tool calls are present at all (e.g. a
+ * discussion-only session). */
+function extractFilePaths(entries: SessionEntry[], allText: string): string[] {
   const paths = new Set<string>();
+
+  for (const entry of entries) {
+    if (entry.type !== "message") continue;
+    const content = entry.message?.content || [];
+    for (const block of content) {
+      if (block.type !== "toolCall") continue;
+      const name = (block.name || "").toLowerCase();
+      if (!FILE_MUTATION_TOOLS.has(name)) continue;
+      const args = block.arguments || {};
+      const path = (args.path || args.file_path) as string | undefined;
+      if (path) paths.add(path);
+    }
+  }
+
+  if (paths.size > 0) return Array.from(paths).slice(0, 10);
+
+  // Fallback: no recognized tool calls in this session — best-effort regex.
   const patterns = [
     /(?:^|\s)([\w/.-]+\.(?:ts|tsx|js|jsx|json|md|yaml|yml|css|scss|html|py|rb|go|rs|sh))\b/g,
     /(?:src|app|lib|components?|pages?|routes?|utils?|helpers?)\/[\w/.-]+/g,
   ];
-
   for (const pattern of patterns) {
     let match;
-    while ((match = pattern.exec(text)) !== null) {
+    while ((match = pattern.exec(allText)) !== null) {
       const path = match[1] || match[0];
       if (path.length > 3 && !path.startsWith("node_modules")) {
         paths.add(path.trim());
       }
     }
   }
-
   return Array.from(paths).slice(0, 10);
 }
 
-function extractErrors(
-  entries: SessionEntry[]
-): Array<{ error: string; solution: string }> {
+/** Errors read from real toolResult messages (role: "toolResult",
+ * isError: true) — the previous exitCode/tool_result shape never matched
+ * the actual schema and this extraction was silently a no-op. */
+function extractErrors(entries: SessionEntry[]): Array<{ error: string; solution: string }> {
   const errors: Array<{ error: string; solution: string }> = [];
 
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
-    if (entry.type !== "message") continue;
+    if (entry.type !== "message" || entry.message?.role !== "toolResult") continue;
+    if (!entry.message.isError) continue;
 
-    const content = entry.message?.content || [];
+    const content = entry.message.content || [];
+    const text = extractTextFromContent(content) || entry.message.details?.error || "";
+    if (!text) continue;
 
-    for (const block of content) {
-      if (block.type === "tool_result" && block.tool_result) {
-        const output = block.tool_result.output || "";
-        const exitCode = block.tool_result.exitCode;
-
-        if (exitCode && exitCode !== 0) {
-          let solution = "";
-          for (let j = i + 1; j < Math.min(i + 5, entries.length); j++) {
-            const next = entries[j];
-            if (
-              next.type === "message" &&
-              next.message?.role === "assistant"
-            ) {
-              const nextContent = next.message?.content || [];
-              const thinking = extractThinkingFromContent(nextContent);
-              if (thinking) {
-                solution = thinking.slice(0, 200);
-                break;
-              }
-            }
-          }
-
-          errors.push({
-            error: output.slice(0, 150),
-            solution: solution || "No solution recorded",
-          });
+    let solution = "";
+    for (let j = i + 1; j < Math.min(i + 5, entries.length); j++) {
+      const next = entries[j];
+      if (next.type === "message" && next.message?.role === "assistant") {
+        const reasoning = extractReasoningText(next.message.content || []);
+        if (reasoning) {
+          solution = truncateAtWord(reasoning, 200);
+          break;
         }
       }
     }
+
+    errors.push({
+      error: truncateAtWord(text, 150),
+      solution: solution || "No solution recorded",
+    });
   }
 
   return errors.slice(0, 5);
+}
+
+const DECISION_PATTERNS = [
+  /(?:decided|chose|going with|instead of|rather than|picked)\s+(.{20,100})/gi,
+  /(?:because|since|given that)\s+(.{20,100})/gi,
+];
+
+const LEARNING_PATTERNS = [
+  /(?:learned|realized|turns out|important to note)\s+(.{20,150})/gi,
+  /(?:gotcha|pitfall|watch out|be careful)\s+(.{20,150})/gi,
+  /(?:note:|NB:)\s+(.{20,150})/gi,
+];
+
+function truncateAtWord(text: string, maxLen: number): string {
+  const trimmed = collapseWhitespace(text);
+  if (trimmed.length <= maxLen) return trimmed;
+  const cut = trimmed.slice(0, maxLen);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > maxLen * 0.6 ? cut.slice(0, lastSpace) : cut).trim() + "…";
+}
+
+/** Collapse raw tool-output whitespace (multi-line ls/npm/error dumps) into a
+ * single line — otherwise a bullet in gotchas.md/current.md ends up spanning
+ * several physical lines and corrupts the list structure. */
+function collapseWhitespace(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
 }
 
 function extractDecisions(entries: SessionEntry[]): string[] {
   const decisions: string[] = [];
 
   for (const entry of entries) {
-    if (entry.type !== "message") continue;
-    if (entry.message?.role !== "assistant") continue;
+    if (entry.type !== "message" || entry.message?.role !== "assistant") continue;
+    const reasoning = extractReasoningText(entry.message.content || []);
+    if (!reasoning) continue;
 
-    const content = entry.message?.content || [];
-    const thinking = extractThinkingFromContent(content);
-
-    const decisionPatterns = [
-      /(?:decided|chose|going with|instead of|rather than|picked)\s+(.{20,100})/gi,
-      /(?:because|since|given that)\s+(.{20,100})/gi,
-    ];
-
-    for (const pattern of decisionPatterns) {
+    for (const pattern of DECISION_PATTERNS) {
       let match;
-      while ((match = pattern.exec(thinking)) !== null) {
-        const decision = match[0].slice(0, 150);
-        if (!decisions.includes(decision)) {
-          decisions.push(decision);
-        }
+      while ((match = pattern.exec(reasoning)) !== null) {
+        const decision = truncateAtWord(match[0], 150);
+        if (!decisions.includes(decision)) decisions.push(decision);
       }
     }
   }
@@ -301,31 +361,19 @@ function extractDecisions(entries: SessionEntry[]): string[] {
   return decisions.slice(0, 5);
 }
 
-function extractLearnings(
-  entries: SessionEntry[]
-): string[] {
+function extractLearnings(entries: SessionEntry[]): string[] {
   const learnings: string[] = [];
 
   for (const entry of entries) {
-    if (entry.type !== "message") continue;
-    if (entry.message?.role !== "assistant") continue;
+    if (entry.type !== "message" || entry.message?.role !== "assistant") continue;
+    const reasoning = extractReasoningText(entry.message.content || []);
+    if (!reasoning) continue;
 
-    const content = entry.message?.content || [];
-    const thinking = extractThinkingFromContent(content);
-
-    const learningPatterns = [
-      /(?:learned|realized|turns out| turns out|important to note)\s+(.{20,150})/gi,
-      /(?:gotcha|pitfall|watch out|be careful)\s+(.{20,150})/gi,
-      /(?:note:|NB:)\s+(.{20,150})/gi,
-    ];
-
-    for (const pattern of learningPatterns) {
+    for (const pattern of LEARNING_PATTERNS) {
       let match;
-      while ((match = pattern.exec(thinking)) !== null) {
-        const learning = match[0].slice(0, 200);
-        if (!learnings.includes(learning)) {
-          learnings.push(learning);
-        }
+      while ((match = pattern.exec(reasoning)) !== null) {
+        const learning = truncateAtWord(match[0], 200);
+        if (!learnings.includes(learning)) learnings.push(learning);
       }
     }
   }
@@ -350,18 +398,14 @@ function summarizeSession(
   const modelEntry = entries.find((e) => e.type === "model_change");
   const model = modelEntry?.modelId || "unknown";
 
-  const firstTimestamp = entries[0]?.timestamp
-    ? new Date(entries[0].timestamp).getTime()
-    : 0;
+  const firstTimestamp = entries[0]?.timestamp ? new Date(entries[0].timestamp).getTime() : 0;
   const lastTimestamp = entries[entries.length - 1]?.timestamp
     ? new Date(entries[entries.length - 1].timestamp).getTime()
     : 0;
   const durationMs = lastTimestamp - firstTimestamp;
   const durationMin = Math.round(durationMs / 60000);
   const duration =
-    durationMin < 60
-      ? `${durationMin}m`
-      : `${Math.floor(durationMin / 60)}h ${durationMin % 60}m`;
+    durationMin < 60 ? `${durationMin}m` : `${Math.floor(durationMin / 60)}h ${durationMin % 60}m`;
 
   const userMessages = entries
     .filter((e) => e.type === "message" && e.message?.role === "user")
@@ -381,7 +425,7 @@ function summarizeSession(
   const intent = firstUserMessage.slice(0, 200).replace(/\n/g, " ");
 
   const allText = [...userMessages, ...assistantMessages].join("\n");
-  const filesTouched = extractFilePaths(allText);
+  const filesTouched = extractFilePaths(entries, allText);
 
   const decisions = extractDecisions(entries);
   const errors = extractErrors(entries);
@@ -434,17 +478,13 @@ function generateMarkdown(summary: SessionSummary): string {
 
   if (summary.decisions.length > 0) {
     lines.push("## Decisions");
-    for (const decision of summary.decisions) {
-      lines.push(`- ${decision}`);
-    }
+    for (const decision of summary.decisions) lines.push(`- ${decision}`);
     lines.push("");
   }
 
   if (summary.filesTouched.length > 0) {
     lines.push("## Files Touched");
-    for (const file of summary.filesTouched) {
-      lines.push(`- \`${file}\``);
-    }
+    for (const file of summary.filesTouched) lines.push(`- \`${file}\``);
     lines.push("");
   }
 
@@ -461,9 +501,7 @@ function generateMarkdown(summary: SessionSummary): string {
 
   if (summary.learnings.length > 0) {
     lines.push("## Learnings");
-    for (const learning of summary.learnings) {
-      lines.push(`- ${learning}`);
-    }
+    for (const learning of summary.learnings) lines.push(`- ${learning}`);
     lines.push("");
   }
 
@@ -478,56 +516,84 @@ function generateMarkdown(summary: SessionSummary): string {
 
 // ── Brain file updates (zero-token auto-learning) ──────────────────────────
 
-async function appendIfNew(filePath: string, lines: string[]): Promise<boolean> {
-  if (lines.length === 0) return false;
-  const existing = existsSync(filePath) ? await readFile(filePath, "utf-8") : "";
-  const newLines = lines.filter((l) => !existing.includes(l.trim()));
-  if (newLines.length === 0) return false;
-  const separator = existing.endsWith("\n\n") || existing.endsWith("\n") ? "" : existing ? "\n" : "";
-  await writeFile(filePath, existing + separator + newLines.join("\n") + "\n");
-  return true;
+/** Lines that talk *about* the gotcha/current tooling itself rather than
+ * describing an actual fact — these regexes reliably fire on conversations
+ * about the memory pipeline (e.g. this very script) and pollute the vault. */
+const META_NOISE_PATTERN = /\b(higgins|kb)\s+(gotcha|current|save|digest|next)\b|`gotcha|`kb |`higgins /i;
+
+function normalize(line: string): string {
+  return line.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-async function updateBrainFiles(summary: SessionSummary): Promise<void> {
+async function appendIfNew(filePath: string, candidates: string[], budget: { remaining: number }): Promise<number> {
+  if (budget.remaining <= 0) return 0;
+  const clean = candidates.filter((l) => l.trim().length >= 20 && !META_NOISE_PATTERN.test(l));
+  if (clean.length === 0) return 0;
+
+  const existing = existsSync(filePath) ? await readFile(filePath, "utf-8") : "";
+  const existingNormalized = new Set(
+    existing
+      .split("\n")
+      .filter((l) => l.trim().startsWith("-"))
+      .map(normalize)
+  );
+
+  const seen = new Set(existingNormalized);
+  const newLines: string[] = [];
+  for (const line of clean) {
+    if (newLines.length >= budget.remaining) break;
+    const n = normalize(line);
+    if (seen.has(n)) continue;
+    seen.add(n);
+    newLines.push(line);
+  }
+
+  if (newLines.length === 0) return 0;
+
+  const separator = existing.endsWith("\n\n") || existing.endsWith("\n") ? "" : existing ? "\n" : "";
+  await writeFile(filePath, existing + separator + newLines.join("\n") + "\n");
+  budget.remaining -= newLines.length;
+  return newLines.length;
+}
+
+async function updateBrainFiles(
+  summary: SessionSummary,
+  budgets: { gotchas: { remaining: number }; current: { remaining: number } }
+): Promise<string[]> {
   const brainDir = join(VAULT_AI, "personal");
   await mkdir(brainDir, { recursive: true });
+  const notes: string[] = [];
 
-  // Gotchas: error patterns, pitfalls, gotchas
-  const gotchaLines: string[] = [];
-  for (const { error, solution } of summary.errors) {
-    const gotcha = `- ${error.slice(0, 100)} → ${solution.slice(0, 100)}`;
-    gotchaLines.push(gotcha);
-  }
-  for (const learning of summary.learnings) {
-    if (/gotcha|pitfall|watch out|be careful|don't|never|always|caveat/i.test(learning)) {
-      gotchaLines.push(`- ${learning}`);
-    }
-  }
-  if (gotchaLines.length > 0) {
-    const gotchasFile = join(brainDir, "gotchas.md");
-    if (await appendIfNew(gotchasFile, gotchaLines)) {
-      console.log(`   🧠 Updated gotchas.md (+${gotchaLines.length})`);
-    }
+  // Only promote errors that actually resolved to something — a transient
+  // "Command aborted" with no recorded fix isn't a durable trap worth
+  // keeping forever, it's session noise.
+  const gotchaCandidates: string[] = [
+    ...summary.errors
+      .filter(({ solution }) => solution !== "No solution recorded" && solution.trim().length >= 20)
+      .map(({ error, solution }) => `- ${error.slice(0, 100)} → ${solution.slice(0, 100)}`),
+    ...summary.learnings
+      .filter((l) => /gotcha|pitfall|watch out|be careful|don't|never|always|caveat/i.test(l))
+      .map((l) => `- ${l}`),
+  ];
+  if (gotchaCandidates.length > 0) {
+    const n = await appendIfNew(join(brainDir, "gotchas.md"), gotchaCandidates, budgets.gotchas);
+    if (n > 0) notes.push(`gotchas.md +${n}`);
   }
 
-  // Current: preferences, patterns, decisions
-  const currentLines: string[] = [];
-  for (const decision of summary.decisions) {
-    if (/prefer|always use|instead of|rather than|switched to/i.test(decision)) {
-      currentLines.push(`- ${decision}`);
-    }
+  const currentCandidates: string[] = [
+    ...summary.decisions
+      .filter((d) => /prefer|always use|instead of|rather than|switched to/i.test(d))
+      .map((d) => `- ${d}`),
+    ...summary.learnings
+      .filter((l) => /prefer|pattern|convention|style|workflow/i.test(l))
+      .map((l) => `- ${l}`),
+  ];
+  if (currentCandidates.length > 0) {
+    const n = await appendIfNew(join(brainDir, "current.md"), currentCandidates, budgets.current);
+    if (n > 0) notes.push(`current.md +${n}`);
   }
-  for (const learning of summary.learnings) {
-    if (/prefer|pattern|convention|style|workflow/i.test(learning)) {
-      currentLines.push(`- ${learning}`);
-    }
-  }
-  if (currentLines.length > 0) {
-    const currentFile = join(brainDir, "current.md");
-    if (await appendIfNew(currentFile, currentLines)) {
-      console.log(`   🧠 Updated current.md (+${currentLines.length})`);
-    }
-  }
+
+  return notes;
 }
 
 // ── Logging with timestamps ────────────────────────────────────────────────
@@ -535,6 +601,29 @@ async function updateBrainFiles(summary: SessionSummary): Promise<void> {
 function log(msg: string): void {
   const iso = new Date().toISOString();
   console.log(`[${iso}] ${msg}`);
+}
+
+/** Run async work over items with bounded concurrency. Session parsing is
+ * I/O-bound (file read + JSON parse per line); brain-file writes stay
+ * strictly serial (see main) since they read-modify-write shared files. */
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = Array.from({ length: items.length });
+  let next = 0;
+
+  async function worker() {
+    while (true) {
+      const i = next++;
+      if (i >= items.length) return;
+      results[i] = await fn(items[i]);
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
 }
 
 // ── Main ────────────────────────────────────────────────────────────────────
@@ -546,33 +635,41 @@ async function main() {
   const prevProcessedCount = Object.keys(state.processed).length;
 
   log("🔍 Discovering sessions...");
-  const sessions = await discoverSessions(opts.since, opts.project);
-  log(`   Found ${sessions.length} sessions`);
+  const allSessions = await discoverSessions(opts.since, opts.project);
+  log(`   Found ${allSessions.length} sessions`);
   log(`   Previously processed: ${prevProcessedCount} sessions`);
 
-  let extracted = 0;
-  let skipped = 0;
-  let skipReasons: Record<string, number> = { "already processed": 0, "empty": 0 };
+  const pending = allSessions.filter((session) => {
+    if (opts.reindex) return true;
+    const processedTime = state.processed[session.id];
+    if (!processedTime) return true;
+    return session.mtime > new Date(processedTime);
+  });
+  const skippedCount = allSessions.length - pending.length;
 
-  for (const session of sessions) {
-    if (!opts.reindex && state.processed[session.id]) {
-      const processedTime = new Date(state.processed[session.id]);
-      if (session.mtime <= processedTime) {
-        skipReasons["already processed"]++;
-        skipped++;
-        continue;
-      }
-    }
-
+  // Parse + summarize in parallel (I/O-bound); writes happen serially below.
+  const summarized = await mapWithConcurrency(pending, 8, async (session) => {
     log(`📝 Processing: ${session.id} (${session.project})`);
-
     const entries = await parseSession(session.path);
     const summary = summarizeSession(entries, session.project, session.id);
+    return { session, summary };
+  });
 
+  // Run-wide budget: caps total additions across ALL sessions processed in
+  // this invocation, not per session (a --reindex pass over 50+ sessions
+  // would otherwise flood the file well past the cap).
+  const budgets = {
+    gotchas: { remaining: MAX_GOTCHAS_PER_RUN },
+    current: { remaining: MAX_CURRENT_PER_RUN },
+  };
+
+  let extracted = 0;
+  let emptySkipped = 0;
+
+  for (const { session, summary } of summarized) {
     if (!summary) {
-      log(`   ⚠️  Empty session, skipping`);
-      skipReasons["empty"]++;
-      skipped++;
+      log(`   ⚠️  Empty session, skipping: ${session.id}`);
+      emptySkipped++;
       continue;
     }
 
@@ -582,8 +679,7 @@ async function main() {
     const year = dateParts[0] || "unknown";
     const month = dateParts[1] || "01";
     const outDir = join(VAULT_SESSIONS_DIR, year, month);
-    // Sortable filename: YYYY-MM-DD-HH-mm-ss_project_shortId.md
-    const timestamp = summary.date.split(".")[0].replace(/[T:]/g, "-"); // 2026-07-28-12-52-00
+    const timestamp = summary.date.split(".")[0].replace(/[T:]/g, "-");
     const shortId = summary.id.slice(0, 8);
     const outFile = join(outDir, `${timestamp}_${summary.project}_${shortId}.md`);
 
@@ -598,46 +694,8 @@ async function main() {
       log(`      Timestamp: ${timestamp} | Project: ${summary.project} | ID: ${shortId}...`);
       log(`      Intent: ${summary.intent.slice(0, 60)}...`);
 
-      // Auto-update brain files (zero-token learning) with audit trail
-      const brainDir = join(VAULT_AI, "personal");
-      await mkdir(brainDir, { recursive: true });
-
-      // Gotchas
-      const gotchaLines: string[] = [];
-      for (const { error, solution } of summary.errors) {
-        const gotcha = `- ${error.slice(0, 100)} → ${solution.slice(0, 100)}`;
-        gotchaLines.push(gotcha);
-      }
-      for (const learning of summary.learnings) {
-        if (/gotcha|pitfall|watch out|be careful|don't|never|always|caveat/i.test(learning)) {
-          gotchaLines.push(`- ${learning}`);
-        }
-      }
-      if (gotchaLines.length > 0) {
-        const gotchasFile = join(brainDir, "gotchas.md");
-        if (await appendIfNew(gotchasFile, gotchaLines)) {
-          log(`   🧠 Janitor: gotchas.md +${gotchaLines.length} (${gotchaLines.slice(0, 2).map(l => l.slice(0, 40)).join(' | ')})`);
-      }
-      }
-
-      // Current
-      const currentLines: string[] = [];
-      for (const decision of summary.decisions) {
-        if (/prefer|always use|instead of|rather than|switched to/i.test(decision)) {
-          currentLines.push(`- ${decision}`);
-        }
-      }
-      for (const learning of summary.learnings) {
-        if (/prefer|pattern|convention|style|workflow/i.test(learning)) {
-          currentLines.push(`- ${learning}`);
-        }
-      }
-      if (currentLines.length > 0) {
-        const currentFile = join(brainDir, "current.md");
-        if (await appendIfNew(currentFile, currentLines)) {
-          log(`   🧠 Janitor: current.md +${currentLines.length} (${currentLines.slice(0, 2).map(l => l.slice(0, 40)).join(' | ')})`);
-        }
-      }
+      const brainNotes = await updateBrainFiles(summary, budgets);
+      if (brainNotes.length > 0) log(`   🧠 Brain updated: ${brainNotes.join(", ")}`);
 
       state.processed[session.id] = new Date().toISOString();
     }
@@ -653,7 +711,7 @@ async function main() {
   const newProcessedCount = Object.keys(state.processed).length;
   log(`\n📊 Summary:`);
   log(`   Extracted: ${extracted}`);
-  log(`   Skipped: ${skipped} (${Object.entries(skipReasons).map(([k, v]) => `${k}: ${v}`).join(", ")})`);
+  log(`   Skipped: ${skippedCount + emptySkipped} (already processed: ${skippedCount}, empty: ${emptySkipped})`);
   log(`   Total processed state: ${prevProcessedCount} → ${newProcessedCount}`);
   log(`   Vault: ${VAULT_SESSIONS_DIR}`);
   log(`   Duration: ${(elapsedMs / 1000).toFixed(1)}s`);

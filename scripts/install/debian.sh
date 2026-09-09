@@ -29,10 +29,13 @@ PKGS=""
 PKGS+=" $(read_list "$LIST_DIR/base.txt")"
 
 case "$PROFILE" in
-    desktop-full)    PKGS+=" $(read_list "$LIST_DIR/desktop.txt")" ;;
+    desktop-full) PKGS+=" $(read_list "$LIST_DIR/desktop.txt")" ;;
     server-headless) PKGS+=" $(read_list "$LIST_DIR/server.txt")" ;;
-    wsl)             PKGS+=" $(read_list "$LIST_DIR/wsl.txt")" ;;
-    *) echo "Unknown profile: $PROFILE" >&2; exit 2;;
+    wsl) PKGS+=" $(read_list "$LIST_DIR/wsl.txt")" ;;
+    *)
+        echo "Unknown profile: $PROFILE" >&2
+        exit 2
+        ;;
 esac
 
 log "profile=$PROFILE"
@@ -47,8 +50,8 @@ if ! command -v gum >/dev/null 2>&1; then
     log "adding Charmbracelet apt repo for gum…"
     sudo mkdir -p /etc/apt/keyrings
     curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
-    echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" \
-        | sudo tee /etc/apt/sources.list.d/charm.list >/dev/null
+    echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" |
+        sudo tee /etc/apt/sources.list.d/charm.list >/dev/null
     sudo apt-get update -y && sudo apt-get install -y gum
 fi
 
@@ -56,11 +59,11 @@ fi
 if ! command -v gh >/dev/null 2>&1; then
     log "adding GitHub CLI apt repo for gh…"
     sudo mkdir -p /etc/apt/keyrings
-    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-        | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg |
+        sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
     sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
-        | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" |
+        sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
     sudo apt-get update -y && sudo apt-get install -y gh
 fi
 

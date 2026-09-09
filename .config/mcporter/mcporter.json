@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/openclaw/mcporter/main/mcporter.schema.json",
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "lifecycle": "keep-alive"
+    },
+    "codebase-memory-mcp": {
+      "command": "/Users/Christian.Brostrom/.local/bin/codebase-memory-mcp",
+      "args": [],
+      "lifecycle": "keep-alive"
+    },
+    "shopify-dev-mcp": {
+      "command": "npx",
+      "args": ["-y", "@shopify/dev-mcp@latest"],
+      "lifecycle": "keep-alive"
+    },
+    "dockhand-linuxbro": {
+      "baseUrl": "http://100.100.1.100:8092/mcp"
+    },
+    "dockhand-superbro": {
+      "baseUrl": "http://100.100.1.50:8080/mcp"
+    },
+    "atlassian-fiskars": {
+      "baseUrl": "https://mcp.atlassian.com/v1/sse",
+      "tokenCacheDir": "${HOME}/.mcporter/tokens/atlassian-fiskars",
+      "oauthRedirectUrl": "http://127.0.0.1:65432/callback",
+      "auth": "oauth",
+      "disabled": true,
+      "_note": "Fiskars org admin restricts OAuth redirect URL allowlist. Fixed redirect http://127.0.0.1:65432/callback still needs org admin allowlist for fiskars.atlassian.net."
+    },
+    "atlassian-akqa": {
+      "baseUrl": "https://mcp.atlassian.com/v1/sse",
+      "auth": "oauth",
+      "tokenCacheDir": "${HOME}/.mcporter/tokens/atlassian-akqa",
+      "lifecycle": "keep-alive"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+name = "Dockhand · superbro"
+description = "Homelab Docker stacks"
+type = "command"
+command = "open https://100.100.1.50"

@@ -1,8 +1,7 @@
 # Memory (Engram + Graphiti) — shared routing rules
 
-Canonical source for both Claude Code and Cursor. Edit only this file. Claude
-includes via `@engram-graphiti.md`; Cursor reads from cloud User Rules (paste
-content of this file there once, re-paste when this file changes).
+Legacy Engram/Graphiti routing notes (Higgins is the primary vault). Edit only this file.
+Cursor may paste into cloud User Rules if still used; Pi/agents use Higgins MCP.
 
 **Primary brain: flat-file vault (`~/Vaults/AI/brains/<slug>.md`).** Brain hook loads it automatically at session start. Engram = write-only by default; query only on explicit `.recall`. Graphiti = disabled until relational queries are needed at scale.
 
@@ -45,13 +44,6 @@ MCP tool names are prefixed by server name and have `mem_*` action suffix
 
 Always use `engram-personal`. No vault switching needed.
 
-### Device state sync (Claude Code only — irrelevant for Cursor)
-
-At session start, Claude reads
-`~/.config/dotfiles/.claude/devices/<hostname>.json` and saves it to
-`engram-personal` with `topic_key=devices/<hostname>`. Cursor sessions skip
-this — there is no equivalent device-snapshot hook. Do not fail or warn if
-the file is absent.
 
 ## Graphiti — knowledge graph (temporal, relational)
 

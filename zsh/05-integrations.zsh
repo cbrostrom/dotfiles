@@ -6,7 +6,7 @@
 # =============================================================================
 # CURSOR EDITOR INTEGRATION (Cross-Platform)
 # =============================================================================
-# Sets up `cursor` command per OS. `code`/`vs` belong to VSCodium and are
+# Sets up `cursor` command per OS. `code`/`vs` (Zed-primary) are
 # defined in 04-functions.zsh — do not redefine them here.
 
 _find_windows_user_home() {
@@ -31,7 +31,11 @@ _setup_cursor_integration() {
         fi
     elif $IS_MACOS; then
         if [[ -x /usr/local/bin/cursor ]]; then
-            alias cursor=/usr/local/bin/cursor
+            cursor() {
+                local target="."
+                [[ -n "$1" ]] && target="$1"
+                /usr/local/bin/cursor "$target"
+            }
         elif [[ -d /Applications/Cursor.app ]]; then
             cursor() {
                 local target="."

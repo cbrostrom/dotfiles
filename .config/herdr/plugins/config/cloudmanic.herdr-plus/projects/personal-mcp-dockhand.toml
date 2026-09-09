@@ -1,0 +1,9 @@
+name = "mcp-dockhand"
+group = "Personal"
+working_dir = "~/Projects/personal/mcp-dockhand"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

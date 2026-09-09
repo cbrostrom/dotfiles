@@ -41,9 +41,9 @@ The runner enters each `install.sh` with `DOTFILES_DIR`, `MODULE_DIR`, and
 
 ```bash
 #!/usr/bin/env bash
-MODULE_NAME="vscodium"                      # must match directory name
-MODULE_DESC="VSCodium settings + extensions"
-MODULE_CATEGORY="editor"                    # core|shell|claude|editor|gui|tools|optional
+MODULE_NAME="example"                       # must match directory name
+MODULE_DESC="Example module description"
+MODULE_CATEGORY="editor"                    # core|shell|editor|gui|tools|optional
 MODULE_PLATFORMS="macos linux wsl"          # default: all
 MODULE_PROFILES="desktop-full wsl"          # default: all
 MODULE_CORE=false                           # default: false
@@ -73,7 +73,7 @@ MODULE_DEFAULT_ENABLED=true                 # default: true
 # prefix '!' to disable (overrides MODULE_DEFAULT_ENABLED=true)
 # bare name explicitly enables (overrides MODULE_DEFAULT_ENABLED=false)
 
-beets                # opt-in module — enable on this machine
+rbw                  # opt-in module — enable on this machine
 !fonts               # disable fonts even though they'd default-on
 ```
 
@@ -94,7 +94,7 @@ CLI / env precedence (later wins):
 ./bootstrap.sh --info=fonts        # detail view: deps, status, last-run, hints
 ./bootstrap.sh --diff=symlinks     # preview what the module would do (or print install.sh)
 ./bootstrap.sh --only=fonts,zsh    # run only these (and their deps)
-./bootstrap.sh --skip=mcp-servers  # run all except this
+./bootstrap.sh --skip=fonts  # run all except this
 ./bootstrap.sh --doctor            # diagnostic only
 ```
 

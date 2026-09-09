@@ -1,0 +1,4 @@
+name = "SSH · superbro"
+description = "SSH to superbro VPS"
+type = "command"
+command = "ssh superbro"

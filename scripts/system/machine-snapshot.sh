@@ -49,7 +49,7 @@ md ""
 
 # ─── Load ─────────────────────────────────────────────────────────────────────
 md "## Load & Resources"
-read -r L1 L5 L15 <<< "$(awk '{print $1,$2,$3}' /proc/loadavg)"
+read -r L1 L5 L15 <<<"$(awk '{print $1,$2,$3}' /proc/loadavg)"
 md "- **Load avg (1/5/15m)**: $L1 / $L5 / $L15"
 MEM=$(free -h | awk '/^Mem:/{printf "total=%s used=%s free=%s available=%s", $2, $3, $4, $7}')
 SWAP=$(free -h | awk '/^Swap:/{printf "total=%s used=%s free=%s", $2, $3, $4}')
@@ -147,10 +147,10 @@ fi
 # ─── System services ──────────────────────────────────────────────────────────
 md "## System Services (notable running)"
 if command -v systemctl &>/dev/null; then
-    systemctl list-units --type=service --state=running --no-legend 2>/dev/null \
-        | grep -Ev "docker|snap|systemd|dbus|network|udev|log|cron|ssh|udisk|polkit|avahi|rtkit|acpid|bluetoo|ModemMa|power|user@|getty|wpa_sup|containerd" \
-        | awk '{print "- " $1}' \
-        | head -40
+    systemctl list-units --type=service --state=running --no-legend 2>/dev/null |
+        grep -Ev "docker|snap|systemd|dbus|network|udev|log|cron|ssh|udisk|polkit|avahi|rtkit|acpid|bluetoo|ModemMa|power|user@|getty|wpa_sup|containerd" |
+        awk '{print "- " $1}' |
+        head -40
 fi
 md ""
 

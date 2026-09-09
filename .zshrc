@@ -89,6 +89,9 @@ if [[ -d "$ZSH_MODULES_DIR" ]]; then
     # 09 - Herdr agent state integration
     [[ -f "$ZSH_MODULES_DIR/09-herdr.zsh" ]] && source "$ZSH_MODULES_DIR/09-herdr.zsh"
 
+    # 10 - Cmux orchestration helpers
+    [[ -f "$ZSH_MODULES_DIR/09-cmux.zsh" ]] && source "$ZSH_MODULES_DIR/09-cmux.zsh"
+
     # Per-host overrides BEFORE Zellij auto-attach so a host can opt out
     [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
 else
@@ -139,3 +142,11 @@ fi
 
 # Added by codebase-memory-mcp install
 export PATH="/Users/Christian.Brostrom/.local/bin:$PATH"
+
+# Drop stale llmtrim CA/proxy env inherited from long-lived parents (Orca, etc.).
+# llmtrim was removed; missing certs make Node print NODE_EXTRA_CA_CERTS warnings.
+if [[ ! -f "$HOME/.llmtrim/ca.pem" ]]; then
+  unset NODE_EXTRA_CA_CERTS SSL_CERT_FILE CURL_CA_BUNDLE NODE_USE_ENV_PROXY
+  unset HTTPS_PROXY HTTP_PROXY ALL_PROXY https_proxy http_proxy all_proxy
+  unset NO_PROXY no_proxy
+fi

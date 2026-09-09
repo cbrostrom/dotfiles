@@ -23,12 +23,12 @@ else
 fi
 
 # Single-line logs. All write to stdout except err which goes to stderr.
-log()    { [[ "${DOTFILES_QUIET:-0}" == "1" ]] || printf "%s[bootstrap]%s %s\n" "$_C_BLUE"    "$_C_RESET" "$*"; }
-ok()     { [[ "${DOTFILES_QUIET:-0}" == "1" ]] || printf "%s[ ok ]%s %s\n"     "$_C_GREEN"   "$_C_RESET" "$*"; }
-warn()   { printf "%s[warn]%s %s\n"   "$_C_YELLOW"  "$_C_RESET" "$*"; }
-err()    { printf "%s[err ]%s %s\n"   "$_C_RED"     "$_C_RESET" "$*" >&2; }
-info()   { [[ "${DOTFILES_QUIET:-0}" == "1" ]] || printf "%s[info]%s %s\n"     "$_C_CYAN"    "$_C_RESET" "$*"; }
-skip()   { [[ "${DOTFILES_QUIET:-0}" == "1" ]] || printf "%s[skip]%s %s\n"     "$_C_DIM"     "$_C_RESET" "$*"; }
+log() { [[ "${DOTFILES_QUIET:-0}" == "1" ]] || printf "%s[bootstrap]%s %s\n" "$_C_BLUE" "$_C_RESET" "$*"; }
+ok() { [[ "${DOTFILES_QUIET:-0}" == "1" ]] || printf "%s[ ok ]%s %s\n" "$_C_GREEN" "$_C_RESET" "$*"; }
+warn() { printf "%s[warn]%s %s\n" "$_C_YELLOW" "$_C_RESET" "$*"; }
+err() { printf "%s[err ]%s %s\n" "$_C_RED" "$_C_RESET" "$*" >&2; }
+info() { [[ "${DOTFILES_QUIET:-0}" == "1" ]] || printf "%s[info]%s %s\n" "$_C_CYAN" "$_C_RESET" "$*"; }
+skip() { [[ "${DOTFILES_QUIET:-0}" == "1" ]] || printf "%s[skip]%s %s\n" "$_C_DIM" "$_C_RESET" "$*"; }
 
 # Headers and dividers used by the runner.
 hdr() {

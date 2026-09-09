@@ -1,0 +1,9 @@
+name = "wppcom"
+group = "WPP"
+working_dir = "~/Projects/clients/WPP/wppcom"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

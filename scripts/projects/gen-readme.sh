@@ -46,6 +46,6 @@ OUT="$PROJECTS_ROOT/README.md"
     printf '\n## Project farm\n\n'
     printf 'A flat symlink farm at `~/.project-farm/` exposes every repo to fuzzy finders and sessionizers.\n'
     printf 'Run `scripts/projects/sync-symlinks.sh` to regenerate it after cloning new repos.\n'
-} > "$OUT"
+} >"$OUT"
 
 ok "Wrote $OUT"

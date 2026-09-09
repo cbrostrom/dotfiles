@@ -1,4 +1,0 @@
-[
-  { "hooks": [{ "type": "command", "command": "/Users/X/.claude/hooks/entroly-start.sh", "async": false }] },
-  { "hooks": [{ "type": "command", "command": "/Users/X/.claude/hooks/new-hook.sh" }] }
-]

@@ -1,0 +1,10 @@
+name = "Dotfiles"
+description = "Pi daily driver for agent config"
+group = "Personal"
+working_dir = "~/dotfiles"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

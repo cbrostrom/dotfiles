@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
-# pre-commit hook
-#  - Syntax-check shell/zsh files before commit.
-#  - Refresh .claude/devices/<host>.json + stage it when commit already
-#    touches .claude/ — keeps the snapshot in sync with each commit instead
-#    of leaving a permanently dirty file after every install.
+# pre-commit hook — syntax-check shell/zsh files before commit.
 #
 # Symlink into place: ln -sf ../../hooks/pre-commit .git/hooks/pre-commit
 
 set -euo pipefail
 
-# Skip snapshot refresh during stash operations — stash creates an internal
-# commit which would re-dirty the working tree immediately after stash.
+# Skip during stash operations — stash creates an internal commit.
 [[ "${GIT_REFLOG_ACTION:-}" == *stash* ]] && exit 0
 
 errors=0
@@ -20,7 +15,6 @@ if [[ -z "$changed" ]]; then
     exit 0
 fi
 
-# ── Shell syntax check ────────────────────────────────────────────────────
 while IFS= read -r f; do
     [[ -z "$f" ]] && continue
     [[ ! -f "$f" ]] && continue
@@ -49,25 +43,6 @@ if [[ $errors -gt 0 ]]; then
     echo ""
     echo "Commit aborted: $errors syntax error(s)." >&2
     exit 1
-fi
-
-# ── Device snapshot refresh (only when .claude/ already in the commit) ────
-repo_root="$(git rev-parse --show-toplevel)"
-snapshot_script="$repo_root/scripts/claude/device-snapshot.sh"
-
-if [[ -x "$snapshot_script" ]] && grep -q "^\.claude/" <<< "$changed"; then
-    host="$(hostname -s 2>/dev/null || hostname)"
-    snapshot_file="$repo_root/.claude/devices/${host}.json"
-
-    if bash "$snapshot_script" write >/dev/null 2>&1; then
-        # Stage only if the snapshot actually changed (avoids empty diffs).
-        if ! git diff --quiet -- "$snapshot_file" 2>/dev/null; then
-            git add -f "$snapshot_file"
-            echo "[pre-commit] refreshed device snapshot for $host"
-        fi
-    else
-        echo "⚠ device snapshot failed (non-blocking)" >&2
-    fi
 fi
 
 exit 0

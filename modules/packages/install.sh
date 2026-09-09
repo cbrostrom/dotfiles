@@ -25,7 +25,7 @@ brewfile_merged() {
                 cat "$overlay"
             fi
         done
-    } > "$merged"
+    } >"$merged"
     echo "$merged"
 }
 

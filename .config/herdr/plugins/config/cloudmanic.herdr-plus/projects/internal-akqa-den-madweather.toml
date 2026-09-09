@@ -1,0 +1,9 @@
+name = "akqa-den-madweather"
+group = "AKQA"
+working_dir = "~/Projects/internal/akqa-den-madweather"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

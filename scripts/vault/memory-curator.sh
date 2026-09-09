@@ -25,7 +25,10 @@ REPORT_FILE="$VAULT/_ops/curator-reports/$(date '+%Y-%m-%d').md"
 NOW="$(date '+%Y-%m-%d %H:%M')"
 CUTOFF_DAYS=14
 
-[[ -d "$BRAINS_DIR" ]] || { echo "No Brains dir found at $BRAINS_DIR"; exit 0; }
+[[ -d "$BRAINS_DIR" ]] || {
+    echo "No Brains dir found at $BRAINS_DIR"
+    exit 0
+}
 
 {
     echo "# Memory Curator Report — $NOW"
@@ -51,7 +54,7 @@ CUTOFF_DAYS=14
                     done_date="${BASH_REMATCH[1]}"
                     [[ "$done_date" < "$cutoff_date" ]] && ((stale_count++)) || true
                 fi
-            done < "$next_file"
+            done <"$next_file"
             [[ $stale_count -gt 0 ]] && issues+=("next.md: $stale_count done items older than ${CUTOFF_DAYS}d — safe to remove")
 
             total_items=$(grep -c '^\s*[-*]' "$next_file" 2>/dev/null || echo 0)
@@ -82,6 +85,6 @@ CUTOFF_DAYS=14
 
     echo "---"
     echo "_To apply: invoke the \`memory-curator\` agent in the relevant project._"
-} > "$REPORT_FILE"
+} >"$REPORT_FILE"
 
 echo "Curator report written: $REPORT_FILE"

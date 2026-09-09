@@ -63,12 +63,6 @@ gaming/config/launch.log
 # Zed sync state (machine-local timestamp)
 .zed-sync-ts
 
-# Claude machine-specific settings (merged into settings.json per machine)
-.claude/settings.local.json
-# Claude auto-approved permissions (machine-local, generated at runtime)
-.claude/settings.json
-# Claude device snapshots — tracked in git (no secrets, used for cross-host config)
-# .claude/devices/
 
 # Codex (not used)
 .codex/
@@ -79,9 +73,6 @@ gaming/config/launch.log
 .remember/
 *.zwc
 
-# Claude settings (3-layer merge)
-.claude/settings.override.json
-.claude/.settings-attestation
 .attic/
 
 # Herdr runtime state (generated, machine-local)
@@ -98,11 +89,6 @@ gaming/config/launch.log
 .config/pi/agent/npm/
 .config/pi/agent/pi-stats/
 
-# Externally-installed Claude skills (managed outside dotfiles)
-.claude/skills/paseo/
-.claude/skills/paseo-*/
-.claude/skills/use-spark/
-.claude/hooks/herdr-agent-state.sh
 *.original.md
 
 # Local MCP config (contains absolute paths, not shareable)

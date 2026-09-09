@@ -1,6 +1,6 @@
 ---
 name: fallow
-description: Codebase intelligence for JavaScript and TypeScript. Free static layer reports quality, changed-code risk, cleanup opportunities (unused files, exports, types, dependencies), code duplication, circular dependencies, complexity hotspots, architecture boundary violations, feature flag patterns, and opt-in security candidates. Use when asked to analyze code health, audit PR risk, find cleanup opportunities or unused code, detect duplicates, check circular deps, audit complexity, surface security candidates, or run fallow.
+description: "Static analysis for JS/TS. Reports quality, changed-code risk, unused files/exports/types/deps, duplication, circular deps, complexity hotspots, architecture violations, feature flags, security candidates. Triggers: analyze code health, audit PR risk, find unused code, detect duplicates, check circular deps, run fallow."
 license: MIT
 metadata:
   author: Bart Waardenburg

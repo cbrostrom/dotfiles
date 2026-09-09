@@ -1,0 +1,9 @@
+name = "extensions"
+group = "Fiskars"
+working_dir = "~/Projects/clients/Fiskars/stellar-shopify-apps/stellar-extensions"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

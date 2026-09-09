@@ -1,145 +1,115 @@
 ---
 name: pi
-description: PI coding agent daily-driver reference. Use when working inside PI, checking preset/recap/model choices, wiring MCP or subagentura, verifying hook health, or when asked how to use PI alongside the agnostic dotfiles setup. Also use when another agent needs to explain PI usage to the user.
+description: "Pi daily-driver reference. Use when checking models, MCP wiring, hook health, pi-cursor-sdk, or Pi usage alongside dotfiles. Triggers: Pi model selection, scoped models, Cursor SDK, MCP setup, hooks, subagents, Pi config."
 ---
 
 # PI Daily-Driver Skill
 
-Reference for Christian's PI coding agent daily-driver setup. PI uses Claude via
-GitHub Copilot and shares the same policy spine, skills, brain, and MCP servers
-as Cursor and Claude Code.
+Reference for Christian's PI coding agent daily-driver setup. Shares the same
+policy spine, skills, and vault as Cursor (and other agents via `.agents/`).
 
 ## Quick model reference
 
-Cursor subscription default. Presets live in `~/.config/pi/agent/spark.json`.
+Scoped models (`enabledModels` / Ctrl+P / `/scoped-models`) — from `settings.base.json`:
 
-| Preset | Model | Thinking | Use for |
-|--------|-------|----------|---------|
-| (default) | `opencode/big-pickle` | medium | Daily work (free zen proxy, $0) |
-| `fast` | `cursor/gpt-5.4-mini` | off | Shell, quick edits, cheap turns |
-| `sonnet` | `cursor/default` (Auto) | off | Same as default via `/preset` |
-| `think` | `cursor/claude-sonnet-4-6` | high | Planning, specs, deep review |
-| — (recap) | `opencode/big-pickle` | off | Idle/on-demand recap |
-| manual | `cursor/composer-2.5` | — | Deterministic agent coding via `/model` |
+| Model | Use for |
+|-------|---------|
+| `default` (cursor Auto, **default**) | Work account — included Auto pool |
+| `composer-2.5` | Work account — included Composer pool |
+| `github-copilot/claude-sonnet-5` | Copilot Sonnet |
+| `github-copilot/claude-opus-5` | Copilot Opus |
+| `github-copilot/gpt-5.6-*` | Copilot GPT 5.6 |
+| `github-copilot/claude-haiku-4.5` | Cheap Copilot Claude |
+| `github-copilot/gpt-5.4-mini` / `gpt-5-mini` | Cheap Copilot GPT |
+| `github-copilot/gemini-3.5-flash` | Copilot Gemini |
+| `opencode/big-pickle` | Free zen proxy when off work Cursor |
 
-Switch preset: `/preset fast`, `/preset sonnet`, `/preset think`
-Or start PI on a preset: `pi --preset sonnet`
-Show all models: `pi --list-models cursor`
+Non-allowlisted `cursor/*` models are omitted from `enabledModels` (guard would revert them).
 
-**Cost control:** Default driver `big-pickle` (opencode zen, $0 — no token spend). Escalate to Cursor subscription models only via `/preset` (fast/sonnet/think). Avoid parallel subagents unless the win is clear.
+Cycle: **Ctrl+P / Shift+Ctrl+P**. List: `/scoped-models`. Full registry: `/model` or `pi --list-models <provider>`.
 
-## Installed extensions
+**Not used:** spark presets, `--preset`, `/preset`, `pif`/`pit`.
+
+**Cost control (hard rules):**
+
+- Default driver: `default` (work account Auto). Thinking default from settings.
+- Cursor via `pi-cursor-sdk` + API key (bills to Cursor plan pools).
+- Only Auto / Composer are allowed on Cursor. Extension `cursor-model-guard` **reverts** any other `cursor/*` selection.
+- `PI_CURSOR_RUNTIME=local`, `PI_CURSOR_SETTING_SOURCES=none`, and `PI_CURSOR_ASK_QUESTION=0` in `~/.pi/agent/configs/.env`.
+- Decisions: use `ask_user` / `pi__ask_user` only — never `cursor_ask_question`.
+- Set Cursor dashboard on-demand spend limit to **$0**.
+- Avoid parallel subagents unless the win is clear (Explore uses Opus).
+
+## Installed Cursor stack
 
 ```
-pi-mcp-adapter     2.10.0  — Lazy MCP proxy (auto-picks up ~/.cursor/mcp.json)
-pi-spark           0.15.0  — Presets, recap, compact TUI
-@gotgenes/pi-subagents  — In-process subagents (subagent, get_subagent_result, steer_subagent)
+pi-cursor-sdk          — Cursor models via @cursor/sdk (local agent loop)
+cursor-model-guard     — blocks non-allowlisted cursor/* models
+env-loader             — loads ~/.pi/agent/configs/.env
 ```
 
-Upgrade all: `fnm use default && pi update --all`
+Auth: `/login` → API key → Cursor (or `CURSOR_API_KEY`). Does **not** reuse `agent` CLI OAuth.
+
+Upgrade packages: `fnm use default && pi update --all`  
 List installed: `pi list`
 
 > Always update PI from fnm default — the `~/.local/bin/pi` shim calls the default version's binary.
-> Updating from a project-local node version installs the new PI there instead, creating a stale shim.
 
-## MCP adapter
+## MCP
 
-`pi-mcp-adapter` auto-reads `~/.cursor/mcp.json`, but `~/.pi/agent/mcp.json` deliberately disables
-github/atlassian/shopify-dev-mcp (tool-restraint). Active servers: `kb` (Higgins vault MCP on
-superbro) + `deja` (cross-harness session search). One proxied `mcp` tool instead of the full tool blast.
+Two layers (tool-restraint):
+
+1. **Hot path (classic):** `~/.pi/agent/mcp.json` — `higgins` + `deja` with `directTools: true`.
+2. **Everything else (MCPorter):** `pi-mcporter` + `~/.pi/agent/mcporter.json` (`defaultExposure: index`).
+   Discover/call via the `mcporter` tool (`search` → `describe` → `call`), or shell `mcporter call server.tool …`.
+   Server defs live in `~/.mcporter/mcporter.json` (dotfiles: `.config/mcporter/mcporter.json`).
+
+Cursor uses a curated `mcporter serve --stdio` bridge (`.cursor/mcp.json`) for a small keep-alive allowlist — not a full schema dump of dockhand.
+
+`pi-mcp-adapter` may still discover host configs; keep non-hot servers out of Pi `mcp.json`.
+
+Status: `/mcp status` · `/mcporter status` · `mcporter list`
 
 ## Subagent usage (@gotgenes/pi-subagents)
 
 - Use `subagent` with `subagent_type: "Explore"` for fast read-only codebase sweeps.
 - Use `run_in_background: true` for parallel info gathering; poll with `get_subagent_result`.
-- Global `Explore` agent uses Claude Opus; main session stays on Sonnet 5.
+- Global `Explore` agent uses Claude Opus; main session stays on scoped models.
 - Default to the main thread unless parallelism gives a clear win.
 
 ## Brain and memory
 
-PI does not auto-load the brain the way Claude Code does via SessionStart hook.
-Run `brain load` manually at the start of meaningful sessions, or type `.recall`.
-
-Save context: `.remember` / `.r` → `kb digest` (see kb skill).
-Single note: `.note <text>` → `brain current "<text>"`.
-Gotcha: `.gotcha <text>` → `brain gotcha "<text>"`.
+Run `higgins load` manually at the start of meaningful sessions, or type `.recall`.
+Save: `.remember` / `.r` → `higgins digest`.
+Note: `.note <text>` → `higgins current`.
+Gotcha: `.gotcha <text>` → `higgins gotcha`.
+Session summary: `/recap` / `/recap save` (smart-recap extension).
 
 ## Skills
 
-PI discovers `~/.agents/skills/` automatically. All shared dotfiles skills are
-available via `/skill:<name>` inside PI. The `/skill:` autocomplete lists them.
+PI discovers `~/.agents/skills/` automatically. Shared skills via `/skill:<name>`.
 
 ## Hooks (pi-yaml-hooks)
 
-Global hooks live in `~/.pi/agent/hook/hooks.yaml` (symlinked from dotfiles).
-
-Install: `pi install npm:pi-yaml-hooks`
-Validate: `/hooks-validate`
-Status: `/hooks-status`
-Reload: `/hooks-reload`
-Disable a hook: comment it out in `~/dotfiles/.config/pi/agent/hook/hooks.yaml`
-then `/hooks-reload` inside PI.
-
-Hook behaviour (after install + validate):
-- `session.created` → readiness notification
-- `session.idle` → brain-save nudge
-- `file.changed` (code files) → `aislop hook pi` score check
-- `tool.before.bash` → blocks force-push / rm-rf root / publish commands (exit 2)
-
-**Limitation vs Cursor:** PI hooks cannot inject text into model context (`additional_context`
-is Cursor-specific). PI hooks can guard, observe, notify, and prompt, not rewrite.
-
-## Project setup (per-project overlay)
-
-1. `cd <project>` and start PI.
-2. Trust the project: `/trust` (written to `~/.pi/agent/trust.json`).
-3. Add `.pi/settings.json` for project-specific packages/model overrides.
-4. Add `.pi/hook/hooks.yaml` for project-specific hooks (trusted, loaded on top of global).
-5. Project `.agents/skills/` is auto-discovered after trust.
-6. Project `AGENTS.md` or `CLAUDE.md` loads as context regardless of trust.
-
-## Known conflicts
-
-**pi-tool-display + pi-spark write tool conflict:**
-Both extensions register a `write` tool. PI fails to start with:
-`Tool "write" conflicts with ... pi-spark/index.ts`
-Fix: `~/.pi/agent/extensions/pi-tool-display/config.json` must set
-`registerToolOverrides.write: false`. The `install.sh` script ensures this
-automatically — run `bash ~/dotfiles/modules/pi/install.sh` after updates.
-
-Quick fix without reinstall: `pi -ne` → `/tool-display` → disable Write ownership → `/reload`.
-
-## Troubleshooting
-
-| Symptom | Fix |
-|---------|-----|
-| `Tool "write" conflicts` | Run install.sh or manually set `write: false` in tool-display config |
-| Extensions not loading | `pi -ne` → `/reload` → check `/extensions` |
-| Stale shim (wrong version) | `fnm use default && pi update self` |
-| Hooks not firing | `/hooks-validate` → fix issues → `/hooks-reload` |
+Global hooks: `~/.pi/agent/hook/hooks.yaml` (symlinked from dotfiles).
+Validate: `/hooks-validate` · Status: `/hooks-status` · Reload: `/hooks-reload`
 
 ## Verification commands
 
 ```bash
-pi list                         # Installed extensions
-pi --list-models                # Available models
+pi list                         # Installed packages
+pi --list-models cursor         # Cursor catalog
 pi --version                    # PI version
-/preset                         # Show/select Spark presets
-/recap                          # Manual recap
-/pi-stats                       # Token/cost dashboard
-/hooks-validate                 # Hook config validity (requires pi-yaml-hooks)
-/hooks-status                   # Trust state + active hooks
+/scoped-models                  # Pick from enabledModels
+/hooks-validate                 # Hook config validity
 ```
 
 ## dotfiles integration
 
-Config sources (git-tracked in ~/dotfiles):
 - `~/dotfiles/.config/pi/agent/AGENTS.md` → `~/.pi/agent/AGENTS.md`
-- `~/dotfiles/.config/pi/agent/spark.json` → `~/.pi/agent/spark.json`
-- `~/dotfiles/.config/pi/agent/hook/hooks.yaml` → `~/.pi/agent/hook/hooks.yaml`
 - `~/dotfiles/.config/pi/agent/settings.base.json` → merged into `~/.pi/agent/settings.json`
+- `~/dotfiles/.config/pi/agent/hook/hooks.yaml` → `~/.pi/agent/hook/hooks.yaml`
+- Extensions: `cursor-model-guard/`, footer, styled-outputs, …
 
-To re-apply after changing dotfiles: `dotfiles --update` (if `pi` module is enabled)
-or `bash ~/dotfiles/modules/pi/install.sh`.
-
-Local-only (never committed): `auth.json`, `trust.json`, `sessions/`, `npm/`, `pi-stats/`.
+Local-only (never committed): `auth.json`, `trust.json`, `sessions/`, `npm/`,
+`cursor-sdk.json`, `configs/.env`, `cursor-sdk-model-list.json`.

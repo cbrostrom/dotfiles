@@ -25,7 +25,7 @@ else
 fi
 
 # Profile detection — PROFILE env var set by bootstrap.sh
-# Headless servers skip Claude, Cursor, PI, vault, and brain/kb symlinks
+# Headless servers skip Cursor, PI, and vault-related symlinks
 IS_HEADLESS=false
 if [[ "${PROFILE:-}" == "server-headless" ]] || [[ "${DOTFILES_WORKFLOWS:-}" == *"server"* ]]; then
     IS_HEADLESS=true
@@ -124,6 +124,10 @@ fi
 
 # Config directories
 create_symlink "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml" "starship config"
+
+# MCPorter canonical server defs (credentials stay in ~/.mcporter/credentials.json)
+mkdir -p "$HOME/.mcporter"
+create_symlink "$SCRIPT_DIR/.config/mcporter/mcporter.json" "$HOME/.mcporter/mcporter.json" "mcporter config"
 # Ghostty: macos/ghostty or linux/ghostty - handled by main install.sh
 create_symlink "$SCRIPT_DIR/.config/lazygit" "$HOME/.config/lazygit" "lazygit config"
 create_symlink "$SCRIPT_DIR/.config/bat" "$HOME/.config/bat" "bat config"
@@ -137,62 +141,38 @@ create_symlink "$SCRIPT_DIR/wezterm" "$HOME/.config/wezterm" "wezterm config"
 # Codex CLI config
 create_symlink "$SCRIPT_DIR/.codex" "$HOME/.codex" "codex config"
 
-# Claude Code config — CLAUDE.md, skills dir, hooks, MCP wrapper scripts
-# Skipped on headless servers (opencode is the agent, not Claude Code)
-if [[ "$IS_HEADLESS" == "false" ]]; then
-mkdir -p "$HOME/.claude"
-create_symlink "$SCRIPT_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md" "claude CLAUDE.md"
-create_symlink "$SCRIPT_DIR/.claude/skills" "$HOME/.claude/skills" "claude skills dir"
-
-if [[ -d "$SCRIPT_DIR/.claude/hooks" ]]; then
-    mkdir -p "$HOME/.claude/hooks"
-    for hook in "$SCRIPT_DIR/.claude/hooks/"*.sh; do
-        [[ -f "$hook" ]] || continue
-        chmod +x "$hook"
-        create_symlink "$hook" "$HOME/.claude/hooks/$(basename "$hook")" "claude hook: $(basename "$hook")"
-    done
-fi
-
-if [[ -d "$SCRIPT_DIR/.claude/scripts" ]]; then
-    mkdir -p "$HOME/.claude/scripts"
-    for script in "$SCRIPT_DIR/.claude/scripts/"*.sh; do
-        [[ -f "$script" ]] || continue
-        chmod +x "$script"
-        create_symlink "$script" "$HOME/.claude/scripts/$(basename "$script")" "claude script: $(basename "$script")"
-    done
-fi
-fi
-
-# Cursor config — rules, agents, hook scripts, built-in skill cache
+# Cursor config — rules, agents, hook scripts, built-in skill cache, MCP bridge
 # Skipped on headless servers
 if [[ "$IS_HEADLESS" == "false" ]]; then
-mkdir -p "$HOME/.cursor/rules" "$HOME/.cursor/agents" "$HOME/.cursor/hooks"
+    mkdir -p "$HOME/.cursor/rules" "$HOME/.cursor/agents" "$HOME/.cursor/hooks"
 
-if [[ -d "$SCRIPT_DIR/.cursor/rules" ]]; then
-    for rule in "$SCRIPT_DIR/.cursor/rules/"*.mdc; do
-        [[ -f "$rule" ]] || continue
-        create_symlink "$rule" "$HOME/.cursor/rules/$(basename "$rule")" "cursor rule: $(basename "$rule")"
-    done
-fi
+    create_symlink "$SCRIPT_DIR/.cursor/mcp.json" "$HOME/.cursor/mcp.json" "cursor mcp (mcporter serve)"
 
-if [[ -d "$SCRIPT_DIR/.cursor/agents" ]]; then
-    for agent in "$SCRIPT_DIR/.cursor/agents/"*.md; do
-        [[ -f "$agent" ]] || continue
-        create_symlink "$agent" "$HOME/.cursor/agents/$(basename "$agent")" "cursor agent: $(basename "$agent")"
-    done
-fi
+    if [[ -d "$SCRIPT_DIR/.cursor/rules" ]]; then
+        for rule in "$SCRIPT_DIR/.cursor/rules/"*.mdc; do
+            [[ -f "$rule" ]] || continue
+            create_symlink "$rule" "$HOME/.cursor/rules/$(basename "$rule")" "cursor rule: $(basename "$rule")"
+        done
+    fi
 
-if [[ -d "$SCRIPT_DIR/.cursor/hooks" ]]; then
-    for hook in "$SCRIPT_DIR/.cursor/hooks/"*.sh; do
-        [[ -f "$hook" ]] || continue
-        chmod +x "$hook"
-        create_symlink "$hook" "$HOME/.cursor/hooks/$(basename "$hook")" "cursor hook: $(basename "$hook")"
-    done
-fi
+    if [[ -d "$SCRIPT_DIR/.cursor/agents" ]]; then
+        for agent in "$SCRIPT_DIR/.cursor/agents/"*.md; do
+            [[ -f "$agent" ]] || continue
+            create_symlink "$agent" "$HOME/.cursor/agents/$(basename "$agent")" "cursor agent: $(basename "$agent")"
+        done
+    fi
 
-if [[ -d "$SCRIPT_DIR/.cursor/skills-cursor" ]]; then
-    create_symlink "$SCRIPT_DIR/.cursor/skills-cursor" "$HOME/.cursor/skills-cursor" "cursor skills dir"
-fi
+    if [[ -d "$SCRIPT_DIR/.cursor/hooks" ]]; then
+        for hook in "$SCRIPT_DIR/.cursor/hooks/"*.sh; do
+            [[ -f "$hook" ]] || continue
+            chmod +x "$hook"
+            create_symlink "$hook" "$HOME/.cursor/hooks/$(basename "$hook")" "cursor hook: $(basename "$hook")"
+        done
+    fi
+
+    if [[ -d "$SCRIPT_DIR/.cursor/skills-cursor" ]]; then
+        create_symlink "$SCRIPT_DIR/.cursor/skills-cursor" "$HOME/.cursor/skills-cursor" "cursor skills dir"
+    fi
 fi
 
 # Shared agent skills (.agents/skills — portable Agent Skills)
@@ -342,50 +322,48 @@ fi
 
 # ob — Obsidian REST API CLI
 # pi — PI coding agent shim (stable across fnm project-node switches)
-# brain / kb — knowledgebase CLI shims (require ~/Vaults/Higgins/AI — desktop only)
+# Vault CLI is higgins (~/.local/bin/higgins), not kb/brain shims
 if [[ "$IS_HEADLESS" == "false" ]]; then
     create_symlink "$SCRIPT_DIR/scripts/ob" "$HOME/.local/bin/ob" "ob (Obsidian CLI)"
     create_symlink "$SCRIPT_DIR/scripts/pi" "$HOME/.local/bin/pi" "pi (coding agent shim)"
-    create_symlink "$SCRIPT_DIR/scripts/brain" "$HOME/.local/bin/brain" "brain (kb shim)"
-    create_symlink "$SCRIPT_DIR/scripts/kb" "$HOME/.local/bin/kb" "kb (knowledgebase CLI)"
 fi
 
 # PI agent config — extensions, hooks, intercom
 # Skipped on headless servers (PI is a desktop agent)
 if [[ "$IS_HEADLESS" == "false" ]]; then
-if [[ -d "$SCRIPT_DIR/.config/pi/agent/extensions" ]]; then
-    mkdir -p "$HOME/.pi/agent/extensions"
-    # Single-file extensions (.ts)
-    for ext in "$SCRIPT_DIR/.config/pi/agent/extensions/"*.ts; do
-        [[ -f "$ext" ]] || continue
-        create_symlink "$ext" "$HOME/.pi/agent/extensions/$(basename "$ext")" "pi extension: $(basename "$ext")"
-    done
-    # Directory extensions (multi-file)
-    for ext_dir in "$SCRIPT_DIR/.config/pi/agent/extensions/"/; do
-        [[ -d "$ext_dir" ]] || continue
-        ext_name="$(basename "$ext_dir")"
-        create_symlink "$ext_dir" "$HOME/.pi/agent/extensions/$ext_name" "pi extension dir: $ext_name"
-    done
-fi
+    if [[ -d "$SCRIPT_DIR/.config/pi/agent/extensions" ]]; then
+        mkdir -p "$HOME/.pi/agent/extensions"
+        # Single-file extensions (.ts)
+        for ext in "$SCRIPT_DIR/.config/pi/agent/extensions/"*.ts; do
+            [[ -f "$ext" ]] || continue
+            create_symlink "$ext" "$HOME/.pi/agent/extensions/$(basename "$ext")" "pi extension: $(basename "$ext")"
+        done
+        # Directory extensions (multi-file)
+        for ext_dir in "$SCRIPT_DIR/.config/pi/agent/extensions/"/; do
+            [[ -d "$ext_dir" ]] || continue
+            ext_name="$(basename "$ext_dir")"
+            create_symlink "$ext_dir" "$HOME/.pi/agent/extensions/$ext_name" "pi extension dir: $ext_name"
+        done
+    fi
 
-if [[ -f "$SCRIPT_DIR/.config/pi/agent/rtk-config.json" ]]; then
-    create_symlink "$SCRIPT_DIR/.config/pi/agent/rtk-config.json" "$HOME/.pi/agent/rtk-config.json" "pi rtk config"
-fi
+    if [[ -f "$SCRIPT_DIR/.config/pi/agent/rtk-config.json" ]]; then
+        create_symlink "$SCRIPT_DIR/.config/pi/agent/rtk-config.json" "$HOME/.pi/agent/rtk-config.json" "pi rtk config"
+    fi
 
-if [[ -f "$SCRIPT_DIR/.config/pi/agent/intercom/config.json" ]]; then
-    mkdir -p "$HOME/.pi/agent/intercom"
-    create_symlink "$SCRIPT_DIR/.config/pi/agent/intercom/config.json" "$HOME/.pi/agent/intercom/config.json" "pi intercom config"
-fi
+    if [[ -f "$SCRIPT_DIR/.config/pi/agent/intercom/config.json" ]]; then
+        mkdir -p "$HOME/.pi/agent/intercom"
+        create_symlink "$SCRIPT_DIR/.config/pi/agent/intercom/config.json" "$HOME/.pi/agent/intercom/config.json" "pi intercom config"
+    fi
 
-# pi custom skills tracked in dotfiles
-if [[ -d "$SCRIPT_DIR/.config/pi/agent/skills" ]]; then
-  mkdir -p "$HOME/.pi/agent/skills"
-  for skill_dir in "$SCRIPT_DIR/.config/pi/agent/skills/"*/; do
-    [[ -d "$skill_dir" ]] || continue
-    skill_name="$(basename "$skill_dir")"
-    create_symlink "$skill_dir" "$HOME/.pi/agent/skills/$skill_name" "pi skill: $skill_name"
-  done
-fi
+    # pi custom skills tracked in dotfiles
+    if [[ -d "$SCRIPT_DIR/.config/pi/agent/skills" ]]; then
+        mkdir -p "$HOME/.pi/agent/skills"
+        for skill_dir in "$SCRIPT_DIR/.config/pi/agent/skills/"*/; do
+            [[ -d "$skill_dir" ]] || continue
+            skill_name="$(basename "$skill_dir")"
+            create_symlink "$skill_dir" "$HOME/.pi/agent/skills/$skill_name" "pi skill: $skill_name"
+        done
+    fi
 fi
 
 log_success "All symlinks installed successfully!"

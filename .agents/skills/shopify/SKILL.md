@@ -1,6 +1,6 @@
 ---
 name: shopify
-description: Shared Shopify platform knowledge for all agents. Covers evidence standard, MCP-first verification, vault routing for Shopify work, complexity assessment, and forbidden phrases. Load this skill when any Shopify platform question, implementation, or context lookup is involved.
+description: Shopify platform knowledge for all agents. Covers evidence standard, MCP-first verification, vault routing, complexity assessment, forbidden phrases. Load when any Shopify question or implementation is involved.
 ---
 
 # Shopify Shared Skill

@@ -90,7 +90,7 @@ _dotfiles_bw_get_field() {
 export GITHUB_PERSONAL_ACCESS_TOKEN="$(_dotfiles_bw_get 'GitHub PAT')"
 
 # Atlassian — shared across AKQA and Fiskars (same Atlassian account & token).
-# Consumed by ~/.claude/scripts/atlassian-{akqa,fiskars}.sh MCP wrappers.
+# Consumed by MCP wrappers / agent env (Atlassian, etc.).
 # URLs and username are non-secret, inlined. Token lives in Bitwarden item
 # 'API Key - id.atlassian.com', custom field 'API Token - MCP'.
 export ATLASSIAN_USERNAME="christian.brostrom@akqa.com"

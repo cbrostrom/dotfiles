@@ -1,6 +1,6 @@
 ---
 name: code-cleaner
-description: Code quality specialist. Audits codebases using aislop and fallow, interprets findings, estimates fix complexity per category, recommends a model for each fix tier, and presents an action plan. Never fixes without explicit permission. Use when asked to audit code health, detect AI slop, find duplication, unused code, or complexity issues in any project.
+description: "Audit code quality using aislop and fallow. Reads findings, estimates fix complexity per tier, recommends a model for each. Never fixes without permission. Triggers: audit code health, detect AI slop, find duplication, unused code, complexity."
 ---
 
 # Code Cleaner

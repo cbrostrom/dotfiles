@@ -26,7 +26,7 @@ if infocmp "$TERM" >/dev/null 2>&1; then
     log_success "✓ Terminal type '$TERM' is supported"
 else
     log_warning "⚠ Terminal type '$TERM' is not supported"
-    
+
     # Test fallback terminals
     for term in "xterm-256color" "xterm" "linux"; do
         if infocmp "$term" >/dev/null 2>&1; then
@@ -53,4 +53,4 @@ fi
 log_info "Testing ANSI escape sequences..."
 printf '\033[2J\033[H' 2>/dev/null && log_success "✓ ANSI escape sequences work" || log_warning "⚠ ANSI escape sequences may not work"
 
-log_success "=== Terminal Test Complete ===" 
+log_success "=== Terminal Test Complete ==="

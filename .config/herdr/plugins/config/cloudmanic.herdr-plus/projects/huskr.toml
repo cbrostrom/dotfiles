@@ -1,0 +1,10 @@
+name = "Huskr"
+description = "Private project"
+group = "Personal"
+working_dir = "~/Projects/personal/huskr"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

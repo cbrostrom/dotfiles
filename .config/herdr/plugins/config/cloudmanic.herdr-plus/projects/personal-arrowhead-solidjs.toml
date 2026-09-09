@@ -1,0 +1,9 @@
+name = "arrowhead-solidjs"
+group = "Personal"
+working_dir = "~/Projects/personal/arrowhead-solidjs"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

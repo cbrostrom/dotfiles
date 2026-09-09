@@ -1,7 +1,7 @@
 # Dotfiles
 
 Cross-platform dotfiles for macOS, Linux (Debian/Ubuntu), and WSL2. Provisioned
-via a module system: each piece of setup (symlinks, fonts, Claude/Cursor config,
+via a module system: each piece of setup (symlinks, fonts, Cursor/Pi config,
 MCP servers, etc.) is a self-contained module under `modules/`.
 
 ## Structure
@@ -52,12 +52,16 @@ See `modules/README.md` for module authoring details.
 - `./scripts/doctor.sh` – Health check
 - `./uninstall.sh` – Remove symlinks, restore backups
 
+## Fleet
+
+Multi-host topology for agents: [`infra/fleet.md`](infra/fleet.md) (markdown) · [`infra/infra.html`](infra/infra.html) (browser). SSH source of truth: `config/fleet-hosts.conf`.
+
 ## Profiles
 
 | Profile | Machines | Notes |
 |---------|----------|-------|
 | `desktop-full` | Mac | Full GUI + dev stack |
-| `server-headless` | LinuxBro, SuperBro | No GUI, lean Claude set |
+| `server-headless` | LinuxBro, SuperBro | No GUI, lean agent set |
 | `wsl` | MonsterBro | TUI + Windows interop |
 
 ## Platforms
@@ -71,9 +75,9 @@ See `modules/README.md` for module authoring details.
 ## Key Components
 
 - **zsh** – Modular config with direct-source plugins (no plugin manager), starship, fzf, zoxide
-- **Claude Code** – Settings layers, hooks, MCP lists, skills via `modules/claude-*`
+- **Pi** – Daily-driver agent config under `.config/pi/` via `modules/pi`
 - **Cursor** – Rules, hooks, skills in `.cursor/`
-- **kb** – Knowledgebase CLI at `~/dotfiles/scripts/kb`; vault at `~/Vaults/AI`
+- **Higgins** – Vault CLI (`higgins`); vault at `~/Vaults/Higgins/AI`
 - **.local-config** – Machine-specific (git-ignored); copy from `.local-config.example`
 
 ## Troubleshooting

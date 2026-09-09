@@ -1,0 +1,9 @@
+name = "salesforce-notification"
+group = "Fiskars"
+working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-salesforce-notification"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

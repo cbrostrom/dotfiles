@@ -1,9 +1,12 @@
 import { Markdown } from "@earendil-works/pi-tui";
 import { CONFIG } from "../config.js";
-import { getVisibleWidth, hasVisibleContent, currentTheme, applyColor } from "../utils.js";
+import { currentTheme, applyColor, getVisibleWidth, hasVisibleContent } from "../utils.js";
+import { renderMessageStyle } from "./frame.js";
 
-const PREFIX_WIDTH = getVisibleWidth(CONFIG.thinkingMessage.prefix) + 2;
-const PADDING_PREFIX = " ".repeat(PREFIX_WIDTH);
+export interface ThinkingMessage {
+  invalidate(): void;
+  render(width: number): string[];
+}
 
 function getFullPrefix(): string {
   const prefix = currentTheme
@@ -15,9 +18,25 @@ function getFullPrefix(): string {
   return ` ${prefix}${CONFIG.thinkingMessage.isLabelVisible ? ` ${label} ` : ` `}`;
 }
 
-export interface ThinkingMessage {
-  invalidate(): void;
-  render(width: number): string[];
+/** Legacy prefix renderer keeps optional "Thinking:" label on first line. */
+function renderThinkingPrefix(md: Markdown, width: number): string[] {
+  const fullPrefix = getFullPrefix();
+  const firstLinePrefixWidth = getVisibleWidth(fullPrefix);
+  const padding = " ".repeat(getVisibleWidth(CONFIG.thinkingMessage.prefix) + 2);
+
+  if (width <= firstLinePrefixWidth) {
+    return [fullPrefix.trimEnd()];
+  }
+
+  const mdLines = md.render(width - firstLinePrefixWidth);
+  let prefixPlaced = false;
+  return mdLines.map((line: string) => {
+    if (!prefixPlaced && hasVisibleContent(line)) {
+      prefixPlaced = true;
+      return `${fullPrefix}${line}`;
+    }
+    return `${padding}${line}`;
+  });
 }
 
 export function createThinkingMessage(text: string, markdownTheme: any): ThinkingMessage {
@@ -40,25 +59,22 @@ export function createThinkingMessage(text: string, markdownTheme: any): Thinkin
   function render(width: number): string[] {
     if (cachedLines && cachedWidth === width) return cachedLines;
 
-    const fullPrefix = getFullPrefix();
-    const firstLinePrefixWidth = getVisibleWidth(fullPrefix);
-
-    if (width <= firstLinePrefixWidth) {
-      cachedWidth = width;
-      cachedLines = [fullPrefix.trimEnd()];
-      return cachedLines;
+    let rendered: string[];
+    if (CONFIG.thinkingMessage.style === "prefix") {
+      rendered = renderThinkingPrefix(md, width);
+    } else {
+      // Strip trailing colon from "Thinking:" for box title
+      const title = CONFIG.thinkingMessage.label.replace(/:\s*$/, "") || "Thinking";
+      rendered = renderMessageStyle(CONFIG.thinkingMessage.style, md, width, {
+        prefix: CONFIG.thinkingMessage.prefix,
+        rail: CONFIG.thinkingMessage.rail,
+        title,
+        colors: {
+          accent: CONFIG.thinkingMessage.prefixColor,
+          border: CONFIG.thinkingMessage.borderColor,
+        },
+      });
     }
-
-    const mdLines = md.render(width - firstLinePrefixWidth);
-    let prefixPlaced = false;
-
-    const rendered = mdLines.map((line: string) => {
-      if (!prefixPlaced && hasVisibleContent(line)) {
-        prefixPlaced = true;
-        return `${fullPrefix}${line}`;
-      }
-      return `${PADDING_PREFIX}${line}`;
-    });
 
     cachedWidth = width;
     cachedLines = rendered;

@@ -48,7 +48,7 @@ _unlink_restore_backup() {
     if [[ "${UNLINK_DRY_RUN:-0}" == "1" ]]; then
         echo "  would restore backup: $backup -> $link"
     else
-        mv -- "$backup" "$link" 2>/dev/null && \
+        mv -- "$backup" "$link" 2>/dev/null &&
             ok "  restored backup: $(basename "$backup") -> $link"
     fi
 }
@@ -87,8 +87,8 @@ unlink_roots() {
         while IFS= read -r -d '' link; do
             _unlink_one "$link" && ((removed++)) || true
         done < <(find -P "$root" -maxdepth 6 \
-                    \( -path "$DOTFILES_DIR" -prune \) -o \
-                    \( -type l -print0 \) 2>/dev/null)
+            \( -path "$DOTFILES_DIR" -prune \) -o \
+            \( -type l -print0 \) 2>/dev/null)
     done
     return 0
 }

@@ -20,11 +20,11 @@ C_BLU=$'\033[34m'
 C_DIM=$'\033[2m'
 C_RST=$'\033[0m'
 
-log()   { printf '%s[*]%s %s\n' "$C_BLU" "$C_RST" "$*" >&2; }
-ok()    { printf '%s[+]%s %s\n' "$C_GRN" "$C_RST" "$*" >&2; }
-warn()  { printf '%s[!]%s %s\n' "$C_YLW" "$C_RST" "$*" >&2; }
-err()   { printf '%s[x]%s %s\n' "$C_RED" "$C_RST" "$*" >&2; }
-dim()   { printf '%s%s%s\n' "$C_DIM" "$*" "$C_RST" >&2; }
+log() { printf '%s[*]%s %s\n' "$C_BLU" "$C_RST" "$*" >&2; }
+ok() { printf '%s[+]%s %s\n' "$C_GRN" "$C_RST" "$*" >&2; }
+warn() { printf '%s[!]%s %s\n' "$C_YLW" "$C_RST" "$*" >&2; }
+err() { printf '%s[x]%s %s\n' "$C_RED" "$C_RST" "$*" >&2; }
+dim() { printf '%s%s%s\n' "$C_DIM" "$*" "$C_RST" >&2; }
 
 require_cmd() {
     for cmd in "$@"; do
@@ -68,9 +68,9 @@ git_last_commit_iso() {
 
 git_branch() {
     local path="$1"
-    git -C "$path" symbolic-ref --short HEAD 2>/dev/null \
-        || git -C "$path" rev-parse --short HEAD 2>/dev/null \
-        || echo ""
+    git -C "$path" symbolic-ref --short HEAD 2>/dev/null ||
+        git -C "$path" rev-parse --short HEAD 2>/dev/null ||
+        echo ""
 }
 
 git_dirty_count() {
@@ -107,13 +107,18 @@ detect_stack() {
     if [[ ${#stacks[@]} -eq 0 ]]; then
         echo "unknown"
     else
-        IFS=','; echo "${stacks[*]}"; unset IFS
+        IFS=','
+        echo "${stacks[*]}"
+        unset IFS
     fi
 }
 
 human_size() {
     local bytes="$1"
-    if [[ -z "$bytes" || "$bytes" == "0" ]]; then echo "0B"; return; fi
+    if [[ -z "$bytes" || "$bytes" == "0" ]]; then
+        echo "0B"
+        return
+    fi
     awk -v b="$bytes" 'BEGIN{
         s="BKMGT"; i=1;
         while (b>=1024 && i<5) { b/=1024; i++ }
@@ -123,13 +128,21 @@ human_size() {
 
 iso_age_days() {
     local iso="$1"
-    [[ -z "$iso" ]] && { echo ""; return; }
+    [[ -z "$iso" ]] && {
+        echo ""
+        return
+    }
     # Strip timezone for portable parsing on macOS (BSD date).
-    local clean="${iso%%+*}"; clean="${clean%%-[0-9][0-9]:[0-9][0-9]}"; clean="${clean%Z}"
+    local clean="${iso%%+*}"
+    clean="${clean%%-[0-9][0-9]:[0-9][0-9]}"
+    clean="${clean%Z}"
     local then now
-    then=$(date -j -f "%Y-%m-%dT%H:%M:%S" "$clean" +%s 2>/dev/null) || { echo ""; return; }
+    then=$(date -j -f "%Y-%m-%dT%H:%M:%S" "$clean" +%s 2>/dev/null) || {
+        echo ""
+        return
+    }
     now=$(date +%s)
-    echo $(( (now - then) / 86400 ))
+    echo $(((now - then) / 86400))
 }
 
 # has_brain <slug>
@@ -150,8 +163,8 @@ has_codebase() {
 # Returns 0 if codebase-memory index exists locally.
 # Data lives in ~/.cache/codebase-memory-mcp/<path-with-dashes>.db
 has_codebase_local() {
-    local slug="${1//\//-}"  # replace / with -
-    slug="${slug#-}"  # strip leading dash
+    local slug="${1//\//-}" # replace / with -
+    slug="${slug#-}"        # strip leading dash
     [[ -f "$HOME/.cache/codebase-memory-mcp/${slug}.db" ]]
 }
 
@@ -159,13 +172,20 @@ has_codebase_local() {
 # Matches CATEGORY_RULES (first match wins). Requires config to be sourced first.
 infer_category() {
     local rel="$1"
-    if [[ -z "${CATEGORY_RULES+x}" ]]; then echo "unknown"; return; fi
+    if [[ -z "${CATEGORY_RULES+x}" ]]; then
+        echo "unknown"
+        return
+    fi
     local rule pattern cat
     for rule in "${CATEGORY_RULES[@]}"; do
         pattern="${rule%%|*}"
         cat="${rule##*|}"
         # shellcheck disable=SC2254
-        case "$rel" in $pattern) echo "$cat"; return ;; esac
+        case "$rel" in $pattern)
+            echo "$cat"
+            return
+            ;;
+        esac
     done
     echo "unknown"
 }

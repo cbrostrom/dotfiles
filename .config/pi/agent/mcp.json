@@ -4,8 +4,9 @@
     "hostConfigDiscovery": "on"
   },
   "mcpServers": {
-    "kb": {
-      "url": "http://100.100.1.50:8765/mcp",
+    "higgins": {
+      "command": "/Users/Christian.Brostrom/.local/bin/higgins",
+      "args": ["mcp"],
       "lifecycle": "keep-alive",
       "directTools": true
     },
@@ -15,17 +16,21 @@
       "lifecycle": "keep-alive",
       "directTools": true
     },
-    "github": {
-      "disabled": true
+    "cloudflare-dns-cloudbro": {
+      "command": "/Users/Christian.Brostrom/dotfiles/.config/pi/agent/scripts/cloudflare-dns-mcp.sh",
+      "lifecycle": "keep-alive",
+      "disabled": true,
+      "env": {
+        "CLOUDFLARE_ZONE_ID": "1eaa98a8573619ffaed0f8908249a213"
+      }
     },
-    "atlassian": {
-      "disabled": true
-    },
-    "codebase-memory-mcp": {
-      "disabled": true
-    },
-    "shopify-dev-mcp": {
-      "disabled": true
+    "cloudflare-dns-superbro": {
+      "command": "/Users/Christian.Brostrom/dotfiles/.config/pi/agent/scripts/cloudflare-dns-mcp.sh",
+      "lifecycle": "keep-alive",
+      "disabled": true,
+      "env": {
+        "CLOUDFLARE_ZONE_ID": "d527e17ef5e6ccbeb3b7e48478624ee0"
+      }
     }
   }
 }
