@@ -94,7 +94,7 @@ CLI / env precedence (later wins):
 ./bootstrap.sh --info=fonts        # detail view: deps, status, last-run, hints
 ./bootstrap.sh --diff=symlinks     # preview what the module would do (or print install.sh)
 ./bootstrap.sh --only=fonts,zsh    # run only these (and their deps)
-./bootstrap.sh --skip=mcp-servers  # run all except this
+./bootstrap.sh --skip=fonts  # run all except this
 ./bootstrap.sh --doctor            # diagnostic only
 ```
 

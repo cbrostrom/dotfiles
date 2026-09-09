@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# agentsync — keep project-level AI rules in sync across Claude Code + Cursor.
+# agentsync — keep project-level AI rules in sync (AGENTS.md ↔ Cursor rules).
 # Wraps npx agentsync (PanisHandsome/ai-rules-sync, zero deps).
 #
 # Usage:
 #   agentsync init              — scaffold AGENTS.md from codebase scan
-#   agentsync sync              — sync AGENTS.md → CLAUDE.md + .cursorrules
+#   agentsync sync              — sync AGENTS.md → .cursorrules (and other adapters)
 #   agentsync convert <from> <to> <file>
 #
-# Intended for project repos only — NOT for ~/.claude/CLAUDE.md (Claude-specific content).
+# Project repos only — shared agent policy lives in AGENTS.md / .agents/.
 
 set -euo pipefail
 

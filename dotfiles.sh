@@ -127,21 +127,7 @@ EOF
     • Per-module status table (clean / dirty / unknown / N/A)
 EOF
             ;;
-        *Devices*)   cat <<EOF
 
-  Devices
-  ───────
-  Cross-device inventory of Claude config state.
-  Each machine writes .claude/devices/<host>.json on update.
-
-  Shows: enabled plugins, MCP servers, skills per host.
-
-  Equivalent CLI:
-    scripts/claude/device-snapshot.sh write
-    scripts/claude/device-snapshot.sh list
-    scripts/claude/device-snapshot.sh show <host>
-EOF
-            ;;
         *Doctor*)    cat <<EOF
 
   Doctor
@@ -198,7 +184,6 @@ main_menu() {
         "  Update"
         "  Modules"
         "  Status"
-        "  Devices"
         "  Doctor"
         "  Reset"
         "  Quit"
@@ -236,7 +221,6 @@ modules_menu() {
             cat="${_MODULES_CATEGORY[$n]:-optional}"
             if   [[ "$cat" == "core"     ]]; then prio=1
             elif [[ "$cat" == "shell"    ]]; then prio=2
-            elif [[ "$cat" == "claude"   ]]; then prio=3
             elif [[ "$cat" == "editor"   ]]; then prio=4
             elif [[ "$cat" == "gui"      ]]; then prio=5
             elif [[ "$cat" == "tools"    ]]; then prio=6
@@ -324,18 +308,6 @@ screen_status() {
     [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; echo; }
 }
 
-screen_devices() {
-    clear
-    render_banner
-    render_subtitle "Devices"
-    bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" list
-    echo
-    if gum confirm "Refresh this device's snapshot now?"; then
-        bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" write
-    fi
-    echo
-    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; echo; }
-}
 
 screen_doctor() {
     clear
@@ -387,9 +359,7 @@ main() {
         --install)       DOTFILES_NONINTERACTIVE=1 run_install; return ;;
         --reset)         run_reset;   return ;;
         --doctor)        bash "$DOTFILES_DIR/scripts/doctor.sh" "${@:2}"; return ;;
-        --claude-doctor) bash "$DOTFILES_DIR/modules/claude-settings/doctor.sh" "${@:2}"; return ;;
         --status)        show_status; return ;;
-        --devices)       bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" list; return ;;
     esac
 
     local _menu_tmp
@@ -407,7 +377,6 @@ main() {
             *Update*)  screen_update ;;
             *Modules*) screen_modules ;;
             *Status*)  screen_status ;;
-            *Devices*) screen_devices ;;
             *Doctor*)  screen_doctor ;;
             *Reset*)   screen_reset ;;
             *Quit*|"") break ;;

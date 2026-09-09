@@ -32,17 +32,6 @@ else
     fi
 fi
 
-# ── 2) Claude Code integration ────────────────────────────────────────────────
-if command -v herdr >/dev/null 2>&1; then
-    if herdr integration status 2>/dev/null | grep -q "claude.*up.to.date\|claude.*installed" 2>/dev/null; then
-        ok "herdr claude integration already installed"
-    else
-        log "installing herdr claude integration …"
-        herdr integration install claude 2>/dev/null \
-            && ok "herdr claude integration installed" \
-            || warn "herdr integration install failed (non-fatal)"
-    fi
-fi
 
 # ── 3) config symlink ─────────────────────────────────────────────────────────
 # We pre-created ~/.config/herdr above; replace it with a symlink to dotfiles.

@@ -8,7 +8,7 @@ pipx install mcp-atlassian 2>/dev/null \
     || warn "mcp-atlassian install failed (non-fatal)"
 ok "mcp-atlassian ready: $(command -v mcp-atlassian 2>/dev/null || echo 'not found')"
 
-# uv / uvx — used by docker MCP wrappers (~/.claude/scripts/docker-*.sh)
+# uv / uvx — used by MCP wrappers and Python tooling
 if command -v uvx >/dev/null 2>&1; then
     ok "uv already installed: $(command -v uvx)"
 else

@@ -10,24 +10,11 @@ remaining_thresholds = [50, 20, 10, 5]
 # remaining (default): % left / higher is safer. used: fill as you burn.
 limit_percent = "remaining"
 
-# Multi-account Claude: uncomment and add one block per account.
-# Absence of any profile keeps the single default account (fully backward
-# compatible). config_dir must be unique per profile and may use ~.
+# Claude Code profiles unused (Claude harness removed from this machine).
+# usagebar still supports [[claude.profiles]] if you ever reinstall Claude.
 #
-# Once any profile exists, declare the default account too: bare `claude`
-# sets no CLAUDE_CONFIG_DIR, so the ~/.claude account is only recorded if
-# a profile claims that dir. `usagebar setup` warns when it is uncovered.
-#
-# [[claude.profiles]]
-# id = "claude"
-# label = "Claude"
-# config_dir = "~/.claude"
-# claude_json_path = "~/.claude.json"   # optional; defaults per config_dir
-#
-# [[claude.profiles]]
-# id = "claude-secondary"
-# label = "Claude (secondary)"
-# config_dir = "~/.claude-secondary"
+# State dir: USAGEBAR_STATE_DIR (see .zshenv) → ~/.local/state/herdr/usagebar
+# so the plugin does not recreate ~/.claude/herdr-usagebar.
 
 # Multi-account Codex: uncomment and add one block per CODEX_HOME.
 # Absence of any profile keeps the single default account at ~/.codex.

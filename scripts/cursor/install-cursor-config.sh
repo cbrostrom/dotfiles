@@ -5,11 +5,10 @@
 #   ~/.cursor/rules/*.mdc → dotfiles/.cursor/rules/*.mdc
 #
 # hooks.json patches (idempotent):
-#   sessionStart  → no vault dump (MCP-only: agent calls kb_load/kb_search)
+#   sessionStart  → no vault dump (MCP-only: agent uses Higgins on demand)
 #   preToolUse    → rtk hook cursor through run-hook.sh
 #   afterFileEdit → aislop hook cursor through run-hook.sh, if aislop installed
 #   stop          → vault-save.sh through run-hook.sh
-#   preCompact    → brain-save-inject.sh through run-hook.sh
 #   cleanup       → remove dead Code Island, legacy lean-ctx/rtk, and vault dump hooks
 set -euo pipefail
 
@@ -121,15 +120,7 @@ with open(path) as f:
 hooks = data.setdefault("hooks", {})
 changed = False
 
-# Check if Claude is disabled via modules.conf
 DOTFILES = os.path.expanduser("~/dotfiles")
-is_disabled = False
-conf_path = os.path.join(DOTFILES, "modules.conf")
-if os.path.exists(conf_path):
-    with open(conf_path) as f:
-        content = f.read()
-        if "!claude" in content or "!claude-config" in content:
-            is_disabled = True
 
 def managed_command(command):
     legacy = (
@@ -164,9 +155,8 @@ def cleanup_event(name):
     kept = []
     for entry in entries:
         command = entry.get("command", "")
-        # If Claude is disabled, we MUST remove any command referencing .claude
-        is_claude = ".claude" in command
-        if managed_command(command) or (is_disabled and is_claude):
+        # Strip managed legacy hooks and any leftover .claude references
+        if managed_command(command) or ".claude" in command:
             changed = True
             continue
         kept.append(entry)
@@ -222,15 +212,7 @@ add_entry("stop", {
     "timeout": 5,
 })
 
-# brain-save-inject: preCompact — save brain before context is summarized
-# Only inject if .claude folder exists and is not disabled in modules.conf
-if os.path.exists(f"{DOTFILES}/.claude") and not is_disabled:
-    add_entry("preCompact", {
-        "command": f"bash './hooks/run-hook.sh' brain-save -- bash '{DOTFILES}/.claude/hooks/brain-save-inject.sh'",
-        "timeout": 10,
-    })
-else:
-    print("\033[1;33m[cursor]\033[0m Claude disabled or not found — skipping preCompact brain-save hook")
+print("\033[0;34m[cursor]\033[0m preCompact brain-save retired (no .claude)")
 
 if changed:
     with open(path, "w") as f:

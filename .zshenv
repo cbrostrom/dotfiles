@@ -46,6 +46,10 @@ export PATH
 # Pi global model (overrides project-local settings)
 export PI_MODEL="cursor/default"
 
+# Herdr usagebar state — keep off ~/.claude (Claude harness removed).
+# Overrides both Cursor and Claude statusLine caches in the usagebar plugin.
+export USAGEBAR_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/herdr/usagebar"
+
 # OpenCode server override (headless only — allows git commit/push)
 if [[ -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" && -f "$HOME/.config/opencode/server.json" ]]; then
     export OPENCODE_CONFIG="$HOME/.config/opencode/server.json"

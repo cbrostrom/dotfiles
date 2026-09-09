@@ -23,7 +23,6 @@ Install units. Each module has `install.sh` + optional `doctor.sh`.
 
 | Module | Purpose |
 |--------|---------|
-| `mcp-servers/` | MCP registration helpers (Claude path soft-fails if CLI absent) |
 | `skills/` | Agent skill installation (`~/.agents/skills/`, `~/.cursor/skills`) |
 | `symlinks/` | Dotfile symlink definitions |
 | `zsh/` | Zsh config module |
