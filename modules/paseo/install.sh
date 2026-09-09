@@ -14,6 +14,14 @@ PASEO_CONFIG_SRC="$DOTFILES_DIR/.config/paseo"
 PASEO_PLUGINS_DIR="$PASEO_CONFIG_SRC/plugins"
 PATCH_SCRIPT="$PASEO_CONFIG_SRC/patches/apply-v0.8.py"
 MANIFEST="$PASEO_CONFIG_SRC/plugins.json"
+# Git-installed or superseded plugins — remove if still registered.
+ORPHAN_PLUGINS=(
+    usage-monitor
+    agent-monitor
+    reasoning-display
+    subagent-activity
+    usage-sidebar
+)
 
 if ! command -v paseo >/dev/null 2>&1; then
     warn "paseo CLI not found — skipping plugin install"
@@ -27,8 +35,15 @@ fi
 
 mkdir -p "$PASEO_PLUGINS_DIR"
 
+for orphan in "${ORPHAN_PLUGINS[@]}"; do
+    if paseo plugin ls --json 2>/dev/null | jq -e --arg id "$orphan" '.[] | select(.id == $id)' >/dev/null; then
+        log "remove orphan $orphan"
+        paseo plugin remove "$orphan" >/dev/null
+    fi
+done
+
 _sync_plugin() {
-    local id="$1" repo="$2" subpath="${3:-}" ref="${4:-main}"
+    local id="$1" repo="$2" subpath="${3:-}" ref="${4:-main}" patch="${5:-}"
     local dest="$PASEO_PLUGINS_DIR/$id"
     local url="https://github.com/${repo}.git"
     local tmp
@@ -47,17 +62,20 @@ _sync_plugin() {
     fi
     rm -rf "$tmp"
 
-    python3 "$PATCH_SCRIPT" "$dest"
+    if [[ "$patch" == "v0.8" ]]; then
+        python3 "$PATCH_SCRIPT" "$dest"
+    fi
 }
 
-while IFS= read -r row; do
-    id="$(jq -r '.id' <<<"$row")"
-    repo="$(jq -r '.repo' <<<"$row")"
-    subpath="$(jq -r '.path // empty' <<<"$row")"
-    ref="$(jq -r '.ref // "main"' <<<"$row")"
-    _sync_plugin "$id" "$repo" "$subpath" "$ref"
+_install_plugin() {
+    local id="$1"
+    local plugin_path="$PASEO_PLUGINS_DIR/$id"
 
-    plugin_path="$PASEO_PLUGINS_DIR/$id"
+    if [[ ! -d "$plugin_path" ]]; then
+        err "missing plugin directory: $plugin_path"
+        exit 1
+    fi
+
     current_path="$(paseo plugin ls --json 2>/dev/null | jq -r --arg id "$id" '.[] | select(.id == $id) | .path // empty')"
     if [[ -n "$current_path" ]]; then
         if [[ "$current_path" == "$plugin_path" ]]; then
@@ -81,6 +99,24 @@ while IFS= read -r row; do
         paseo plugin ls --json | jq -r --arg id "$id" '.[] | select(.id == $id) | .error // empty'
         exit 1
     fi
+}
+
+while IFS= read -r row; do
+    id="$(jq -r '.id' <<<"$row")"
+    is_local="$(jq -r 'if .local == true then "true" elif (.repo | length) > 0 then "false" else "true" end' <<<"$row")"
+
+    if [[ "$is_local" == "true" ]]; then
+        log "local $id"
+        _install_plugin "$id"
+        continue
+    fi
+
+    repo="$(jq -r '.repo' <<<"$row")"
+    subpath="$(jq -r '.path // empty' <<<"$row")"
+    ref="$(jq -r '.ref // "main"' <<<"$row")"
+    patch="$(jq -r '.patch // empty' <<<"$row")"
+    _sync_plugin "$id" "$repo" "$subpath" "$ref" "$patch"
+    _install_plugin "$id"
 done < <(jq -c '.plugins[]' "$MANIFEST")
 
 ok "paseo plugins synced from dotfiles"
