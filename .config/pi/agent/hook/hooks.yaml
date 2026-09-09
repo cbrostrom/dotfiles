@@ -38,32 +38,48 @@ hooks:
     actions:
       - bash: "aislop hook pi"
 
-  # Before bash: destructive command guard
-  # Blocks patterns that should never run silently. Exit code 2 = hard stop.
-  # Reads the bash command from hook stdin JSON (.tool_args.command).
-  # Falls back to raw payload substring match if jq is unavailable.
-  # Intentionally narrow — don't over-block legitimate dev commands.
-  # NOTE: pi-permissions.jsonc is the primary guard; this is a defence-in-depth layer.
+  # Before bash: catastrophic filesystem guard
+  # Blocks rm -rf on root/home — defence-in-depth beside pi-permissions.jsonc.
+  # Push/publish/release/merge: pi-permissions.jsonc only (no duplicate hook patterns).
   - id: guard-destructive
     event: tool.before.bash
     actions:
       - bash: |
           payload=$(cat)
-          # Extract command from stdin JSON; fall back to raw payload if jq missing
           if command -v jq >/dev/null 2>&1; then
             cmd=$(printf '%s' "$payload" | jq -r '.tool_args.command // empty' 2>/dev/null)
           else
             cmd="$payload"
           fi
           [[ -z "$cmd" ]] && exit 0
-          blocked=0
-          # Force push (including --force-with-lease)
-          echo "$cmd" | grep -qE 'git push.*(--force|--force-with-lease|-f\b)' && blocked=1
-          # rm -rf on root/home dirs
-          echo "$cmd" | grep -qE 'rm -rf (/[^/]|~|/home|/Users)' && blocked=1
-          # publish / release / pr merge
-          echo "$cmd" | grep -qE '(gh release create|gh pr merge|npm publish|cargo publish|twine upload)' && blocked=1
-          if [[ "$blocked" == "1" ]]; then
-              echo "[pi-guard] Blocked: $cmd" >&2
-              exit 2
+          if echo "$cmd" | grep -qE 'rm -rf (/[^/]|~|/home|/Users)'; then
+            echo "[pi-guard] Blocked catastrophic rm: $cmd" >&2
+            exit 2
+          fi
+
+  # Before bash: context-mode tool-preference guard
+  # Redirects raw file/dir inspection and multi-step investigation commands
+  # toward context-mode tools (ctx_execute, ctx_execute_file, ctx_batch_execute).
+  # Allow-lists trivial one-liners (git status, pwd, plain ls, etc.) so normal
+  # flow isn't blocked. Exit code 2 = hard stop; agent retries with the right tool.
+  - id: guard-context-mode
+    event: tool.before.bash
+    actions:
+      - bash: |
+          payload=$(cat)
+          cmd=$(printf '%s' "$payload" | jq -r '.tool_args.command // empty' 2>/dev/null)
+          [[ -z "$cmd" ]] && exit 0
+
+          # Allow-list: trivial, known-short, no-derivation commands pass straight through
+          echo "$cmd" | grep -qE '^\s*(git (status|branch|diff --stat|log -1)|pwd|whoami|echo |which |ls( -la?)?\s*$)' && exit 0
+
+          reason=""
+          chained=$(echo "$cmd" | grep -oE '&&|;|\|' | wc -l | tr -d ' ')
+          [[ "$chained" -ge 3 ]] && reason="3+ chained commands — use ctx_batch_execute"
+          echo "$cmd" | grep -qE '\b(cat|head|tail|ls -R|find|grep -r|grep -R)\b' && [[ -z "$reason" ]] && reason="file/dir inspection command — use ctx_execute_file or ctx_batch_execute"
+          echo "$cmd" | grep -qE '\b(curl|docker (ps|logs|inspect)|kubectl get|npm (ls|outdated)|git log -p|git diff)\b' && [[ -z "$reason" ]] && reason="likely-large output — use ctx_execute or ctx_batch_execute"
+
+          if [[ -n "$reason" ]]; then
+            echo "[context-mode-guard] $reason: $cmd" >&2
+            exit 2
           fi

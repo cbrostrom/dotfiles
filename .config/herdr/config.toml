@@ -83,9 +83,6 @@ switch_ascii_input_source_in_prefix = false
 #   down       herdr-plus quick actions
 #   b          sidebar toggle (explorer + SCM)
 #   g          source control pane toggle
-#   shift+l    llmtrim savings dashboard
-#   shift+s    llmtrim session summary
-#   shift+i    llmtrim diagnose
 #   ctrl+shift+u  agent usage limits pane
 #   ctrl+shift+m  refresh usage meters
 #   shift+p    plugin manager (also in command palette)
@@ -125,24 +122,6 @@ key = "prefix+g"
 type = "plugin_action"
 command = "herdr-sidebar.open-git"
 description = "Toggle source control"
-
-[[keys.command]]
-key = "prefix+shift+l"
-type = "plugin_action"
-command = "llmtrim.proxy.open-dashboard"
-description = "llmtrim dashboard"
-
-[[keys.command]]
-key = "prefix+shift+s"
-type = "plugin_action"
-command = "llmtrim.proxy.summary"
-description = "llmtrim session summary"
-
-[[keys.command]]
-key = "prefix+shift+i"
-type = "plugin_action"
-command = "llmtrim.proxy.diagnose"
-description = "llmtrim diagnose"
 
 [[keys.command]]
 key = "ctrl+shift+u"

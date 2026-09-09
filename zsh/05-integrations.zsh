@@ -31,38 +31,16 @@ _setup_cursor_integration() {
         fi
     elif $IS_MACOS; then
         if [[ -x /usr/local/bin/cursor ]]; then
-            # Prefer CLI when present; inject llmtrim env if daemon is healthy
             cursor() {
                 local target="."
                 [[ -n "$1" ]] && target="$1"
-                if command -v llmtrim >/dev/null 2>&1 && llmtrim _alive >/dev/null 2>&1; then
-                    HTTPS_PROXY='http://127.0.0.1:43117' \
-                    HTTP_PROXY='http://127.0.0.1:43117' \
-                    NODE_USE_ENV_PROXY=1 \
-                    NODE_EXTRA_CA_CERTS="${HOME}/.llmtrim/ca.pem" \
-                    SSL_CERT_FILE="${HOME}/.llmtrim/ca-bundle.pem" \
-                    CURL_CA_BUNDLE="${HOME}/.llmtrim/ca-bundle.pem" \
-                    /usr/local/bin/cursor "$target"
-                else
-                    /usr/local/bin/cursor "$target"
-                fi
+                /usr/local/bin/cursor "$target"
             }
         elif [[ -d /Applications/Cursor.app ]]; then
             cursor() {
                 local target="."
                 [[ -n "$1" ]] && target="$1"
-                if command -v llmtrim >/dev/null 2>&1 && llmtrim _alive >/dev/null 2>&1; then
-                    open -a Cursor \
-                        --env HTTPS_PROXY=http://127.0.0.1:43117 \
-                        --env HTTP_PROXY=http://127.0.0.1:43117 \
-                        --env NODE_USE_ENV_PROXY=1 \
-                        --env "NODE_EXTRA_CA_CERTS=${HOME}/.llmtrim/ca.pem" \
-                        --env "SSL_CERT_FILE=${HOME}/.llmtrim/ca-bundle.pem" \
-                        --env "CURL_CA_BUNDLE=${HOME}/.llmtrim/ca-bundle.pem" \
-                        "$target"
-                else
-                    open -a Cursor "$target"
-                fi
+                open -a Cursor "$target"
             }
         fi
     elif $IS_LINUX; then

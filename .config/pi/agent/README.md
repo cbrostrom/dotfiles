@@ -27,7 +27,6 @@ Installed via `modules/pi/install.sh` — opt-in per machine.
 │  ├─ startup/           — session welcome header              │
 │  ├─ env-loader/        — .env injection at startup           │
 │  ├─ cursor-model-guard — Cursor allowlist (Auto/Composer)    │
-│  ├─ llmtrim-guard/     — proxy heal / fail-open              │
 │  └─ protected-paths/   — AI-safe path deny list              │
 ├─────────────────────────────────────────────────────────────┤
 │  Packages (settings.base.json → packages)                    │
@@ -81,7 +80,8 @@ Aligned with `settings.base.json` → `packages` (plus a few local installs not 
 | `pi-caffeinate` | Keep terminal awake during long runs |
 | `pi-subagents` | Parallel subagent execution |
 | `context-mode` | FTS5 session/event memory + indexed docs |
-| `pi-mcp-adapter` | MCP gateway (higgins, deja) |
+| `pi-mcp-adapter` | Classic MCP gateway (higgins, deja hot path) |
+| `pi-mcporter` | MCP-as-tool-calls (`search`/`describe`/`call`, index exposure) |
 | `pi-rtk-optimizer` | Output compaction, source filtering |
 | `bybrostrom/pi-extensions` | neanderthal, smart-recap, pane-notify, escape-guard, … |
 | `pi-peer` | Cross-session messaging |
@@ -122,9 +122,13 @@ dotfiles/.config/pi/agent/
 │   ├── organise.md
 │   └── handover.md
 ├── settings.base.json         # Merged into settings.json (enabledModels + packages)
-├── mcp.json
+├── mcp.json                   # Classic MCP: higgins + deja
+├── mcporter.json              # pi-mcporter exposure (index default)
 └── scripts/
 ```
+
+Canonical MCPorter server defs: `dotfiles/.config/mcporter/mcporter.json` → `~/.mcporter/mcporter.json`.
+Cursor bridge: `dotfiles/.cursor/mcp.json` → `mcporter serve --stdio` (curated keep-alive allowlist).
 
 ## Fresh Install
 

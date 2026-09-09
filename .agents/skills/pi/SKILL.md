@@ -16,8 +16,6 @@ Scoped models (`enabledModels` / Ctrl+P / `/scoped-models`) — from `settings.b
 |-------|---------|
 | `default` (cursor Auto, **default**) | Work account — included Auto pool |
 | `composer-2.5` | Work account — included Composer pool |
-| `gpt-5.6-sol@1m` / `terra` / `luna` | Cursor GPT 5.6 variants (1M) |
-| `fable-5-1@1m` / `opus-5@1m` | Cursor long-context variants |
 | `github-copilot/claude-sonnet-5` | Copilot Sonnet |
 | `github-copilot/claude-opus-5` | Copilot Opus |
 | `github-copilot/gpt-5.6-*` | Copilot GPT 5.6 |
@@ -25,6 +23,8 @@ Scoped models (`enabledModels` / Ctrl+P / `/scoped-models`) — from `settings.b
 | `github-copilot/gpt-5.4-mini` / `gpt-5-mini` | Cheap Copilot GPT |
 | `github-copilot/gemini-3.5-flash` | Copilot Gemini |
 | `opencode/big-pickle` | Free zen proxy when off work Cursor |
+
+Non-allowlisted `cursor/*` models are omitted from `enabledModels` (guard would revert them).
 
 Cycle: **Ctrl+P / Shift+Ctrl+P**. List: `/scoped-models`. Full registry: `/model` or `pi --list-models <provider>`.
 
@@ -55,11 +55,20 @@ List installed: `pi list`
 
 > Always update PI from fnm default — the `~/.local/bin/pi` shim calls the default version's binary.
 
-## MCP adapter
+## MCP
 
-`pi-mcp-adapter` auto-reads `~/.cursor/mcp.json`, but `~/.pi/agent/mcp.json` deliberately disables
-github/atlassian/shopify-dev-mcp (tool-restraint). Active servers: local `higgins` + `deja`.
-Prefer the proxied `mcp` tool over blasting full server tool lists.
+Two layers (tool-restraint):
+
+1. **Hot path (classic):** `~/.pi/agent/mcp.json` — `higgins` + `deja` with `directTools: true`.
+2. **Everything else (MCPorter):** `pi-mcporter` + `~/.pi/agent/mcporter.json` (`defaultExposure: index`).
+   Discover/call via the `mcporter` tool (`search` → `describe` → `call`), or shell `mcporter call server.tool …`.
+   Server defs live in `~/.mcporter/mcporter.json` (dotfiles: `.config/mcporter/mcporter.json`).
+
+Cursor uses a curated `mcporter serve --stdio` bridge (`.cursor/mcp.json`) for a small keep-alive allowlist — not a full schema dump of dockhand.
+
+`pi-mcp-adapter` may still discover host configs; keep non-hot servers out of Pi `mcp.json`.
+
+Status: `/mcp status` · `/mcporter status` · `mcporter list`
 
 ## Subagent usage (@gotgenes/pi-subagents)
 
@@ -100,7 +109,7 @@ pi --version                    # PI version
 - `~/dotfiles/.config/pi/agent/AGENTS.md` → `~/.pi/agent/AGENTS.md`
 - `~/dotfiles/.config/pi/agent/settings.base.json` → merged into `~/.pi/agent/settings.json`
 - `~/dotfiles/.config/pi/agent/hook/hooks.yaml` → `~/.pi/agent/hook/hooks.yaml`
-- Extensions: `cursor-model-guard/`, `llmtrim-guard/`, footer, styled-outputs, …
+- Extensions: `cursor-model-guard/`, footer, styled-outputs, …
 
 Local-only (never committed): `auth.json`, `trust.json`, `sessions/`, `npm/`,
 `cursor-sdk.json`, `configs/.env`, `cursor-sdk-model-list.json`.

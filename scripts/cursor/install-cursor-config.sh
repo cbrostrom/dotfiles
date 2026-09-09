@@ -2,7 +2,7 @@
 #
 # Symlinks/Copies:
 #   ~/.cursor/hooks/*.sh  → dotfiles/.cursor/hooks/*.sh
-#   ~/.cursor/rules/*.mdc → dotfiles/.cursor/rules/*.mdc
+#   ~/.cursor/rules/{core,context-mode,session-brain}.mdc → dotfiles/.cursor/rules/
 #
 # hooks.json patches (idempotent):
 #   sessionStart  → no vault dump (MCP-only: agent uses Higgins on demand)
@@ -85,7 +85,7 @@ done
 RULES_SRC="$CURSOR_SRC/rules"
 RULES_DST="$CURSOR_DIR/rules"
 mkdir -p "$RULES_DST"
-for rule in core.mdc ponytail.mdc; do
+for rule in core.mdc context-mode.mdc session-brain.mdc; do
   src="$RULES_SRC/$rule"
   dst="$RULES_DST/$rule"
   if [[ ! -f "$src" ]]; then
