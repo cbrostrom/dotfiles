@@ -7,15 +7,15 @@
 set -uo pipefail
 
 INPUT="$(cat)"
-echo "$INPUT" > /tmp/cursor-stop-event.json
+echo "$INPUT" >/tmp/cursor-stop-event.json
 
 KB="${VAULT_AI:-$HOME/Vaults/Higgins/AI}/tools/kb"
 
 # Platform detection
 if grep -qi microsoft /proc/version 2>/dev/null || [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
-  VAULT_AI_PATH="/mnt/c/Users/christian/Obsidian/AI"
+    VAULT_AI_PATH="/mnt/c/Users/christian/Obsidian/AI"
 else
-  VAULT_AI_PATH="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
+    VAULT_AI_PATH="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
 fi
 
 VAULT_SESSIONS="${VAULT_AI_PATH}/sessions"
@@ -24,11 +24,11 @@ VAULT_PROJECTS="${VAULT_AI_PATH}/projects"
 # Slug from workspace_roots[0] (reliable), fallback to git basename, fallback to PWD
 WORKSPACE="$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('workspace_roots',[''])[0])" 2>/dev/null || true)"
 if [[ -n "$WORKSPACE" ]] && [[ "$WORKSPACE" != "/" ]]; then
-  SLUG="$(basename "$WORKSPACE")"
+    SLUG="$(basename "$WORKSPACE")"
 elif git rev-parse --git-dir >/dev/null 2>&1; then
-  SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
+    SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
 else
-  SLUG="$(basename "$PWD")"
+    SLUG="$(basename "$PWD")"
 fi
 
 TRANSCRIPT="$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('transcript_path',''))" 2>/dev/null || true)"
@@ -44,23 +44,23 @@ SESSION_DIR="${VAULT_SESSIONS}/${YEAR}/${MONTH}"
 mkdir -p "$SESSION_DIR" 2>/dev/null || true
 SESSION_FILE="${SESSION_DIR}/${TODAY}-${SLUG}-session.md"
 if [[ ! -f "$SESSION_FILE" ]]; then
-  printf '# Session log: %s — %s\n' "$SLUG" "$TODAY" > "$SESSION_FILE"
-  [[ -n "$TRANSCRIPT" ]] && printf 'transcript: %s\n' "$TRANSCRIPT" >> "$SESSION_FILE"
-  printf '\n' >> "$SESSION_FILE"
+    printf '# Session log: %s — %s\n' "$SLUG" "$TODAY" >"$SESSION_FILE"
+    [[ -n "$TRANSCRIPT" ]] && printf 'transcript: %s\n' "$TRANSCRIPT" >>"$SESSION_FILE"
+    printf '\n' >>"$SESSION_FILE"
 fi
-printf -- '- %s  stop\n' "$HHMM" >> "$SESSION_FILE"
+printf -- '- %s  stop\n' "$HHMM" >>"$SESSION_FILE"
 
 # ── Zero-token TF-IDF summary (background, no API) ───────────────────────────
 if [[ -n "$TRANSCRIPT" ]] && command -v session-summarize &>/dev/null; then
-  session-summarize "$TRANSCRIPT" "$SESSION_FILE" &>/dev/null &
+    session-summarize "$TRANSCRIPT" "$SESSION_FILE" &>/dev/null &
 fi
 
 # ── Silent prune + compact (background, idempotent) ──────────────────────────
 if [[ -x "$KB" ]]; then
-  (
-    VAULT_AI="$VAULT_AI_PATH" "$KB" prune "$SLUG" 2>/dev/null
-    VAULT_AI="$VAULT_AI_PATH" "$KB" compact "$SLUG" 2>/dev/null
-  ) &
+    (
+        VAULT_AI="$VAULT_AI_PATH" "$KB" prune "$SLUG" 2>/dev/null
+        VAULT_AI="$VAULT_AI_PATH" "$KB" compact "$SLUG" 2>/dev/null
+    ) &
 fi
 
 # ── Write pending.md — deterministic, no AI, picked up by brain-load ──────────
@@ -68,7 +68,7 @@ MODULAR_DIR="${VAULT_PROJECTS}/${SLUG}"
 [[ -d "$MODULAR_DIR" ]] || exit 0
 
 if [[ -n "$TRANSCRIPT" && -f "$TRANSCRIPT" ]]; then
-  python3 - "$TRANSCRIPT" "$MODULAR_DIR/pending.md" "$NOW" "$SESSION_FILE" <<'PY'
+    python3 - "$TRANSCRIPT" "$MODULAR_DIR/pending.md" "$NOW" "$SESSION_FILE" <<'PY'
 import json, sys, re
 from pathlib import Path
 

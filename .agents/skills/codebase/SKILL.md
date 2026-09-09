@@ -1,6 +1,6 @@
 ---
 name: codebase
-description: Codebase router. Reads CODEBASE.md and maps the current task to the 2-3 files worth reading next — prevents redundant searches. Offers to generate CODEBASE.md if missing. Triggered by 'codebase', 'where is X', 'what files do I need', 'map this repo', 'orient me'.
+description: "Maps the current task to 2-3 files to read. Reads CODEBASE.md; generates it if missing. Triggers: codebase, where is X, what files do I need, map this repo, orient me."
 group: productivity
 ---
 
@@ -85,6 +85,6 @@ Rules for generation:
 - Infer purpose from filenames and directory names only — do not read file contents
 - One line per entry, no speculation
 - Skip compiled/generated files (`.zwc`, `dist/`, `build/`, lockfiles)
-- Skip dot-dirs unless they contain meaningful config (`.claude/`, `.cursor/` yes — `.git/` no)
+- Skip dot-dirs unless they contain meaningful config (`.cursor/`, `.config/pi/` yes — `.git/` no)
 
 After writing, run the router from step 2.

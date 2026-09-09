@@ -1,0 +1,9 @@
+name = "gemr"
+group = "Personal"
+working_dir = "~/Projects/personal/gemr"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

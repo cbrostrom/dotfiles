@@ -1,0 +1,9 @@
+name = "tagtilberlin"
+group = "Personal"
+working_dir = "~/Projects/personal/tagtilberlin"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

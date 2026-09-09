@@ -5,14 +5,14 @@
 DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
 # Module-system context for status counts.
-. "$DOTFILES_DIR/modules/_lib/log.sh"        2>/dev/null
-. "$DOTFILES_DIR/modules/_lib/platform.sh"   2>/dev/null
-. "$DOTFILES_DIR/modules/_lib/config.sh"     2>/dev/null
-. "$DOTFILES_DIR/modules/_lib/loader.sh"     2>/dev/null
+. "$DOTFILES_DIR/modules/_lib/log.sh" 2>/dev/null
+. "$DOTFILES_DIR/modules/_lib/platform.sh" 2>/dev/null
+. "$DOTFILES_DIR/modules/_lib/config.sh" 2>/dev/null
+. "$DOTFILES_DIR/modules/_lib/loader.sh" 2>/dev/null
 
 _banner_module_counts() {
-    DOTFILES_QUIET=1 modules_init       >/dev/null 2>&1 || return
-    DOTFILES_QUIET=1 modules_discover   >/dev/null 2>&1 || return
+    DOTFILES_QUIET=1 modules_init >/dev/null 2>&1 || return
+    DOTFILES_QUIET=1 modules_discover >/dev/null 2>&1 || return
     local name action status
     local -i clean=0 dirty=0 unkn=0 off=0 na=0
     while IFS= read -r name; do
@@ -21,13 +21,14 @@ _banner_module_counts() {
         case "$action" in
             run)
                 case "$status" in
-                    clean)   clean=$((clean+1)) ;;
-                    dirty)   dirty=$((dirty+1)) ;;
-                    *)       unkn=$((unkn+1)) ;;
-                esac ;;
-            skip-platform|skip-profile)            na=$((na+1)) ;;
-            skip-disabled|skip-not-selected)       off=$((off+1)) ;;
-            skip-missing-req:*)                    off=$((off+1)) ;;
+                    clean) clean=$((clean + 1)) ;;
+                    dirty) dirty=$((dirty + 1)) ;;
+                    *) unkn=$((unkn + 1)) ;;
+                esac
+                ;;
+            skip-platform | skip-profile) na=$((na + 1)) ;;
+            skip-disabled | skip-not-selected) off=$((off + 1)) ;;
+            skip-missing-req:*) off=$((off + 1)) ;;
         esac
     done < <(modules_list_all)
     echo "$clean $dirty $unkn $off $na"
@@ -39,11 +40,15 @@ _banner_last_update() {
         local ts now diff
         ts=$(stat -c '%Y' "$fh" 2>/dev/null || stat -f '%m' "$fh" 2>/dev/null)
         now=$(date +%s)
-        diff=$(( (now - ts) ))
-        if   (( diff < 60     )); then echo "just now"
-        elif (( diff < 3600   )); then echo "$(( diff / 60 ))m ago"
-        elif (( diff < 86400  )); then echo "$(( diff / 3600 ))h ago"
-        else                            echo "$(( diff / 86400 ))d ago"
+        diff=$(((now - ts)))
+        if ((diff < 60)); then
+            echo "just now"
+        elif ((diff < 3600)); then
+            echo "$((diff / 60))m ago"
+        elif ((diff < 86400)); then
+            echo "$((diff / 3600))h ago"
+        else
+            echo "$((diff / 86400))d ago"
         fi
     else
         echo "never"

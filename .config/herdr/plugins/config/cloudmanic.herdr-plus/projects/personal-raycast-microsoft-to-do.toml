@@ -1,0 +1,9 @@
+name = "raycast-microsoft-to-do"
+group = "Personal"
+working_dir = "~/Projects/personal/raycast-microsoft-to-do"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

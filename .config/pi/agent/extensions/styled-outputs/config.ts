@@ -7,16 +7,23 @@ import type { StyledOutputsUserConfig } from "./types.js";
 export const DEFAULT_CONFIG = {
   // Assistant message
   ASSISTANT_MESSAGE: {
+    STYLE: "framed" as const, // prefix | framed | labeled
     PREFIX: "●",
+    RAIL: "│",
     COLOR: "text",
+    BORDER_COLOR: "border",
   },
 
   // User message
   USER_MESSAGE: {
+    STYLE: "framed" as const, // prefix | framed | labeled
     PREFIX: "❯",
+    RAIL: "│",
     COLOR: "accent",
+    BORDER_COLOR: "border",
     BODY_COLOR: "text",
-    IS_THEME_BACKGROUND_VISIBLE: true,
+    // Framed/labeled look cleaner without theme bg; prefix keeps bg unless overridden.
+    IS_THEME_BACKGROUND_VISIBLE: false,
   },
   
   // Skill invocation
@@ -43,8 +50,11 @@ export const DEFAULT_CONFIG = {
 
   // Thinking message
   THINKING_MESSAGE: {
+    STYLE: "labeled" as const, // prefix | framed | labeled
     PREFIX: "✽",
+    RAIL: "│",
     PREFIX_COLOR: "accent",
+    BORDER_COLOR: "borderMuted",
     LABEL: "Thinking:",
     LABEL_COLOR: "muted",
     IS_LABEL_VISIBLE: false,
@@ -110,10 +120,21 @@ function loadUserConfig(): StyledOutputsUserConfig {
 
 const userConfig = loadUserConfig();
 
+const userMessageStyle =
+  userConfig.userMessage?.style ?? DEFAULT_CONFIG.USER_MESSAGE.STYLE;
+const assistantMessageStyle =
+  userConfig.assistantMessage?.style ?? DEFAULT_CONFIG.ASSISTANT_MESSAGE.STYLE;
+const thinkingMessageStyle =
+  userConfig.thinkingMessage?.style ?? DEFAULT_CONFIG.THINKING_MESSAGE.STYLE;
+
 export const CONFIG = {
   assistantMessage: {
+    style: assistantMessageStyle,
     prefix: userConfig.assistantMessage?.prefix ?? DEFAULT_CONFIG.ASSISTANT_MESSAGE.PREFIX,
+    rail: userConfig.assistantMessage?.rail ?? DEFAULT_CONFIG.ASSISTANT_MESSAGE.RAIL,
     color: userConfig.assistantMessage?.color ?? DEFAULT_CONFIG.ASSISTANT_MESSAGE.COLOR,
+    borderColor:
+      userConfig.assistantMessage?.borderColor ?? DEFAULT_CONFIG.ASSISTANT_MESSAGE.BORDER_COLOR,
   },
   skills: {
     prefix: userConfig.skills?.prefix ?? DEFAULT_CONFIG.SKILLS.PREFIX,
@@ -125,10 +146,18 @@ export const CONFIG = {
     outputColor: userConfig.skills?.outputColor ?? DEFAULT_CONFIG.SKILLS.OUTPUT_COLOR,
   },
   userMessage: {
+    style: userMessageStyle,
     prefix: userConfig.userMessage?.prefix ?? DEFAULT_CONFIG.USER_MESSAGE.PREFIX,
+    rail: userConfig.userMessage?.rail ?? DEFAULT_CONFIG.USER_MESSAGE.RAIL,
     color: userConfig.userMessage?.color ?? DEFAULT_CONFIG.USER_MESSAGE.COLOR,
+    borderColor:
+      userConfig.userMessage?.borderColor ?? DEFAULT_CONFIG.USER_MESSAGE.BORDER_COLOR,
     bodyColor: userConfig.userMessage?.bodyColor ?? DEFAULT_CONFIG.USER_MESSAGE.BODY_COLOR,
-    isThemeBackgroundVisible: userConfig.userMessage?.isThemeBackgroundVisible ?? DEFAULT_CONFIG.USER_MESSAGE.IS_THEME_BACKGROUND_VISIBLE,
+    isThemeBackgroundVisible:
+      userConfig.userMessage?.isThemeBackgroundVisible ??
+      (userMessageStyle === "prefix"
+        ? true
+        : DEFAULT_CONFIG.USER_MESSAGE.IS_THEME_BACKGROUND_VISIBLE),
   },
   customMessages: {
     prefix: userConfig.customMessages?.prefix ?? DEFAULT_CONFIG.CUSTOM_MESSAGES.PREFIX,
@@ -140,8 +169,12 @@ export const CONFIG = {
     outputColor: userConfig.customMessages?.outputColor ?? DEFAULT_CONFIG.CUSTOM_MESSAGES.OUTPUT_COLOR,
   },
   thinkingMessage: {
+    style: thinkingMessageStyle,
     prefix: userConfig.thinkingMessage?.prefix ?? DEFAULT_CONFIG.THINKING_MESSAGE.PREFIX,
+    rail: userConfig.thinkingMessage?.rail ?? DEFAULT_CONFIG.THINKING_MESSAGE.RAIL,
     prefixColor: userConfig.thinkingMessage?.prefixColor ?? DEFAULT_CONFIG.THINKING_MESSAGE.PREFIX_COLOR,
+    borderColor:
+      userConfig.thinkingMessage?.borderColor ?? DEFAULT_CONFIG.THINKING_MESSAGE.BORDER_COLOR,
     label: userConfig.thinkingMessage?.label ?? DEFAULT_CONFIG.THINKING_MESSAGE.LABEL,
     labelColor: userConfig.thinkingMessage?.labelColor ?? DEFAULT_CONFIG.THINKING_MESSAGE.LABEL_COLOR,
     isLabelVisible: userConfig.thinkingMessage?.isLabelVisible ?? DEFAULT_CONFIG.THINKING_MESSAGE.IS_LABEL_VISIBLE,

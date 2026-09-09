@@ -312,9 +312,8 @@ export interface LoadedCounts {
 function countContextFiles(homeDir: string, cwd: string): number {
   const paths = [
     join(homeDir, ".pi", "agent", "AGENTS.md"),
-    join(homeDir, ".claude", "AGENTS.md"),
     join(cwd, "AGENTS.md"),
-    join(cwd, "CLAUDE.md"),
+    join(cwd, "CLAUDE.md"), // project-local adapter some repos still use
     join(cwd, ".pi", "AGENTS.md"),
   ];
   return paths.filter(existsSync).length;

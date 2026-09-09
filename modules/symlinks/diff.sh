@@ -23,7 +23,8 @@ local_status() {
     local src_rel="$1" target="$2"
     local src_abs="$DOTFILES_DIR/$src_rel"
     if [[ ! -e "$src_abs" ]]; then
-        printf "%smissing-src%s" "$_C_RED" "$_C_RESET"; return
+        printf "%smissing-src%s" "$_C_RED" "$_C_RESET"
+        return
     fi
     if [[ -L "$target" ]]; then
         local rl

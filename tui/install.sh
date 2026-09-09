@@ -21,9 +21,9 @@ _LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/logs"
 
 _workflow_selector() {
     local current=""
-    [[ -f "$HOME/.zshrc.local" ]] && \
-        current="$(grep -E '^export DOTFILES_WORKFLOWS=' "$HOME/.zshrc.local" 2>/dev/null \
-            | head -1 | sed 's/.*=//;s/"//g;s/'"'"'//g')"
+    [[ -f "$HOME/.zshrc.local" ]] &&
+        current="$(grep -E '^export DOTFILES_WORKFLOWS=' "$HOME/.zshrc.local" 2>/dev/null |
+            head -1 | sed 's/.*=//;s/"//g;s/'"'"'//g')"
 
     gum style --foreground 8 "  Active workflows: ${current:-none}"
     echo
@@ -40,14 +40,17 @@ _workflow_selector() {
     [[ "$current" == *"work"* ]] && presels+=("work")
 
     local presel_arg=""
-    [[ ${#presels[@]} -gt 0 ]] && presel_arg="$(IFS=,; echo "${presels[*]}")"
+    [[ ${#presels[@]} -gt 0 ]] && presel_arg="$(
+        IFS=,
+        echo "${presels[*]}"
+    )"
 
     local chosen="" _wf_tmp
     _wf_tmp="$(mktemp)"
-    printf '%s\n' "${wf_opts[@]}" | \
+    printf '%s\n' "${wf_opts[@]}" |
         gum choose --no-limit \
             --header "Workflows (Space=toggle, Enter=confirm):" \
-            ${presel_arg:+--selected="$presel_arg"} > "$_wf_tmp" 2>/dev/null || true
+            ${presel_arg:+--selected="$presel_arg"} >"$_wf_tmp" 2>/dev/null || true
     chosen="$(<"$_wf_tmp")"
     rm -f "$_wf_tmp"
 
@@ -58,7 +61,7 @@ _workflow_selector() {
         if [[ -f "$HOME/.zshrc.local" ]] && grep -q "DOTFILES_WORKFLOWS" "$HOME/.zshrc.local"; then
             sed -i "s|^export DOTFILES_WORKFLOWS=.*|export DOTFILES_WORKFLOWS=\"$new_wf\"|" "$HOME/.zshrc.local"
         else
-            echo "export DOTFILES_WORKFLOWS=\"$new_wf\"" >> "$HOME/.zshrc.local"
+            echo "export DOTFILES_WORKFLOWS=\"$new_wf\"" >>"$HOME/.zshrc.local"
         fi
         gum style --foreground 10 "  ✓ Workflows → ${new_wf:-none}"
     fi
@@ -88,7 +91,7 @@ run_install() {
     while IFS= read -r name; do
         action="$(_decide_module_action "$name")"
         case "$action" in
-            run|skip-disabled|skip-not-selected)
+            run | skip-disabled | skip-not-selected)
                 label="$name — ${_MODULES_DESC[$name]}"
                 opts+=("$label")
                 [[ "$action" == "run" ]] && default_selected+=("$label")
@@ -102,22 +105,28 @@ run_install() {
     fi
 
     local sel_csv
-    sel_csv="$(IFS=,; echo "${default_selected[*]}")"
+    sel_csv="$(
+        IFS=,
+        echo "${default_selected[*]}"
+    )"
 
     local _tmpsel
     _tmpsel="$(mktemp)"
     gum choose --no-limit \
         --header "Select modules to install (idempotent — safe to re-run):" \
         --selected "$sel_csv" \
-        "${opts[@]}" > "$_tmpsel" || true
+        "${opts[@]}" >"$_tmpsel" || true
 
     local -a SELECTED=()
     while IFS= read -r line; do
         [[ -n "$line" ]] && SELECTED+=("${line%% — *}")
-    done < "$_tmpsel"
+    done <"$_tmpsel"
     rm -f "$_tmpsel"
 
-    [[ ${#SELECTED[@]} -eq 0 ]] && { gum style --foreground 220 "Nothing selected."; return; }
+    [[ ${#SELECTED[@]} -eq 0 ]] && {
+        gum style --foreground 220 "Nothing selected."
+        return
+    }
 
     echo
     gum style --foreground 8 "Will install:"
@@ -135,20 +144,20 @@ run_install() {
         printf 'Profile:   %s\n' "$prof"
         printf 'Workflows: %s\n' "${DOTFILES_WORKFLOWS:-none}"
         printf '\n'
-    } > "$log_file"
+    } >"$log_file"
 
     # 4. Run per-module with spinner; capture all output to log
     echo
     local -a failed=()
     for mod in "${SELECTED[@]}"; do
         if DOTFILES_STRUCTURED=1 \
-           DOTFILES_RUN_LOG="$log_file" \
-           DOTFILES_SKIP_DOCTOR=1 \
-           gum spin --title "  Installing $mod…" -- \
-           bash "$DOTFILES_DIR/bootstrap.sh" "--only=$mod"; then
+            DOTFILES_RUN_LOG="$log_file" \
+            DOTFILES_SKIP_DOCTOR=1 \
+            gum spin --title "  Installing $mod…" -- \
+            bash "$DOTFILES_DIR/bootstrap.sh" "--only=$mod"; then
             gum style --foreground 10 "  ✓ $mod"
         else
-            gum style --foreground 9  "  ✗ $mod"
+            gum style --foreground 9 "  ✗ $mod"
             failed+=("$mod")
         fi
     done
@@ -164,7 +173,10 @@ run_install() {
     echo
     gum style --foreground 8 "  Log: $log_file"
     echo
-    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key to return…" -n1; echo; }
+    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && {
+        read -rsp "Press any key to return…" -n1
+        echo
+    }
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then run_install; fi

@@ -1,0 +1,9 @@
+name = "spoutly"
+group = "Personal"
+working_dir = "~/Projects/personal/spoutly"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

@@ -60,7 +60,11 @@ export function applyColor(theme: Theme, color: string, text: string): string {
 	if (isHexColor(color)) {
 		return `${hexToAnsi(color)}${text}\x1b[0m`;
 	}
-	return theme.fg(color as ThemeColor, text);
+	try {
+		return theme.fg(color as ThemeColor, text);
+	} catch {
+		return text;
+	}
 }
 
 // ─── Companion animator ───────────────────────────────────────────────────

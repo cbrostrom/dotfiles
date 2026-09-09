@@ -6,11 +6,12 @@
 
 set -euo pipefail
 
-if (( BASH_VERSINFO[0] < 4 )); then
+if ((BASH_VERSINFO[0] < 4)); then
     for _b in /opt/homebrew/bin/bash /usr/local/bin/bash; do
         [[ -x "$_b" ]] && exec "$_b" "$0" "$@"
     done
-    echo "${0##*/}: bash 4+ required (found $BASH_VERSION)" >&2; exit 1
+    echo "${0##*/}: bash 4+ required (found $BASH_VERSION)" >&2
+    exit 1
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,12 +19,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 INPUT="${1:?usage: plan-gen.sh <inventory.json>}"
-[[ -f "$INPUT" ]] || { err "Input not found: $INPUT"; exit 1; }
+[[ -f "$INPUT" ]] || {
+    err "Input not found: $INPUT"
+    exit 1
+}
 
 # Known client directory patterns (lowercase target names)
 declare -A CLIENT_MAP=(
     [Alustre]=alustre [alustre]=alustre
-    [Brown-Forman]=brown-forman
+    [Brown - Forman]=brown-forman
     [Carlsberg]=carlsberg
     [Dilling]=dilling
     [Ecco]=ecco
@@ -36,7 +40,7 @@ declare -A CLIENT_MAP=(
     [PostNord]=postnord
     [PSG]=psg
     [WPP]=wpp
-    [tine-k]=tine-k
+    [tine - k]=tine-k
     [tinek]=tine-k
     [themelio]=themelio
 )
@@ -54,7 +58,7 @@ strip_akqa_prefix() {
 detect_client() {
     local path="$1" name="$2"
     local parts segments=()
-    IFS='/' read -ra segments <<< "$path"
+    IFS='/' read -ra segments <<<"$path"
 
     # 1. Direct parent under Clients/ or Shopify/
     if [[ "${segments[0]}" == "Clients" || "${segments[0]}" == "Shopify" ]] && [[ ${#segments[@]} -ge 3 ]]; then

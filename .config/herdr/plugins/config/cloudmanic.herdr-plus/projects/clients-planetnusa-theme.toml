@@ -1,0 +1,9 @@
+name = "theme"
+group = "PlanetNusa"
+working_dir = "~/Projects/clients/PlanetNusa/theme"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

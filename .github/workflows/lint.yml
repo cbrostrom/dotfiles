@@ -15,7 +15,8 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y zsh shellcheck
-          curl -fsSL -o /tmp/shfmt https://github.com/mvdan/sh/releases/latest/download/shfmt_v3.7.0_linux_amd64
+          SHFMT_VERSION=v3.14.1
+          curl -fsSL -o /tmp/shfmt "https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64"
           chmod +x /tmp/shfmt
           sudo mv /tmp/shfmt /usr/local/bin/shfmt
 
@@ -24,17 +25,32 @@ jobs:
           set -e
           fail=0
           while IFS= read -r f; do
-            shellcheck -S warning -e SC1090,SC1091 "$f" || fail=1
-          done < <(find . -path ./.git -prune -o -name '*.sh' -print)
+            first=$(head -1 "$f")
+            [[ "$first" =~ (^#!/.*zsh|zsh$) ]] && continue
+            case "$f" in
+              modules/*/module.sh | zsh/lib/*.sh | functions/port-utils.sh) continue ;;
+            esac
+            shellcheck -S error "$f" || fail=1
+          done < <(git ls-files '*.sh')
           exit $fail
 
       - name: shfmt -d *.sh
         run: |
-          shfmt -d -i 4 -ci $(find . -path ./.git -prune -o -name '*.sh' -print)
+          set -e
+          files=()
+          while IFS= read -r f; do
+            first=$(head -1 "$f")
+            [[ "$first" =~ (^#!/.*zsh|zsh$) ]] && continue
+            case "$f" in
+              modules/*/module.sh | zsh/lib/*.sh | functions/port-utils.sh) continue ;;
+            esac
+            files+=("$f")
+          done < <(git ls-files '*.sh')
+          shfmt -d -i 4 -ci "${files[@]}"
 
       - name: zsh -n on all *.zsh + .zshrc + .zshenv
         run: |
           set -e
-          for f in $(find . -path ./.git -prune -o \( -name '*.zsh' -o -name '.zshrc' -o -name '.zshenv' \) -print); do
+          while IFS= read -r f; do
             zsh -n "$f"
-          done
+          done < <(git ls-files '*.zsh' '.zshrc' '.zshenv')

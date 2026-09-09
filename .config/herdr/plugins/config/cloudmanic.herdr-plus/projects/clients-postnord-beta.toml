@@ -1,0 +1,9 @@
+name = "Beta"
+group = "PostNord"
+working_dir = "~/Projects/clients/PostNord/Beta"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

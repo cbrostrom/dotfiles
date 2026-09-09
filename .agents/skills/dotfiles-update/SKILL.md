@@ -29,7 +29,7 @@ dotfiles --update
 
 Expected: `✓ Pulled latest from git` + `All modules up to date.`
 
-If pull fails: most likely cause is dirty `devices/*.json` or case-conflict. Check with `git ls-files --cached .claude/devices/` for duplicates.
+If pull fails: check dirty tracked files with `git status` and resolve locally first.
 
 ### 3. Push if ahead of origin
 
@@ -37,7 +37,7 @@ If pull fails: most likely cause is dirty `devices/*.json` or case-conflict. Che
 git -C ~/dotfiles push
 ```
 
-Only push if dotfiles is in `~/.claude/push-whitelist.txt`. If not: tell user to push manually.
+Only push if the user explicitly asked and push is allowed for this repo. Never push client repos.
 
 ### 4. Propagate to LinuxBro
 
@@ -65,13 +65,11 @@ ping -c1 monsterbro 2>/dev/null && echo "online" || echo "offline — skip"
 ssh monsterbro 'git -C ~/dotfiles pull && DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=wsl ~/dotfiles/bootstrap.sh --only=symlinks,opencode'
 ```
 
-Note: `wsl` workflow not yet defined — use `server` as fallback until `mcp-servers.wsl.list` is created.
 
 ### 6. Verify effort classifier active on all machines
 
 After each remote update, check:
 ```bash
-grep -q "effort-classifier" ~/dotfiles/.claude/settings.local.json && echo "OK" || echo "MISSING"
 ```
 
 ### 7. Confirm
@@ -80,7 +78,6 @@ One line: what updated, any failures, what's next.
 
 ## Gotchas
 
-- `LinuxBro.json` was case-conflicting with `linuxbro.json` — fixed 2026-06-12. If dirty device files block pull: `git ls-files --cached .claude/devices/` to detect duplicates, `git rm --cached` to fix.
 - Pre-commit hook fires during `git stash` — fixed 2026-06-12 with `GIT_REFLOG_ACTION` guard. If stash still blocks: update hooks first.
 - `dotfiles --update` on server requires `DOTFILES_NONINTERACTIVE=1` or it hangs waiting for workflow picker input.
 - `DOTFILES_WORKFLOWS` must be set before bootstrap or server MCPs won't install.

@@ -71,7 +71,7 @@ _install_systemd() {
     local env_file="$HOME/.config/opencode/web.env"
     if [[ ! -f "$env_file" ]]; then
         mkdir -p "$(dirname "$env_file")"
-        cat > "$env_file" <<'ENVEOF'
+        cat >"$env_file" <<'ENVEOF'
 OPENCODE_SERVER_USERNAME=cb
 # OPENCODE_SERVER_PASSWORD=your-secret-here
 # Uncomment above if NOT behind Traefik/TinyAuth (password handled by reverse proxy)
@@ -81,7 +81,7 @@ ENVEOF
 
     local unit_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
     mkdir -p "$unit_dir"
-    cat > "$unit_dir/opencode-web.service" <<EOF
+    cat >"$unit_dir/opencode-web.service" <<EOF
 [Unit]
 Description=OpenCode Web UI
 After=default.target
@@ -96,9 +96,9 @@ RestartSec=5
 WantedBy=default.target
 EOF
     systemctl --user daemon-reload
-    systemctl --user enable --now opencode-web.service 2>/dev/null \
-        && ok "opencode-web systemd service enabled" \
-        || warn "systemd enable failed (non-fatal)"
+    systemctl --user enable --now opencode-web.service 2>/dev/null &&
+        ok "opencode-web systemd service enabled" ||
+        warn "systemd enable failed (non-fatal)"
 }
 
 _web_autostart=false
@@ -110,7 +110,7 @@ fi
 
 if $_web_autostart; then
     if [[ "$(uname -s)" == "Linux" ]]; then
-        ( _install_systemd ) || warn "opencode-web setup failed (non-fatal)"
+        (_install_systemd) || warn "opencode-web setup failed (non-fatal)"
     else
         warn "opencode-web autostart only supported on Linux (systemd) — skipping"
     fi

@@ -26,21 +26,12 @@ else
     if [[ "$(uname -s)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
         brew install herdr >/dev/null && ok "herdr installed via brew"
     else
-        curl -fsSL https://herdr.dev/install.sh | sh \
-            && ok "herdr installed" \
-            || { warn "herdr install failed (non-fatal)"; exit 0; }
-    fi
-fi
-
-# ── 2) Claude Code integration ────────────────────────────────────────────────
-if command -v herdr >/dev/null 2>&1; then
-    if herdr integration status 2>/dev/null | grep -q "claude.*up.to.date\|claude.*installed" 2>/dev/null; then
-        ok "herdr claude integration already installed"
-    else
-        log "installing herdr claude integration …"
-        herdr integration install claude 2>/dev/null \
-            && ok "herdr claude integration installed" \
-            || warn "herdr integration install failed (non-fatal)"
+        curl -fsSL https://herdr.dev/install.sh | sh &&
+            ok "herdr installed" ||
+            {
+                warn "herdr install failed (non-fatal)"
+                exit 0
+            }
     fi
 fi
 
@@ -58,7 +49,7 @@ if [[ -d "$HERDR_CONFIG_SRC" ]]; then
                 rmdir "$HERDR_CONFIG_DST"
             else
                 warn "$HOME/.config/herdr has existing files — skipping symlink (manual config preserved)"
-                HERDR_CONFIG_SRC=""  # prevent symlink below
+                HERDR_CONFIG_SRC="" # prevent symlink below
             fi
         fi
         if [[ -n "$HERDR_CONFIG_SRC" ]]; then
@@ -72,16 +63,24 @@ fi
 
 _install_launchd() {
     local plist_dst="$HOME/Library/LaunchAgents/dev.herdr.server.plist"
-    local herdr_bin
+    local herdr_bin herdr_path
     herdr_bin="$(command -v herdr)"
+    # launchd gives a minimal PATH (/usr/bin:/bin:…) — plugin overlay panes inherit it,
+    # so Homebrew tools (fzf, etc.) must be injected here for autostarted servers.
+    herdr_path="/opt/homebrew/bin:/opt/homebrew/sbin:${HOME}/.local/bin:${HOME}/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
     mkdir -p "$(dirname "$plist_dst")" "$HOME/Library/Logs"
-    cat > "$plist_dst" <<EOF
+    cat >"$plist_dst" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>Label</key>             <string>dev.herdr.server</string>
     <key>ProgramArguments</key> <array><string>${herdr_bin}</string><string>server</string></array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>${herdr_path}</string>
+    </dict>
     <key>RunAtLoad</key>         <true/>
     <key>KeepAlive</key>         <true/>
     <key>StandardOutPath</key>   <string>${HOME}/Library/Logs/herdr.log</string>
@@ -90,8 +89,8 @@ _install_launchd() {
 </plist>
 EOF
     launchctl unload "$plist_dst" 2>/dev/null || true
-    launchctl load "$plist_dst" && ok "herdr LaunchAgent loaded (autostart)" \
-        || warn "launchctl load failed (non-fatal)"
+    launchctl load "$plist_dst" && ok "herdr LaunchAgent loaded (autostart)" ||
+        warn "launchctl load failed (non-fatal)"
 }
 
 _install_systemd() {
@@ -103,13 +102,14 @@ _install_systemd() {
     local herdr_bin
     herdr_bin="$(command -v herdr)"
     mkdir -p "$unit_dir"
-    cat > "$unit_dir/herdr.service" <<EOF
+    cat >"$unit_dir/herdr.service" <<EOF
 [Unit]
 Description=Herdr terminal session server
 After=default.target
 
 [Service]
 ExecStart=${herdr_bin} server
+Environment="PATH=/opt/homebrew/bin:/opt/homebrew/sbin:${HOME}/.local/bin:${HOME}/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 Restart=on-failure
 RestartSec=5
 
@@ -117,9 +117,9 @@ RestartSec=5
 WantedBy=default.target
 EOF
     systemctl --user daemon-reload
-    systemctl --user enable --now herdr.service 2>/dev/null \
-        && ok "herdr systemd-user service enabled (autostart)" \
-        || warn "systemd enable failed (non-fatal)"
+    systemctl --user enable --now herdr.service 2>/dev/null &&
+        ok "herdr systemd-user service enabled (autostart)" ||
+        warn "systemd enable failed (non-fatal)"
 }
 
 autostart_state="$(config_module_state "herdr-autostart" "false")"

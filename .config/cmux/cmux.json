@@ -1,0 +1,574 @@
+{
+  "$schema": "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux.schema.json",
+  "actions": {
+    "confluence-akqa": {
+      "command": "cmux-open \"$ATLASSIAN_AKQA_CONFLUENCE_URL\"",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udcd8"
+      },
+      "keywords": [
+        "confluence",
+        "akqa",
+        "wiki",
+        "docs"
+      ],
+      "target": "currentTerminal",
+      "title": "Confluence \u00b7 AKQA",
+      "type": "command"
+    },
+    "confluence-fiskars": {
+      "command": "cmux-open \"$ATLASSIAN_FISKARS_CONFLUENCE_URL\"",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udcd8"
+      },
+      "keywords": [
+        "confluence",
+        "fiskars",
+        "wiki",
+        "docs"
+      ],
+      "target": "currentTerminal",
+      "title": "Confluence \u00b7 Fiskars",
+      "type": "command"
+    },
+    "dockhand-superbro": {
+      "command": "cmux-open \"https://100.100.1.50\"",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83e\uddb8"
+      },
+      "keywords": [
+        "dockhand",
+        "superbro",
+        "docker",
+        "stacks"
+      ],
+      "subtitle": "100.100.1.50",
+      "target": "currentTerminal",
+      "title": "Dockhand \u00b7 superbro",
+      "type": "command"
+    },
+    "github-prs": {
+      "command": "cmux-open \"https://github.com/pulls\"",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udc19"
+      },
+      "keywords": [
+        "github",
+        "pr",
+        "review"
+      ],
+      "target": "currentTerminal",
+      "title": "GitHub \u00b7 my open PRs",
+      "type": "command"
+    },
+    "jira-akqa": {
+      "command": "cmux-open \"$ATLASSIAN_AKQA_JIRA_URL\"",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udd35"
+      },
+      "keywords": [
+        "jira",
+        "akqa",
+        "internal"
+      ],
+      "target": "currentTerminal",
+      "title": "Jira \u00b7 AKQA",
+      "type": "command"
+    },
+    "jira-akqa-mine": {
+      "command": "cmux-open \"$ATLASSIAN_AKQA_JIRA_URL/issues/?jql=assignee%20%3D%20currentUser()%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20updated%20DESC\"",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udccb"
+      },
+      "keywords": [
+        "jira",
+        "akqa",
+        "mine",
+        "assigned"
+      ],
+      "target": "currentTerminal",
+      "title": "Jira \u00b7 AKQA \u2014 my open issues",
+      "type": "command"
+    },
+    "jira-fiskars": {
+      "command": "cmux-open \"$ATLASSIAN_FISKARS_JIRA_URL\"",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udfe0"
+      },
+      "keywords": [
+        "jira",
+        "fiskars",
+        "tickets"
+      ],
+      "target": "currentTerminal",
+      "title": "Jira \u00b7 Fiskars",
+      "type": "command"
+    },
+    "jira-fiskars-mine": {
+      "command": "cmux-open \"$ATLASSIAN_FISKARS_JIRA_URL/issues/?jql=assignee%20%3D%20currentUser()%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20updated%20DESC\"",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udccb"
+      },
+      "keywords": [
+        "jira",
+        "fiskars",
+        "mine",
+        "assigned"
+      ],
+      "target": "currentTerminal",
+      "title": "Jira \u00b7 Fiskars \u2014 my open issues",
+      "type": "command"
+    },
+    "launch-all-projects": {
+      "command": "cmux new-workspace --name 'Fiskars' --color 'Orange' && cmux new-workspace --name 'Laesr' --color 'Teal' && cmux new-workspace --name 'Huskr' --color 'Green' && cmux new-workspace --name 'Dotfiles' --color 'Charcoal' && cmux new-workspace --name 'Agents' --color 'Purple' && cmux new-workspace --name 'Servers' --color 'Crimson'",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\ude80"
+      },
+      "keywords": [
+        "launch",
+        "boot",
+        "start",
+        "projects"
+      ],
+      "subtitle": "Boot core workspaces with brand colors",
+      "target": "currentTerminal",
+      "title": "\ud83d\ude80 Launch All Projects",
+      "type": "command"
+    },
+    "open-dotfiles": {
+      "command": "cd ~/dotfiles && exec zsh -l",
+      "icon": {
+        "type": "emoji",
+        "value": "\u2699\ufe0f"
+      },
+      "keywords": [
+        "dotfiles",
+        "config"
+      ],
+      "subtitle": "~/dotfiles",
+      "target": "newTabInCurrentPane",
+      "title": "Open dotfiles",
+      "type": "command"
+    },
+    "open-edit-here": {
+      "command": "code .",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udcdd"
+      },
+      "keywords": [
+        "code",
+        "vscode",
+        "editor"
+      ],
+      "target": "currentTerminal",
+      "title": "Open cwd in VS Code",
+      "type": "command"
+    },
+    "open-fiskars": {
+      "command": "cd ~/Projects/Shopify/Fiskars/stellar-shopify && exec zsh -l",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udfe0"
+      },
+      "keywords": [
+        "fiskars",
+        "stellar",
+        "shopify"
+      ],
+      "subtitle": "~/Projects/Shopify/Fiskars/stellar-shopify",
+      "target": "newTabInCurrentPane",
+      "title": "Open Fiskars \u00b7 stellar-shopify",
+      "type": "command"
+    },
+    "open-huskr": {
+      "command": "cd ~/Projects/Private/huskr && exec zsh -l",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udc15"
+      },
+      "keywords": [
+        "huskr"
+      ],
+      "subtitle": "~/Projects/Private/huskr",
+      "target": "newTabInCurrentPane",
+      "title": "Open Huskr",
+      "type": "command"
+    },
+    "open-laesr": {
+      "command": "cd ~/Projects/Private/laesr && exec zsh -l",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udcd6"
+      },
+      "keywords": [
+        "laesr"
+      ],
+      "subtitle": "~/Projects/Private/laesr",
+      "target": "newTabInCurrentPane",
+      "title": "Open Laesr",
+      "type": "command"
+    },
+    "open-lazygit-here": {
+      "command": "lazygit",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83c\udf3f"
+      },
+      "keywords": [
+        "git",
+        "lg"
+      ],
+      "shortcut": "ctrl+shift+g",
+      "target": "newTabInCurrentPane",
+      "title": "Lazygit here",
+      "type": "command"
+    },
+    "open-yazi-here": {
+      "command": "yazi",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udcc2"
+      },
+      "keywords": [
+        "yazi",
+        "files"
+      ],
+      "target": "newTabInCurrentPane",
+      "title": "Yazi (file picker) here",
+      "type": "command"
+    },
+    "servers-workspace": {
+      "command": "cmux new-workspace --name 'Servers' --focus true --layout '{\"direction\":\"horizontal\",\"split\":0.5,\"children\":[{\"pane\":{\"surfaces\":[{\"type\":\"terminal\",\"command\":\"ssh superbro\"}]}},{\"pane\":{\"surfaces\":[{\"type\":\"terminal\",\"command\":\"ssh linuxbro\"}]}}]}'",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udda5\ufe0f"
+      },
+      "keywords": [
+        "servers",
+        "workspace",
+        "ssh",
+        "homelab",
+        "superbro",
+        "linuxbro"
+      ],
+      "subtitle": "superbro + linuxbro side-by-side",
+      "target": "currentTerminal",
+      "title": "Servers \u00b7 Open Workspace",
+      "type": "command"
+    },
+    "shopify-georg-jensen": {
+      "command": "cmadmin georg-jensen-dev",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83e\udd48"
+      },
+      "keywords": [
+        "shopify",
+        "georg",
+        "jensen",
+        "admin"
+      ],
+      "subtitle": "georg-jensen-dev.myshopify.com",
+      "target": "currentTerminal",
+      "title": "Shopify \u00b7 Georg Jensen admin",
+      "type": "command"
+    },
+    "shopify-iittala": {
+      "command": "cmadmin iittala-dev",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83c\udf76"
+      },
+      "keywords": [
+        "shopify",
+        "iittala",
+        "admin",
+        "fiskars"
+      ],
+      "subtitle": "iittala-dev.myshopify.com",
+      "target": "currentTerminal",
+      "title": "Shopify \u00b7 Iittala admin",
+      "type": "command"
+    },
+    "shopify-iittala-theme": {
+      "command": "cmtheme iittala-dev",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83c\udfa8"
+      },
+      "keywords": [
+        "shopify",
+        "iittala",
+        "theme",
+        "editor"
+      ],
+      "target": "currentTerminal",
+      "title": "Shopify \u00b7 Iittala theme editor",
+      "type": "command"
+    },
+    "shopify-moominarabia": {
+      "command": "cmadmin moominarabia-dev",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udc39"
+      },
+      "keywords": [
+        "shopify",
+        "moomin",
+        "arabia",
+        "admin"
+      ],
+      "subtitle": "moominarabia-dev.myshopify.com",
+      "target": "currentTerminal",
+      "title": "Shopify \u00b7 Moomin Arabia admin",
+      "type": "command"
+    },
+    "shopify-royal-copenhagen": {
+      "command": "cmadmin royal-copenhagen-dev",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udd35"
+      },
+      "keywords": [
+        "shopify",
+        "royal",
+        "copenhagen",
+        "admin"
+      ],
+      "subtitle": "royal-copenhagen-dev.myshopify.com",
+      "target": "currentTerminal",
+      "title": "Shopify \u00b7 Royal Copenhagen admin",
+      "type": "command"
+    },
+    "shopify-royal-doulton": {
+      "command": "cmadmin royal-doulton-dev",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83c\udf75"
+      },
+      "keywords": [
+        "shopify",
+        "doulton",
+        "admin"
+      ],
+      "subtitle": "royal-doulton-dev.myshopify.com",
+      "target": "currentTerminal",
+      "title": "Shopify \u00b7 Royal Doulton admin",
+      "type": "command"
+    },
+    "shopify-waterford": {
+      "command": "cmadmin waterford-qa",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udc8e"
+      },
+      "keywords": [
+        "shopify",
+        "waterford",
+        "admin"
+      ],
+      "subtitle": "waterford-qa.myshopify.com",
+      "target": "currentTerminal",
+      "title": "Shopify \u00b7 Waterford admin",
+      "type": "command"
+    },
+    "shopify-wedgwood": {
+      "command": "cmadmin wedgwood-dev",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83c\udffa"
+      },
+      "keywords": [
+        "shopify",
+        "wedgwood",
+        "admin"
+      ],
+      "subtitle": "wedgwood-dev.myshopify.com",
+      "target": "currentTerminal",
+      "title": "Shopify \u00b7 Wedgwood admin",
+      "type": "command"
+    },
+    "ssh-linuxbro": {
+      "command": "ssh linuxbro",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83d\udc27"
+      },
+      "keywords": [
+        "ssh",
+        "linuxbro",
+        "media",
+        "plex",
+        "servers"
+      ],
+      "target": "newTabInCurrentPane",
+      "title": "SSH \u00b7 linuxbro",
+      "type": "command"
+    },
+    "ssh-superbro": {
+      "command": "ssh superbro",
+      "icon": {
+        "type": "emoji",
+        "value": "\ud83e\uddb8"
+      },
+      "keywords": [
+        "ssh",
+        "superbro",
+        "vps",
+        "servers"
+      ],
+      "target": "newTabInCurrentPane",
+      "title": "SSH \u00b7 superbro",
+      "type": "command"
+    }
+  },
+  "app": {
+    "appearance": "system",
+    "commandPaletteSearchesAllSurfaces": true,
+    "newWorkspacePlacement": "afterCurrent",
+    "openMarkdownInCmuxViewer": false,
+    "preferredEditor": "code",
+    "reorderOnNotification": true,
+    "warnBeforeClosingTab": true,
+    "warnBeforeQuit": true
+  },
+  "automation": {
+    "claudeCodeIntegration": false,
+    "cursorIntegration": true,
+    "geminiIntegration": true,
+    "portBase": 9100,
+    "portRange": 10,
+    "socketControlMode": "cmuxOnly"
+  },
+  "browser": {
+    "defaultSearchEngine": "google",
+    "hostsToOpenInEmbeddedBrowser": [
+      "*.myshopify.com",
+      "*.shopifypreview.com",
+      "*.trycloudflare.com",
+      "100.100.1.50",
+      "100.64.0.0/10"
+    ],
+    "insecureHttpHostsAllowedInEmbeddedBrowser": [
+      "localhost",
+      "*.localhost",
+      "127.0.0.1",
+      "::1",
+      "0.0.0.0",
+      "*.localtest.me",
+      "100.100.1.50"
+    ],
+    "interceptTerminalOpenCommandInCmuxBrowser": true,
+    "openTerminalLinksInCmuxBrowser": true,
+    "showImportHintOnBlankTabs": false,
+    "showSearchSuggestions": true,
+    "theme": "system",
+    "urlsToAlwaysOpenExternally": [
+      "https://github.com/*",
+      "https://*.atlassian.net/*"
+    ]
+  },
+  "customSidebars": {
+    "renderer": "inProcess"
+  },
+  "notifications": {
+    "dockBadge": true,
+    "paneFlash": true,
+    "showInMenuBar": true,
+    "sound": "default",
+    "unreadPaneRing": true
+  },
+  "schemaVersion": 1,
+  "shortcuts": {
+    "bindings": {
+      "equalizeSplits": [
+        "ctrl+shift+s",
+        "plus"
+      ],
+      "find": [
+        "ctrl+shift+s",
+        "f"
+      ],
+      "reloadConfiguration": [
+        "ctrl+shift+s",
+        "r"
+      ],
+      "saveFilePreview": null,
+      "showNotifications": "ctrl+alt+shift+0",
+      "splitBrowserDown": [
+        "ctrl+shift+s",
+        "shift+b"
+      ],
+      "splitBrowserRight": [
+        "ctrl+shift+s",
+        "b"
+      ],
+      "splitDown": [
+        "ctrl+shift+s",
+        "arrowdown"
+      ],
+      "splitRight": [
+        "ctrl+shift+s",
+        "arrowright"
+      ],
+      "toggleSplitZoom": [
+        "ctrl+shift+s",
+        "z"
+      ],
+      "toggleTerminalCopyMode": [
+        "ctrl+shift+s",
+        "c"
+      ]
+    }
+  },
+  "sidebar": {
+    "branchLayout": "vertical",
+    "hideAllDetails": false,
+    "makePullRequestsClickable": true,
+    "openPortLinksInCmuxBrowser": true,
+    "openPullRequestLinksInCmuxBrowser": true,
+    "showBranchDirectory": true,
+    "showCustomMetadata": true,
+    "showLog": true,
+    "showNotificationMessage": true,
+    "showPorts": true,
+    "showProgress": true,
+    "showPullRequests": true,
+    "showSSH": true
+  },
+  "terminal": {
+    "autoResumeAgentSessions": true,
+    "showScrollBar": false
+  },
+  "workspaceColors": {
+    "colors": {
+      "Amber": "#7D6608",
+      "Aqua": "#0E6B8C",
+      "Blue": "#1565C0",
+      "Brown": "#7B3F00",
+      "Charcoal": "#3E4B5E",
+      "Crimson": "#922B21",
+      "Green": "#196F3D",
+      "Indigo": "#283593",
+      "Magenta": "#AD1457",
+      "Navy": "#1A5276",
+      "Olive": "#4A5C18",
+      "Orange": "#A04000",
+      "Purple": "#6A1B9A",
+      "Red": "#C0392B",
+      "Rose": "#880E4F",
+      "Teal": "#006B6B"
+    },
+    "indicatorStyle": "leftRail"
+  }
+}

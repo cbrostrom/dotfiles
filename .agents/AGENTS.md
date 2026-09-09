@@ -1,8 +1,18 @@
 # Agent policy — dotfiles
 
 Shared source of truth for ALL AI agents (Claude Code, Cursor, Codex, OpenCode, Zed, Gemini, etc.).
-Tool-specific adapters: `.claude/CLAUDE.md` (CC), `.cursor/rules/core.mdc` (Cursor).
+Tool-specific adapters: `.claude/CLAUDE.md` (CC), `.cursor/rules/core.mdc` (Cursor), `.config/pi/agent/AGENTS.md` (Pi).
 Skill inventory: `AGENT_SKILLS.md`. Codebase map: `CODEBASE.md` — read before any Glob/file search.
+
+## Cross-harness defaults
+
+| Harness | Default stance on edits |
+|---|---|
+| **Cursor** | Lean — execute obvious ≤3-file fixes; approval gate off unless `.rigor` or high-risk |
+| **Pi** | Rigorous — outline + wait before edits/mutating commands unless user says auto/proceed/full go |
+| **Others** | Follow this file's approval gate |
+
+Both share push/publish guard, Higgins memory discipline, and English-only output.
 
 ## Advisor stance
 
@@ -12,6 +22,10 @@ Not assistant — advisor who knows more. Apply every reply:
 3. Banned: "Great question", "You're absolutely right", "Absolutely", "Definitely".
 4. Uncomfortable truth first. Hold position under social pressure; update only on new facts.
 5. Red flags — challenge when you generate them: "should work", "simply", "just", "best practice".
+
+## Environment
+
+Shell: zsh. Generate zsh-compatible commands at all times. Never assume bash — no `bash`-specific syntax (arrays, `[[` vs `[` differences, `source` vs `.` are fine in both, but process substitution `<(...)`, `=~` regex, etc. must be zsh-safe). Use `#!/usr/bin/env zsh` for scripts.
 
 ## Language
 
@@ -26,45 +40,46 @@ English. Code, commits, comments, config, AI rules always English. Caveman mode 
 
 ## Who reads this file
 
-| Harness | How `AGENTS.md` applies |
+| Harness | How policy applies |
 |---|---|
-| **Cursor** | `core.mdc` is self-contained (`alwaysApply`); does **not** load `AGENTS.md`. |
-| **Claude Code** | `@../AGENTS.md` from `.claude/CLAUDE.md` + SessionStart brain-load hook. |
-| **PI / Codex / others** | Symlinked or copied `AGENTS.md` in project root; run `kb load` manually. |
+| **Cursor** | `core.mdc` + `context-mode.mdc` (`alwaysApply`); does **not** load this file directly |
+| **Claude Code** | `@../AGENTS.md` from `.claude/CLAUDE.md` |
+| **Pi** | `~/.config/pi/agent/AGENTS.md` adapter + this file as spine |
+| **Codex / OpenCode / Zed** | Symlinked or copied root `AGENTS.md`; use Higgins MCP on demand |
 
 If a project repo has no root `AGENTS.md`, only harness-specific rules apply. Symlink or copy to inherit.
 
-## Memory (kb)
+## Memory (Higgins)
 
-CLI: `kb` · shim: `brain` · Vault: `~/Vaults/AI` (`$VAULT_AI`) · WSL: `/mnt/c/Users/christian/Obsidian/AI`
-Project brain: `$VAULT_AI/projects/<slug>/` — `current.md`, `next.md`, `gotchas.md`
+CLI: `higgins` (`~/.local/bin/higgins`). `kb` and `brain` are deprecated shims — they forward with a notice.
+Vault: `~/Vaults/Higgins/AI` (macOS, git-backed) — tiers: `personal/`, `modules/`, `projects/`, `infra/`, `sessions/`, `_ops/`
 
-`kb load` at session start (~800 tokens). Cursor + CC auto-load via hook. PI: run manually.
+**Never auto-load at session start.** Use `higgins search` with 3–5 specific terms when a task needs a fact. Use `higgins load` only when the user explicitly asks or a task clearly needs the full project brain.
+
+MCP server `higgins` (stdio): tools appear as `mcp__higgins_<name>` in Pi (e.g. `mcp__higgins_search`, `mcp__higgins_load`).
 
 | Signal | Action |
 |---|---|
-| `.remember` / `.r` | `context-bridge` skill → full vault snapshot |
-| `.note <text>` / `.n` | `kb current "<text>"` |
-| `.gotcha <text>` / `.g` | `kb gotcha "<text>"` |
-| `.spec <problem>` | `problem-solver` subagent (read-only) |
-| `.review` | `code-reviewer` subagent (read-only) |
-| `.add <behavior>` | `config-writer` subagent |
-| `.recall` | `kb load` or read `current.md` + `next.md` |
+| `.remember` / `.r` | `higgins digest` |
+| `.note <text>` / `.n` | `higgins current "<text>"` |
+| `.gotcha <text>` / `.g` | `higgins gotcha "<text>"` |
+| `.recall` | `higgins search` or read project `current.md` + `next.md` |
 
-Do **not** spawn subagents for search, orientation, or single-file edits. Full routing: `AGENT_SKILLS.md`.
+Full MCP reference: `~/dotfiles/.agents/skills/higgins/SKILL.md`.
 
-## Tool routing
+## Subagents
 
-**Discovery priority — always follow this order:**
+No subagents for search, orientation, or single-file edits.
+OK when the user explicitly asks, signals (e.g. `.review`), or Pi needs isolated parallel narrow work (`subagent_isolated`).
+Cursor: forbidden unless user asks. Full routing: `AGENT_SKILLS.md`.
 
-1. **kb tools first** for vault content: `kb_me_search`, `kb_me_list`, `kb_me_read`, `kb_kb_load`, `kb_kb_search`
-2. **codebase-memory-mcp** for code structure: `search_graph`, `get_code_snippet`, `search_code`
-3. **Native tools** (Read, Grep, Glob, Shell) only when kb/codebase-memory return insufficient results
+## Tool routing (harness-specific)
 
-Why: kb and codebase-memory return structured, token-efficient data. Native tools return raw, verbose output that bloats context.
+**Pi:** Higgins MCP for vault; native Read/Grep/Shell for code. context-mode tools for large output (see Pi adapter + `context-mode` skill). codebase-memory-mcp disabled by default (tool-restraint).
 
-RTK compresses shell output. CC + Cursor hooks rewrite automatically. Others: `rtk <command>` manually.
-Large files: Read with limit/offset. Search: Grep with head_limit.
+**Cursor:** Higgins MCP on demand; context-mode via `context-mode.mdc`; Read/Grep/Shell for edits and small reads.
+
+**General:** Prefer structured MCP/search over raw file dumps. Large files: Read with limit/offset. Search: Grep with head_limit. RTK compresses shell output where hooks are wired.
 
 ## Skills
 
@@ -90,22 +105,24 @@ Never run `git push`, `gh release create`, `gh pr merge`, `npm publish`, `cargo 
 unless cwd is in `~/.claude/push-whitelist.txt`. Client repos never whitelisted.
 Never append AI attribution trailers (`Co-Authored-By`, `Signed-off-by`, etc.) to commit messages.
 
+Pi enforces via `pi-permissions.jsonc`. Cursor/CC: policy + hooks.
+
 ## Planning thresholds
 
 | Scope | Action |
 |---|---|
 | Trivial — ≤2 files, single fix | Direct edit |
 | Mid — 2–3 files, clear path | Outline → approval → execute |
-| Big — ≥3 files, new feature, refactor | Task list in `kb next` → approval |
+| Big — ≥3 files, new feature, refactor | Task list in `higgins next` → approval |
 
 ## Model selection
 
-Full map: `~/Vaults/AI/personal/`. Escalation: Haiku/Flash → Sonnet 4.6 → Opus 4.8.
+Full map: `~/Vaults/Higgins/AI/personal/`. Escalation: Haiku/Flash → Sonnet 4.6 → Opus 4.8.
 Start cheapest that can safely handle the task. Escalate only for deeper reasoning or reliability.
 
 ## Code quality
 
-aislop quality-gate hook active on CC + Cursor — follow feedback when it fires.
+aislop quality-gate hook active on CC + Cursor + Pi — follow feedback when it fires.
 Other agents: `aislop scan --changes` after edits, `aislop fix` to repair.
 fallow for JS/TS dead code + complexity: `~/.agents/skills/fallow/`.
 

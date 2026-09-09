@@ -1,0 +1,9 @@
+name = "website"
+group = "Flexii"
+working_dir = "~/Projects/clients/Flexii/website"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

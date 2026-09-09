@@ -356,8 +356,7 @@ gwtgo() {
     fi
 }
 
-# code / vs — open Zed (primary); VSCodium fallback on non-mac or if Zed missing
-# WSL: Zed not available — falls back to codium.exe path conversion
+# code / vs — open Zed (primary); optional codium CLI on WSL/Linux
 code() {
     if is_macos && command -v zed >/dev/null 2>&1; then
         zed "${@:-.}"
@@ -374,10 +373,10 @@ code() {
         codium.exe "${converted[@]}"
     elif command -v codium >/dev/null 2>&1; then
         codium "$@"
-    elif is_macos && [[ -d /Applications/VSCodium.app ]]; then
-        open -a VSCodium "$@"
+    elif command -v zed >/dev/null 2>&1; then
+        zed "${@:-.}"
     else
-        echo "code: Zed/VSCodium not found" >&2
+        echo "code: Zed (or codium) not found" >&2
         return 127
     fi
 }
@@ -499,5 +498,3 @@ cloudcli-sessions() {
     [[ -x "$script" ]] || chmod +x "$script"
     "$script" "$@"
 }
-
-

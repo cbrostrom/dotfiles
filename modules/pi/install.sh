@@ -5,10 +5,12 @@
 # Opt-in per machine: add "pi" to ~/.config/dotfiles/modules.conf
 #
 # What this installs (symlinked from dotfiles, git-tracked):
-#   ~/.pi/agent/AGENTS.md          ← global policy adapter
-#   ~/.pi/agent/spark.json         ← Spark presets + recap config
-#   ~/.pi/web-search.json          ← focused Exa/raw web-search config
-#   ~/.pi/agent/hook/hooks.yaml    ← pi-yaml-hooks global hooks (gated)
+#   ~/.pi/agent/AGENTS.md          <- global policy adapter
+#   ~/.pi/agent/mcp.json           <- classic MCP (higgins/deja hot path)
+#   ~/.pi/agent/mcporter.json      <- pi-mcporter exposure policy (index default)
+#   ~/.pi/web-search.json          <- focused Exa/raw web-search config
+#   ~/.pi/agent/hook/hooks.yaml    <- pi-yaml-hooks global hooks (gated)
+#   ~/.pi/agent/pi-permissions.jsonc <- pi-permission-system policy
 #
 # What this PATCHES (merged, not symlinked — PI writes runtime fields here):
 #   ~/.pi/agent/settings.json      ← packages, model, trust defaults
@@ -64,10 +66,11 @@ _symlink() {
 }
 
 # ── 3) symlink user-authored config files ────────────────────────────────────
-_symlink "$PI_SRC/AGENTS.md"           "$PI_DST/AGENTS.md"           "AGENTS.md"
-_symlink "$PI_SRC/spark.json"          "$PI_DST/spark.json"          "spark.json"
-_symlink "$PI_SRC/mcp.json"            "$PI_DST/mcp.json"            "mcp.json"
-_symlink "$PI_SRC/web-search.json"     "$HOME/.pi/web-search.json"    "web-search.json"
+_symlink "$PI_SRC/AGENTS.md" "$PI_DST/AGENTS.md" "AGENTS.md"
+_symlink "$PI_SRC/mcp.json" "$PI_DST/mcp.json" "mcp.json"
+_symlink "$PI_SRC/mcporter.json" "$PI_DST/mcporter.json" "mcporter.json"
+_symlink "$PI_SRC/pi-permissions.jsonc" "$PI_DST/pi-permissions.jsonc" "pi-permissions.jsonc"
+_symlink "$PI_SRC/web-search.json" "$HOME/.pi/web-search.json" "web-search.json"
 
 # ── 4) pi shim at ~/.local/bin/pi ────────────────────────────────────────────
 # Keeps `pi` resolvable even when fnm switches to a project-local node version.
@@ -94,7 +97,7 @@ if [[ -d "$TOOLS_SRC" ]]; then
     fi
 fi
 
-# ── 4c) user extensions — symlink every .ts in extensions/ ──────────────────
+# ── 4c) user extensions — symlink every .ts and every extension directory ────
 EXT_SRC="$PI_SRC/extensions"
 EXT_DST="$PI_DST/extensions"
 if [[ -d "$EXT_SRC" ]]; then
@@ -104,18 +107,22 @@ if [[ -d "$EXT_SRC" ]]; then
         name="$(basename "$f")"
         _symlink "$f" "$EXT_DST/$name" "extensions/$name"
     done
+    for d in "$EXT_SRC"/*/; do
+        [[ -d "$d" ]] || continue
+        name="$(basename "$d")"
+        _symlink "$d" "$EXT_DST/$name" "extensions/$name"
+    done
 fi
 
 # ── 5) hooks.yaml — only if pi-yaml-hooks is installed or will be ─────────────
 # We always symlink so the file is ready; pi-yaml-hooks picks it up automatically
 # when installed. Run /hooks-validate inside PI to confirm compatibility.
-_symlink "$PI_SRC/hook/hooks.yaml"     "$PI_DST/hook/hooks.yaml"      "hook/hooks.yaml"
+_symlink "$PI_SRC/hook/hooks.yaml" "$PI_DST/hook/hooks.yaml" "hook/hooks.yaml"
 log "hooks.yaml symlinked — install pi-yaml-hooks and run /hooks-validate to activate"
 
-# ── 5a) pi-tool-display config — prevent write tool conflict with pi-spark ────
-# pi-tool-display defaults all tool ownership to true, but pi-spark also
-# registers a write tool. After PI updates, reinstalling pi-tool-display
-# overwrites any manual config changes. This ensures the config is correct.
+# ── 5a) pi-tool-display config — write ownership off (avoid extension conflicts)
+# pi-tool-display defaults all tool ownership to true; keep write=false so other
+# packages that register write do not conflict after reinstalls.
 TDD_CFG="$PI_DST/extensions/pi-tool-display/config.json"
 if [[ -f "$TDD_CFG" ]]; then
     # Config exists — verify write ownership is disabled
@@ -138,13 +145,13 @@ cfg.setdefault('registerToolOverrides', {})['write'] = False
 with open('$TDD_CFG', 'w') as f:
     json.dump(cfg, f, indent=2)
     f.write('\n')
-print('[pi] pi-tool-display config: write ownership disabled (conflict with pi-spark)')
+print('[pi] pi-tool-display config: write ownership disabled')
 "
     fi
 else
     # No config — create it
     mkdir -p "$(dirname "$TDD_CFG")"
-    cat > "$TDD_CFG" << 'JSON'
+    cat >"$TDD_CFG" <<'JSON'
 {
   "registerToolOverrides": {
     "read": true,
@@ -232,12 +239,13 @@ ok "settings.json patched"
 
 # ── 6) summary ────────────────────────────────────────────────────────────────
 log "PI install complete. Manual steps:"
-log "  1. Verify MCP:      /mcp status         (should show kb, deja — github/atlassian/shopify-dev disabled by config)"
-log "  2. Open PI and run:  /preset            (to confirm Spark presets loaded)"
-log "  3. Run:              /reload            (pick up new extensions + prompts)"
-log "  4. Run:              /mcp reconnect <server>  (refresh direct tools after first connect)"
-log "  5. Run:              /hooks-validate    (to confirm hooks compatible)"
-log "  6. Trust your repos: /trust             (once, per project, inside PI)"
-log "  7. Run:              /session-extract   (to test session extraction)"
+log "  1. Verify MCP:      /mcp status         (higgins, deja directTools)"
+log "  2. MCPorter:         /mcporter status    (index exposure via pi-mcporter)"
+log "  3. Cursor auth:     /login → API key → Cursor (or CURSOR_API_KEY)"
+log "  4. Run:              /reload            (pick up extensions + prompts)"
+log "  5. Scoped models:    /scoped-models     (Ctrl+P cycles enabledModels)"
+log "  6. Run:              /hooks-validate    (to confirm hooks compatible)"
+log "  7. Trust your repos: /trust             (once, per project, inside PI)"
 log "  8. Update PI:        fnm use default && pi update self"
 log "     (always update from fnm default so the shim stays aligned)"
+log "  9. Cursor spend:     set on-demand limit to \$0 in Cursor dashboard"

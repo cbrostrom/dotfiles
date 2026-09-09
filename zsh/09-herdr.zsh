@@ -7,6 +7,19 @@
 # workspace overview tells you where each pane is without opening it.
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# Autostart: attach to the persistent herdr session on fresh interactive shells.
+# Alacritty only — Ghostty, WezTerm, Terminal.app, etc. stay on plain zsh.
+# Skips: already inside herdr, non-interactive shells, SSH sessions.
+# Escape hatch: HERDR_NO_AUTOSTART=1
+# -----------------------------------------------------------------------------
+if [[ -z "$HERDR_PANE_ID" ]] && [[ -o interactive ]] && [[ -z "$SSH_CONNECTION" ]] \
+    && [[ -z "$HERDR_NO_AUTOSTART" ]] \
+    && [[ -n "${ALACRITTY_WINDOW_ID:-}${ALACRITTY_SOCKET:-}" ]] \
+    && command -v herdr >/dev/null 2>&1; then
+    exec herdr
+fi
+
 # Bail out fast outside herdr (no overhead).
 [[ -z "$HERDR_PANE_ID" ]] && return
 command -v herdr >/dev/null 2>&1 || return

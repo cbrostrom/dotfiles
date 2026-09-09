@@ -1,11 +1,28 @@
+export type MessageStyle = "prefix" | "framed" | "labeled";
+
+/** @deprecated Use MessageStyle */
+export type UserMessageStyle = MessageStyle;
+
 export interface AssistantMessageUserConfig {
+  /** Visual wrap style. Default: framed. */
+  style?: MessageStyle;
   prefix?: string;
+  /** Left rail glyph used by framed style. Default: │ */
+  rail?: string;
   color?: string;
+  /** Rule / box border color. Default: border */
+  borderColor?: string;
 }
 
 export interface UserMessageUserConfig {
+  /** Visual wrap style. Default: framed (zentui-inspired rules + rail). */
+  style?: MessageStyle;
   prefix?: string;
+  /** Left rail glyph used by framed style. Default: │ */
+  rail?: string;
   color?: string;
+  /** Rule / box border color. Default: border */
+  borderColor?: string;
   bodyColor?: string;
   isThemeBackgroundVisible?: boolean;
 }
@@ -21,8 +38,14 @@ export interface SkillsUserConfig {
 }
 
 export interface ThinkingMessageUserConfig {
+  /** Visual wrap style. Default: labeled (closed box with Thinking title). */
+  style?: MessageStyle;
   prefix?: string;
+  /** Left rail glyph used by framed style. Default: │ */
+  rail?: string;
   prefixColor?: string;
+  /** Rule / box border color. Default: borderMuted */
+  borderColor?: string;
   label?: string;
   labelColor?: string;
   isLabelVisible?: boolean;

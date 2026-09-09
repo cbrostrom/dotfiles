@@ -23,10 +23,13 @@ DOTFILES_REPO="${DOTFILES_REPO:-git@github.com:backnotprop/dotfiles.git}"
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
 NODE_VERSION="${NODE_VERSION:-20}"
 
-log()  { printf "\033[0;34m[bootstrap]\033[0m %s\n" "$*"; }
-ok()   { printf "\033[0;32m[ok]\033[0m %s\n" "$*"; }
+log() { printf "\033[0;34m[bootstrap]\033[0m %s\n" "$*"; }
+ok() { printf "\033[0;32m[ok]\033[0m %s\n" "$*"; }
 warn() { printf "\033[0;33m[warn]\033[0m %s\n" "$*" >&2; }
-die()  { printf "\033[0;31m[error]\033[0m %s\n" "$*" >&2; exit 1; }
+die() {
+    printf "\033[0;31m[error]\033[0m %s\n" "$*" >&2
+    exit 1
+}
 
 # ── 1. Dotfiles ──────────────────────────────────────────────────────────────
 if [[ -d "$DOTFILES_DIR/.git" ]]; then
@@ -60,7 +63,7 @@ else
     curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
     export PATH="$HOME/.local/bin:$PATH"
     if ! grep -q '$HOME/.local/bin' "$HOME/.profile" 2>/dev/null; then
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >>"$HOME/.profile"
     fi
     ok "rtk installed"
 fi

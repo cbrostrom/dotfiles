@@ -1,5 +1,5 @@
 ---
-description: End-of-session vault save — synthesise decisions, write kb, re-index FTS5
+description: End-of-session vault save — synthesise decisions, write vault, re-index FTS5
 run: |
   VAULT="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
   if git rev-parse --git-dir >/dev/null 2>&1; then
@@ -59,19 +59,19 @@ If any facts about the **active project** or **personal/cross-cutting setup** ch
 
 For the active project brain:
 ```bash
-BRAIN_SLUG=<slug> kb current "<concise state fact>" 2>&1
+BRAIN_SLUG=<slug> higgins current "<concise state fact>" 2>&1
 ```
 
 For personal/cross-cutting agent setup:
 ```bash
-cd ~/Vaults/Higgins/AI && kb current "<fact>" 2>&1
+cd ~/Vaults/Higgins/AI && higgins current "<fact>" 2>&1
 ```
 
 Only add facts that are durable and non-obvious. Skip things already in current.md.
 
 ### 3. Save history snapshot
 ```bash
-cd ~/Vaults/Higgins/AI && kb save "<one-sentence synthesis of the session>" 2>&1
+cd ~/Vaults/Higgins/AI && higgins save "<one-sentence synthesis of the session>" 2>&1
 ```
 
 ### 4. Re-index vault into FTS5
@@ -95,7 +95,7 @@ Do not run the librarian. Do not touch `~/Vaults/Me/Inbox/`. Just surface the co
 ### 7. Done
 Report back:
 - What was saved (which files changed)
-- The one-line session summary used for `kb save`
+- The one-line session summary used for `higgins save`
 - The exact next step extracted
 - FTS5 re-index counts
 - Inbox nudge (if applicable)

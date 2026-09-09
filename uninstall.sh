@@ -29,12 +29,14 @@ remove_symlink() {
         log_success "Removed symlink: $target"
 
         # Restore backup if it exists
-        if [[ -f "$target.backup"* ]]; then
-            local backup_file=$(ls "$target.backup"* | head -1)
+        local backup_file
+        for backup_file in "$target.backup"*; do
+            [[ -e "$backup_file" ]] || continue
             log_info "Restoring backup: $backup_file -> $target"
             mv "$backup_file" "$target"
             log_success "Restored backup: $target"
-        fi
+            break
+        done
     else
         log_warning "No symlink found at: $target"
     fi
@@ -68,20 +70,20 @@ EOF
 # Function to perform dry run
 dry_run() {
     log_info "=== DRY RUN - Preview of uninstallation ==="
-    
+
     log_info ""
     log_info "Would remove symlinks:"
     echo "  - ~/.zshrc"
     echo "  - ~/.gitconfig"
     echo "  - ~/.gitignore_global"
     echo "  - ~/.config/starship.toml"
-    echo "  - ~/.config/ghostty/" # if macOS
+    echo "  - ~/.config/ghostty/"             # if macOS
     echo "  - Windows Terminal settings.json" # if WSL
-    
+
     log_info ""
     log_info "Would restore backups:"
     echo "  - Any .backup.* files found"
-    
+
     log_success "Dry run complete - no changes made"
 }
 
@@ -89,11 +91,11 @@ dry_run() {
 main_uninstallation() {
     local keep_backups=false
     local dry_run_mode=false
-    
+
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --help|-h)
+            --help | -h)
                 show_help
                 exit 0
                 ;;
@@ -112,22 +114,22 @@ main_uninstallation() {
                 ;;
         esac
     done
-    
+
     if $dry_run_mode; then
         dry_run
         exit 0
     fi
-    
+
     log_info "=== Dotfiles Uninstaller v1.0 ==="
-    
+
     # Check if running as root
     if [[ $EUID -eq 0 ]]; then
         log_error "Please do not run this script as root"
         exit 1
     fi
-    
+
     log_info "Removing dotfiles symlinks..."
-    
+
     # Basic dotfiles
     remove_symlink "$HOME/.zshrc" ".zshrc"
     remove_symlink "$HOME/.gitconfig" ".gitconfig"
@@ -135,7 +137,7 @@ main_uninstallation() {
 
     # Config directories
     remove_symlink "$HOME/.config/starship.toml" "starship config"
-    
+
     # Platform-specific configs
     if [[ "$OSTYPE" == "darwin"* ]]; then
         remove_symlink "$HOME/.config/ghostty" "ghostty config"
@@ -157,11 +159,11 @@ main_uninstallation() {
             fi
         done
     fi
-    
+
     # Clean up empty directories
     log_info "Cleaning up empty directories..."
     rmdir "$HOME/.config/ghostty" 2>/dev/null || true
-    
+
     log_info ""
     log_success "=== Uninstallation Complete! ==="
     log_info ""
@@ -174,4 +176,4 @@ main_uninstallation() {
 }
 
 # Run uninstallation
-main_uninstallation "$@" 
+main_uninstallation "$@"

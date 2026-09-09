@@ -1,0 +1,3 @@
+# Cloned at install time by modules/paseo/install.sh — not tracked in dotfiles.
+*
+!.gitignore

@@ -1,0 +1,9 @@
+name = "masdar"
+group = "Masdar"
+working_dir = "~/Projects/clients/Masdar/masdar"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

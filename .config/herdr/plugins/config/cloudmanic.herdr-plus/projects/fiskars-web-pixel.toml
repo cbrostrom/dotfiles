@@ -1,0 +1,10 @@
+name = "web-pixel"
+description = "Fiskars tracking web pixel app"
+group = "Fiskars"
+working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-tracking-web-pixel"
+
+[[tabs]]
+name = "main"
+
+[[tabs]]
+name = "shell"

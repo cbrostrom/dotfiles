@@ -254,6 +254,7 @@ fi
 # =============================================================================
 alias superbro='ssh christian@100.100.1.50 -p 27789'
 alias linuxbro='ssh christian@100.100.1.100 -p 27789'
+alias monsterbro='ssh christian@100.100.1.255 -p 27789'
 
 # =============================================================================
 # TAILSCALE ALIASES
@@ -298,37 +299,6 @@ if command -v pi >/dev/null 2>&1; then
     alias pi-search='pi --exclude-tools source_check'
 fi
 
-# =============================================================================
-# CLAUDE CODE LAUNCHERS
-# =============================================================================
-# Core — herdr tracks agent state via hooks; plain claude everywhere.
-alias cc='claude'
-alias ccc='claude --continue'
-alias ccr='claude --resume'                        # built-in resume picker
-alias ccf='claude --continue --fork-session'       # fork most recent into new session
-
-# Custom pickers (~/.local/bin)
-alias ccp='claude-pick'                            # fuzzy-pick project to start in
-alias ccrp='claude-resume-pick'                    # fuzzy-pick past session to resume
-alias ccw='claude-worktree-pick'                   # fuzzy-pick git worktree
-
-# Modes
-alias ccy='claude --dangerously-skip-permissions'  # YOLO: skip permission prompts
-alias ccb='claude --bare'                          # minimal mode (no hooks/MCP/skills)
-alias ccd='claude --debug'                         # debug mode
-alias cci='claude --ide'                           # auto-connect IDE
-alias ccq='claude -p'                              # one-shot print (non-interactive)
-
-# Subcommands
-alias ccdoc='claude doctor'
-alias ccup='claude update'
-alias ccmcp='claude mcp'
-alias ccpl='claude plugins'
-alias ccag='claude agents'
-alias ccauth='claude auth'
-
-# PR resume (interactive picker if no arg)
-alias ccpr='claude --from-pr'
 
 # =============================================================================
 # PI CODING AGENT
@@ -339,10 +309,6 @@ if command -v pi &>/dev/null; then
     alias pis='pi'                                   # plain start (current dir)
     alias piv='cd ~/Vaults && pi'                    # vault session
     alias pid='cd ~/dotfiles && pi'                  # dotfiles session
-
-    # Presets
-    alias pif='pi --preset fast'                     # Composer 2.5, thinking off
-    alias pit='pi --preset think'                    # Sonnet 5 / high
 
     # Resume / session
     alias pir='pi -r'                                # resume picker
@@ -365,14 +331,9 @@ pi-help() {
 PI coding agent — quick reference
 
   Start
-    pis / pi            Current directory, default model (Sonnet 4.6 / medium)
+    pis / pi            Current directory, default model (cursor Auto)
     piv                 ~/Vaults session
     pid                 ~/dotfiles session
-
-  Presets  (switch inside PI with /preset <name>)
-    pif                 --preset fast   → Composer 2.5, no thinking
-    pi                  --preset sonnet → Sonnet 4.6 / medium  (default)
-    pit                 --preset think  → Sonnet 5 / high
 
   Sessions
     pir                 Resume picker
@@ -395,15 +356,17 @@ PI coding agent — quick reference
     /trust              Trust current project dir
 
   Vault / memory
-    kb load             Load brain context into session
-    .remember / .r      Full session save to vault
-    .note <text>        Single fact → kb current
-    .gotcha <text>      Trap → kb gotcha
+    higgins load        Load brain context into session
+    .remember / .r      higgins digest
+    .note <text>        higgins current
+    .gotcha <text>      higgins gotcha
 
   Model tools
-    /preset             Show / switch Spark presets
-    /recap              Generate session recap (Haiku 4.5)
-    /pi-stats           Token + cost dashboard
+    Ctrl+P / Shift+Ctrl+P   Cycle scoped models (enabledModels)
+    /scoped-models          List scoped models
+    /model                  Pick any model from registry
+    /recap                  smart-recap (/recap, /recap save)
+    /pi-stats               Token + cost dashboard
     /cursor-refresh-models  Refresh live Cursor model list
 
   Diagnostics
@@ -419,10 +382,8 @@ if command -v herdr &>/dev/null; then
     alias work='herdr'
 fi
 
-# Higgins (kb memory system) — personality alias
-alias higgins='kb'
-
-# Engram removed — Higgins (kb) is the sole memory system
+# Higgins vault CLI (binary at ~/.local/bin/higgins)
+# Engram removed — Higgins is the sole memory system
 
 # =============================================================================
 # SYSTEM UPDATE ALIASES

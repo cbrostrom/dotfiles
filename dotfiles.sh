@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Require bash 4+ (we use declare -g, associative arrays, multi-pattern case).
 # macOS ships bash 3.2, so re-exec under Homebrew bash if available.
-if (( BASH_VERSINFO[0] < 4 )); then
+if ((BASH_VERSINFO[0] < 4)); then
     for _candidate in /opt/homebrew/bin/bash /usr/local/bin/bash /home/linuxbrew/.linuxbrew/bin/bash; do
         if [[ -x "$_candidate" ]]; then
             exec "$_candidate" "$0" "$@"
@@ -26,13 +26,19 @@ ensure_gum() {
     local os arch
     case "$(uname -s)" in
         Darwin) os="Darwin" ;;
-        Linux)  os="Linux" ;;
-        *) echo "Unsupported OS: $(uname -s)" >&2; exit 1 ;;
+        Linux) os="Linux" ;;
+        *)
+            echo "Unsupported OS: $(uname -s)" >&2
+            exit 1
+            ;;
     esac
     case "$(uname -m)" in
-        x86_64|amd64)   arch="x86_64" ;;
-        arm64|aarch64)  arch="arm64" ;;
-        *) echo "Unsupported arch: $(uname -m)" >&2; exit 1 ;;
+        x86_64 | amd64) arch="x86_64" ;;
+        arm64 | aarch64) arch="arm64" ;;
+        *)
+            echo "Unsupported arch: $(uname -m)" >&2
+            exit 1
+            ;;
     esac
 
     if ! command -v curl >/dev/null 2>&1; then
@@ -79,7 +85,8 @@ ensure_gum() {
 # Called as: dotfiles.sh --preview-action "<label>"
 if [[ "${1:-}" == "--preview-action" ]]; then
     case "${2:-}" in
-        *Install*)   cat <<EOF
+        *Install*)
+            cat <<EOF
 
   Install / Setup
   ───────────────
@@ -91,7 +98,8 @@ if [[ "${1:-}" == "--preview-action" ]]; then
     bootstrap.sh --only=foo,bar  (subset)
 EOF
             ;;
-        *Update*)    cat <<EOF
+        *Update*)
+            cat <<EOF
 
   Update
   ──────
@@ -101,7 +109,8 @@ EOF
     bootstrap.sh --update
 EOF
             ;;
-        *Modules*)   cat <<EOF
+        *Modules*)
+            cat <<EOF
 
   Modules
   ───────
@@ -116,7 +125,8 @@ EOF
     bootstrap.sh --diff=NAME
 EOF
             ;;
-        *Status*)    cat <<EOF
+        *Status*)
+            cat <<EOF
 
   Status
   ──────
@@ -127,22 +137,9 @@ EOF
     • Per-module status table (clean / dirty / unknown / N/A)
 EOF
             ;;
-        *Devices*)   cat <<EOF
 
-  Devices
-  ───────
-  Cross-device inventory of Claude config state.
-  Each machine writes .claude/devices/<host>.json on update.
-
-  Shows: enabled plugins, MCP servers, skills per host.
-
-  Equivalent CLI:
-    scripts/claude/device-snapshot.sh write
-    scripts/claude/device-snapshot.sh list
-    scripts/claude/device-snapshot.sh show <host>
-EOF
-            ;;
-        *Doctor*)    cat <<EOF
+        *Doctor*)
+            cat <<EOF
 
   Doctor
   ──────
@@ -153,7 +150,8 @@ EOF
     scripts/doctor.sh --fix
 EOF
             ;;
-        *Reset*)     cat <<EOF
+        *Reset*)
+            cat <<EOF
 
   Reset
   ─────
@@ -168,7 +166,8 @@ EOF
     bootstrap.sh --reset=mod1,mod2
 EOF
             ;;
-        *Quit*)      cat <<EOF
+        *Quit*)
+            cat <<EOF
 
   Quit
   ────
@@ -198,7 +197,6 @@ main_menu() {
         "  Update"
         "  Modules"
         "  Status"
-        "  Devices"
         "  Doctor"
         "  Reset"
         "  Quit"
@@ -224,7 +222,7 @@ modules_menu() {
     while IFS= read -r name; do
         action="$(_decide_module_action "$name")"
         case "$action" in
-            run|skip-disabled|skip-not-selected|skip-missing-req:*)
+            run | skip-disabled | skip-not-selected | skip-missing-req:*)
                 # category · name · description
                 label="$(printf '%-9s · %-18s · %s' \
                     "${_MODULES_CATEGORY[$name]}" "$name" "${_MODULES_DESC[$name]}")"
@@ -234,14 +232,20 @@ modules_menu() {
     done < <(
         for n in "${_MODULES_REGISTRY[@]}"; do
             cat="${_MODULES_CATEGORY[$n]:-optional}"
-            if   [[ "$cat" == "core"     ]]; then prio=1
-            elif [[ "$cat" == "shell"    ]]; then prio=2
-            elif [[ "$cat" == "claude"   ]]; then prio=3
-            elif [[ "$cat" == "editor"   ]]; then prio=4
-            elif [[ "$cat" == "gui"      ]]; then prio=5
-            elif [[ "$cat" == "tools"    ]]; then prio=6
-            elif [[ "$cat" == "optional" ]]; then prio=7
-            else prio=9
+            if [[ "$cat" == "core" ]]; then
+                prio=1
+            elif [[ "$cat" == "shell" ]]; then
+                prio=2
+            elif [[ "$cat" == "editor" ]]; then
+                prio=4
+            elif [[ "$cat" == "gui" ]]; then
+                prio=5
+            elif [[ "$cat" == "tools" ]]; then
+                prio=6
+            elif [[ "$cat" == "optional" ]]; then
+                prio=7
+            else
+                prio=9
             fi
             printf "%d %s\n" "$prio" "$n"
         done | sort -k1n -k2 | awk '{print $2}'
@@ -291,15 +295,20 @@ screen_modules() {
 
         case "$action" in
             Run)
-                clear; render_banner; render_subtitle "$module_name — running"
+                clear
+                render_banner
+                render_subtitle "$module_name — running"
                 if gum spin --title "running $module_name" -- \
-                       bash "$DOTFILES_DIR/bootstrap.sh" "--only=$module_name"; then
+                    bash "$DOTFILES_DIR/bootstrap.sh" "--only=$module_name"; then
                     gum style --align center --foreground 10 --bold "✓ $module_name complete"
                 else
                     gum style --align center --foreground 9 --bold "✗ $module_name failed"
                 fi
                 echo
-                [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; echo; }
+                [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && {
+                    read -rsp "Press any key…" -n1
+                    echo
+                }
                 ;;
             "Preview (--diff)")
                 clear
@@ -309,7 +318,7 @@ screen_modules() {
                 clear
                 bash "$DOTFILES_DIR/bootstrap.sh" "--info=$module_name" 2>&1 | less -R
                 ;;
-            Cancel|"") ;;
+            Cancel | "") ;;
         esac
     done
 }
@@ -321,20 +330,10 @@ screen_status() {
     show_status
     bash "$DOTFILES_DIR/bootstrap.sh" --list
     echo
-    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; echo; }
-}
-
-screen_devices() {
-    clear
-    render_banner
-    render_subtitle "Devices"
-    bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" list
-    echo
-    if gum confirm "Refresh this device's snapshot now?"; then
-        bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" write
-    fi
-    echo
-    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; echo; }
+    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && {
+        read -rsp "Press any key…" -n1
+        echo
+    }
 }
 
 screen_doctor() {
@@ -347,7 +346,10 @@ screen_doctor() {
         bash "$DOTFILES_DIR/scripts/doctor.sh"
     fi
     echo
-    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && { read -rsp "Press any key…" -n1; echo; }
+    [[ -z "${DOTFILES_NONINTERACTIVE:-}" ]] && {
+        read -rsp "Press any key…" -n1
+        echo
+    }
 }
 
 screen_install() {
@@ -383,13 +385,26 @@ main() {
 
     # Direct mode flags — non-interactive (no gum choose / read prompts)
     case "${1:-}" in
-        --update)        DOTFILES_NONINTERACTIVE=1 run_update;  return ;;
-        --install)       DOTFILES_NONINTERACTIVE=1 run_install; return ;;
-        --reset)         run_reset;   return ;;
-        --doctor)        bash "$DOTFILES_DIR/scripts/doctor.sh" "${@:2}"; return ;;
-        --claude-doctor) bash "$DOTFILES_DIR/modules/claude-settings/doctor.sh" "${@:2}"; return ;;
-        --status)        show_status; return ;;
-        --devices)       bash "$DOTFILES_DIR/scripts/claude/device-snapshot.sh" list; return ;;
+        --update)
+            DOTFILES_NONINTERACTIVE=1 run_update
+            return
+            ;;
+        --install)
+            DOTFILES_NONINTERACTIVE=1 run_install
+            return
+            ;;
+        --reset)
+            run_reset
+            return
+            ;;
+        --doctor)
+            bash "$DOTFILES_DIR/scripts/doctor.sh" "${@:2}"
+            return
+            ;;
+        --status)
+            show_status
+            return
+            ;;
     esac
 
     local _menu_tmp
@@ -398,19 +413,24 @@ main() {
         clear
         render_banner
         local action=""
-        main_menu > "$_menu_tmp" 2>/dev/null || { rm -f "$_menu_tmp"; break; }
+        main_menu >"$_menu_tmp" 2>/dev/null || {
+            rm -f "$_menu_tmp"
+            break
+        }
         action="$(<"$_menu_tmp")"
-        [[ -z "$action" ]] && { rm -f "$_menu_tmp"; break; }
+        [[ -z "$action" ]] && {
+            rm -f "$_menu_tmp"
+            break
+        }
 
         case "$action" in
             *Install*) screen_install ;;
-            *Update*)  screen_update ;;
+            *Update*) screen_update ;;
             *Modules*) screen_modules ;;
-            *Status*)  screen_status ;;
-            *Devices*) screen_devices ;;
-            *Doctor*)  screen_doctor ;;
-            *Reset*)   screen_reset ;;
-            *Quit*|"") break ;;
+            *Status*) screen_status ;;
+            *Doctor*) screen_doctor ;;
+            *Reset*) screen_reset ;;
+            *Quit* | "") break ;;
         esac
     done
     rm -f "$_menu_tmp" 2>/dev/null || true

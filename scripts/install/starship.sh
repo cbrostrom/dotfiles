@@ -96,9 +96,9 @@ setup_shell_integration() {
     # Add starship initialization
     if ! grep -q "starship init" "$profile_file"; then
         log_info "Adding starship initialization to $profile_file"
-        echo '' >> "$profile_file"
-        echo '# Starship prompt' >> "$profile_file"
-        echo 'eval "$(starship init zsh)"' >> "$profile_file"
+        echo '' >>"$profile_file"
+        echo '# Starship prompt' >>"$profile_file"
+        echo 'eval "$(starship init zsh)"' >>"$profile_file"
     else
         log_success "✓ Starship initialization already configured"
     fi
@@ -118,7 +118,7 @@ setup_starship_config() {
         log_success "✓ Starship config already exists"
     else
         log_info "Creating basic starship config..."
-        cat > "$HOME/.config/starship.toml" << 'EOF'
+        cat >"$HOME/.config/starship.toml" <<'EOF'
 # Starship prompt configuration
 format = """
 $username\

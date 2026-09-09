@@ -1,0 +1,14 @@
+name = "Servers"
+description = "Homelab SSH — superbro + linuxbro"
+group = "Infra"
+working_dir = "~"
+
+[[tabs]]
+name = "homelab"
+
+[[tabs.panes]]
+command = "ssh superbro"
+
+[[tabs.panes]]
+command = "ssh linuxbro"
+split = "right"

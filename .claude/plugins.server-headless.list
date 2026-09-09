@@ -1,5 +1,0 @@
-# Claude Code plugins overlay for the `server-headless` profile.
-# Active on hosts where profile_tag == server-headless (e.g. linuxbro, superbro).
-# Base list is already core-only — nothing to disable here.
-# Add server-specific plugins below if needed.
-

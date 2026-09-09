@@ -17,8 +17,10 @@ CLEAN_SIZE=1
 for arg in "$@"; do
     case "$arg" in
         --no-clean-size) CLEAN_SIZE=0 ;;
-        -h|--help)
-            sed -n '2,7p' "$0"; exit 0 ;;
+        -h | --help)
+            sed -n '2,7p' "$0"
+            exit 0
+            ;;
     esac
 done
 
@@ -30,8 +32,8 @@ log "Scanning $PROJECTS_ROOT for git repos (this can take a moment)…"
 
 mapfile -t REPO_DIRS < <(
     cd "$PROJECTS_ROOT" && fd -t d -H -d 6 '^\.git$' \
-        -E node_modules -E vendor 2>/dev/null \
-        | sed 's|/\.git/*$||' | sort -u
+        -E node_modules -E vendor 2>/dev/null |
+        sed 's|/\.git/*$||' | sort -u
 )
 
 ok "Found ${#REPO_DIRS[@]} git repos"
@@ -40,13 +42,13 @@ ok "Found ${#REPO_DIRS[@]} git repos"
 JSON_ENTRIES=()
 declare -a STALE DIRTY NESTED LOOSE_FILES EMPTY_DIRS DUP_NAMES SECURITY
 declare -A NAME_COUNT REMOTE_COUNT
-declare -A REPO_DATA  # rel → tab-separated record
+declare -A REPO_DATA # rel → tab-separated record
 
 count=0
 for rel in "${REPO_DIRS[@]}"; do
     abs="$PROJECTS_ROOT/$rel"
     [[ -d "$abs" ]] || continue
-    count=$((count+1))
+    count=$((count + 1))
     printf '\r[*] processing %d/%d: %-60s' "$count" "${#REPO_DIRS[@]}" "${rel:0:60}" >&2
 
     size_total=$(repo_size "$abs")
@@ -64,8 +66,8 @@ for rel in "${REPO_DIRS[@]}"; do
     name=$(basename "$rel")
 
     # collision tracking
-    NAME_COUNT[$name]=$(( ${NAME_COUNT[$name]:-0} + 1 ))
-    [[ -n "$remote" ]] && REMOTE_COUNT[$remote]=$(( ${REMOTE_COUNT[$remote]:-0} + 1 ))
+    NAME_COUNT[$name]=$((${NAME_COUNT[$name]:-0} + 1))
+    [[ -n "$remote" ]] && REMOTE_COUNT[$remote]=$((${REMOTE_COUNT[$remote]:-0} + 1))
 
     flags=()
     [[ -n "$age" && "$age" -gt 365 ]] && flags+=("STALE") && STALE+=("$rel ($age days)")
@@ -77,23 +79,27 @@ for rel in "${REPO_DIRS[@]}"; do
         NESTED+=("$rel inside $(realpath --relative-to="$PROJECTS_ROOT" "$parent_abs" 2>/dev/null || echo "$parent_abs")")
     fi
 
-    flags_str=$(IFS=,; echo "${flags[*]:-}")
+    flags_str=$(
+        IFS=,
+        echo "${flags[*]:-}"
+    )
 
     REPO_DATA[$rel]="$size_total\t$size_clean\t$last\t$age\t$branch\t$dirty\t$remote\t$stack\t$name\t$flags_str"
 
-    JSON_ENTRIES+=("$(jq -n \
-        --arg path "$rel" \
-        --arg name "$name" \
-        --argjson size_total "${size_total:-0}" \
-        --argjson size_clean "${size_clean:-0}" \
-        --arg last_commit "$last" \
-        --arg age_days "${age:-}" \
-        --arg branch "$branch" \
-        --argjson dirty "${dirty:-0}" \
-        --arg remote "$remote" \
-        --arg stack "$stack" \
-        --arg flags "$flags_str" \
-        '{path:$path,name:$name,size_total:$size_total,size_clean:$size_clean,last_commit:$last_commit,age_days:$age_days,branch:$branch,dirty:$dirty,remote:$remote,stack:$stack,flags:($flags|split(",")|map(select(length>0)))}'
+    JSON_ENTRIES+=("$(
+        jq -n \
+            --arg path "$rel" \
+            --arg name "$name" \
+            --argjson size_total "${size_total:-0}" \
+            --argjson size_clean "${size_clean:-0}" \
+            --arg last_commit "$last" \
+            --arg age_days "${age:-}" \
+            --arg branch "$branch" \
+            --argjson dirty "${dirty:-0}" \
+            --arg remote "$remote" \
+            --arg stack "$stack" \
+            --arg flags "$flags_str" \
+            '{path:$path,name:$name,size_total:$size_total,size_clean:$size_clean,last_commit:$last_commit,age_days:$age_days,branch:$branch,dirty:$dirty,remote:$remote,stack:$stack,flags:($flags|split(",")|map(select(length>0)))}'
     )")
 done
 printf '\r%80s\r' '' >&2
@@ -152,7 +158,7 @@ log "Writing $OUT_JSON"
     printf '"dirty":%s,' "$(printf '%s\n' "${DIRTY[@]:-}" | jq -R . | jq -s 'map(select(length>0))')"
     printf '"nested_git":%s' "$(printf '%s\n' "${NESTED[@]:-}" | jq -R . | jq -s 'map(select(length>0))')"
     printf '}}\n'
-} | jq . > "$OUT_JSON"
+} | jq . >"$OUT_JSON"
 
 ok "Wrote $OUT_JSON"
 
@@ -201,19 +207,19 @@ log "Writing $OUT_MD"
     printf '| Path | Stack | Branch | Last commit | Age (d) | Size | Source size | Dirty | Flags |\n'
     printf '|---|---|---|---|---:|---:|---:|---:|---|\n'
     for rel in "${REPO_DIRS[@]}"; do
-        IFS=$'\t' read -r size_total size_clean last age branch dirty remote stack name flags <<< "${REPO_DATA[$rel]}"
+        IFS=$'\t' read -r size_total size_clean last age branch dirty remote stack name flags <<<"${REPO_DATA[$rel]}"
         printf '| `%s` | %s | %s | %s | %s | %s | %s | %s | %s |\n' \
             "$rel" "$stack" "$branch" "${last:0:10}" "${age:-?}" \
             "$(human_size "${size_total:-0}")" "$(human_size "${size_clean:-0}")" \
             "$dirty" "$flags"
     done
-} > "$OUT_MD"
+} >"$OUT_MD"
 
 ok "Wrote $OUT_MD"
 
 # ---------- Generate plan.template.yml ----------
 log "Writing $OUT_PLAN (suggested moves)"
-"$SCRIPT_DIR/plan-gen.sh" "$OUT_JSON" > "$OUT_PLAN"
+"$SCRIPT_DIR/plan-gen.sh" "$OUT_JSON" >"$OUT_PLAN"
 ok "Wrote $OUT_PLAN"
 
 ok "Done. Review:"
