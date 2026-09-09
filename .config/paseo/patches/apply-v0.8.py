@@ -379,6 +379,25 @@ def patch_plugin(plugin_dir: Path) -> None:
         if updated != text:
             path.write_text(updated)
 
+    apply_dotfiles_overrides(plugin_dir)
+
+
+def apply_dotfiles_overrides(plugin_dir: Path) -> None:
+    """Dotfiles-specific fixes on top of upstream v0.8 migration."""
+    plugin_id = plugin_dir.name
+    if plugin_id == "workspace-activity":
+        index_client = plugin_dir / "index.client.tsx"
+        if index_client.exists():
+            text = index_client.read_text()
+            updated = re.sub(
+                r"\n\s*client\.addWorkspacePanel\(\{\s*"
+                r'id: "subagents",[\s\S]*?Component: WorkspaceSubagentsPanel,\s*\}\);',
+                "",
+                text,
+            )
+            if updated != text:
+                index_client.write_text(updated)
+
 
 def main() -> int:
     if len(sys.argv) != 2:
