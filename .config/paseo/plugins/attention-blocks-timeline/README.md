@@ -15,21 +15,35 @@ the built-in assistant row is replaced with tinted status-style cards inside **o
 | Layer | Where | What you get |
 | --- | --- | --- |
 | **App chrome** | Settings → Appearance → **Zinc** (built-in) | Exact Zinc look — sidebar, chat background, buttons |
-| **Card stripes/icons** | `shared/block-variants.ts` | Plugin-owned hex palette (blue, violet, amber, coral) — independent of theme |
+| **Card stripes** | `shared/block-variants.ts` | Six plugin-owned hex colors; resolved at render from block index |
+| **Card icons** | `shared/block-icon.ts` | Keyword/heuristic Lucide pick from title + body; omitted when no match |
 
 Do **not** use a contributed dark theme for Zinc parity. `addTheme` only accepts 8 hex keys; Paseo derives the rest. Built-in Zinc sets every surface token explicitly, so a plugin theme will always drift (wrong raised/control ladder, sidebar, shadows).
 
 Optional: **Dotfiles Cards (Light)** for light mode only (`client/themes.ts`).
 
+## Settings
+
+**Settings → Plugins → attention-blocks-timeline → Attention cards**
+
+| Setting | Options |
+| --- | --- |
+| Content icons | On / off |
+| Border | None, box, left accent, top accent |
+| Background tint | 0%–22% opacity presets (accent color wash) |
+
+Host-scoped — all clients on this daemon share values. Requires `index.server.ts` (settings persistence).
+
 ## Customize
 
 | File | What to change |
 | --- | --- |
-| `client/attention-block.tsx` | Single-card layout and typography |
-| `client/attention-message.tsx` | Stack layout (intro / cards / outro) |
-| `shared/block-variants.ts` | Icon + **hex stripe/icon colors** per variant |
-| `shared/attention-blocks.ts` | Parser regex / paragraph rules |
-| `shared/attention-message.ts` | Transformer logic |
+| `client/card-settings.tsx` | Settings screen labels and options |
+| `shared/preferences.ts` | Defaults and opacity/border enums |
+| `shared/card-display.ts` | Border layout + tint math |
+| `client/attention-block.tsx` | Card render wiring |
+| `shared/block-variants.ts` | Hex accent colors per variant |
+| `shared/block-icon.ts` | Keyword → icon rules |
 
 Bump `version` in transformer output and `addTimelineRenderer` when changing the schema.
 

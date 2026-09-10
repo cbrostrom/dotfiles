@@ -43,8 +43,9 @@ export function AttentionMessage({
       {intro ? <Prose text={intro} phase={phase} theme={theme} compact={layout.compact} /> : null}
       {blocks.map((block, index) => (
         <AttentionBlockCard
-          key={`${block.title}:${block.stripeColor}:${index}`}
+          key={`${block.title}:${index}`}
           block={block}
+          blockIndex={index}
           phase={phase}
           theme={theme}
           compact={layout.compact}
