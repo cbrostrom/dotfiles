@@ -5,13 +5,15 @@ import { useMemo } from "react";
 import { Text, View } from "react-native";
 import { buildCardChrome } from "../shared/card-display.js";
 import { inferBlockIcon } from "../shared/block-icon.js";
-import { blockVariant, blockVariantIndex } from "../shared/block-variants.js";
+import { blockVariant } from "../shared/block-variants.js";
 import type { AttentionBlockData, AttentionMessageData } from "../shared/attention-message.js";
 import {
   DEFAULT_CARD_PREFERENCES,
   parseBackgroundOpacity,
   preferences,
 } from "../shared/preferences.js";
+import { MarkdownText } from "./markdown-text.js";
+import { useMessagePreferences } from "./use-message-preferences.js";
 import { stripInlineMarkdown } from "../shared/strip-markdown.js";
 
 const ICON_SIZE = 14;
@@ -24,22 +26,20 @@ function useCardPreferences() {
 
 export function AttentionBlockCard({
   block,
-  blockIndex,
   phase,
   theme,
   compact,
 }: {
   block: AttentionBlockData;
-  blockIndex: number;
   phase: AttentionMessageData["phase"];
   theme: PluginTimelineItemProps<AttentionMessageData>["theme"];
   compact: boolean;
 }) {
   const prefs = useCardPreferences();
-  const resolvedIndex = blockVariantIndex(block.title, blockIndex);
-  const variant = blockVariant(resolvedIndex);
-  const body = stripInlineMarkdown(block.body.trim() || " ");
-  const inferredIcon = prefs.showIcons ? inferBlockIcon(block.title, body) : null;
+  const { values: messagePrefs, typography } = useMessagePreferences(compact);
+  const body = block.body.trim() || " ";
+  const variant = blockVariant(block.title, body);
+  const inferredIcon = prefs.showIcons ? inferBlockIcon(block.title, stripInlineMarkdown(body)) : null;
   const revealed = useRevealedText(body, phase);
 
   const chrome = useMemo(
@@ -88,9 +88,19 @@ export function AttentionBlockCard({
           {inferredIcon ? (
             <Icon name={inferredIcon} size={ICON_SIZE} color={variant.stripeColor} />
           ) : null}
-          <Text style={textStyles.cardTitle}>{block.title}</Text>
+          <Text style={textStyles.cardTitle} selectable>
+            {block.title}
+          </Text>
         </View>
-        <Text style={textStyles.cardBody}>{revealed}</Text>
+        <MarkdownText
+          text={revealed}
+          style={textStyles.cardBody}
+          phase={phase}
+          stableStreaming={messagePrefs.stableStreaming}
+          codeBlockVariant={messagePrefs.codeStyle}
+          headingScale={typography.headingScale}
+          stackStyle={{ gap: typography.gap }}
+        />
       </View>
     </View>
   );

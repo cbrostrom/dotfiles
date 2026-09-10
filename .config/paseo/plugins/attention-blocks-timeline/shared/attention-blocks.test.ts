@@ -19,6 +19,11 @@ describe("parseAttentionBlocks", () => {
       { title: "One", body: "First." },
       { title: "Two", body: "Second." },
     ]);
+    expect(parseAttentionBlocks(text)?.segments).toEqual([
+      { kind: "block", title: "One", body: "First." },
+      { kind: "prose", text: "Middle note." },
+      { kind: "block", title: "Two", body: "Second." },
+    ]);
   });
 
   it("parses single-newline separated blocks in one paragraph", () => {
@@ -28,6 +33,50 @@ describe("parseAttentionBlocks", () => {
       { title: "Two", body: "Second." },
       { title: "Three", body: "Third." },
     ]);
+  });
+
+  it("keeps list continuations inside the same block body", () => {
+    const text = ["**→ Title.** First line.", "- one", "- two", "", "**→ Two.** Second."].join("\n");
+
+    expect(parseAttentionBlocks(text)?.blocks[0]).toEqual({
+      title: "Title",
+      body: "First line.\n- one\n- two",
+    });
+    expect(parseAttentionBlocks(text)?.segments).toEqual([
+      { kind: "block", title: "Title", body: "First line.\n- one\n- two" },
+      { kind: "block", title: "Two", body: "Second." },
+    ]);
+  });
+
+  it("keeps structured Markdown inside a card across blank lines", () => {
+    const text = [
+      "**→ What landed.**",
+      "",
+      "- `shared/reasoning.ts` — settings schema",
+      "- `client/reasoning/` — renderer",
+      "",
+      "**→ Next step.** Reload the plugin.",
+    ].join("\n");
+
+    expect(parseAttentionBlocks(text)?.segments).toEqual([
+      {
+        kind: "block",
+        title: "What landed",
+        body: [
+          "- `shared/reasoning.ts` — settings schema",
+          "- `client/reasoning/` — renderer",
+        ].join("\n"),
+      },
+      { kind: "block", title: "Next step", body: "Reload the plugin." },
+    ]);
+  });
+
+  it("keeps fenced code inside the same block body", () => {
+    const text = ["**→ Run.** Try this:", "```bash", "npm test", "```"].join("\n");
+
+    expect(parseAttentionBlocks(text)?.blocks[0]?.body).toBe(
+      ["Try this:", "```bash", "npm test", "```"].join("\n"),
+    );
   });
 
   it("parses intro, blocks, and outro", () => {
@@ -48,6 +97,12 @@ describe("parseAttentionBlocks", () => {
         { title: "Second point", body: "Body two." },
       ],
       outro: "Closing note.",
+      segments: [
+        { kind: "prose", text: "Short intro." },
+        { kind: "block", title: "First point", body: "Body one." },
+        { kind: "block", title: "Second point", body: "Body two." },
+        { kind: "prose", text: "Closing note." },
+      ],
     });
   });
 });

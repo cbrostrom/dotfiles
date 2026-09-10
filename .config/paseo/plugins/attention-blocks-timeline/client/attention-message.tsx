@@ -1,9 +1,19 @@
 import type { PluginTimelineItemProps } from "@getpaseo/plugin/client";
 import { useRevealedText } from "@getpaseo/plugin/client/react-native";
 import { useMemo } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import { AttentionBlockCard } from "./attention-block.js";
-import type { AttentionMessageData } from "../shared/attention-message.js";
+import { MarkdownText } from "./markdown-text.js";
+import { useMessagePreferences } from "./use-message-preferences.js";
+import type { AttentionMessageData, AttentionSegmentData } from "../shared/attention-message.js";
+
+function segmentsToPlainText(segments: readonly AttentionSegmentData[]): string {
+  return segments
+    .map((segment) =>
+      segment.kind === "prose" ? segment.text : `**→ ${segment.title}.** ${segment.body}`,
+    )
+    .join("\n\n");
+}
 
 function Prose({
   text,
@@ -11,23 +21,37 @@ function Prose({
   theme,
   compact,
   muted = false,
+  values,
+  typography,
 }: {
   text: string;
   phase: AttentionMessageData["phase"];
   theme: PluginTimelineItemProps<AttentionMessageData>["theme"];
   compact: boolean;
   muted?: boolean;
+  values: ReturnType<typeof useMessagePreferences>["values"];
+  typography: ReturnType<typeof useMessagePreferences>["typography"];
 }) {
   const revealed = useRevealedText(text, phase);
   const style = useMemo(
     () => ({
       color: muted ? theme.colors.foregroundMuted : theme.colors.foreground,
-      lineHeight: compact ? 20 : 22,
-      fontSize: compact ? 13 : 14,
+      lineHeight: typography.lineHeight,
+      fontSize: typography.fontSize,
     }),
-    [compact, muted, theme],
+    [compact, muted, theme, typography.fontSize, typography.lineHeight],
   );
-  return <Text style={style}>{revealed}</Text>;
+  return (
+    <MarkdownText
+      text={revealed}
+      style={style}
+      phase={phase}
+      stableStreaming={values.stableStreaming}
+      codeBlockVariant={values.codeStyle}
+      headingScale={typography.headingScale}
+      stackStyle={{ gap: typography.gap }}
+    />
+  );
 }
 
 export function AttentionMessage({
@@ -35,25 +59,52 @@ export function AttentionMessage({
   theme,
   layout,
 }: PluginTimelineItemProps<AttentionMessageData>) {
-  const { intro, blocks, outro, phase } = item.data;
+  const { segments, phase } = item.data;
+  const { values, typography } = useMessagePreferences(layout.compact);
   const stackStyle = useMemo(() => ({ gap: layout.compact ? 8 : 10 }), [layout.compact]);
+
+  if (!values.attentionCards) {
+    const flat = segmentsToPlainText(segments);
+    return (
+      <Prose
+        text={flat}
+        phase={phase}
+        theme={theme}
+        compact={layout.compact}
+        values={values}
+        typography={typography}
+      />
+    );
+  }
 
   return (
     <View style={stackStyle}>
-      {intro ? <Prose text={intro} phase={phase} theme={theme} compact={layout.compact} /> : null}
-      {blocks.map((block, index) => (
-        <AttentionBlockCard
-          key={`${block.title}:${index}`}
-          block={block}
-          blockIndex={index}
-          phase={phase}
-          theme={theme}
-          compact={layout.compact}
-        />
-      ))}
-      {outro ? (
-        <Prose text={outro} phase={phase} theme={theme} compact={layout.compact} muted />
-      ) : null}
+      {segments.map((segment, index) => {
+        if (segment.kind === "prose") {
+          const muted = index > 0 && index === segments.length - 1;
+          return (
+            <Prose
+              key={`prose:${index}`}
+              text={segment.text}
+              phase={phase}
+              theme={theme}
+              compact={layout.compact}
+              muted={muted && segments.some((entry) => entry.kind === "block")}
+              values={values}
+              typography={typography}
+            />
+          );
+        }
+        return (
+          <AttentionBlockCard
+            key={`block:${segment.title}:${index}`}
+            block={segment}
+            phase={phase}
+            theme={theme}
+            compact={layout.compact}
+          />
+        );
+      })}
     </View>
   );
 }
