@@ -3,14 +3,15 @@
 Canonical machine topology for agents. SSH fields live in `config/fleet-hosts.conf`.
 Refresh hardware with `scripts/system/machine-snapshot.sh` per host.
 
-_Last updated: 09-09-2026_
+_Last updated: 10-09-2026_
 
 ## Summary
 
-| Host | Role | Profile | Tailscale | SSH | Paseo | Git push |
-|------|------|---------|-----------|-----|-------|----------|
+| Host | Role | Profile | Tailscale | SSH / RDP | Paseo | Git push |
+|------|------|---------|-----------|-----------|-------|----------|
 | **Mac** | Control plane, author | `desktop-full` | yes | — | local daemon | allowed |
-| **MonsterBro** | Work engine (WSL) | `wsl` | `100.100.1.255` (`monsterbro`) | `monsterbro` | WSL daemon via `ssh://monsterbro` | allowed |
+| **MonsterBro (WSL)** | Work engine | `wsl` | `100.100.1.255` (`monsterbro-wsl`) | `monsterbro` / `monsterbro-wsl` `:27789` | WSL daemon via `ssh://monsterbro` | allowed |
+| **MonsterBro (Win)** | WSL host / desktop | — | `100.100.1.250` (`monsterbro`) | RDP `:3389` | — | — |
 | **LinuxBro** | Homelab / docker / media | `server-headless` | `100.100.1.100` | `linuxbro` | optional | **never** |
 | **SuperBro** | VPS services / janitor | `server-headless` | `100.100.1.50` | `superbro` | optional | **never** |
 
@@ -25,15 +26,23 @@ Browser view: open [`infra/infra.html`](infra.html) locally.
 - **MCP:** Full mcporter catalog; enable dockhand servers on-demand only.
 - **Agents:** Enable Paseo tools for delegation; cross-host via CLI `--host`, not injected MCP.
 
-### MonsterBro (work engine)
+### MonsterBro (Windows host + WSL work engine)
 
-- **OS:** Windows 11 host + Debian 12 WSL2 (`systemd=true`).
-- **Purpose:** Always-on dev box when powered — builds, parallel agents, client repos.
+One physical machine, two Tailscale identities:
+
+| Layer | Tailscale name | IP | Access | Role |
+|-------|----------------|-----|--------|------|
+| Windows 11 | `monsterbro` | `100.100.1.250` | RDP `:3389` | Desktop, gaming, WSL host |
+| WSL Debian 12 | `monsterbro-wsl` | `100.100.1.255` | SSH `:27789` | Dotfiles, builds, Paseo daemon |
+
+- **Purpose:** Always-on dev box when powered — builds, parallel agents, client repos (WSL).
 - **Hardware:** Gaming rig (muscle vs LinuxBro NUC); confirm with `machine-snapshot.sh`.
-- **Dotfiles:** `PROFILE=wsl`, propagate with `DOTFILES_WORKFLOWS=wsl`.
+- **Dotfiles:** `PROFILE=wsl` in WSL; propagate with `DOTFILES_WORKFLOWS=wsl`.
+- **SSH:** Dotfiles alias `monsterbro` targets WSL (`.255:27789`); `monsterbro-wsl` is the same host for Tailscale name parity.
+- **RDP:** Mac Microsoft Remote Desktop → `monsterbro` or `100.100.1.250:3389` (Windows side; enable Remote Desktop + Tailscale firewall rule manually).
 - **Paseo:** Daemon in WSL; bind `127.0.0.1:6767`; remote via SSH transport from Mac.
 - **Providers:** Codex, Claude CLI, Pi, OpenCode — auth stays local in WSL.
-- **Caveat:** Sometimes off (gaming). Check `ping -c1 monsterbro` before propagate.
+- **Caveat:** Sometimes off (gaming). Check `ping -c1 monsterbro-wsl` before propagate.
 
 ### LinuxBro (homelab)
 
@@ -105,9 +114,10 @@ Configure in Paseo Desktop → Agent profiles with delegation notes.
 ### A. Windows host
 
 1. Power: AC = never sleep.
-2. Tailscale enrolled; MagicDNS name `monsterbro` resolves from Mac.
-3. OpenSSH server; port **27789**; key auth only.
-4. Firewall: allow Tailscale interface for SSH + forwarded Paseo (6767) only.
+2. Tailscale enrolled; MagicDNS `monsterbro` → `.250` (Windows), `monsterbro-wsl` → `.255` (WSL).
+3. **RDP:** Settings → System → Remote Desktop → enable; allow `:3389` on Tailscale interface.
+4. OpenSSH server (forwards into WSL); port **27789**; key auth only; `AllowTcpForwarding yes` for `paseo --host ssh://…`.
+5. Firewall: allow Tailscale interface for SSH, RDP, and forwarded Paseo (6767) as needed.
 
 ### B. WSL Debian 12
 
@@ -118,7 +128,7 @@ systemd=true
 ```
 
 ```bash
-git clone git@github.com:bybrostrom/dotfiles.git ~/dotfiles
+git clone git@github.com:cbrostrom/dotfiles.git ~/dotfiles
 echo 'PROFILE=wsl' >> ~/.local-config
 DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=wsl ~/dotfiles/bootstrap.sh
 

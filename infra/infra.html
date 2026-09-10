@@ -118,13 +118,22 @@
         <td><span class="badge badge-ok">allowed</span></td>
       </tr>
       <tr>
-        <td><strong>MonsterBro</strong></td>
-        <td>Work engine (WSL)</td>
+        <td><strong>MonsterBro (WSL)</strong></td>
+        <td>Work engine</td>
         <td><code>wsl</code></td>
-        <td><code>100.100.1.255</code></td>
-        <td><code>monsterbro</code></td>
+        <td><code>100.100.1.255</code> (<code>monsterbro-wsl</code>)</td>
+        <td><code>monsterbro</code> / <code>monsterbro-wsl</code></td>
         <td><span class="badge badge-ok">ssh://</span></td>
         <td><span class="badge badge-ok">allowed</span></td>
+      </tr>
+      <tr>
+        <td><strong>MonsterBro (Win)</strong></td>
+        <td>WSL host / desktop</td>
+        <td>—</td>
+        <td><code>100.100.1.250</code> (<code>monsterbro</code>)</td>
+        <td>RDP <code>:3389</code></td>
+        <td>—</td>
+        <td>—</td>
       </tr>
       <tr>
         <td><strong>LinuxBro</strong></td>
@@ -157,9 +166,10 @@
     </div>
     <div class="card">
       <h3>MonsterBro</h3>
-      <p><strong>OS:</strong> Win11 + Debian 12 WSL2 (systemd).</p>
-      <p><strong>Purpose:</strong> Builds, parallel agents, client repos.</p>
-      <p><strong>Caveat:</strong> Sometimes off — ping before propagate.</p>
+      <p><strong>Win:</strong> <code>monsterbro</code> / <code>.250</code> — RDP <code>:3389</code>.</p>
+      <p><strong>WSL:</strong> <code>monsterbro-wsl</code> / <code>.255</code> — SSH <code>:27789</code>, Paseo daemon.</p>
+      <p><strong>SSH alias:</strong> <code>monsterbro</code> → WSL (same as <code>monsterbro-wsl</code>).</p>
+      <p><strong>Caveat:</strong> Sometimes off — <code>ping monsterbro-wsl</code> before propagate.</p>
     </div>
     <div class="card">
       <h3>LinuxBro</h3>
@@ -194,8 +204,9 @@
                                 │
         ┌─────── Tailscale ─────┼──────────────────────┐
         ▼                       ▼                      ▼
-   Mac (orchestrator)    MonsterBro WSL         LinuxBro / SuperBro
+   Mac (orchestrator)    MonsterBro WSL (.255)  LinuxBro / SuperBro
    Paseo local           Paseo daemon           dockhand MCP
+   RDP ──► Win (.250)
    mcporter ───────────────────────────────────► :8092 / :8080
         │
         └── paseo --host ssh://monsterbro</pre>
@@ -220,14 +231,15 @@ paseo --host ssh://monsterbro ls
 paseo --host ssh://monsterbro run --provider codex/gpt-5.4 \
   --cwd ~/dotfiles "Run ./scripts/doctor.sh; failures only"
 
-# Propagate dotfiles (MonsterBro, if online)
-ping -c1 monsterbro && ssh monsterbro \
+# Propagate dotfiles (MonsterBro WSL, if online)
+ping -c1 monsterbro-wsl && ssh monsterbro \
   'git -C ~/dotfiles pull && DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=wsl \
    ~/dotfiles/bootstrap.sh --only=symlinks,opencode'</code></pre>
 
   <h2>MonsterBro bootstrap</h2>
   <ol style="color: var(--muted); font-size: 0.9rem;">
-    <li>Windows: AC never sleep, Tailscale, OpenSSH :27789</li>
+    <li>Windows: AC never sleep, Tailscale (<code>monsterbro</code>/.250), RDP :3389, OpenSSH :27789 → WSL</li>
+    <li>WSL Tailscale: <code>monsterbro-wsl</code> / <code>.255</code></li>
     <li>WSL: <code>systemd=true</code> in <code>/etc/wsl.conf</code></li>
     <li>Clone dotfiles, <code>PROFILE=wsl</code>, bootstrap</li>
     <li><code>npm i -g paseo</code>, set password, create projects</li>
