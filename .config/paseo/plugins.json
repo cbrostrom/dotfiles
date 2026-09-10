@@ -11,9 +11,9 @@
     },
     {
       "id": "workspace-activity",
-      "repo": "ABorakati/paseo-workspace-activity",
-      "ref": "main",
-      "patch": "v0.8"
+      "repo": "bybrostrom/paseo-plugins",
+      "path": "workspace-activity",
+      "ref": "main"
     },
     {
       "id": "higgins-panel",
