@@ -1,9 +1,19 @@
-/** Light cleanup so card bodies don't show raw **bold** on plain Text. */
+import { flattenInlineMarkdown } from "./inline-markdown.js";
+
+/** Plain-text cleanup for heuristics (icons, search). */
 export function stripInlineMarkdown(text: string): string {
   return text
-    .replace(/\*\*(.+?)\*\*/g, "$1")
-    .replace(/__(.+?)__/g, "$1")
-    .replace(/`([^`]+)`/g, "$1")
-    .replace(/^\s*[-*]\s+/gm, "• ")
+    .split("\n")
+    .map((line) =>
+      flattenInlineMarkdown(line.replace(/^\s*#{1,6}\s+/, "").replace(/^\s*[-*+]\s+/, "").replace(/^>\s?/, "")),
+    )
+    .join("\n")
+    .replace(/```[\s\S]*?```/g, (block) =>
+      block
+        .replace(/```[^\n]*\n?/g, "")
+        .replace(/```/g, "")
+        .replace(/\s+/g, " ")
+        .trim(),
+    )
     .trim();
 }

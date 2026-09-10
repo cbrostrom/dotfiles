@@ -1,20 +1,36 @@
 import { describe, expect, it } from "vitest";
-import { blockVariant, blockVariantIndex } from "./block-variants.js";
+import { BLOCK_VARIANTS, blockVariant, blockVariantName } from "./block-variants.js";
 
-describe("blockVariantIndex", () => {
-  it("uses message index for multi-block messages", () => {
-    expect(blockVariantIndex("A", 0)).toBe(0);
-    expect(blockVariantIndex("B", 1)).toBe(1);
-    expect(blockVariantIndex("C", 2)).toBe(2);
+describe("semantic block variants", () => {
+  it("maps successful outcomes to green", () => {
+    expect(blockVariantName("Verification passed", "No new errors")).toBe("success");
+    expect(blockVariant("Plugin is running").stripeColor).toBe(BLOCK_VARIANTS.success.stripeColor);
   });
 
-  it("varies single-block messages by title", () => {
-    const a = blockVariantIndex("Root cause", 0);
-    const b = blockVariantIndex("Recommended setup", 0);
-    expect(a).not.toBe(b);
+  it("maps warnings to yellow", () => {
+    expect(blockVariantName("Warning", "Review before deployment")).toBe("warning");
   });
 
-  it("cycles six palette slots", () => {
-    expect(blockVariant(6).stripeColor).toBe(blockVariant(0).stripeColor);
+  it("maps failures and errors to red", () => {
+    expect(blockVariantName("Build failed")).toBe("error");
+    expect(blockVariantName("Root cause", "A parser error broke the cards")).toBe("error");
+  });
+
+  it("maps UI and message content to purple", () => {
+    expect(blockVariantName("Reasoning now matches the UI system")).toBe("message");
+    expect(blockVariantName("Status update")).toBe("message");
+  });
+
+  it("maps plans and configuration actions to orange", () => {
+    expect(blockVariantName("Next step")).toBe("action");
+    expect(blockVariantName("Configure display")).toBe("action");
+  });
+
+  it("uses title semantics before body semantics", () => {
+    expect(blockVariantName("Verification passed", "0 errors and no failures")).toBe("success");
+  });
+
+  it("uses blue for neutral content", () => {
+    expect(blockVariantName("Architecture")).toBe("neutral");
   });
 });

@@ -1,29 +1,53 @@
-/**
- * Per-block chrome — plugin-owned palette (independent of theme accent).
- * Colors resolve at render time from variantIndex (see blockVariantIndex).
- */
-/** Tuned for Zinc dark — vivid on #1f1f22 chat, not neon. Icons come from block-icon.ts. */
-export const BLOCK_VARIANTS = [
-  { stripeColor: "#6ea8fe" },
-  { stripeColor: "#b197fc" },
-  { stripeColor: "#fbbf24" },
-  { stripeColor: "#f87171" },
-  { stripeColor: "#34d399" },
-  { stripeColor: "#fb923c" },
-] as const;
+/** Semantic card palette tuned for Zinc dark. */
+export const BLOCK_VARIANTS = {
+  neutral: { stripeColor: "#6ea8fe" },
+  message: { stripeColor: "#b197fc" },
+  action: { stripeColor: "#fb923c" },
+  warning: { stripeColor: "#fbbf24" },
+  error: { stripeColor: "#f87171" },
+  success: { stripeColor: "#34d399" },
+} as const;
 
-export type BlockVariant = (typeof BLOCK_VARIANTS)[number];
+export type BlockVariant = (typeof BLOCK_VARIANTS)[keyof typeof BLOCK_VARIANTS];
+export type BlockVariantName = keyof typeof BLOCK_VARIANTS;
 
-/** Index within a message first; single-block messages vary by title hash. */
-export function blockVariantIndex(title: string, indexInMessage: number): number {
-  if (indexInMessage > 0) return indexInMessage % BLOCK_VARIANTS.length;
-  let hash = 0;
-  for (let i = 0; i < title.length; i++) {
-    hash = (hash * 31 + title.charCodeAt(i)) >>> 0;
+type VariantRule = { variant: BlockVariantName; pattern: RegExp };
+
+const SEMANTIC_RULES: readonly VariantRule[] = [
+  {
+    variant: "success",
+    pattern: /\b(pass(?:ed|ing)?|success(?:ful|fully)?|fixed|done|complete(?:d)?|working|running|merged|landed|shipped|resolved|verified|healthy)\b/i,
+  },
+  {
+    variant: "warning",
+    pattern: /\b(warn(?:ing)?|risk|caution|careful|concern|danger|unsafe|avoid)\b/i,
+  },
+  {
+    variant: "error",
+    pattern: /\b(error|failed|failure|broken|blocked|cannot|can't|impossible|fatal|bug|regression)\b/i,
+  },
+  {
+    variant: "action",
+    pattern: /\b(next|step|plan|todo|action|setting|setup|install|reload|configure|command)\b/i,
+  },
+  {
+    variant: "message",
+    pattern: /\b(message|reasoning|thinking|ui|design|display|appearance|summary|note|information|update)\b/i,
+  },
+];
+
+function classify(text: string): BlockVariantName | null {
+  for (const rule of SEMANTIC_RULES) {
+    if (rule.pattern.test(text)) return rule.variant;
   }
-  return hash % BLOCK_VARIANTS.length;
+  return null;
 }
 
-export function blockVariant(index: number): BlockVariant {
-  return BLOCK_VARIANTS[index % BLOCK_VARIANTS.length]!;
+/** Title semantics take priority so a successful card stays green when its body mentions errors. */
+export function blockVariantName(title: string, body = ""): BlockVariantName {
+  return classify(title) ?? classify(body) ?? "neutral";
+}
+
+export function blockVariant(title: string, body = ""): BlockVariant {
+  return BLOCK_VARIANTS[blockVariantName(title, body)];
 }

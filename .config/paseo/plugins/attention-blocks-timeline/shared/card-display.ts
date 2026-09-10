@@ -14,14 +14,15 @@ export interface CardChromeInput {
 export interface CardChromeStyle {
   outer: {
     alignSelf: "stretch";
-    overflow: "hidden";
+    overflow: "visible";
     borderRadius: number;
     flexDirection?: "row" | "column";
   };
   stripe: { width: number; backgroundColor: string } | null;
   accentBar: { height: number; backgroundColor: string } | null;
   inner: {
-    flex: number;
+    flexGrow: number;
+    flexShrink: number;
     gap: number;
     paddingHorizontal: number;
     paddingVertical: number;
@@ -57,7 +58,8 @@ export function buildCardChrome(
   const bg = innerBackground(input);
 
   const baseInner = {
-    flex: 1 as const,
+    flexGrow: 1 as const,
+    flexShrink: 0 as const,
     gap,
     paddingHorizontal: padH,
     paddingVertical: padV,
@@ -68,7 +70,7 @@ export function buildCardChrome(
   switch (input.borderStyle) {
     case "none":
       return {
-        outer: { alignSelf: "stretch", overflow: "hidden", borderRadius: radius },
+        outer: { alignSelf: "stretch", overflow: "visible", borderRadius: radius },
         stripe: null,
         accentBar: null,
         inner: { ...baseInner, borderWidth: 0, borderColor: "transparent" },
@@ -77,7 +79,7 @@ export function buildCardChrome(
       return {
         outer: {
           alignSelf: "stretch",
-          overflow: "hidden",
+          overflow: "visible",
           borderRadius: radius,
           flexDirection: "row",
         },
@@ -89,7 +91,7 @@ export function buildCardChrome(
       return {
         outer: {
           alignSelf: "stretch",
-          overflow: "hidden",
+          overflow: "visible",
           borderRadius: radius,
           flexDirection: "column",
         },
@@ -100,7 +102,7 @@ export function buildCardChrome(
     case "box":
     default:
       return {
-        outer: { alignSelf: "stretch", overflow: "hidden", borderRadius: radius },
+        outer: { alignSelf: "stretch", overflow: "visible", borderRadius: radius },
         stripe: null,
         accentBar: null,
         inner: {
