@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Strip AI agent attribution before the commit message is finalized.
+# Second pass: Cursor sometimes appends attribution after prepare-commit-msg.
 set -euo pipefail
 
 HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

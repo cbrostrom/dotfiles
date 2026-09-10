@@ -75,7 +75,7 @@ Aligned with `settings.base.json` → `packages` (plus a few local installs not 
 | `pi-extension-settings` | UI for extension configuration |
 | `pi-cursor-sdk` | Cursor models via `@cursor/sdk` |
 | `pi-yaml-hooks` | Hook system for PI lifecycle events |
-| `pi-ask-user` | Interactive user prompts |
+| `pi-ask-user` | Interactive user prompts (schema patch: accepts `options[].label` alias) |
 | `pi-web-access` | Web fetch and search |
 | `pi-caffeinate` | Keep terminal awake during long runs |
 | `pi-subagents` | Parallel subagent execution |
@@ -124,6 +124,8 @@ dotfiles/.config/pi/agent/
 ├── settings.base.json         # Merged into settings.json (enabledModels + packages)
 ├── mcp.json                   # Classic MCP: higgins + deja
 ├── mcporter.json              # pi-mcporter exposure (index default)
+├── patches/
+│   └── apply-pi-ask-user-label-patch.sh  # Re-run via modules/pi/install.sh after pi update
 └── scripts/
 ```
 
