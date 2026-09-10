@@ -49,6 +49,7 @@ One physical machine, two Tailscale identities:
 - **Hardware:** Intel NUC8-class, i5-8259U, 16 GB RAM, ~31 Docker containers.
 - **Purpose:** Plex, Immich, *arr, Home Assistant, Traefik, downloaders.
 - **MCP:** Serves `dockhand-linuxbro` at `http://100.100.1.100:8092/mcp`.
+- **Stack ops:** Redeploy via Dockhand MCP only — see skill `dockhand` (`.agents/skills/dockhand/SKILL.md`). Compose mirror: `~/.config/superbro-compose/linuxbro/`; live path on host: `~/.config/appdata/dockhand/compose-repo/linuxbro/`.
 - **Paseo:** Light chores only — RAM headroom ~6 GB at steady state.
 - **Push guard:** Never `git push` from this host.
 
