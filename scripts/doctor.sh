@@ -101,7 +101,7 @@ if is_wsl; then
     fi
 fi
 
-# Headless servers skip Cursor/graphiti/MCP sections
+# Headless servers skip desktop-only Cursor sections
 is_headless=false
 [[ "$profile" == "server-headless" ]] && is_headless=true
 
@@ -149,7 +149,8 @@ done
 hdr "Tools"
 need_core=(zsh git curl)
 need_modern=(starship zoxide fzf bat eza rg fd)
-need_workflow=(lazygit gh)
+need_workflow=(gh)
+optional_workflow=(lazygit)
 
 for cmd in "${need_core[@]}"; do
     command -v "$cmd" >/dev/null 2>&1 && ok "$cmd" || bad "$cmd missing (REQUIRED)"
@@ -170,6 +171,9 @@ done
 echo
 for cmd in "${need_workflow[@]}"; do
     command -v "$cmd" >/dev/null 2>&1 && ok "$cmd" || warn "$cmd missing (workflow)"
+done
+for cmd in "${optional_workflow[@]}"; do
+    command -v "$cmd" >/dev/null 2>&1 && ok "$cmd" || skip "$cmd not installed (optional)"
 done
 
 # ----- secrets -----
@@ -290,57 +294,6 @@ if [[ "$is_headless" == "false" ]]; then
             bad "Cursor mcp.json contains likely inline secret in env — Fix: move to env var sourced from .zshenv (rbw)"
         else
             ok "Cursor mcp.json has no obvious inline tokens"
-        fi
-    fi
-fi # is_headless
-
-# ----- graphiti remote health -----
-# Skipped on headless servers
-if [[ "$is_headless" == "false" ]]; then
-    hdr "graphiti remote (HTTP MCP over Tailscale)"
-    graphiti_url="${GRAPHITI_HEALTH_URL:-http://100.100.1.50:8000/health}"
-    if command -v curl >/dev/null 2>&1; then
-        if resp="$(curl -fsS --max-time 3 "$graphiti_url" 2>/dev/null)"; then
-            if echo "$resp" | grep -q '"status":"healthy"'; then
-                ok "graphiti reachable: $graphiti_url ($resp)"
-            else
-                warn "graphiti reachable but unexpected response: $resp"
-            fi
-        else
-            warn "graphiti unreachable at $graphiti_url — Fix: ssh superbro 'docker compose -f /path/to/graphiti/docker-compose.yml restart' (or check tailscale)"
-        fi
-    else
-        warn "curl not installed — cannot probe graphiti"
-    fi
-fi # is_headless
-
-# ----- MCP staleness diagnostic -----
-# Skipped on headless servers
-if [[ "$is_headless" == "false" ]]; then
-    # Reports last-modified time on MCP config files vs running non-engram-related
-    # processes. Useful when "MCP updates aren't coming through" — usually it's
-    # because Cursor / Pi need a session restart.
-    hdr "MCP config freshness"
-    for cfg in "$HOME/.cursor/mcp.json" "$HOME/.pi/agent/mcp.json"; do
-        if [[ -f "$cfg" ]]; then
-            mtime="$(stat -f '%Sm' -t '%Y-%m-%d %H:%M:%S' "$cfg" 2>/dev/null ||
-                stat -c '%y' "$cfg" 2>/dev/null | cut -d'.' -f1)"
-            echo "  $cfg  (modified: $mtime)"
-        fi
-    done
-    # Portable across macOS/Linux: ps + grep. Exclude grep itself + own process.
-    running_mcp="$(ps -A -o pid,command 2>/dev/null |
-        grep -E 'graphiti|mcp-mermaid|tailwindcss-mcp|shopify.*dev-mcp|apple-mcp|@modelcontextprotocol/server-github' |
-        grep -v 'grep -E' |
-        wc -l | tr -d ' ')"
-    echo "  Running MCP-related processes (this host): $running_mcp"
-    if ((running_mcp == 0)); then
-        warn "No MCP processes running. Cursor/Pi load mcp.json at session start — restart the agent after editing config."
-    else
-        if ((running_mcp > 30)); then
-            warn "Unusually high MCP process count ($running_mcp). Possible leaked processes from previous agent sessions — Fix: pkill -f 'graphiti|mcp-mermaid|tailwindcss-mcp|shopify.*dev-mcp|apple-mcp|server-github' (then relaunch agent)"
-        else
-            echo "  If a recently-edited server isn't responding, restart the agent fully (Cmd+Q for IDE, exit/reopen for CLI)."
         fi
     fi
 fi # is_headless
