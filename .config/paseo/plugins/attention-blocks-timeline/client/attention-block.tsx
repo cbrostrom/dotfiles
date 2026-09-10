@@ -1,92 +1,96 @@
 import type { PluginTimelineItemProps } from "@getpaseo/plugin/client";
+import { useSettings } from "@getpaseo/plugin/client";
 import { Icon, useRevealedText } from "@getpaseo/plugin/client/react-native";
 import { useMemo } from "react";
 import { Text, View } from "react-native";
+import { buildCardChrome } from "../shared/card-display.js";
+import { inferBlockIcon } from "../shared/block-icon.js";
+import { blockVariant, blockVariantIndex } from "../shared/block-variants.js";
 import type { AttentionBlockData, AttentionMessageData } from "../shared/attention-message.js";
-import { hexToRgba, stripInlineMarkdown } from "../shared/strip-markdown.js";
+import {
+  DEFAULT_CARD_PREFERENCES,
+  parseBackgroundOpacity,
+  preferences,
+} from "../shared/preferences.js";
+import { stripInlineMarkdown } from "../shared/strip-markdown.js";
 
-const CARD = {
-  borderRadius: 8,
-  borderWidth: 1,
-  stripeWidth: 3,
-  iconSize: 14,
-} as const;
+const ICON_SIZE = 14;
 
-function useBlockStyles(
-  theme: PluginTimelineItemProps<AttentionMessageData>["theme"],
-  compact: boolean,
-  block: Pick<AttentionBlockData, "stripeColor" | "iconColor">,
-) {
-  const accentColor = block.stripeColor;
-
-  return useMemo(
-    () => ({
-      accentColor,
-      card: {
-        flexDirection: "row" as const,
-        alignSelf: "stretch" as const,
-        overflow: "hidden" as const,
-        borderWidth: CARD.borderWidth,
-        borderColor: theme.colors.border,
-        borderRadius: CARD.borderRadius,
-        backgroundColor: theme.colors.surface1,
-      } as const,
-      stripe: {
-        width: CARD.stripeWidth,
-        backgroundColor: accentColor,
-      } as const,
-      cardInner: {
-        flex: 1,
-        gap: compact ? 4 : 6,
-        paddingHorizontal: compact ? 12 : 14,
-        paddingVertical: compact ? 10 : 11,
-        backgroundColor: hexToRgba(accentColor, 0.06),
-      } as const,
-      titleRow: {
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-        gap: compact ? 6 : 8,
-      } as const,
-      cardTitle: {
-        flex: 1,
-        color: theme.colors.foreground,
-        fontWeight: "600" as const,
-        fontSize: compact ? 13 : 14,
-      } as const,
-      cardBody: {
-        color: theme.colors.foregroundMuted,
-        fontSize: compact ? 13 : 14,
-        lineHeight: compact ? 19 : 21,
-      } as const,
-    }),
-    [accentColor, compact, theme],
-  );
+function useCardPreferences() {
+  const settings = useSettings(preferences);
+  if (settings.status === "ready") return settings.values;
+  return DEFAULT_CARD_PREFERENCES;
 }
 
 export function AttentionBlockCard({
   block,
+  blockIndex,
   phase,
   theme,
   compact,
 }: {
   block: AttentionBlockData;
+  blockIndex: number;
   phase: AttentionMessageData["phase"];
   theme: PluginTimelineItemProps<AttentionMessageData>["theme"];
   compact: boolean;
 }) {
-  const styles = useBlockStyles(theme, compact, block);
+  const prefs = useCardPreferences();
+  const resolvedIndex = blockVariantIndex(block.title, blockIndex);
+  const variant = blockVariant(resolvedIndex);
   const body = stripInlineMarkdown(block.body.trim() || " ");
+  const inferredIcon = prefs.showIcons ? inferBlockIcon(block.title, body) : null;
   const revealed = useRevealedText(body, phase);
 
+  const chrome = useMemo(
+    () =>
+      buildCardChrome(
+        {
+          borderStyle: prefs.borderStyle,
+          backgroundOpacity: parseBackgroundOpacity(prefs.backgroundOpacity),
+          accentColor: variant.stripeColor,
+          themeBorder: theme.colors.border,
+          themeSurface: theme.colors.surface1,
+        },
+        compact,
+      ),
+    [compact, prefs.backgroundOpacity, prefs.borderStyle, theme.colors.border, theme.colors.surface1, variant.stripeColor],
+  );
+
+  const textStyles = useMemo(
+    () => ({
+      titleRow: {
+        flexDirection: "row" as const,
+        alignItems: "center" as const,
+        gap: compact ? 6 : 8,
+      },
+      cardTitle: {
+        flex: 1,
+        color: theme.colors.foreground,
+        fontWeight: "600" as const,
+        fontSize: compact ? 13 : 14,
+      },
+      cardBody: {
+        color: theme.colors.foregroundMuted,
+        fontSize: compact ? 13 : 14,
+        lineHeight: compact ? 19 : 21,
+      },
+    }),
+    [compact, theme],
+  );
+
   return (
-    <View style={styles.card}>
-      <View style={styles.stripe} />
-      <View style={styles.cardInner}>
-        <View style={styles.titleRow}>
-          <Icon name={block.icon} size={CARD.iconSize} color={block.iconColor} />
-          <Text style={styles.cardTitle}>{block.title}</Text>
+    <View style={chrome.outer}>
+      {chrome.stripe ? <View style={chrome.stripe} /> : null}
+      {chrome.accentBar ? <View style={chrome.accentBar} /> : null}
+      <View style={chrome.inner}>
+        <View style={textStyles.titleRow}>
+          {inferredIcon ? (
+            <Icon name={inferredIcon} size={ICON_SIZE} color={variant.stripeColor} />
+          ) : null}
+          <Text style={textStyles.cardTitle}>{block.title}</Text>
         </View>
-        <Text style={styles.cardBody}>{revealed}</Text>
+        <Text style={textStyles.cardBody}>{revealed}</Text>
       </View>
     </View>
   );

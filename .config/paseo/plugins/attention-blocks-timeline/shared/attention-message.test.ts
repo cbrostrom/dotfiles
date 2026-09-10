@@ -31,14 +31,14 @@ describe("transformAssistantAttention", () => {
     expect(result?.items[0]).toMatchObject({
       type: "plugin",
       kind: "attention-message",
-      version: 2,
+      version: 3,
       data: {
         intro: null,
         outro: null,
         phase: "complete",
         blocks: [
-          { title: "One", body: "First.", stripeColor: "#6ea8fe", icon: "Sparkles" },
-          { title: "Two", body: "Second.", stripeColor: "#b197fc", icon: "CircleDot" },
+          { title: "One", body: "First.", variantIndex: 0 },
+          { title: "Two", body: "Second.", variantIndex: 1 },
         ],
       },
     });

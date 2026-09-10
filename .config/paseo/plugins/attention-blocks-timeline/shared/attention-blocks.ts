@@ -9,7 +9,7 @@ export interface ParsedAttentionMessage {
   outro: string | null;
 }
 
-const ATTENTION_HEAD_RE = /^\*\*→\s*(.+?)\.\*\*\s*(.*)$/s;
+const ATTENTION_HEAD_RE = /^\*\*→\s*(.+?)\.?\*\*\s*(.*)$/s;
 
 /** Split on blank lines, then split single-newline runs of **→ blocks. */
 function expandParagraphs(text: string): string[] {

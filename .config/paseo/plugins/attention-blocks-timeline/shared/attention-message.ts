@@ -1,14 +1,12 @@
 import type { PluginTimelineTransformerContribution } from "@getpaseo/plugin";
 import { z } from "zod";
 import { parseAttentionBlocks } from "./attention-blocks.js";
-import { blockVariant } from "./block-variants.js";
 
 export const attentionBlockSchema = z.object({
   title: z.string(),
   body: z.string(),
-  icon: z.string(),
-  stripeColor: z.string(),
-  iconColor: z.string(),
+  /** Resolved at render from index + title; stored for stable identity across reloads. */
+  variantIndex: z.number().int().nonnegative(),
 });
 
 export const attentionMessageSchema = z.object({
@@ -26,7 +24,6 @@ type AssistantTransformer = PluginTimelineTransformerContribution<"assistant_mes
 export const transformAssistantAttention: AssistantTransformer = ({ item, phase }) => {
   const hasMarker = item.text.includes("**→");
 
-  // Avoid streaming churn: exploding one row into many during partial updates duplicates cards.
   if (phase === "streaming") {
     if (hasMarker) return { items: [] };
     return undefined;
@@ -40,19 +37,14 @@ export const transformAssistantAttention: AssistantTransformer = ({ item, phase 
       {
         type: "plugin" as const,
         kind: "attention-message",
-        version: 2,
+        version: 3,
         data: {
           intro: null,
-          blocks: parsed.blocks.map((block, index) => {
-            const variant = blockVariant(index);
-            return {
-              title: block.title,
-              body: block.body,
-              icon: variant.icon,
-              stripeColor: variant.stripeColor,
-              iconColor: variant.iconColor,
-            };
-          }),
+          blocks: parsed.blocks.map((block, index) => ({
+            title: block.title,
+            body: block.body,
+            variantIndex: index,
+          })),
           outro: parsed.outro,
           phase,
         },
