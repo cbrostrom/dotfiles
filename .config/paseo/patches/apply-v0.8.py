@@ -385,19 +385,14 @@ def patch_plugin(plugin_dir: Path) -> None:
 def apply_dotfiles_overrides(plugin_dir: Path) -> None:
     """Dotfiles-specific fixes on top of upstream v0.8 migration."""
     plugin_id = plugin_dir.name
-    if plugin_id == "workspace-activity":
-        index_client = plugin_dir / "index.client.tsx"
-        if index_client.exists():
-            text = index_client.read_text()
-            updated = re.sub(
-                r"\n\s*client\.addWorkspacePanel\(\{\s*"
-                r'id: "subagents",[\s\S]*?Component: WorkspaceSubagentsPanel,\s*\}\);',
-                "",
-                text,
-            )
-            if updated != text:
-                index_client.write_text(updated)
-
+    overrides_root = Path(__file__).resolve().parent.parent / "overrides" / plugin_id
+    if overrides_root.is_dir():
+        for src in overrides_root.rglob("*"):
+            if src.is_file():
+                rel = src.relative_to(overrides_root)
+                dest = plugin_dir / rel
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dest)
 
 def main() -> int:
     if len(sys.argv) != 2:

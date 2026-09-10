@@ -1,0 +1,6 @@
+{
+  "id": "attention-blocks-timeline",
+  "requirements": {
+    "paseo": ">=0.8.0"
+  }
+}

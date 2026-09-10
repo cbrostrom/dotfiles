@@ -1,5 +1,5 @@
 import { type Markdown, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
-import { currentTheme, applyColor, getVisibleWidth, hasVisibleContent } from "../utils.js";
+import { currentTheme, applyBgColor, applyColor, getVisibleWidth, hasVisibleContent } from "../utils.js";
 
 export type MessageStyle = "prefix" | "framed" | "labeled";
 
@@ -98,6 +98,46 @@ export function renderLabeledStyle(
 
   const side = (line: string) =>
     `${border("│")}${pad}${fillLine(line, contentWidth)}${pad}${border("│")}`;
+
+  const bottom = border(`╰${"─".repeat(Math.max(0, width - 2))}╯`);
+  return [top, ...lines.map(side), bottom];
+}
+
+/** Labeled box with tinted interior (PI **→ Lead-in.** attention blocks). */
+export function renderAttentionBlockStyle(
+  md: Markdown,
+  width: number,
+  title: string,
+  colors: FrameColors & { background: string },
+): string[] {
+  if (width <= 0) return [""];
+  if (width <= 2) {
+    return md.render(width).map((line: string) => truncateToWidth(line, width, ""));
+  }
+
+  const horizontalPadding = width >= 5 ? 1 : 0;
+  const contentWidth = Math.max(1, width - 2 - horizontalPadding * 2);
+  const body = md.render(contentWidth);
+  const lines = body.length > 0 ? body : [""];
+  const pad = " ".repeat(horizontalPadding);
+  const border = (text: string) => colorize(colors.border, text);
+  const accent = (text: string) => colorize(colors.accent, text);
+  const tint = (text: string) => {
+    if (!currentTheme) return text;
+    return applyBgColor(currentTheme, colors.background, text);
+  };
+
+  const titleSpan = ` → ${title} `;
+  const titleBudget = 4 + getVisibleWidth(titleSpan);
+  const top =
+    width >= titleBudget
+      ? `${border("╭─")}${accent(titleSpan)}${border(`${"─".repeat(Math.max(0, width - titleBudget))}╮`)}`
+      : border(`╭${"─".repeat(Math.max(0, width - 2))}╮`);
+
+  const side = (line: string) => {
+    const inner = `${pad}${fillLine(line, contentWidth)}${pad}`;
+    return `${border("│")}${tint(inner)}${border("│")}`;
+  };
 
   const bottom = border(`╰${"─".repeat(Math.max(0, width - 2))}╯`);
   return [top, ...lines.map(side), bottom];

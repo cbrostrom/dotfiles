@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Second pass: Cursor sometimes appends attribution after prepare-commit-msg.
+set -euo pipefail
+
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"${HOOK_DIR}/strip-commit-attribution.sh" "${1:?missing commit message file}"
