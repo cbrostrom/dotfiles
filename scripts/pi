@@ -14,11 +14,11 @@ else
     _fnm_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fnm/node-versions"
 fi
 
-# Prefer fnm default version
-if command -v fnm >/dev/null 2>&1; then
-    _ver="$(fnm alias default 2>/dev/null)"
-    _bin="$_fnm_dir/$_ver/installation/bin/pi"
-    [[ -n "$_ver" && -x "$_bin" ]] && exec "$_bin" "$@"
+# Prefer fnm default alias symlink (fnm 1.38+ has no `fnm alias default` query)
+_fnm_root="$(dirname "$_fnm_dir")"
+_default_install="$(readlink "$_fnm_root/aliases/default" 2>/dev/null)"
+if [[ -n "$_default_install" && -x "$_default_install/bin/pi" ]]; then
+    exec "$_default_install/bin/pi" "$@"
 fi
 
 # Fallback: find pi in any fnm version (newest first via glob sort)
