@@ -67,6 +67,25 @@ MCP server `higgins` (stdio): tools appear as `mcp__higgins_<name>` in Pi (e.g. 
 
 Full MCP reference: `~/dotfiles/.agents/skills/higgins/SKILL.md`.
 
+## Steps viewer (paseo-steps-viewer)
+
+Available everywhere: auto-injected into every Paseo agent (`server.before("agent.create")`) and
+registered in mcporter (`~/.pi/agent/mcp.json`) for Pi and other harnesses. Tools: `save_steps`,
+`update_steps`, `list_steps`. Plugin source: `~/Projects/personal/paseo-plugins/paseo-steps-viewer`.
+
+**Auto-trigger `save_steps` without being asked** when a response is about to become a substantial
+multi-step plan/walkthrough. Use it when ANY of:
+- 6+ distinct steps
+- any step needs non-trivial detail (code, config, multi-line commands, branching guidance)
+- the plan spans multiple sessions/phases
+
+Do not use for 2-5 short bullets, a single command, or anything answerable in one paragraph --
+answer inline as normal. This is a judgment call, same class as picking a subagent: when in doubt,
+lean toward answering inline.
+
+Pick a short, stable `session_label` per plan (slug from its title) and reuse it. Only call
+`update_steps` when the user explicitly asks to revise the steps -- never rewrite it unprompted.
+
 ## Subagents
 
 No subagents for search, orientation, or single-file edits.
