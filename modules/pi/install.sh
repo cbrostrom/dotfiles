@@ -247,6 +247,19 @@ else
     warn "pi-ask-user patch script missing — skip"
 fi
 
+# ── 5e) pi-cursor-sdk strict MCP-only patch (context-mode enforcement) ────────
+# Forces Cursor local agents to route every action through the MCP bridge so
+# context-mode-enforcer (extensions/context-mode-enforcer) can see and gate it.
+# Escape hatch: PI_CURSOR_STRICT_MCP_ONLY=0.
+PATCH_SCRIPT="$PI_SRC/patches/apply-pi-cursor-sdk-strict-mcp-patch.sh"
+if [[ -x "$PATCH_SCRIPT" ]]; then
+    "$PATCH_SCRIPT"
+elif [[ -f "$PATCH_SCRIPT" ]]; then
+    bash "$PATCH_SCRIPT"
+else
+    warn "pi-cursor-sdk strict-mcp patch script missing — skip"
+fi
+
 # ── 6) summary ────────────────────────────────────────────────────────────────
 log "PI install complete. Manual steps:"
 log "  1. Verify MCP:      /mcp status         (higgins, deja directTools)"

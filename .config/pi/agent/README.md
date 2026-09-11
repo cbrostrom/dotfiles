@@ -107,6 +107,43 @@ Aligned with `settings.base.json` → `packages` (plus a few local installs not 
 | `idle-kb-tidy` | session.idle | Silently prunes + compacts brain files |
 | `aislop-after-edit` | file.changed | AI slop quality check on code edits |
 | `guard-destructive` | tool.before.bash | Blocks force-push, publish commands |
+| `guard-context-mode` | tool.before.bash | Redirects raw bash (cat/curl/grep -r/...) to ctx_* tools |
+
+## context-mode enforcement (Cursor + native)
+
+Context-mode's own routing only catches raw bash on the built-in `bash` tool.
+Cursor models bypass that entirely: `pi-cursor-sdk` runs Cursor's native agent
+loop (`@cursor/sdk`), whose native tools (webSearch, webFetch, shell, read)
+never fire a Pi `tool_call` event. A sampled Paseo Cursor session hit 509KB in
+18 JSONL records using native webSearch/webFetch with zero bridged `ctx_*`
+calls — instructions alone cannot fix this, only removing the escape hatch.
+
+Two pieces close the gap:
+
+1. **`extensions/context-mode-enforcer`** — a global `tool_call` guard
+   (broader than the YAML hook) that blocks raw bash patterns which flood
+   context (cat/curl/wget/grep -r/test runners/git diff/docker logs/...) and
+   redirects to `ctx_execute` / `ctx_execute_file` / `ctx_batch_execute`.
+   Also truncates oversized non-`ctx_*` tool results as a safety net.
+   Fail-open if `ctx_execute` isn't active in the session (won't brick a
+   session where context-mode failed to load). Escape hatch:
+   `PI_CONTEXT_ENFORCER_DISABLE=1`.
+2. **`patches/apply-pi-cursor-sdk-strict-mcp-patch.sh`** — patches the
+   installed `pi-cursor-sdk` dist to pass `tools: ["mcp", "askQuestion"]` to
+   every Cursor `Agent.create`/`Agent.resume` call. This removes Cursor's
+   native tools entirely; Cursor must call back through pi-cursor-sdk's local
+   MCP bridge for everything, which fires normal Pi `tool_call` events that
+   `context-mode-enforcer` can see and gate. Requires
+   `PI_CURSOR_EXPOSE_BUILTIN_TOOLS=1` (set in `configs/.env`) so Cursor still
+   has a working `read`/`bash`/`write`/`edit` via the bridge post-restriction.
+   Escape hatch: `PI_CURSOR_STRICT_MCP_ONLY=0` (restores native Cursor tools
+   without reverting the patch — useful if a `pi-cursor-sdk` update needs the
+   patch reapplied first). Re-run `modules/pi/install.sh` after `pi update`
+   to reapply, same as the `pi-ask-user` label patch.
+
+Verify: `/cursor-tools` in a Cursor session should show the Pi bridge with
+`pi__read`/`pi__bash`/`pi__ctx_*` names and no native Cursor webSearch/shell
+activity in the resulting session JSONL.
 
 ## Files
 
