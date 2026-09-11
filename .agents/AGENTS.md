@@ -114,6 +114,9 @@ RTK handles compression for CC + Cursor automatically. Token heuristic: 1k token
 
 For non-trivial work: outline issue + solution, wait for approval before mutating.
 Skip only for minor changes or when user says unattended/auto/proceed/full go.
+Overall rule for any piece of work: quick outline first, manual verification after —
+the user wants a checkable plan before execution and evidence (counts, diffs, test
+output) after, for every agent, every harness.
 
 **"Step by step" = text instructions only.** Do not execute until user says "go", "proceed", "do it".
 **"outline"** = theory-testing mode. Grill the idea, compare options, recommend. Wait for approval.
