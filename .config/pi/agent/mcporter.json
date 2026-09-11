@@ -23,6 +23,9 @@
     },
     "dockhand-superbro": {
       "exposure": "on-demand"
+    },
+    "cloudflare-dns-superbro": {
+      "exposure": "on-demand"
     }
   }
 }

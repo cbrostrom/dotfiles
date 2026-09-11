@@ -35,6 +35,13 @@
       "auth": "oauth",
       "tokenCacheDir": "${HOME}/.mcporter/tokens/atlassian-akqa",
       "lifecycle": "keep-alive"
+    },
+    "cloudflare-dns-superbro": {
+      "command": "${HOME}/dotfiles/.config/pi/agent/scripts/cloudflare-dns-mcp.sh",
+      "env": {
+        "CLOUDFLARE_ZONE_ID": "d527e17ef5e6ccbeb3b7e48478624ee0"
+      },
+      "lifecycle": "keep-alive"
     }
   }
 }
