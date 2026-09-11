@@ -64,7 +64,7 @@ See `linuxbro/_tooling/repo-sync/README.md` in superbro-compose.
 
 - **`CF_DNS_API_TOKEN`** must live in Dockhand stack-variables — required for Let's Encrypt DNS-01 renewal. Empty on recreate → cert renewal breaks.
 - **`CF_API_EMAIL`** — legacy Cloudflare provider field; **not required** when using API token auth only. Safe to leave unset.
-- **`TRAEFIK_AUTH_USER` / `TRAEFIK_AUTH_PASS`** — only for Traefik dashboard at `traefik-lab.superbro.dk` (tailnet-only + basicauth). **Not needed** if you never use the dashboard; empty values produce a broken `basicauth.users=:` label but do not affect other routes. Optional cleanup: remove `traefik-auth` middleware from the traefik router and drop these env vars.
+- **`TRAEFIK_AUTH_USER` / `TRAEFIK_AUTH_PASS`** — **removed** (2026-09-11). Dashboard auth is Tinyauth (`tinyauth@docker` on `traefik-lab.superbro.dk`). Do not re-add basicauth.
 - Static `traefik.yml` (plugins): full container restart required — file watch does not load plugins.
 - Dynamic `dynamic/*.yml`: do not trust hot-reload; restart Traefik after edits.
 - Traefik host paths are **not** visible to `get_system_file_content` — use container paths `/etc/traefik/...`.
