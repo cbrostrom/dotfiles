@@ -79,6 +79,7 @@ gaming/config/launch.log
 .config/herdr/session.json
 .config/herdr/session-history.json
 .config/herdr/release-notes.json
+.config/herdr/.plugins.lock
 
 # PI runtime state (generated, machine-local — auth/cache/sessions/npm tree stay local)
 .config/pi/agent/auth.json

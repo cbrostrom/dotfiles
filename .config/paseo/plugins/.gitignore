@@ -3,3 +3,4 @@
 !.gitignore
 !attention-blocks-timeline/
 !attention-blocks-timeline/**
+attention-blocks-timeline/node_modules/
