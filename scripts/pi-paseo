@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Lean Pi launcher for Paseo RPC agents. Normal terminal Pi keeps full discovery.
+set -euo pipefail
+
+PI_AGENT_DIR="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+PROJECT_EXTENSIONS="$HOME/Projects/private/pi-extensions"
+INSTALLED_EXTENSIONS="$PI_AGENT_DIR/git/github.com/bybrostrom/pi-extensions"
+
+if [[ -d "$PROJECT_EXTENSIONS/extensions" ]]; then
+    PERSONAL_EXTENSIONS="$PROJECT_EXTENSIONS"
+else
+    PERSONAL_EXTENSIONS="$INSTALLED_EXTENSIONS"
+fi
+
+extensions=(
+    "$PI_AGENT_DIR/npm/node_modules/pi-cursor-sdk/dist/index.js"
+    "$PI_AGENT_DIR/npm/node_modules/pi-yaml-hooks/extensions/pi-yaml-hooks/index.ts"
+    "$PI_AGENT_DIR/npm/node_modules/pi-ask-user/index.ts"
+    "$PI_AGENT_DIR/npm/node_modules/context-mode/build/adapters/pi/extension.js"
+    "$PI_AGENT_DIR/npm/node_modules/pi-mcp-adapter/index.ts"
+    "$PI_AGENT_DIR/npm/node_modules/pi-rtk-optimizer/index.ts"
+    "$PI_AGENT_DIR/npm/node_modules/@narumitw/pi-caffeinate/dist/index.ts"
+    "$PI_AGENT_DIR/npm/node_modules/@shift-labs/pi-peer/src/extension/index.ts"
+    "$PI_AGENT_DIR/npm/node_modules/@juicesharp/rpiv-todo/index.ts"
+    "$PI_AGENT_DIR/npm/node_modules/pi-mcporter/dist/index.js"
+    "$DOTFILES_DIR/.config/pi/agent/extensions/file-search/index.ts"
+    "$PERSONAL_EXTENSIONS/extensions/style/index.ts"
+    "$PERSONAL_EXTENSIONS/extensions/unslop/index.ts"
+)
+
+skills=(
+    "$PI_AGENT_DIR/npm/node_modules/pi-ask-user/skills/ask-user"
+    "$PI_AGENT_DIR/npm/node_modules/context-mode/skills/context-mode"
+    "$PI_AGENT_DIR/skills/moli-webfetch"
+    "$PI_AGENT_DIR/skills/orchestration"
+    "$HOME/.agents/skills/codebase"
+    "$HOME/.agents/skills/commit"
+    "$HOME/.agents/skills/dotfiles"
+    "$HOME/.agents/skills/higgins"
+    "$HOME/.agents/skills/paseo"
+    "$HOME/.agents/skills/paseo-help"
+    "$HOME/.agents/skills/paseo-plugin"
+    "$HOME/.agents/skills/systematic-debugging"
+    "$HOME/.agents/skills/tool-restraint"
+    "$HOME/.agents/skills/verification-before-completion"
+    "$HOME/.agents/skills/writing"
+)
+
+project_root="$(git -C "$PWD" rev-parse --show-toplevel 2>/dev/null || printf '%s' "$PWD")"
+for project_skills in "$project_root/.agents/skills" "$project_root/.pi/skills"; do
+    [[ -d "$project_skills" ]] && skills+=("$project_skills")
+done
+
+extension_args=()
+for extension in "${extensions[@]}"; do
+    if [[ ! -f "$extension" ]]; then
+        printf 'pi-paseo: missing extension: %s\nRun: pi update --all\n' "$extension" >&2
+        exit 1
+    fi
+    extension_args+=(--extension "$extension")
+done
+
+skill_args=()
+for skill in "${skills[@]}"; do
+    [[ -e "$skill" ]] && skill_args+=(--skill "$skill")
+done
+
+exec "$HOME/.local/bin/pi" \
+    --no-extensions \
+    --no-skills \
+    --exclude-tools powershell,grep,find,ls \
+    "${extension_args[@]}" \
+    "${skill_args[@]}" \
+    "$@"
