@@ -133,6 +133,12 @@ while IFS= read -r row; do
     _install_plugin "$id"
 done < <(jq -c '.plugins[]' "$MANIFEST")
 
+# Local maintenance plugin is intentionally outside the shared plugin manifest.
+# It monitors this machine's Pi installation and has no remote source to sync.
+if [[ -d "$PASEO_PLUGINS_DIR/pi-maintenance" ]]; then
+    _install_plugin "pi-maintenance"
+fi
+
 # Paseo agents use a curated Pi launcher; direct terminal Pi keeps full discovery.
 PASEO_CONFIG="${PASEO_HOME:-$HOME/.paseo}/config.json"
 PI_PASEO_LAUNCHER="$DOTFILES_DIR/scripts/pi-paseo"
