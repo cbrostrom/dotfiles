@@ -16,6 +16,7 @@ PATCH_SCRIPT="$PASEO_CONFIG_SRC/patches/apply-v0.8.py"
 MANIFEST="$PASEO_CONFIG_SRC/plugins.json"
 # Git-installed or superseded plugins — remove if still registered.
 ORPHAN_PLUGINS=(
+    attention-blocks-timeline
     usage-monitor
     agent-monitor
     reasoning-display
@@ -31,6 +32,19 @@ fi
 if [[ ! -f "$MANIFEST" ]]; then
     err "missing manifest: $MANIFEST"
     exit 1
+fi
+
+# Keep macOS awake during active Pi turns without emitting RPC status noise.
+PI_CAFFEINATE_SRC="$DOTFILES_DIR/.config/pi/agent/pi-caffeinate.json"
+PI_CAFFEINATE_DST="$HOME/.pi/agent/pi-caffeinate.json"
+if [[ -f "$PI_CAFFEINATE_SRC" ]]; then
+    mkdir -p "$(dirname "$PI_CAFFEINATE_DST")"
+    if [[ -e "$PI_CAFFEINATE_DST" && ! -L "$PI_CAFFEINATE_DST" ]]; then
+        warn "pi-caffeinate.json exists and is not a symlink — keeping it"
+    else
+        ln -sfn "$PI_CAFFEINATE_SRC" "$PI_CAFFEINATE_DST"
+        ok "pi-caffeinate → quiet mode"
+    fi
 fi
 
 mkdir -p "$PASEO_PLUGINS_DIR"
@@ -118,5 +132,30 @@ while IFS= read -r row; do
     _sync_plugin "$id" "$repo" "$subpath" "$ref" "$patch"
     _install_plugin "$id"
 done < <(jq -c '.plugins[]' "$MANIFEST")
+
+# Paseo agents use a curated Pi launcher; direct terminal Pi keeps full discovery.
+PASEO_CONFIG="${PASEO_HOME:-$HOME/.paseo}/config.json"
+PI_PASEO_LAUNCHER="$DOTFILES_DIR/scripts/pi-paseo"
+python3 - "$PASEO_CONFIG" "$PI_PASEO_LAUNCHER" <<'PYEOF'
+import json, os, sys
+
+config_path, launcher = sys.argv[1], sys.argv[2]
+config = {}
+if os.path.exists(config_path):
+    with open(config_path) as f:
+        config = json.load(f)
+
+providers = config.setdefault("agents", {}).setdefault("providers", {})
+pi = providers.setdefault("pi", {})
+pi["enabled"] = True
+pi["command"] = [launcher]
+
+os.makedirs(os.path.dirname(config_path), exist_ok=True)
+with open(config_path, "w") as f:
+    json.dump(config, f, indent=2)
+    f.write("\n")
+PYEOF
+paseo reload --json >/dev/null
+ok "Paseo Pi provider → lean launcher"
 
 ok "paseo plugins synced from dotfiles"
