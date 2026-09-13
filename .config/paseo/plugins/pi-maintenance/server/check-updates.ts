@@ -17,7 +17,20 @@ let cachedAt = 0;
 let inFlight: Promise<UpdateStatus> | undefined;
 
 type PackageSetting = string | { source?: string };
-type OutdatedEntry = { current?: string; latest?: string };
+type OutdatedEntry = { current?: string; latest?: string; location?: string };
+
+/**
+ * `npm outdated --json` also reports nested copies (e.g. a transitive dep
+ * pinned by its parent's semver range). Those can never be updated by
+ * `pi update --all` and would show as permanent ghost updates, so keep only
+ * entries installed directly under the agent's node_modules root.
+ */
+function isTopLevelDependency(location: string | undefined, name: string): boolean {
+  if (!location) return true;
+  const direct = join(NPM_ROOT, "node_modules", name);
+  const resolved = join(location);
+  return resolved === direct || resolved.startsWith(direct + "/");
+}
 
 function sourceOf(setting: PackageSetting): string {
   return typeof setting === "string" ? setting : (setting.source ?? "");
@@ -83,6 +96,7 @@ async function checkNpmPackages(sources: string[]): Promise<UpdateItem[]> {
   const outdated = JSON.parse(stdout) as Record<string, OutdatedEntry>;
   return Object.entries(outdated).flatMap(([name, entry]) => {
     if (!entry.current || !entry.latest || entry.current === entry.latest) return [];
+    if (!isTopLevelDependency(entry.location, name)) return [];
     return [{ id: `npm:${name}`, label: name, current: entry.current, latest: entry.latest, source: "npm" as const }];
   });
 }

@@ -9,6 +9,7 @@ import {
   type UpdateProgress,
   type UpdateStatus,
 } from "../shared/updates.js";
+import { notifyUpdateCheckNeeded } from "./update-events.js";
 
 type Theme = PluginSurfaceProps["theme"];
 type Layout = PluginSurfaceProps["layout"];
@@ -217,6 +218,8 @@ export function PiMaintenanceScreen({ theme, layout }: PluginSurfaceProps) {
     if (updating && progress != null && !progress.running && progress.finishedAt != null) {
       setUpdating(false);
       void refresh(true);
+      // The pill module keeps its own status; tell it to re-check too.
+      notifyUpdateCheckNeeded();
     }
   }, [updating, progress, refresh]);
 
@@ -251,7 +254,7 @@ export function PiMaintenanceScreen({ theme, layout }: PluginSurfaceProps) {
         onStart={() => void startUpdate()}
       />
       {startError ? <Text style={styles.error}>Could not start update: {startError}</Text> : null}
-      <Pressable accessibilityRole="button" disabled={loading} onPress={() => void refresh(true)} style={styles.button}>
+      <Pressable accessibilityRole="button" disabled={loading} onPress={() => void refresh(true).then(() => notifyUpdateCheckNeeded())} style={styles.button}>
         <Text style={styles.buttonText}>{loading ? "Checking…" : "Check now"}</Text>
       </Pressable>
     </View>

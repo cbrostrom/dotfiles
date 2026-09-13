@@ -1,9 +1,11 @@
 import type { PluginButtonRegistration, PluginClientContext } from "@getpaseo/plugin/client";
 import { PiMaintenanceScreen, PiUpdatesPopover } from "./client/status.js";
+import { onUpdateCheckNeeded } from "./client/update-events.js";
 import { checkUpdates, type UpdateStatus } from "./shared/updates.js";
 
 const AGENT_PAGE_SIZE = 200;
 const AGENT_SUBSCRIPTION_ID = "pi-maintenance-agents";
+const REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1_000;
 
 type AgentSnapshot = {
   id: string;
@@ -77,6 +79,15 @@ export default function contribute(client: PluginClientContext) {
     },
   });
 
+  const refreshStatus = async (force: boolean): Promise<void> => {
+    try {
+      const next = await client.rpc(checkUpdates, { force });
+      if (!stopped) publishStatus(next);
+    } catch {
+      // Keep showing the last known status; the next refresh will retry.
+    }
+  };
+
   const unsubscribe = client.paseo.agents.subscribe((update) => {
     if (update.kind === "remove") {
       agents.delete(update.agentId);
@@ -102,11 +113,17 @@ export default function contribute(client: PluginClientContext) {
     })
     .catch(() => undefined);
 
-  void client.rpc(checkUpdates, {}).then(publishStatus).catch(() => undefined);
+  void refreshStatus(false);
+  // Forced: the server caches for 24h, so a non-forced call would never see
+  // updates that landed outside this plugin (e.g. manual `pi update`).
+  const refreshTimer = setInterval(() => void refreshStatus(true), REFRESH_INTERVAL_MS);
+  const removeRefreshListener = onUpdateCheckNeeded(() => void refreshStatus(true));
 
   return () => {
     stopped = true;
     unsubscribe();
+    clearInterval(refreshTimer);
+    removeRefreshListener();
     for (const pill of pills.values()) pill.remove();
     pills.clear();
     agents.clear();
