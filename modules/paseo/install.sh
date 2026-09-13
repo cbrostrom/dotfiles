@@ -82,8 +82,9 @@ _sync_plugin() {
 
     # Synced copies ship without node_modules; plugins whose server code imports
     # non-host npm deps (e.g. @modelcontextprotocol/sdk) need them installed
-    # before the daemon's build step runs.
-    if [[ -f "$dest/package-lock.json" ]]; then
+    # before the daemon's build step runs. Plugins with no runtime dependencies
+    # (source-only: Paseo supplies everything) skip the step entirely.
+    if [[ -f "$dest/package-lock.json" ]] && jq -e '(.dependencies // {}) | length > 0' "$dest/package.json" >/dev/null; then
         log "npm ci $id"
         if ! (cd "$dest" && npm ci >/dev/null 2>&1); then
             warn "npm ci failed for $id — plugin may fail to build"
