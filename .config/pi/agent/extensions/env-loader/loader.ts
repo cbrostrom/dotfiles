@@ -5,10 +5,12 @@ import { join } from "node:path";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface LoadResult {
-  /** Keys successfully injected into process.env */
+  /** Approved keys successfully injected into process.env */
   keys: string[];
-  /** Vars skipped because the key already existed in the shell environment */
+  /** Approved vars skipped because the key already existed in the shell environment */
   skipped: number;
+  /** Unapproved vars ignored without loading their values */
+  ignored: number;
   /** File read error, if any */
   error?: string;
 }
@@ -16,6 +18,19 @@ export interface LoadResult {
 // ─── Loader ───────────────────────────────────────────────────────────────────
 
 const CONFIG_PATH = join(homedir(), ".pi", "agent", "configs", ".env");
+
+/**
+ * This file is for non-secret Pi/Cursor runtime switches only. Explicitly
+ * allowlisting names prevents an accidentally-added token from becoming part
+ * of Pi's process environment and being inherited by shell children.
+ */
+const ALLOWED_KEYS = new Set([
+  "PI_CURSOR_RUNTIME",
+  "PI_CURSOR_SETTING_SOURCES",
+  "PI_CURSOR_LOCAL_RESUME",
+  "PI_CURSOR_ASK_QUESTION",
+  "PI_CURSOR_EXPOSE_BUILTIN_TOOLS",
+]);
 
 /**
  * Reads ~/.pi/agent/configs/.env and injects each entry into process.env.
@@ -28,7 +43,7 @@ const CONFIG_PATH = join(homedir(), ".pi", "agent", "configs", ".env");
  *   # comment lines and blank lines are ignored
  */
 export function loadEnvFile(): LoadResult {
-  if (!existsSync(CONFIG_PATH)) return { keys: [], skipped: 0 };
+  if (!existsSync(CONFIG_PATH)) return { keys: [], skipped: 0, ignored: 0 };
 
   let content: string;
   try {
@@ -37,12 +52,14 @@ export function loadEnvFile(): LoadResult {
     return {
       keys: [],
       skipped: 0,
+      ignored: 0,
       error: `could not read .env — ${e instanceof Error ? e.message : String(e)}`,
     };
   }
 
   const keys: string[] = [];
   let skipped = 0;
+  let ignored = 0;
 
   for (const rawLine of content.split("\n")) {
     const line = rawLine.trim();
@@ -57,6 +74,11 @@ export function loadEnvFile(): LoadResult {
 
     const key = stripped.slice(0, eqIdx).trim();
     if (!key) continue;
+
+    if (!ALLOWED_KEYS.has(key)) {
+      ignored++;
+      continue;
+    }
 
     let value = stripped.slice(eqIdx + 1);
 
@@ -79,5 +101,5 @@ export function loadEnvFile(): LoadResult {
     keys.push(key);
   }
 
-  return { keys, skipped };
+  return { keys, skipped, ignored };
 }

@@ -10,7 +10,13 @@
 #   ~/.pi/agent/mcporter.json      <- pi-mcporter exposure policy (index default)
 #   ~/.pi/web-search.json          <- focused Exa/raw web-search config
 #   ~/.pi/agent/hook/hooks.yaml    <- pi-yaml-hooks global hooks (gated)
-#   ~/.pi/agent/pi-permissions.jsonc <- pi-permission-system policy
+#   ~/.pi/agent/pi-permissions.jsonc <- pi-permission-system policy (NOT a security boundary — no enforcing package)
+#   ~/.pi/agent/configs/model-policy.json <- model allow/deny groups per host (source of truth)
+#
+# What this GENERATES (runtime-only, host-specific, not tracked):
+#   ~/.pi/agent/host.json          <- resolved host slug (override: PI_HOST_SLUG=<slug>)
+#   ~/.pi/agent/settings.json enabledModels/defaultProvider/defaultModel/defaultThinkingLevel
+#                                    <- generated from model-policy.json + host.json each install run
 #
 # What this PATCHES (merged, not symlinked — PI writes runtime fields here):
 #   ~/.pi/agent/settings.json      ← packages, model, trust defaults
@@ -69,8 +75,14 @@ _symlink() {
 _symlink "$PI_SRC/AGENTS.md" "$PI_DST/AGENTS.md" "AGENTS.md"
 _symlink "$PI_SRC/mcp.json" "$PI_DST/mcp.json" "mcp.json"
 _symlink "$PI_SRC/mcporter.json" "$PI_DST/mcporter.json" "mcporter.json"
+# pi-permissions.jsonc: no enforcing package is installed. Pi has no built-in
+# sandbox or permission popups — do not treat this file as a security
+# boundary. Kept symlinked for forward compatibility only.
 _symlink "$PI_SRC/pi-permissions.jsonc" "$PI_DST/pi-permissions.jsonc" "pi-permissions.jsonc"
 _symlink "$PI_SRC/web-search.json" "$HOME/.pi/web-search.json" "web-search.json"
+mkdir -p "$PI_DST/configs"
+_symlink "$PI_SRC/configs/model-policy.json" "$PI_DST/configs/model-policy.json" "configs/model-policy.json"
+_symlink "$PI_SRC/configs/protected-paths.json" "$PI_DST/configs/protected-paths.json" "configs/protected-paths.json"
 
 # ── 4) pi shim at ~/.local/bin/pi ────────────────────────────────────────────
 # Keeps `pi` resolvable even when fnm switches to a project-local node version.
@@ -198,8 +210,14 @@ if os.path.exists(local_path):
         except json.JSONDecodeError:
             print("[warn] settings.json parse error — initialising from base")
 
-# Fields PI manages at runtime — never overwrite with base values
-RUNTIME_KEYS = {"lastChangelogVersion", "trackingId"}
+# Fields PI manages at runtime — never overwrite with base values.
+# enabledModels/defaultProvider/defaultModel/defaultThinkingLevel are owned by
+# step 5c (model-policy.json → host policy) and must never be reset by this
+# generic base merge.
+RUNTIME_KEYS = {
+    "lastChangelogVersion", "trackingId",
+    "enabledModels", "defaultProvider", "defaultModel", "defaultThinkingLevel",
+}
 
 result = dict(local)
 
@@ -237,6 +255,112 @@ PYEOF
 
 ok "settings.json patched"
 
+# ── 5c) resolve host policy → enabledModels + per-host defaults ──────────────
+# Reads configs/model-policy.json (tracked, symlinked in step 3), resolves
+# this machine's host slug, expands its model groups, validates each model
+# against `pi --list-models`, and writes the result into settings.json.
+# This runs AFTER the generic merge above so its output is never clobbered by
+# base's (now vestigial) model defaults, and its own writes are re-applied on
+# every install run so a stale runtime enabledModels list cannot survive a
+# policy or catalog change. Fails closed: a model referenced in the policy
+# that no longer appears in `pi --list-models` is dropped, not preserved.
+POLICY_FILE="$PI_DST/configs/model-policy.json"
+if [[ -f "$POLICY_FILE" ]]; then
+    python3 - "$POLICY_FILE" "$PI_DST/host.json" "$PI_DST/settings.json" <<'PYEOF'
+import json, os, socket, subprocess, sys
+from datetime import datetime
+
+policy_path, host_path, settings_path = sys.argv[1], sys.argv[2], sys.argv[3]
+
+with open(policy_path) as f:
+    policy = json.load(f)
+
+hosts = policy["hosts"]
+
+# ── resolve host slug ──────────────────────────────────────────────────────
+env_slug = os.environ.get("PI_HOST_SLUG")
+existing_slug = None
+if os.path.exists(host_path):
+    try:
+        with open(host_path) as f:
+            existing_slug = json.load(f).get("slug")
+    except (json.JSONDecodeError, OSError):
+        existing_slug = None
+
+short_hostname = socket.gethostname().split(".")[0]
+
+if env_slug and env_slug in hosts:
+    slug = env_slug
+elif existing_slug and existing_slug in hosts:
+    slug = existing_slug
+else:
+    slug = next((s for s, hp in hosts.items() if short_hostname in hp.get("aliases", [])), None)
+    if slug is None:
+        slug = "default-desktop" if "default-desktop" in hosts else next(iter(hosts))
+
+with open(host_path, "w") as f:
+    json.dump(
+        {"slug": slug, "hostname": short_hostname, "resolvedAt": datetime.now().isoformat(timespec="seconds")},
+        f, indent=2,
+    )
+    f.write("\n")
+
+hp = hosts[slug]
+
+# ── expand host groups → enabledModels (dedup, ordered) ─────────────────────
+groups = policy["groups"]
+seen = set()
+enabled = []
+for group_name in hp["groups"]:
+    for key in groups.get(group_name, []):
+        if key not in seen:
+            seen.add(key)
+            enabled.append(key)
+
+# ── validate against pi --list-models — fail closed on stale entries ────────
+try:
+    result = subprocess.run(["pi", "--list-models"], capture_output=True, text=True, timeout=15)
+    catalog = set()
+    for line in result.stdout.splitlines()[1:]:  # skip header row
+        parts = line.split()
+        if len(parts) >= 2:
+            catalog.add(f"{parts[0]}/{parts[1]}")
+    if catalog:
+        missing = [k for k in enabled if k not in catalog]
+        if missing:
+            print(f"[pi] model-policy: dropping {len(missing)} model(s) not in pi --list-models: {missing}")
+            enabled = [k for k in enabled if k not in missing]
+    else:
+        print("[pi] model-policy: pi --list-models returned no rows (not authenticated?) — skipping validation")
+except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+    print(f"[pi] model-policy: could not run pi --list-models ({e}) — skipping validation")
+
+# ── write into settings.json ─────────────────────────────────────────────────
+settings = {}
+if os.path.exists(settings_path):
+    try:
+        with open(settings_path) as f:
+            settings = json.load(f)
+    except json.JSONDecodeError:
+        settings = {}
+
+settings["enabledModels"] = enabled
+settings["defaultProvider"] = hp.get("defaultProvider") or policy["defaults"]["fallbackModel"].split("/")[0]
+settings["defaultModel"] = hp.get("defaultModel") or policy["defaults"]["fallbackModel"].split("/", 1)[1]
+settings["defaultThinkingLevel"] = hp.get("defaultThinkingLevel") or policy["defaults"]["thinking"]
+
+with open(settings_path, "w") as f:
+    json.dump(settings, f, indent=2)
+    f.write("\n")
+
+print(f"[pi] model-policy: host={slug} enabledModels={len(enabled)} default={settings['defaultProvider']}/{settings['defaultModel']}")
+PYEOF
+    ok "settings.json: host policy applied (see host.json for resolved slug)"
+else
+    warn "configs/model-policy.json missing — enabledModels left untouched by policy"
+fi
+
+
 # ── 5d) pi-ask-user schema patch (accept options[].label alias) ───────────────
 PATCH_SCRIPT="$PI_SRC/patches/apply-pi-ask-user-label-patch.sh"
 if [[ -x "$PATCH_SCRIPT" ]]; then
@@ -260,6 +384,13 @@ else
     warn "pi-cursor-sdk strict-mcp patch script missing — skip"
 fi
 
+# ── 5b) capability map ────────────────────────────────────────────────────
+if python3 "$DOTFILES_DIR/scripts/gen-capabilities.py"; then
+    ok "capability map regenerated → ~/.agents/capabilities.md"
+else
+    log "WARN: gen-capabilities.py failed — manifest may be stale"
+fi
+
 # ── 6) summary ────────────────────────────────────────────────────────────────
 log "PI install complete. Manual steps:"
 log "  1. Verify MCP:      /mcp status         (higgins, deja directTools)"
@@ -272,3 +403,4 @@ log "  7. Trust your repos: /trust             (once, per project, inside PI)"
 log "  8. Update PI:        fnm use default && pi update self"
 log "     (always update from fnm default so the shim stays aligned)"
 log "  9. Cursor spend:     set on-demand limit to \$0 in Cursor dashboard"
+log " 10. Host policy:      cat ~/.pi/agent/host.json  (wrong host? set PI_HOST_SLUG=<slug> and re-run install)"
