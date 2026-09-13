@@ -1,6 +1,11 @@
 ---
 name: dockhand
-description: Operate Docker stacks via Dockhand MCP on LinuxBro or SuperBro. Load when dockhand is mentioned together with linuxbro or superbro — redeploy, restart, compose edits, Traefik/infrastructure, stack env. Triggers: dockhand linuxbro, dockhand superbro, redeploy stack, mcp-dockhand, docker.superbro.dk, docker-lab.
+description: >-
+  Operate Docker stacks via Dockhand MCP on LinuxBro or SuperBro. Load when
+  dockhand is mentioned together with linuxbro or superbro — redeploy, restart,
+  compose edits, Traefik/infrastructure, stack env. Triggers: dockhand linuxbro,
+  dockhand superbro, redeploy stack, mcp-dockhand, docker.superbro.dk,
+  docker-lab.
 ---
 
 # Dockhand stack operations (LinuxBro + SuperBro)
