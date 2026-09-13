@@ -21,13 +21,6 @@
       "lifecycle": "keep-alive",
       "directTools": true
     },
-    "paseo-steps-viewer": {
-      "command": "node",
-      "args": [
-        "/Users/Christian.Brostrom/Projects/personal/paseo-plugins/paseo-steps-viewer/bin/mcp-stdio.mjs"
-      ],
-      "lifecycle": "keep-alive"
-    },
     "cloudflare-dns-cloudbro": {
       "command": "/Users/Christian.Brostrom/dotfiles/.config/pi/agent/scripts/cloudflare-dns-mcp.sh",
       "lifecycle": "keep-alive",
