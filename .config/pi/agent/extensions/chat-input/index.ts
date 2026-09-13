@@ -1,3 +1,4 @@
+/** chat-input — custom TUI input editor with companion animation and width-aware layout. */
 import { CustomEditor, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import type { TUI, EditorTheme } from "@earendil-works/pi-tui";
 import type { KeybindingsManager } from "@earendil-works/pi-coding-agent";

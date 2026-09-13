@@ -55,6 +55,8 @@ Disabled servers (github-atlassian inline, dockhand-*) stay disabled on purpose 
 
 Auto-discovered from `~/.agents/skills/`. Load on demand: `/skill:<name>`.
 
+Capability map (Paseo plugins, pi extensions, skills — what exists, where, when to use): `/skill:capabilities`. Generated manifest: `~/.agents/capabilities.md`.
+
 ## Web fetching
 
 `moli fetch --dump markdown --wait-until done "<url>"` for pages; `web_search` for discovery; `fetch_content` only if moli unavailable. Recipes: `/skill:moli-webfetch`.

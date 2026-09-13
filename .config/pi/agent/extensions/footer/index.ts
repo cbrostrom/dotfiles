@@ -1,3 +1,4 @@
+/** footer — status footer bar: git status, model, tokens, and configurable powerbar segments. */
 import type { ExtensionAPI, ReadonlyFooterDataProvider, Theme, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import { visibleWidth, truncateToWidth } from "@earendil-works/pi-tui";

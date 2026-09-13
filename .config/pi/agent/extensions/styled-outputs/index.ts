@@ -1,3 +1,4 @@
+/** styled-outputs — themed TUI renderers for assistant/user messages, tool calls, and skill invocations. */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { AssistantMessageComponent, UserMessageComponent, ToolExecutionComponent, SkillInvocationMessageComponent, CustomMessageComponent, BashExecutionComponent, createReadTool, createBashTool, createEditTool, createLsTool, createGrepTool, createFindTool, truncateTail, DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, keyText } from "@earendil-works/pi-coding-agent";
 import { Markdown, Text } from "@earendil-works/pi-tui";
