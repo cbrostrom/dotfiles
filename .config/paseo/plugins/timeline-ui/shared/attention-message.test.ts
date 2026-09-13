@@ -67,7 +67,9 @@ describe("transformAssistantAttention", () => {
   });
 
   it("preserves intro and interstitial prose in segment order", () => {
-    const text = ["[Cursor]", "", "**→ One.** First.", "Middle note.", "**→ Two.** Second."].join("\n");
+    const text = ["[Cursor]", "", "**→ One.** First.", "Middle note.", "**→ Two.** Second."].join(
+      "\n",
+    );
     const result = transformAssistantAttention({
       item: { type: "assistant_message", text },
       phase: "complete",

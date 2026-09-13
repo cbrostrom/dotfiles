@@ -1,3 +1,4 @@
+import type { PluginCleanup } from "@getpaseo/plugin";
 import type { PluginClientContext } from "@getpaseo/plugin/client";
 
 /**
@@ -24,6 +25,6 @@ const DOTFILES_CARDS_LIGHT = {
   },
 };
 
-export function contributeThemes(client: PluginClientContext): void {
-  client.addTheme(DOTFILES_CARDS_LIGHT);
+export function contributeThemes(client: PluginClientContext): PluginCleanup {
+  return client.addTheme(DOTFILES_CARDS_LIGHT);
 }

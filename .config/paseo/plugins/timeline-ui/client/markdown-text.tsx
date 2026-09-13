@@ -1,11 +1,21 @@
 import type { TextStyle, ViewStyle } from "react-native";
-import { Platform, Text, View } from "react-native";
+import { Platform, ScrollView, Text, View } from "react-native";
 import type { DocumentBlock } from "../shared/markdown-document.js";
 import { parseMarkdownDocument } from "../shared/markdown-document.js";
 import { parseInlineMarkdown, type InlineSegment } from "../shared/inline-markdown.js";
 import { partitionMarkdown, type RenderPhase } from "../shared/markdown-stable.js";
 
 const CODE_FONT = Platform.select({ ios: "Menlo", default: "monospace" });
+
+/** Minimal theme surface the renderer needs. Optional — falls back to theme-agnostic
+ * rgba overlays when omitted, so callers that don't have a theme handy still work. */
+export type MarkdownTheme = {
+  colors: {
+    border: string;
+    surface0: string;
+    surface1: string;
+  };
+};
 
 function InlineSegments({
   segments,
@@ -77,26 +87,52 @@ function ProseLine({
   );
 }
 
+/** Rough column-width weighting from content length, so a "Hash"-style short column
+ * doesn't get the same width as a long "Subject"/"Description" column. Clamped so no
+ * single column can starve the rest. */
+function tableColumnWeights(headers: readonly string[], rows: readonly (readonly string[])[]): number[] {
+  return headers.map((header, columnIndex) => {
+    let max = header.length;
+    for (const row of rows) {
+      const cell = row[columnIndex];
+      if (cell && cell.length > max) max = cell.length;
+    }
+    return Math.min(Math.max(max, 4), 40);
+  });
+}
+
 function DocumentBlockView({
   block,
   style,
   codeStyle,
   codeBlockStyle,
+  codeLanguageStyle,
+  codeContainerStyle,
   linkStyle,
   headingScale,
   quoteStyle,
   tableHeaderStyle,
   tableCellStyle,
+  tableChrome,
 }: {
   block: DocumentBlock;
   style: TextStyle;
   codeStyle: TextStyle;
   codeBlockStyle: TextStyle;
+  codeLanguageStyle: TextStyle;
+  codeContainerStyle: ViewStyle;
   linkStyle: TextStyle;
   headingScale: number;
   quoteStyle: ViewStyle;
   tableHeaderStyle: TextStyle;
   tableCellStyle: TextStyle;
+  tableChrome: {
+    outer: ViewStyle;
+    headerRow: ViewStyle;
+    row: ViewStyle;
+    rowAlt: ViewStyle;
+    cell: ViewStyle;
+  };
 }) {
   if (block.kind === "blank") {
     return <View style={{ height: 4 }} />;
@@ -120,15 +156,19 @@ function DocumentBlockView({
   }
   if (block.kind === "code") {
     return (
-      <View style={{ gap: block.language ? 4 : 0 }}>
+      <View style={codeContainerStyle}>
         {block.language ? (
-          <Text style={{ ...style, fontSize: 11, color: linkStyle.color, opacity: 0.7 }} selectable>
-            {block.language}
-          </Text>
+          <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+            <Text style={codeLanguageStyle} selectable>
+              {block.language}
+            </Text>
+          </View>
         ) : null}
-        <Text style={codeBlockStyle} selectable>
-          {block.text}
-        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false}>
+          <Text style={codeBlockStyle} selectable>
+            {block.text}
+          </Text>
+        </ScrollView>
       </View>
     );
   }
@@ -168,21 +208,22 @@ function DocumentBlockView({
     );
   }
   if (block.kind === "table") {
+    const weights = tableColumnWeights(block.headers, block.rows);
     return (
-      <View style={{ gap: 4 }}>
-        <View style={{ flexDirection: "row", gap: 8 }}>
+      <View style={tableChrome.outer}>
+        <View style={tableChrome.headerRow}>
           {block.headers.map((header, index) => (
-            <Text key={`th:${index}`} style={{ ...tableHeaderStyle, flex: 1 }} selectable>
-              {header}
-            </Text>
+            <View key={`th:${index}`} style={[tableChrome.cell, { flex: weights[index] }]}>
+              <ProseLine text={header} style={tableHeaderStyle} codeStyle={codeStyle} linkStyle={linkStyle} />
+            </View>
           ))}
         </View>
         {block.rows.map((row, rowIndex) => (
-          <View key={`tr:${rowIndex}`} style={{ flexDirection: "row", gap: 8 }}>
+          <View key={`tr:${rowIndex}`} style={rowIndex % 2 === 1 ? tableChrome.rowAlt : tableChrome.row}>
             {row.map((cell, cellIndex) => (
-              <Text key={`td:${rowIndex}:${cellIndex}`} style={{ ...tableCellStyle, flex: 1 }} selectable>
-                {cell}
-              </Text>
+              <View key={`td:${rowIndex}:${cellIndex}`} style={[tableChrome.cell, { flex: weights[cellIndex] ?? 1 }]}>
+                <ProseLine text={cell} style={tableCellStyle} codeStyle={codeStyle} linkStyle={linkStyle} />
+              </View>
             ))}
           </View>
         ))}
@@ -202,6 +243,7 @@ function DocumentBlockView({
 export function MarkdownText({
   text,
   style,
+  theme,
   phase = "complete",
   stableStreaming = true,
   codeBlockVariant = "subtle",
@@ -210,12 +252,21 @@ export function MarkdownText({
 }: {
   text: string;
   style: TextStyle;
+  theme?: MarkdownTheme;
   phase?: RenderPhase;
   stableStreaming?: boolean;
   codeBlockVariant?: "subtle" | "bordered";
   stackStyle?: ViewStyle;
   headingScale?: number;
 }) {
+  const borderColor = theme?.colors.border ?? "rgba(127,127,127,0.3)";
+  // Softer variant for the default ("subtle") code block outline. Only safe to suffix an
+  // alpha byte onto a hex color; the rgba() fallback already has its own baked-in alpha.
+  const softBorderColor = theme?.colors.border ? `${theme.colors.border}40` : "rgba(127,127,127,0.18)";
+  const codeBg = theme?.colors.surface0 ?? "rgba(127,127,127,0.1)";
+  const headerBg = theme?.colors.surface1 ?? "rgba(127,127,127,0.08)";
+  const altRowBg = theme?.colors.surface0 ?? "rgba(127,127,127,0.05)";
+
   const codeStyle: TextStyle = {
     fontFamily: CODE_FONT,
     fontSize: typeof style.fontSize === "number" ? style.fontSize - 1 : 12,
@@ -223,15 +274,28 @@ export function MarkdownText({
     borderRadius: 3,
     paddingHorizontal: 3,
   };
-  const codeBlockStyle: TextStyle = {
-    ...codeStyle,
-    fontSize: typeof style.fontSize === "number" ? style.fontSize - 1 : 12,
-    padding: 10,
+  const codeContainerStyle: ViewStyle = {
+    gap: 4,
+    backgroundColor: codeBg,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: codeBlockVariant === "bordered" ? borderColor : softBorderColor,
+    padding: 10,
+  };
+  const codeBlockStyle: TextStyle = {
+    fontFamily: CODE_FONT,
+    fontSize: typeof style.fontSize === "number" ? style.fontSize - 1 : 12,
     lineHeight: typeof style.lineHeight === "number" ? style.lineHeight : 18,
-    ...(codeBlockVariant === "bordered"
-      ? { borderWidth: 1, borderColor: "rgba(127,127,127,0.35)", backgroundColor: "rgba(127,127,127,0.08)" }
-      : {}),
+    color: style.color,
+  };
+  const codeLanguageStyle: TextStyle = {
+    fontFamily: CODE_FONT,
+    fontSize: 10,
+    fontWeight: "600",
+    color: style.color,
+    opacity: 0.55,
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
   };
   const linkStyle: TextStyle = {
     color: style.color,
@@ -245,6 +309,31 @@ export function MarkdownText({
   };
   const tableHeaderStyle: TextStyle = { ...style, fontWeight: "600" };
   const tableCellStyle: TextStyle = { ...style, color: style.color };
+  const tableChrome = {
+    outer: {
+      borderWidth: 1,
+      borderColor,
+      borderRadius: 8,
+      overflow: "hidden" as const,
+    },
+    headerRow: {
+      flexDirection: "row" as const,
+      backgroundColor: headerBg,
+      borderBottomWidth: 1,
+      borderBottomColor: borderColor,
+    },
+    row: {
+      flexDirection: "row" as const,
+    },
+    rowAlt: {
+      flexDirection: "row" as const,
+      backgroundColor: altRowBg,
+    },
+    cell: {
+      paddingHorizontal: 8,
+      paddingVertical: 6,
+    },
+  };
 
   const effectivePhase = stableStreaming ? phase : "complete";
   const { stable, tail } = partitionMarkdown(text, effectivePhase);
@@ -259,11 +348,14 @@ export function MarkdownText({
           style={style}
           codeStyle={codeStyle}
           codeBlockStyle={codeBlockStyle}
+          codeLanguageStyle={codeLanguageStyle}
+          codeContainerStyle={codeContainerStyle}
           linkStyle={linkStyle}
           headingScale={headingScale}
           quoteStyle={quoteStyle}
           tableHeaderStyle={tableHeaderStyle}
           tableCellStyle={tableCellStyle}
+          tableChrome={tableChrome}
         />
       ))}
       {tail ? (

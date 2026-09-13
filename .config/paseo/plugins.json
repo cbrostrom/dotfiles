@@ -52,7 +52,18 @@
       "ref": "main"
     },
     {
-      "id": "attention-blocks-timeline",
+      "id": "skills",
+      "repo": "gpambrozio/paseo-plugins",
+      "path": "skills",
+      "ref": "main",
+      "patch": "v0.8"
+    },
+    {
+      "id": "timeline-ui",
+      "local": true
+    },
+    {
+      "id": "summary-fork",
       "local": true
     }
   ]

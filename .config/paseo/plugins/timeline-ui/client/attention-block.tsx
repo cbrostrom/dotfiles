@@ -95,6 +95,7 @@ export function AttentionBlockCard({
         <MarkdownText
           text={revealed}
           style={textStyles.cardBody}
+          theme={theme}
           phase={phase}
           stableStreaming={messagePrefs.stableStreaming}
           codeBlockVariant={messagePrefs.codeStyle}

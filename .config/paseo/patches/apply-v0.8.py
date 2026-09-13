@@ -38,15 +38,16 @@ SHARED_ROOT_IMPORTS = {
 PASEO_CLIENT_TYPES = """import { usePaseo } from "@getpaseo/plugin/client";
 
 export type PaseoApi = ReturnType<typeof usePaseo>;
-export type PaseoAgentHandle = ReturnType<NonNullable<PaseoApi>["agents"]["ref"]>;
-export type PaseoAgent = Awaited<ReturnType<NonNullable<PaseoApi>["agents"]["get"]>>;
-export type PaseoAgentUpdate = Parameters<
-  NonNullable<PaseoApi>["agents"]["subscribe"]
->[1] extends (update: infer U) => void
+export type PaseoAgentHandle = ReturnType<PaseoApi["agents"]["ref"]>;
+export type PaseoAgentList = Awaited<ReturnType<PaseoApi["agents"]["list"]>>;
+export type PaseoAgent = PaseoAgentList["entries"][number]["agent"];
+export type PaseoAgentUpdate = Parameters<PaseoApi["agents"]["subscribe"]>[0] extends (
+  update: infer U,
+) => void
   ? U
   : never;
 export type PaseoAgentSendOptions = Parameters<
-  ReturnType<NonNullable<PaseoApi>["agents"]["ref"]>["send"]
+  ReturnType<PaseoApi["agents"]["ref"]>["send"]
 >[1];
 """
 

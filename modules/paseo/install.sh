@@ -165,3 +165,12 @@ paseo reload --json >/dev/null
 ok "Paseo Pi provider → lean launcher"
 
 ok "paseo plugins synced from dotfiles"
+
+# Regenerate the capability map (plugins + pi extensions + skills)
+if python3 "$DOTFILES_DIR/scripts/gen-capabilities.py"; then
+    ok "capability map regenerated → ~/.agents/capabilities.md"
+else
+    log "WARN: gen-capabilities.py failed — manifest may be stale"
+fi
+
+
