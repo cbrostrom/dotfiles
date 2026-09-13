@@ -143,7 +143,7 @@ def main() -> None:
         "",
         "## Paseo plugins",
         "",
-        "Source: `~/Projects/personal/paseo-plugins` → installed `~/.paseo/plugins`. UI-only plugins need no agent action; `paseo-steps-viewer` exposes MCP tools (`save_steps`, `update_steps`, `list_steps`).",
+        "Source: `~/Projects/personal/paseo-plugins` (dev clone) → deployed via `dotfiles modules/paseo/install.sh` → `~/dotfiles/.config/paseo/plugins`. UI-only plugins need no agent action; `paseo-steps-viewer` exposes MCP tools (`list_capabilities`, `save_steps`, `update_steps`, `list_steps`).",
         "",
         "| id | purpose |",
         "|----|---------|",
