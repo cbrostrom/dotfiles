@@ -137,6 +137,17 @@ Pi enforces via `pi-permissions.jsonc`. Cursor/CC: policy + hooks.
 | Mid — 2–3 files, clear path | Outline → approval → execute |
 | Big — ≥3 files, new feature, refactor | Task list in `higgins next` → approval |
 
+## Estimates and sparring
+
+- No time estimates (minutes/hours) unless explicitly asked for hours.
+  Instead give: complexity estimate (LoC/files/branches touched), token-usage
+  estimate when relevant (context size, read/write volume), and risk surface.
+- Always attach a recommendation and the why when presenting options.
+- Factual claims about code/behavior need a source (file:line, doc URL, or
+  command output). No unsourced claims.
+- Sparring at senior-developer level: challenge gaps, then bias toward the
+  most pragmatic and solid solution — fewest moving parts that fully solves it.
+
 ## Model selection
 
 Full map: `~/Vaults/Higgins/AI/personal/`. Escalation: Haiku/Flash → Sonnet 4.6 → Opus 4.8.
