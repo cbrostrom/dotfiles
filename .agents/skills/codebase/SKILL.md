@@ -22,7 +22,16 @@ ls CODEBASE.md 2>/dev/null || echo "MISSING"
 
 Read `CODEBASE.md` in the current working directory.
 
-### 3. Route
+### 3. Safety net — staleness check
+
+Before routing, verify each entry you intend to route to still exists (`ls <path>`). If an entry is missing, or the map's file list looks wrong for the current tree:
+
+1. Regenerate the map from scratch (step 4, overwriting the existing CODEBASE.md).
+2. Re-run the router from step 2.
+
+Never route to a nonexistent file — flag the stale entry to the user instead.
+
+### 4. Route
 
 Based on the current task, output exactly:
 
@@ -43,7 +52,7 @@ Maximum 3 entries. No padding. If the task is clear and only 1–2 files are rel
 
 ---
 
-### 4. Generate CODEBASE.md (only if missing)
+### 5. Generate CODEBASE.md (only if missing or just invalidated by the safety net)
 
 Ask the user: "No CODEBASE.md found. Generate one? (takes ~5 seconds)"
 
