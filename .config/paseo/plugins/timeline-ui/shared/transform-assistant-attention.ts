@@ -1,4 +1,4 @@
-import type { PluginTimelineItem, PluginTimelineTransformResult } from "@getpaseo/plugin";
+import type { PluginTimelineItem } from "@getpaseo/plugin";
 import { parseAttentionBlocks } from "./attention-blocks.js";
 
 type AssistantMessageItem = { type: "assistant_message"; text: string };
@@ -18,7 +18,7 @@ function markdownPluginItem(text: string, phase: TransformPhase): PluginTimeline
   };
 }
 
-export function transformAssistantAttention({ item, phase }: TransformInput): PluginTimelineTransformResult {
+export function transformAssistantAttention({ item, phase }: TransformInput) {
   const hasMarker = item.text.includes("**→");
 
   if (phase === "streaming" && hasMarker) {
@@ -46,7 +46,12 @@ export function transformAssistantAttention({ item, phase }: TransformInput): Pl
               if (segment.kind === "prose") return segment;
               const variantIndex = blockIndex;
               blockIndex += 1;
-              return { kind: "block" as const, title: segment.title, body: segment.body, variantIndex };
+              return {
+                kind: "block" as const,
+                title: segment.title,
+                body: segment.body,
+                variantIndex,
+              };
             }),
             phase,
           },

@@ -3,6 +3,7 @@ import { AttentionMessage } from "./client/attention-message.js";
 import { TimelineSettings } from "./client/timeline-settings.js";
 import { MarkdownMessage } from "./client/markdown-message.js";
 import { ReasoningTimelineItem } from "./client/reasoning.js";
+import { contributeSessionUsagePills } from "./client/session-usage-pill.js";
 import { contributeThemes } from "./client/themes.js";
 import { attentionMessageSchema, transformAssistantAttention } from "./shared/attention-message.js";
 import { markdownMessageSchema } from "./shared/markdown-message.js";
@@ -14,7 +15,8 @@ import {
 import { transformReasoning } from "./shared/transform-reasoning.js";
 
 export default function contribute(client: PluginClientContext) {
-  contributeThemes(client);
+  const removeThemes = contributeThemes(client);
+  const removeSessionUsagePills = contributeSessionUsagePills(client);
 
   client.addSettingsScreen({
     id: "timeline",
@@ -51,5 +53,8 @@ export default function contribute(client: PluginClientContext) {
     schema: reasoningItemDataSchema,
     Component: ReasoningTimelineItem,
   });
-  return () => {};
+  return () => {
+    removeSessionUsagePills();
+    removeThemes();
+  };
 }

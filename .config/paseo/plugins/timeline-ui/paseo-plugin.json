@@ -1,5 +1,5 @@
 {
-  "id": "attention-blocks-timeline",
+  "id": "timeline-ui",
   "requirements": {
     "paseo": ">=0.8.0"
   }

@@ -45,6 +45,7 @@ function Prose({
     <MarkdownText
       text={revealed}
       style={style}
+      theme={theme}
       phase={phase}
       stableStreaming={values.stableStreaming}
       codeBlockVariant={values.codeStyle}

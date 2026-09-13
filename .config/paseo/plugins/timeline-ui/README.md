@@ -1,6 +1,6 @@
-# attention-blocks-timeline
+# timeline-ui
 
-Paseo client plugin that renders PI-style attention blocks in the agent timeline.
+Paseo plugin that renders Pi-style attention blocks and shows live session usage in the composer. Formerly `attention-blocks-timeline`.
 
 When an assistant message contains paragraphs like:
 
@@ -24,22 +24,29 @@ Optional: **Dotfiles Cards (Light)** for light mode only (`client/themes.ts`).
 
 ## Settings
 
-**Settings → Plugins → attention-blocks-timeline → Attention cards**
+Open **Settings → Plugins → timeline-ui**.
 
-| Setting | Options |
-| --- | --- |
-| Content icons | On / off |
-| Border | None, box, left accent, top accent |
-| Background tint | 0%–22% opacity presets (accent color wash) |
+| Section | Setting | Options |
+| --- | --- | --- |
+| Timeline messages | Attention cards | On / off |
+| Timeline messages | Stable streaming | On / off |
+| Timeline messages | Prose density | Compact, default, comfortable |
+| Attention cards | Content icons, border, background tint | Multiple display options |
+| Reasoning | Expansion mode | Collapsed, latest expanded, expanded |
+| Composer | Session usage | On / off |
+| Composer | Usage label | Cost, cost and tokens |
 
-Host-scoped — all clients on this daemon share values. Requires `index.server.ts` (settings persistence).
+The session-usage pill opens a compact breakdown of cost, input, cached, and output tokens. Settings are host-scoped, so all clients on the daemon share them.
 
 ## Customize
 
 | File | What to change |
 | --- | --- |
-| `client/card-settings.tsx` | Settings screen labels and options |
+| `client/card-settings.tsx` | Card settings labels and options |
+| `client/composer-settings.tsx` | Session-usage pill settings |
+| `client/session-usage-pill.tsx` | Live cost/token pill registration and details |
 | `shared/preferences.ts` | Defaults and opacity/border enums |
+| `shared/composer-preferences.ts` | Composer visibility and label defaults |
 | `shared/card-display.ts` | Border layout + tint math |
 | `client/attention-block.tsx` | Card render wiring |
 | `shared/block-variants.ts` | Hex accent colors per variant |
@@ -50,8 +57,8 @@ Bump `version` in transformer output and `addTimelineRenderer` when changing the
 ## Install
 
 ```bash
-paseo plugin install ~/dotfiles/.config/paseo/plugins/attention-blocks-timeline
-paseo plugin reload attention-blocks-timeline
+paseo plugin install ~/dotfiles/.config/paseo/plugins/timeline-ui
+paseo plugin reload timeline-ui
 ```
 
 Dark mode: select **Zinc** in Settings → Appearance. Card colors apply automatically.
@@ -59,7 +66,7 @@ Dark mode: select **Zinc** in Settings → Appearance. Card colors apply automat
 ## Test
 
 ```bash
-cd ~/dotfiles/.config/paseo/plugins/attention-blocks-timeline
+cd ~/dotfiles/.config/paseo/plugins/timeline-ui
 npm install
 npm test
 npm run typecheck
