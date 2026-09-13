@@ -1,0 +1,126 @@
+{
+  "$comment": "Model policy — single source of truth consumed by modules/pi/install.sh and extensions/model-policy-guard. Classifications from OpenCode Go / Zen privacy documentation (verified 11-09-2026). DeepSeek ZDR agreement expires 30-09-2026 — re-verify before that date.",
+  "defaults": {
+    "$comment": "Per-host defaults live in hosts[]. Hosts without an explicit default fall back to defaults.fallbackModel.",
+    "fallbackModel": "opencode-go/glm-5.3-flash",
+    "thinking": "low"
+  },
+  "groups": {
+    "goPrivate": [
+      "opencode-go/glm-5.1",
+      "opencode-go/glm-5.2",
+      "opencode-go/glm-5.3",
+      "opencode-go/glm-5.3-flash",
+      "opencode-go/kimi-k2.6",
+      "opencode-go/kimi-k2.7-code",
+      "opencode-go/kimi-k3",
+      "opencode-go/longcat-2.0",
+      "opencode-go/mimo-v2.5",
+      "opencode-go/mimo-v2.5-pro",
+      "opencode-go/minimax-m2.7",
+      "opencode-go/minimax-m3",
+      "opencode-go/qwen3.6-plus",
+      "opencode-go/qwen3.7-max",
+      "opencode-go/qwen3.7-plus",
+      "opencode-go/qwen3.8-flash",
+      "opencode-go/qwen3.8-max",
+      "opencode-go/hy3",
+      "opencode-go/hy4-preview"
+    ],
+    "goConditional": [
+      "opencode-go/deepseek-v4-flash",
+      "opencode-go/deepseek-v4-flash-vision-exp",
+      "opencode-go/deepseek-v4-pro",
+      "opencode-go/deepseek-v4.1-flash"
+    ],
+    "goRetained": [
+      "opencode-go/gpt-5.6-luna",
+      "opencode-go/grok-4.6"
+    ],
+    "publicFree": [
+      "opencode/big-pickle",
+      "opencode/ling-3.0-flash-fin-free",
+      "opencode/mimo-v2.5-free",
+      "opencode/nemotron-3-ultra-free",
+      "opencode/nemotron-3.5-lightning-free"
+    ],
+    "$comment_publicFree": "Defined for documentation only — not referenced by any host. Per policy, opencode-go is the only opencode-* provider in use; bare opencode/* free/contributor endpoints are never enabled and fall through classify() to blocked.",
+    "blockedTraining": [
+      "opencode-go/muse-spark-1.2-contributor",
+      "opencode-go/muse-spark-1.3-contributor",
+      "opencode/muse-spark-1.2-contributor-free",
+      "opencode/muse-spark-1.3-contributor-free"
+    ],
+    "blockedUnknown": [
+      "opencode-go/omen-alpha"
+    ],
+    "cursorWork": [
+      "cursor/default",
+      "cursor/auto",
+      "cursor/auto-smart",
+      "cursor/composer-2.5",
+      "cursor/composer-2-5",
+      "cursor/composer-2",
+      "cursor/gpt-5.6-sol",
+      "cursor/gpt-5.6-terra",
+      "cursor/gpt-5.6-luna",
+      "cursor/gpt-5-6-sol",
+      "cursor/gpt-5-6-terra",
+      "cursor/gpt-5-6-luna",
+      "cursor/fable-5-1",
+      "cursor/fable-5",
+      "cursor/claude-fable-5-1",
+      "cursor/claude-fable-5",
+      "cursor/opus-5",
+      "cursor/claude-opus-5"
+    ],
+    "copilotWork": [
+      "github-copilot/claude-sonnet-5",
+      "github-copilot/claude-opus-5",
+      "github-copilot/gpt-5.6-sol",
+      "github-copilot/gpt-5.6-terra",
+      "github-copilot/gpt-5.6-luna",
+      "github-copilot/claude-haiku-4.5",
+      "github-copilot/gpt-5.4-mini",
+      "github-copilot/gpt-5-mini",
+      "github-copilot/gemini-3.5-flash"
+    ]
+  },
+  "hosts": {
+    "workstation": {
+      "aliases": ["GY-M-WHKK2PF6N7"],
+      "groups": ["goPrivate", "goConditional", "goRetained", "cursorWork", "copilotWork"],
+      "defaultProvider": "cursor",
+      "defaultModel": "default",
+      "defaultThinkingLevel": "medium"
+    },
+    "cloudbro": {
+      "aliases": [],
+      "groups": ["goPrivate", "goConditional", "goRetained"],
+      "defaultProvider": "opencode-go",
+      "defaultModel": "glm-5.3-flash",
+      "defaultThinkingLevel": "low"
+    },
+    "linuxbro": {
+      "aliases": [],
+      "groups": ["goPrivate", "goConditional"],
+      "defaultProvider": "opencode-go",
+      "defaultModel": "glm-5.3-flash",
+      "defaultThinkingLevel": "low"
+    },
+    "superbro": {
+      "aliases": [],
+      "groups": ["goPrivate", "goConditional"],
+      "defaultProvider": "opencode-go",
+      "defaultModel": "glm-5.3-flash",
+      "defaultThinkingLevel": "low"
+    },
+    "default-desktop": {
+      "aliases": [],
+      "groups": ["goPrivate", "goConditional", "goRetained", "cursorWork", "copilotWork"],
+      "defaultProvider": "cursor",
+      "defaultModel": "default",
+      "defaultThinkingLevel": "medium"
+    }
+  }
+}
