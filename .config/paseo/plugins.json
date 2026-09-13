@@ -52,6 +52,12 @@
       "ref": "main"
     },
     {
+      "id": "paseo-steps-viewer",
+      "repo": "bybrostrom/paseo-plugins",
+      "path": "paseo-steps-viewer",
+      "ref": "main"
+    },
+    {
       "id": "skills",
       "repo": "gpambrozio/paseo-plugins",
       "path": "skills",
