@@ -40,12 +40,12 @@ Two accelerators, one brain. context-mode (`~/.pi/context-mode/`, machine-local 
 
 ## MCP
 
-Direct (tools loaded inline, in `~/.pi/agent/mcp.json`): `higgins`, `deja`, `paseo-steps-viewer`. Everything else goes through the `mcporter` proxy tool — one stable surface, no tool-schema bloat:
+Direct (tools loaded inline, in `~/.pi/agent/mcp.json`): `higgins`, `deja`. Everything else goes through the `mcporter` proxy tool — one stable surface, no tool-schema bloat:
 - `mcporter({ search: "jira" })` — discover servers/tools by name or capability. Unknown selector? Always search first.
 - `mcporter({ action: "describe", selector: "server.tool" })` — schema before first call.
 - `mcporter({ action: "call", selector: "server.tool", args: {...} })` — execute.
 
-Use it proactively, without being told, when a task touches Jira/Confluence (`atlassian-*`), GitHub issues/PRs (`github`), Shopify dev (`shopify-dev-mcp`), the codebase knowledge graph (`codebase-memory-mcp`), or the node/browser REPLs (`node_repl`, `cua_repl`). Server admin (install, OAuth, config) is CLI-only: `mcporter list | call | auth | config`.
+Use it proactively, without being told, when a task touches Jira/Confluence (`atlassian-*`), GitHub issues/PRs (`github`), Shopify dev (`shopify-dev-mcp`), the codebase knowledge graph (`codebase-memory-mcp`), the node/browser REPLs (`node_repl`, `cua_repl`), or when hunting for a machine-local tool/plugin/skill (`paseo-steps-viewer` → `list_capabilities`; see `/skill:capabilities`). Server admin (install, OAuth, config) is CLI-only: `mcporter list | call | auth | config`.
 
 Paseo layer: Paseo-launched agents receive Paseo's own tool catalog by injection (`daemon.mcp.injectIntoAgents`) — use those for cross-agent/workspace/browser orchestration there, prefer `pi-peer` only in terminal sessions, and never add `paseo` to mcporter (duplicate surface).
 

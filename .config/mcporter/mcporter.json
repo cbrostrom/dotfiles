@@ -11,6 +11,14 @@
       "args": [],
       "lifecycle": "keep-alive"
     },
+    "paseo-steps-viewer": {
+      "command": "node",
+      "args": [
+        "/Users/Christian.Brostrom/Projects/personal/paseo-plugins/paseo-steps-viewer/bin/mcp-stdio.mjs"
+      ],
+      "lifecycle": "keep-alive",
+      "_note": "Points at the dev clone, not the dotfiles-installed copy: the standalone stdio bridge needs local node_modules (@modelcontextprotocol/sdk, zod) which dotfiles plugin copies do not carry. Tools: save_steps, update_steps, list_steps, list_capabilities."
+    },
     "shopify-dev-mcp": {
       "command": "npx",
       "args": ["-y", "@shopify/dev-mcp@latest"],
