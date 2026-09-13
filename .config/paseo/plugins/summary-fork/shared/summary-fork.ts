@@ -20,6 +20,14 @@ export const DEFAULT_FORK_SETTINGS: ForkSettings = {
 
 export type ForkScope = "since_compaction" | "full" | "last_10" | "last_25" | "last_50";
 
+/** Where the forked agent lands: a new tab in the same workspace, or a new workspace. */
+export type ForkTarget = "tab" | "workspace";
+
+export const TARGET_OPTIONS = [
+  { label: "New tab", value: "tab" },
+  { label: "New workspace", value: "workspace" },
+] as const;
+
 export const SCOPE_OPTIONS = [
   { label: "Since last compaction", value: "since_compaction" },
   { label: "Full conversation", value: "full" },

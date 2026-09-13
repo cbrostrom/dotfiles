@@ -25,8 +25,11 @@ import {
   renderSummary,
   renderTranscript,
   scopeTranscript,
+  TARGET_OPTIONS,
   type ForkScope,
+  type ForkTarget,
 } from "../shared/summary-fork.js";
+import { pendingForkTarget } from "./pill.js";
 
 const FETCH_LIMIT = 200;
 const MAX_PAGES = 3;
@@ -58,6 +61,7 @@ export function ForkPanel({ theme, layout, workspaceId, agentId, navigation }: P
     settings.status === "ready" ? settings.values : DEFAULT_FORK_SETTINGS;
 
   const [scope, setScope] = useState<ForkScope>("since_compaction");
+  const [target, setTarget] = useState<ForkTarget>(pendingForkTarget);
   const [focus, setFocus] = useState("");
   const [saveDurable, setSaveDurable] = useState(false);
   const [summaryDraft, setSummaryDraft] = useState("");
@@ -208,34 +212,67 @@ export function ForkPanel({ theme, layout, workspaceId, agentId, navigation }: P
       const sourceTitle = agent?.title?.trim() || agentId.slice(0, 8);
       if (!agent?.model) throw new Error("Source model is unknown; cannot copy its configuration");
       if (!agent.cwd) throw new Error("Source workspace directory is unavailable");
-      const fork = await paseo.agents.create({
-        config: {
-          provider: `${agent.provider}/${agent.model}`,
-          ...(agent.currentModeId ? { modeId: agent.currentModeId } : {}),
-          ...(agent.thinkingOptionId ? { thinkingOptionId: agent.thinkingOptionId } : {}),
-          ...(agent.features
-            ? {
-                featureValues: Object.fromEntries(
-                  agent.features.map((feature) => [feature.id, feature.value]),
-                ),
-              }
-            : {}),
+      const config = {
+        provider: `${agent.provider}/${agent.model}`,
+        ...(agent.currentModeId ? { modeId: agent.currentModeId } : {}),
+        ...(agent.thinkingOptionId ? { thinkingOptionId: agent.thinkingOptionId } : {}),
+        ...(agent.features
+          ? {
+              featureValues: Object.fromEntries(
+                agent.features.map((feature) => [feature.id, feature.value]),
+              ),
+            }
+          : {}),
+      };
+      const title = `Fork · ${sourceTitle}`;
+      const prompt = saveDurable ? FORK_PROMPT_SAVE_DURABLE : FORK_PROMPT;
+      const attachments = [
+        {
+          type: "text" as const,
+          mimeType: "text/plain" as const,
+          contextKind: "fork-summary",
+          title: `Fork summary · ${sourceTitle}`,
+          text: summaryDraft,
         },
-        cwd: agent.cwd,
-        title: `Fork · ${sourceTitle}`,
-        prompt: saveDurable ? FORK_PROMPT_SAVE_DURABLE : FORK_PROMPT,
-        attachments: [
-          {
-            type: "text",
-            mimeType: "text/plain",
-            contextKind: "fork-summary",
-            title: `Fork summary · ${sourceTitle}`,
-            text: summaryDraft,
-          },
-        ],
-      });
-      if (navigation) {
-        navigation.openAgent({ agentId: fork.id });
+      ];
+
+      if (target === "workspace") {
+        // Isolated worktree branching off the source checkout; fall back to a
+        // plain directory workspace when the source is not a git checkout.
+        let workspace;
+        try {
+          workspace = await paseo.workspaces.create({
+            title,
+            source: { kind: "worktree", cwd: agent.cwd, action: "branch-off" },
+          });
+        } catch (worktreeError) {
+          const message =
+            worktreeError instanceof Error
+              ? worktreeError.message
+              : String(worktreeError);
+          if (!/worktree|branch|git/i.test(message)) throw worktreeError;
+          workspace = await paseo.workspaces.create({
+            title,
+            source: { kind: "directory", path: agent.cwd },
+          });
+        }
+        const fork = await workspace.agents.create({ config, title, prompt, attachments });
+        if (navigation) {
+          navigation.openWorkspace({ workspaceId: workspace.id });
+        } else {
+          void fork;
+        }
+      } else {
+        const fork = await paseo.agents.create({
+          config,
+          cwd: agent.cwd,
+          title,
+          prompt,
+          attachments,
+        });
+        if (navigation) {
+          navigation.openAgent({ agentId: fork.id });
+        }
       }
       setPhase({ state: "idle" });
       setSummaryDraft("");
@@ -245,7 +282,7 @@ export function ForkPanel({ theme, layout, workspaceId, agentId, navigation }: P
         message: error instanceof Error ? error.message : String(error),
       });
     }
-  }, [agentId, navigation, paseo, saveDurable]);
+  }, [agentId, navigation, paseo, saveDurable, summaryDraft, target]);
 
   const busy = phase.state === "summarizing";
 
@@ -265,6 +302,25 @@ export function ForkPanel({ theme, layout, workspaceId, agentId, navigation }: P
               key={option.value}
               accessibilityRole="button"
               onPress={() => setScope(option.value)}
+              style={[styles.scopeChip, active && styles.scopeChipActive]}
+            >
+              <Text style={[styles.scopeChipText, active && styles.scopeChipTextActive]}>
+                {option.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Text style={styles.label}>Target</Text>
+      <View style={styles.scopeRow}>
+        {TARGET_OPTIONS.map((option) => {
+          const active = option.value === target;
+          return (
+            <Pressable
+              key={option.value}
+              accessibilityRole="button"
+              onPress={() => setTarget(option.value)}
               style={[styles.scopeChip, active && styles.scopeChipActive]}
             >
               <Text style={[styles.scopeChipText, active && styles.scopeChipTextActive]}>

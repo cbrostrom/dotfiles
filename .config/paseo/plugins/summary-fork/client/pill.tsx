@@ -7,6 +7,14 @@ import type {
 const RECONCILE_MS = 30_000;
 
 /**
+ * Target pre-selected by the last menu item the user clicked. The panel reads
+ * this on mount; the user can still change it there. Panel and pill share one
+ * client JS context, so a module variable is the only way to pass a picker
+ * result through openPanel, which carries no custom props.
+ */
+export let pendingForkTarget: "tab" | "workspace" = "tab";
+
+/**
  * One Fork pill per agent. Registered idempotently from the agent directory
  * and reconciled on a short interval, so the pill reappears after daemon
  * reloads or reconnects even when no agent update arrives (the owned
@@ -27,10 +35,35 @@ export function contributeForkPills(client: PluginClientContext) {
         icon: "GitFork",
         label: "Fork",
         behavior: {
-          kind: "action",
-          onPress() {
-            client.openPanel("fork", { workspaceId, agentId });
-          },
+          kind: "menu",
+          items: [
+            {
+              kind: "item",
+              id: "fork-tab",
+              title: "Fork in a new tab",
+              icon: "GitFork",
+              behavior: {
+                kind: "action",
+                onPress() {
+                  pendingForkTarget = "tab";
+                  client.openPanel("fork", { workspaceId, agentId });
+                },
+              },
+            },
+            {
+              kind: "item",
+              id: "fork-workspace",
+              title: "Fork in a new workspace",
+              icon: "GitFork",
+              behavior: {
+                kind: "action",
+                onPress() {
+                  pendingForkTarget = "workspace";
+                  client.openPanel("fork", { workspaceId, agentId });
+                },
+              },
+            },
+          ],
         },
       },
     } satisfies PluginComposerPillContribution;
