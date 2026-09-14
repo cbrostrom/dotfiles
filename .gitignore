@@ -100,3 +100,6 @@ gaming/config/launch.log
 scripts/phase5-setup.sh
 tui/scripts/
 .aislop/history.jsonl
+
+# Build/cache artifacts
+.build/
