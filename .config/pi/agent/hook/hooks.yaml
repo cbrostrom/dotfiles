@@ -8,6 +8,23 @@
 # To disable: remove or comment out individual hook entries
 
 hooks:
+  # Paseo integration: report turn boundaries to the Paseo daemon timeline.
+  # session.created -> session_start (startup/new), session.idle -> agent_end.
+  # No-op outside Paseo (resolver exits empty when no ~/.paseo agent record matches).
+  # All failures are swallowed: this hook must never block or error the agent loop.
+  - id: paseo-hooks-bridge
+    event: session.created
+    actions:
+      - bash: |
+          id=$("$HOME/dotfiles/.config/pi/agent/scripts/paseo-agent-id.sh" || true)
+          [[ -n "$id" ]] && paseo hooks "$id" turn_start >/dev/null 2>&1 || true
+  - id: paseo-hooks-bridge-idle
+    event: session.idle
+    actions:
+      - bash: |
+          id=$("$HOME/dotfiles/.config/pi/agent/scripts/paseo-agent-id.sh" || true)
+          [[ -n "$id" ]] && paseo hooks "$id" turn_end >/dev/null 2>&1 || true
+
   # Session-start readiness notify → pane-notify extension (pi-extensions).
   # Re-enable here only if pane-notify is removed.
 
@@ -58,14 +75,14 @@ hooks:
           fi
 
   # Before bash: context-mode tool-preference guard
-  # Redirects raw file/dir inspection and multi-step investigation commands
-  # toward context-mode tools (ctx_execute, ctx_execute_file, ctx_batch_execute).
-  # Allow-lists trivial one-liners (git status, pwd, plain ls, etc.) so normal
-  # flow isn't blocked. Exit code 2 = hard stop; agent retries with the right tool.
+  # RPC-children-only: terminal pi sessions already get the same enforcement from
+  # the context-mode-enforcer extension; running both double-prompts the agent.
+  # pi-paseo exports PI_RPC_CHILD=1; without it (terminal session) this guard no-ops.
   - id: guard-context-mode
     event: tool.before.bash
     actions:
       - bash: |
+          [[ "${PI_RPC_CHILD:-}" == "1" ]] || exit 0
           payload=$(cat)
           cmd=$(printf '%s' "$payload" | jq -r '.tool_args.command // empty' 2>/dev/null)
           [[ -z "$cmd" ]] && exit 0

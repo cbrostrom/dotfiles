@@ -33,19 +33,23 @@ skills=(
     "$PI_AGENT_DIR/npm/node_modules/pi-ask-user/skills/ask-user"
     "$PI_AGENT_DIR/npm/node_modules/context-mode/skills/context-mode"
     "$PI_AGENT_DIR/skills/moli-webfetch"
-    "$PI_AGENT_DIR/skills/orchestration"
-    "$HOME/.agents/skills/codebase"
-    "$HOME/.agents/skills/commit"
-    "$HOME/.agents/skills/dotfiles"
-    "$HOME/.agents/skills/higgins"
-    "$HOME/.agents/skills/paseo"
-    "$HOME/.agents/skills/paseo-help"
-    "$HOME/.agents/skills/paseo-plugin"
-    "$HOME/.agents/skills/systematic-debugging"
-    "$HOME/.agents/skills/tool-restraint"
-    "$HOME/.agents/skills/verification-before-completion"
-    "$HOME/.agents/skills/writing"
 )
+
+# Single source of truth: auto-include every shared skill in ~/.agents/skills.
+# EXCLUDED_SKILLS keeps harness/one-off skills out of Paseo workers.
+# orchestration is intentionally absent above: it lives in ~/.agents/skills too,
+# so listing both would trigger a pi name-collision warning.
+EXCLUDED_SKILLS=(shopify release-notes pi orca-cli \
+  paseo-advisor paseo-committee paseo-handoff paseo-help \
+  writing dotfiles-update dockhand)
+for dir in "$HOME/.agents/skills"/*/; do
+    name="$(basename "$dir")"
+    excluded=false
+    for skill in "${EXCLUDED_SKILLS[@]}"; do
+        [[ "$name" == "$skill" ]] && excluded=true
+    done
+    [[ -f "$dir/SKILL.md" && "$excluded" == false ]] && skills+=("${dir%/}")
+done
 
 project_root="$(git -C "$PWD" rev-parse --show-toplevel 2>/dev/null || printf '%s' "$PWD")"
 for project_skills in "$project_root/.agents/skills" "$project_root/.pi/skills"; do
@@ -65,6 +69,10 @@ skill_args=()
 for skill in "${skills[@]}"; do
     [[ -e "$skill" ]] && skill_args+=(--skill "$skill")
 done
+
+# Mark RPC children so yaml hooks can scope themselves (e.g. context-mode guard
+# dedup: terminal sessions use the enforcer extension instead).
+export PI_RPC_CHILD=1
 
 exec "$HOME/.local/bin/pi" \
     --no-extensions \
