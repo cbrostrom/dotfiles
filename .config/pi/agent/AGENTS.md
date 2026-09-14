@@ -23,7 +23,10 @@ Default response format — answer-first, scan-friendly:
 - **Suspend brevity when asked to go deep** ("really explain", "walk me through", "full picture") — give it all in scannable blocks, don't defer.
 - **Number multi-step work.** More than one step = numbered list, one bounded action per step, fewest steps that work.
 - **Restate state every turn.** "Step N of M done: <what>. Next: <action>." Never assume it is remembered across messages.
-- **Concrete time estimates.** Minutes or hours, never "a bit" or "some work".
+- **Estimates in tokens and complexity, not time.** Token usage (context size,
+  read/write volume), LoC/files/branches touched, and risk surface. Source of
+  truth: `~/dotfiles/.agents/AGENTS.md` → Estimates and sparring. Time
+  estimates only when explicitly asked for hours.
 - No em-dashes. No re-stating the answer at the end.
 
 ## Models
