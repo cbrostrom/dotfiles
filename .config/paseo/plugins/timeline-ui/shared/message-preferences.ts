@@ -12,15 +12,23 @@ export const CODE_STYLE_OPTIONS = [
   { label: "Bordered", value: "bordered" },
 ] as const;
 
+export const PEER_CARD_STYLE_OPTIONS = [
+  { label: "Speech bubble", value: "bubble" },
+  { label: "Color stripe", value: "stripe" },
+] as const;
+
 export const messagePreferences = defineSettings({
   id: "messages",
   scope: "host",
   version: 1,
   schema: z.object({
     attentionCards: z.boolean().default(true),
+    proseCards: z.boolean().default(true),
     proseDensity: z.enum(["compact", "normal", "comfortable"]).default("normal"),
     codeStyle: z.enum(["subtle", "bordered"]).default("subtle"),
     stableStreaming: z.boolean().default(true),
+    peerCards: z.boolean().default(true),
+    peerCardStyle: z.enum(["bubble", "stripe"]).default("bubble"),
   }),
 });
 
@@ -28,9 +36,12 @@ export type MessagePreferences = z.output<typeof messagePreferences.schema>;
 
 export const DEFAULT_MESSAGE_PREFERENCES: MessagePreferences = {
   attentionCards: true,
+  proseCards: true,
   proseDensity: "normal",
   codeStyle: "subtle",
   stableStreaming: true,
+  peerCards: true,
+  peerCardStyle: "bubble",
 };
 
 export function proseTypography(

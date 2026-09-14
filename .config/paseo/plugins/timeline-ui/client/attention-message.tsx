@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { View } from "react-native";
 import { AttentionBlockCard } from "./attention-block.js";
 import { MarkdownText } from "./markdown-text.js";
+import { ProseCard } from "./prose-card.js";
 import { useMessagePreferences } from "./use-message-preferences.js";
 import type { AttentionMessageData, AttentionSegmentData } from "../shared/attention-message.js";
 
@@ -67,14 +68,21 @@ export function AttentionMessage({
   if (!values.attentionCards) {
     const flat = segmentsToPlainText(segments);
     return (
-      <Prose
-        text={flat}
-        phase={phase}
-        theme={theme}
-        compact={layout.compact}
+      <ProseCard
         values={values}
-        typography={typography}
-      />
+        themeBorder={theme.colors.border}
+        themeSurface={theme.colors.surface1}
+        compact={layout.compact}
+      >
+        <Prose
+          text={flat}
+          phase={phase}
+          theme={theme}
+          compact={layout.compact}
+          values={values}
+          typography={typography}
+        />
+      </ProseCard>
     );
   }
 

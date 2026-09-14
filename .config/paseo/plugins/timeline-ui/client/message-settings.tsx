@@ -12,12 +12,17 @@ import {
   CODE_STYLE_OPTIONS,
   DEFAULT_MESSAGE_PREFERENCES,
   messagePreferences,
+  PEER_CARD_STYLE_OPTIONS,
   PROSE_DENSITY_OPTIONS,
+  type MessagePreferences,
 } from "../shared/message-preferences.js";
 
 export function MessageSettings(_props: PluginSurfaceProps) {
   const settings = useSettings(messagePreferences);
-  const values = settings.status === "ready" ? settings.values : DEFAULT_MESSAGE_PREFERENCES;
+  const values: MessagePreferences =
+    settings.status === "ready"
+      ? { ...DEFAULT_MESSAGE_PREFERENCES, ...settings.values }
+      : DEFAULT_MESSAGE_PREFERENCES;
   const disabled = settings.status !== "ready" || settings.saving;
 
   const hintStyle = useMemo(
@@ -44,6 +49,29 @@ export function MessageSettings(_props: PluginSurfaceProps) {
             value={values.attentionCards}
             disabled={disabled}
             onValueChange={(attentionCards) => void save({ attentionCards })}
+          />
+          <SettingsSwitch
+            label="Peer message cards"
+            hint="Fold inbound pi-peer messages into a dedicated card with sender and body"
+            value={values.peerCards}
+            disabled={disabled}
+            onValueChange={(peerCards) => void save({ peerCards })}
+          />
+          <SettingsSelect
+            label="Peer card style"
+            value={values.peerCardStyle}
+            options={[...PEER_CARD_STYLE_OPTIONS]}
+            disabled={disabled || !values.peerCards}
+            onValueChange={(peerCardStyle) =>
+              void save({ peerCardStyle: peerCardStyle as typeof values.peerCardStyle })
+            }
+          />
+          <SettingsSwitch
+            label="Message cards"
+            hint="Give every assistant reply a neutral card so plain prose matches the Thinking and attention cards"
+            value={values.proseCards}
+            disabled={disabled}
+            onValueChange={(proseCards) => void save({ proseCards })}
           />
           <SettingsSwitch
             label="Stable streaming"
