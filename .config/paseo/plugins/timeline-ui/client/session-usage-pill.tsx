@@ -13,6 +13,7 @@ import {
   type ComposerPreferences,
 } from "../shared/composer-preferences.js";
 import {
+  displayCostUsd,
   formatSessionUsageLabel,
   formatTokenCount,
   type SessionUsage,
@@ -52,8 +53,13 @@ function useSessionUsage(agentId: string): SessionUsage | null {
 function UsageDetails(props: PluginButtonContentProps) {
   const agentId = props.context === "agent" ? props.agentId : "";
   const usage = useSessionUsage(agentId);
+  const cost = usage === null ? null : displayCostUsd(usage);
+  const estimated = cost !== null && usage?.totalCostUsd === undefined;
   const rows = [
-    ["Session cost", usage?.totalCostUsd === undefined ? "—" : `$${usage.totalCostUsd.toFixed(4)}`],
+    [
+      estimated ? "Cost (est., GLM-5.3-Flash)" : "Session cost",
+      cost === null ? "—" : `$${cost.toFixed(4)}`,
+    ],
     ["Input", formatTokenCount(usage?.inputTokens)],
     ["Cached", formatTokenCount(usage?.cachedInputTokens)],
     ["Output", formatTokenCount(usage?.outputTokens)],

@@ -7,6 +7,9 @@ import { contributeSessionUsagePills } from "./client/session-usage-pill.js";
 import { contributeThemes } from "./client/themes.js";
 import { attentionMessageSchema, transformAssistantAttention } from "./shared/attention-message.js";
 import { markdownMessageSchema } from "./shared/markdown-message.js";
+import { peerMessageSchema } from "./shared/transform-peer-message.js";
+import { transformPeerMessage } from "./shared/transform-peer-message.js";
+import { PeerMessage } from "./client/peer-message.js";
 import {
   REASONING_RENDERER_KIND,
   REASONING_RENDERER_VERSION,
@@ -35,6 +38,11 @@ export default function contribute(client: PluginClientContext) {
     query: { itemType: "reasoning" },
     transform: transformReasoning,
   });
+  client.addTimelineTransformer({
+    id: "peer-message",
+    query: { itemType: "user_message" },
+    transform: transformPeerMessage,
+  });
   client.addTimelineRenderer({
     kind: "attention-message",
     version: 5,
@@ -46,6 +54,12 @@ export default function contribute(client: PluginClientContext) {
     version: 1,
     schema: markdownMessageSchema,
     Component: MarkdownMessage,
+  });
+  client.addTimelineRenderer({
+    kind: "peer-message",
+    version: 1,
+    schema: peerMessageSchema,
+    Component: PeerMessage,
   });
   client.addTimelineRenderer({
     kind: REASONING_RENDERER_KIND,

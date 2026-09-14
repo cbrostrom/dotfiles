@@ -1,4 +1,5 @@
 import type { ComposerPreferences } from "./composer-preferences";
+import { estimateGoCostUsd } from "./opencode-go-prices";
 
 export interface SessionUsage {
   inputTokens?: number;
@@ -7,6 +8,15 @@ export interface SessionUsage {
   totalCostUsd?: number;
   contextWindowMaxTokens?: number;
   contextWindowUsedTokens?: number;
+}
+
+/**
+ * USD cost to display, or null when neither reported nor estimable.
+ * Reported cost wins; the OpenCode Go price table estimates otherwise.
+ */
+export function displayCostUsd(usage: SessionUsage): number | null {
+  if (usage.totalCostUsd !== undefined) return usage.totalCostUsd;
+  return estimateGoCostUsd(usage);
 }
 
 function formatTokens(value: number): string {
@@ -26,8 +36,9 @@ export function formatSessionUsageLabel(
   usage: SessionUsage | null | undefined,
   mode: ComposerPreferences["usageDisplay"],
 ): string {
-  const cost = usage?.totalCostUsd;
-  const costLabel = cost === undefined ? null : `$${cost.toFixed(2)}`;
+  const cost = usage === null || usage === undefined ? null : displayCostUsd(usage);
+  const estimated = cost !== null && usage?.totalCostUsd === undefined;
+  const costLabel = cost === null ? null : `${estimated ? "~" : ""}$${cost.toFixed(2)}`;
   if (mode === "cost") return costLabel ?? "Cost —";
 
   const tokens = usage ? totalTokens(usage) : null;
