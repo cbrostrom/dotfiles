@@ -25,16 +25,19 @@ fi
 
 case "$profile" in
     macos)
+        "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/cursor.sh"
         "$ROOT/setup/zed.sh"
         ;;
     linux | wsl)
+        "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/zed.sh"
         [[ "$profile" == "wsl" ]] && "$ROOT/setup/cursor.sh"
         ;;
     cloudbro)
+        "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/paseo.sh"
         ;;

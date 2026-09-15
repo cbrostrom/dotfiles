@@ -72,13 +72,12 @@ CloudBro is a Paseo + Pi development box. After the profile:
 # Node.js (any current version; fnm/nvm both work)
 node --version && npm --version
 
-# Providers
-npm install -g @earendil-works/pi-coding-agent @getpaseo/cli
+# Full flow — `install.sh` installs the npm globals (pi, paseo) and wires
+# providers. It is idempotent; rerun it any time.
+./install.sh cloudbro
+
 pi --version
 paseo --version
-
-# Full flow (idempotent)
-./install.sh cloudbro
 ```
 
 The daemon starts on loopback with the relay disabled. Connect clients over
