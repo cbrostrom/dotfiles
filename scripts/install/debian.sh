@@ -45,6 +45,15 @@ sudo apt-get update -y
 # shellcheck disable=SC2086
 sudo apt-get install -y --no-install-recommends $PKGS
 
+# Locales — macOS SSH clients forward LC_ALL=en_US.UTF-8; generate it so every
+# session does not warn "setlocale: LC_ALL: cannot change locale".
+if ! locale -a 2>/dev/null | grep -qi 'en_US.utf8'; then
+    log "generating en_US.UTF-8 locale…"
+    sudo apt-get install -y --no-install-recommends locales
+    echo "en_US.UTF-8 UTF-8" | sudo tee /etc/locale.gen >/dev/null
+    sudo locale-gen
+fi
+
 # gum (Charmbracelet) — not in standard apt repos
 if ! command -v gum >/dev/null 2>&1; then
     log "adding Charmbracelet apt repo for gum…"

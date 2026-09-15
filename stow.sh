@@ -29,7 +29,7 @@ command="$1"
 profile="${2:-}"
 
 if ! command -v stow >/dev/null 2>&1; then
-    printf 'error: GNU Stow is required\n' >&2
+    printf 'error: GNU Stow is required; install it first (Debian: ./scripts/install/debian.sh <profile> — macOS: brew install stow)\n' >&2
     exit 1
 fi
 
@@ -69,6 +69,8 @@ args=(
     --verbose=1
     --ignore='.*\.zwc$'
     --ignore='(^|/)\.DS_Store$'
+    --ignore='(^|/)node_modules(/|$)'
+    --ignore='(^|/)\.fallow(/|$)'
 )
 case "$command" in
     plan) args+=(--simulate --restow) ;;
