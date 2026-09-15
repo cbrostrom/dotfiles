@@ -197,3 +197,122 @@ registry_row() {
     printf '| %s | %s | %s | %s | %s | %s | %s | %s |\n' \
         "$slug" "${abs/#$HOME/\~}" "$cat" "$stack" "$brain" "$codebase" "$codebase_local" "$flags"
 }
+
+# ── R0-02: repo lifecycle / allowlist ─────────────────────────────────────────
+
+path_denied_for_persist() {
+    local abs="$1"
+    local s pat
+    if [[ -v PERSIST_DENY_SUBSTRINGS ]]; then
+        for s in "${PERSIST_DENY_SUBSTRINGS[@]}"; do
+            [[ "$abs" == *"$s"* ]] && return 0
+        done
+    fi
+    if [[ -v PERSIST_INVALID_PATTERNS ]]; then
+        for pat in "${PERSIST_INVALID_PATTERNS[@]}"; do
+            case "$abs" in $pat) return 0 ;; esac
+        done
+    fi
+    return 1
+}
+
+repo_git_kind() {
+    local abs="$1"
+    [[ -d "$abs/.git" ]] || [[ -f "$abs/.git" ]] || {
+        echo "not-git"
+        return
+    }
+    if [[ -f "$abs/.git" ]]; then
+        echo "worktree"
+        return
+    fi
+    local hint
+    if [[ -v WORKTREE_PATH_HINTS ]]; then
+        for hint in "${WORKTREE_PATH_HINTS[@]}"; do
+            [[ "$abs" == *"$hint"* ]] && {
+                echo "worktree"
+                return
+            }
+        done
+    fi
+    if git -C "$abs" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        local gitdir common
+        gitdir=$(git -C "$abs" rev-parse --git-dir 2>/dev/null || echo "")
+        common=$(git -C "$abs" rev-parse --git-common-dir 2>/dev/null || echo "")
+        if [[ -n "$gitdir" && -n "$common" && "$gitdir" != "$common" ]]; then
+            echo "worktree"
+            return
+        fi
+    fi
+    echo "active-root"
+}
+
+category_allows_persist() {
+    local cat="$1"
+    [[ -v PERSIST_CATEGORIES ]] || return 1
+    local c
+    for c in "${PERSIST_CATEGORIES[@]}"; do
+        [[ "$c" == "$cat" ]] && return 0
+    done
+    return 1
+}
+
+repo_scope_from_path() {
+    local abs="$1" category="$2"
+    case "$category" in
+        work-client)
+            if [[ "$abs" == *"/Projects/Clients/"* ]]; then
+                echo "${abs#*"/Projects/Clients/"}" | cut -d/ -f1
+                return
+            fi
+            echo "work-client"
+            return
+            ;;
+        work-shopify)
+            echo "shopify"
+            return
+            ;;
+        work-internal)
+            echo "internal"
+            return
+            ;;
+    esac
+    echo "personal"
+}
+
+repo_persist_decision() {
+    local abs="$1" category="$2"
+    local kind scope
+    kind=$(repo_git_kind "$abs")
+    scope=$(repo_scope_from_path "$abs" "$category")
+    if path_denied_for_persist "$abs"; then
+        echo "deny|invalid-path|$scope"
+        return
+    fi
+    if [[ "$kind" == "not-git" ]]; then
+        echo "deny|not-git|$scope"
+        return
+    fi
+    if [[ "$kind" == "worktree" ]]; then
+        echo "ephemeral|worktree|$scope"
+        return
+    fi
+    if ! category_allows_persist "$category"; then
+        case "$category" in
+            archive|sandbox)
+                echo "deny|category|$scope"
+                return
+                ;;
+            unknown)
+                if [[ "$abs" == "${PROJECTS_ROOT:-}"/* ]] && [[ "$abs" != *"/_archive/"* ]]; then
+                    scope="${scope:-personal}"
+                    echo "allow|active-root|$scope"
+                    return
+                fi
+                ;;
+        esac
+        echo "deny|category|$scope"
+        return
+    fi
+    echo "allow|active-root|$scope"
+}

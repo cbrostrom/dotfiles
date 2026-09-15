@@ -8,6 +8,21 @@ group: productivity
 
 Reads the repo map and routes the agent to the right files for the current task.
 
+## Fast path — deterministic orient (preferred when available)
+
+If `~/dotfiles/scripts/projects/repo-orient.py` exists, route mechanically first:
+
+```bash
+python3 ~/dotfiles/scripts/projects/repo-orient.py orient "<task>" [--graph]
+```
+
+- Returns ≤3 verified paths with reasons, commands, and a skip list — same contract as step 4.
+- Add `--graph` only when codebase-memory is useful; failure falls back cleanly.
+- Output is bounded (~800 tokens); paths are existence-checked; no file bodies are read.
+
+If the command succeeds, present its routes in the step-4 format and stop.
+Fall back to the manual workflow below if the script is missing or errors.
+
 ## Workflow
 
 ### 1. Locate CODEBASE.md
