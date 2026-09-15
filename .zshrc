@@ -141,7 +141,10 @@ if [ -d "$FNM_PATH" ]; then
 fi
 
 # Added by codebase-memory-mcp install
-export PATH="/Users/Christian.Brostrom/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
+
+# npm global prefix (node-version-independent installs, e.g. pi)
+export PATH="$HOME/.npm-global/bin:$PATH"
 
 # Drop stale llmtrim CA/proxy env inherited from long-lived parents (Orca, etc.).
 # llmtrim was removed; missing certs make Node print NODE_EXTRA_CA_CERTS warnings.
