@@ -1,0 +1,40 @@
+# Pi extension manifest — installed via pi's extension installer.
+# One spec per line. `#` comments and blank lines are ignored.
+#
+# Format:
+#   npm:<name>            e.g. npm:pi-ask-user or npm:@scope/name
+#   git:github.com/<owner>/<repo>
+#
+# Run ~/dotfiles/scripts/install/pi-extensions.sh to install missing entries
+# and update existing ones. doctor.sh checks that every entry is on disk.
+
+# --- git installs ---
+git:github.com/bybrostrom/pi-extensions
+git:github.com/NVlabs/SoL-Pi
+
+# --- npm installs ---
+npm:pi-ask-user
+npm:pi-cmux
+npm:pi-cursor-sdk
+npm:pi-extmgr
+npm:pi-mcp-adapter
+npm:pi-mcporter
+npm:pi-observational-memory
+npm:pi-paster
+npm:pi-permission-system
+npm:pi-rtk-optimizer
+npm:pi-tool-display
+npm:pi-web-access
+npm:pi-yaml-hooks
+npm:context-mode
+npm:@diegopetrucci/pi-notify
+npm:@gotgenes/pi-subagents
+npm:@juanibiapina/pi-extension-settings
+npm:@juanibiapina/pi-powerbar
+npm:@narumitw/pi-caffeinate
+npm:@narumitw/pi-tui-kit
+npm:@nguyenquangthai/pi-todo
+npm:@shift-labs/pi-peer
+npm:@thisux/pi-double-esc-clear
+npm:@juicesharp/rpiv-config
+npm:@juicesharp/rpiv-todo
