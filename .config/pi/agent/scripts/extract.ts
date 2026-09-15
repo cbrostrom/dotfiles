@@ -522,7 +522,7 @@ function generateMarkdown(summary: SessionSummary): string {
 /** Lines that talk *about* the gotcha/current tooling itself rather than
  * describing an actual fact — these regexes reliably fire on conversations
  * about the memory pipeline (e.g. this very script) and pollute the vault. */
-const META_NOISE_PATTERN = /\b(higgins|kb)\s+(gotcha|current|save|digest|next)\b|`gotcha|`kb |`higgins /i;
+const META_NOISE_PATTERN = /\b(higgins|kb)\s+(gotcha|current|save|digest|next|ingest|review|compact|prune)\b|`gotcha|`kb |`higgins /i;
 
 function normalize(line: string): string {
   return line.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();

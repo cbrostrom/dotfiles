@@ -45,7 +45,7 @@ if [[ -f "$ALLOWLIST" ]]; then
         [[ -n "$path" ]] && ALLOW_PATHS["$path"]=1
     done < <(jq -r '.repos[] | select(.persist=="allow") | .path' "$ALLOWLIST")
 else
-    warn "No allowlist at $ALLOWLIST — run: kb map scan"
+    warn "No allowlist at $ALLOWLIST — run: higgins map scan"
 fi
 
 raw=$(mcporter call codebase-memory-mcp list_projects)

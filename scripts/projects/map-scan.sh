@@ -168,7 +168,7 @@ security_count=$(jq '.problems.security | length' "$OUT_JSON")
 mkdir -p "$(dirname "$REGISTRY_PATH")"
 {
     printf '# Projects registry — %s\n' "$(hostname -s)"
-    printf '_Updated: %s · %d repos · scan: kb map scan_\n\n' \
+    printf '_Updated: %s · %d repos · scan: higgins map scan_\n\n' \
         "$(date '+%Y-%m-%d %H:%M')" "$total"
     printf '| slug | path | type | stack | brain | codebase | codebase_local | flags |\n'
     printf '|------|------|------|-------|-------|----------|----------------|-------|\n'

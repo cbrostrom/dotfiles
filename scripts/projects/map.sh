@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# kb map dispatcher — routes subcommands to scripts/projects/map-*.sh
+# higgins map dispatcher — routes subcommands to scripts/projects/map-*.sh
 #
-# Usage: kb map <subcommand> [args]
+# Usage: higgins map <subcommand> [args]
 #   scan [--refresh-inventory]          Refresh registry
 #   list [--type=...] [--brain] [--no-codebase]
 #   codebase [path|slug] [--all] [--missing-only] [--force]
@@ -25,7 +25,7 @@ _run() {
     local script="$SCRIPT_DIR/$1"
     shift
     if [[ ! -f "$script" ]]; then
-        echo "kb map: subcommand not yet implemented (missing $script)" >&2
+        echo "higgins map: subcommand not yet implemented (missing $script)" >&2
         exit 1
     fi
     exec "$BASH" "$script" "$@"
@@ -44,9 +44,9 @@ case "$cmd" in
     orient) python3 "$SCRIPT_DIR/repo-orient.py" "$@" ;;
     help | -h | --help)
         cat <<'EOF'
-kb map — project registry and CODEBASE generator
+higgins map — project registry and CODEBASE generator
 
-Usage: kb map <subcommand> [args]
+Usage: higgins map <subcommand> [args]
 
   scan [--refresh-inventory]
         Write/update personal/projects-registry.md. Reuses _inventory.json
@@ -59,7 +59,7 @@ Usage: kb map <subcommand> [args]
         Generate CODEBASE.md skeleton. Skips existing by default.
 
   init <slug>
-        Promote registry entry to active project brain (kb init <slug>).
+        Promote registry entry to active project brain (higgins init <slug>).
 
   doctor
         AI setup audit — read-only report, no mutations.
@@ -77,7 +77,7 @@ Config: ~/dotfiles/config/projects-map.conf
 EOF
         ;;
     *)
-        echo "kb map: unknown subcommand '$cmd'. Run: kb map help" >&2
+        echo "higgins map: unknown subcommand '$cmd'. Run: higgins map help" >&2
         exit 1
         ;;
 esac
