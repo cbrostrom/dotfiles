@@ -1,6 +1,7 @@
 import type { PluginSurfaceProps } from "@getpaseo/plugin/client";
 import { View } from "react-native";
 import { CardSettings } from "./card-settings.js";
+import { CallSettings } from "./call-settings.js";
 import { ComposerSettings } from "./composer-settings.js";
 import { MessageSettings } from "./message-settings.js";
 import { ReasoningSettings } from "./reasoning-settings.js";
@@ -12,6 +13,7 @@ export function TimelineSettings(props: PluginSurfaceProps) {
       <MessageSettings {...props} />
       <CardSettings {...props} />
       <ReasoningSettings {...props} />
+      <CallSettings {...props} />
       <ComposerSettings {...props} />
     </View>
   );

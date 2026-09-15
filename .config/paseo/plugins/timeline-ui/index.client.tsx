@@ -1,5 +1,6 @@
 import type { PluginClientContext } from "@getpaseo/plugin/client";
 import { AttentionMessage } from "./client/attention-message.js";
+import { CallTimelineItem } from "./client/call-message.js";
 import { TimelineSettings } from "./client/timeline-settings.js";
 import { MarkdownMessage } from "./client/markdown-message.js";
 import { ReasoningTimelineItem } from "./client/reasoning.js";
@@ -9,6 +10,12 @@ import { attentionMessageSchema, transformAssistantAttention } from "./shared/at
 import { markdownMessageSchema } from "./shared/markdown-message.js";
 import { peerMessageSchema } from "./shared/transform-peer-message.js";
 import { transformPeerMessage } from "./shared/transform-peer-message.js";
+import { transformCallMessage } from "./shared/transform-call-message.js";
+import {
+  CALL_RENDERER_KIND,
+  CALL_RENDERER_VERSION,
+  callItemDataSchema,
+} from "./shared/call-message.js";
 import { PeerMessage } from "./client/peer-message.js";
 import {
   REASONING_RENDERER_KIND,
@@ -28,6 +35,11 @@ export default function contribute(client: PluginClientContext) {
     Component: TimelineSettings,
   });
 
+  client.addTimelineTransformer({
+    id: "call-message",
+    query: { itemType: "user_message" },
+    transform: transformCallMessage,
+  });
   client.addTimelineTransformer({
     id: "attention-blocks",
     query: { itemType: "assistant_message" },
@@ -60,6 +72,12 @@ export default function contribute(client: PluginClientContext) {
     version: 1,
     schema: peerMessageSchema,
     Component: PeerMessage,
+  });
+  client.addTimelineRenderer({
+    kind: CALL_RENDERER_KIND,
+    version: CALL_RENDERER_VERSION,
+    schema: callItemDataSchema,
+    Component: CallTimelineItem,
   });
   client.addTimelineRenderer({
     kind: REASONING_RENDERER_KIND,
