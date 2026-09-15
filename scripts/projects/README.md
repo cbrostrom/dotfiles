@@ -55,9 +55,9 @@ A flat symlink farm at `~/.project-farm/` exposes every repo to fuzzy finders an
 
 ---
 
-## kb map
+## higgins map
 
-Registry + CODEBASE generator. Entry point: `kb map <subcommand>`.
+Registry + CODEBASE generator. Entry point: `higgins map <subcommand>`.
 
 | Script | Purpose |
 |--------|---------|
@@ -71,11 +71,11 @@ Registry + CODEBASE generator. Entry point: `kb map <subcommand>`.
 **Config:** `~/dotfiles/config/projects-map.conf` — edit to add roots, repos, category rules.
 
 ```bash
-kb map scan                    # build/refresh registry
-kb map scan --refresh-inventory  # force inventory.sh re-run first
-kb map list                    # read registry table (no rescan)
-kb map codebase <path>         # generate CODEBASE.md
-kb map doctor                  # AI bloat audit
+higgins map scan                    # build/refresh registry
+higgins map scan --refresh-inventory  # force inventory.sh re-run first
+higgins map list                    # read registry table (no rescan)
+higgins map codebase <path>         # generate CODEBASE.md
+higgins map doctor                  # AI bloat audit
 ```
 
 Registry output: `~/Vaults/AI/personal/projects-registry.md`
@@ -83,9 +83,9 @@ Registry output: `~/Vaults/AI/personal/projects-registry.md`
 ## Repo orientation (R0)
 
 ```bash
-kb map orient ensure-capsule --path <repo>   # capsule under ~/.cache/repo-capsules/
-kb map orient l0 --path <repo>               # deterministic L0 identity
-kb map orient orient "<task>" [--graph]      # ≤3 verified paths, reasons, commands, skip list
+higgins map orient ensure-capsule --path <repo>   # capsule under ~/.cache/repo-capsules/
+higgins map orient l0 --path <repo>               # deterministic L0 identity
+higgins map orient orient "<task>" [--graph]      # ≤3 verified paths, reasons, commands, skip list
 ```
 
 Works in any shell (no Pi dependency). `--graph` optionally boosts with codebase-memory and falls back cleanly.

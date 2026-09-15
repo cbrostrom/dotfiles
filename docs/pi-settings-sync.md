@@ -54,12 +54,12 @@ chmod +x ~/dotfiles/.git/hooks/post-merge
 
 ---
 
-### 3. Brain task (kb reminder)
+### 3. Brain task (higgins reminder)
 
 Document as a periodic maintenance task in brain:
 
 ```bash
-kb next "Sync Pi settings to dotfiles: pi-sync-settings && git add .config/pi/agent/settings.base.json && git commit"
+higgins next "Sync Pi settings to dotfiles: pi-sync-settings && git add .config/pi/agent/settings.base.json && git commit"
 ```
 
 Then pick it up in standup/morning-brief cycle.

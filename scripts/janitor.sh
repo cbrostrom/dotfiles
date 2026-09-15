@@ -265,7 +265,7 @@ log "--- vault-health-scan ---"
 
 # ── Shared utilities (copied — do not source external file) ──────────────────
 
-_kb_days_since() {
+_higgins_days_since() {
     local d="$1" ts
     if [[ "$OSTYPE" == "darwin"* ]]; then
         ts=$(date -j -f%Y-%m-%d "$d" +%s 2>/dev/null) || {
@@ -281,7 +281,7 @@ _kb_days_since() {
     echo $((($(date +%s) - ts) / 86400))
 }
 
-_kb_date_is_past() {
+_higgins_date_is_past() {
     local d="$1" ts today
     today=$(date +%s)
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -292,7 +292,7 @@ _kb_date_is_past() {
     [ "$ts" -lt "$today" ]
 }
 
-_kb_date_add_days() {
+_higgins_date_add_days() {
     local d="$1" n="$2"
     if [[ "$OSTYPE" == "darwin"* ]]; then
         date -v+${n}d -j -f%Y-%m-%d "$d" +%Y-%m-%d 2>/dev/null || echo "unknown"
@@ -301,7 +301,7 @@ _kb_date_add_days() {
     fi
 }
 
-_kb_parse_gotchas() {
+_higgins_parse_gotchas() {
     local file="$1"
     awk '
     /^---/ { exit }
@@ -320,7 +320,7 @@ _kb_parse_gotchas() {
   ' "$file"
 }
 
-_kb_parse_decisions() {
+_higgins_parse_decisions() {
     local file="$1"
     awk '
     BEGIN { id=""; title=""; status=""; validate_by="" }
@@ -353,71 +353,71 @@ export -f to_json_array
 
 # ── Gotchas health ───────────────────────────────────────────────────────────
 
-KB_G_TOTAL=0
-KB_G_ACTIVE=0
-KB_G_WATCH=0
-KB_G_RESOLVED=0
-KB_G_STALE=0
-KB_G_STALE_LIST=""
+HIGGINS_G_TOTAL=0
+HIGGINS_G_ACTIVE=0
+HIGGINS_G_WATCH=0
+HIGGINS_G_RESOLVED=0
+HIGGINS_G_STALE=0
+HIGGINS_G_STALE_LIST=""
 
 if [ -f "personal/gotchas.md" ]; then
     while IFS='|' read -r gid status renewed title; do
-        KB_G_TOTAL=$((KB_G_TOTAL + 1))
+        HIGGINS_G_TOTAL=$((HIGGINS_G_TOTAL + 1))
         case "$status" in
-            ACTIVE) KB_G_ACTIVE=$((KB_G_ACTIVE + 1)) ;;
-            WATCH) KB_G_WATCH=$((KB_G_WATCH + 1)) ;;
-            RESOLVED) KB_G_RESOLVED=$((KB_G_RESOLVED + 1)) ;;
+            ACTIVE) HIGGINS_G_ACTIVE=$((HIGGINS_G_ACTIVE + 1)) ;;
+            WATCH) HIGGINS_G_WATCH=$((HIGGINS_G_WATCH + 1)) ;;
+            RESOLVED) HIGGINS_G_RESOLVED=$((HIGGINS_G_RESOLVED + 1)) ;;
         esac
         if [ "$status" != "RESOLVED" ]; then
-            age=$(_kb_days_since "$renewed")
+            age=$(_higgins_days_since "$renewed")
             if [ "$age" -gt 30 ]; then
-                KB_G_STALE=$((KB_G_STALE + 1))
-                KB_G_STALE_LIST="$KB_G_STALE_LIST $gid"
+                HIGGINS_G_STALE=$((HIGGINS_G_STALE + 1))
+                HIGGINS_G_STALE_LIST="$HIGGINS_G_STALE_LIST $gid"
             fi
         fi
-    done < <(_kb_parse_gotchas "personal/gotchas.md")
+    done < <(_higgins_parse_gotchas "personal/gotchas.md")
 fi
 
 # ── Decisions health ─────────────────────────────────────────────────────────
 
-KB_D_TOTAL=0
-KB_D_PENDING=0
-KB_D_VALIDATED=0
-KB_D_OVERDUE=0
-KB_D_OVERDUE_LIST=""
+HIGGINS_D_TOTAL=0
+HIGGINS_D_PENDING=0
+HIGGINS_D_VALIDATED=0
+HIGGINS_D_OVERDUE=0
+HIGGINS_D_OVERDUE_LIST=""
 
 if [ -f "personal/decisions.md" ]; then
     while IFS='|' read -r did status validate_by title; do
-        KB_D_TOTAL=$((KB_D_TOTAL + 1))
+        HIGGINS_D_TOTAL=$((HIGGINS_D_TOTAL + 1))
         case "$status" in
-            PENDING) KB_D_PENDING=$((KB_D_PENDING + 1)) ;;
-            VALIDATED) KB_D_VALIDATED=$((KB_D_VALIDATED + 1)) ;;
+            PENDING) HIGGINS_D_PENDING=$((HIGGINS_D_PENDING + 1)) ;;
+            VALIDATED) HIGGINS_D_VALIDATED=$((HIGGINS_D_VALIDATED + 1)) ;;
         esac
         if [ "$status" = "PENDING" ] && [ "$validate_by" != "ONGOING" ]; then
-            if _kb_date_is_past "$validate_by"; then
-                KB_D_OVERDUE=$((KB_D_OVERDUE + 1))
-                KB_D_OVERDUE_LIST="$KB_D_OVERDUE_LIST $did"
+            if _higgins_date_is_past "$validate_by"; then
+                HIGGINS_D_OVERDUE=$((HIGGINS_D_OVERDUE + 1))
+                HIGGINS_D_OVERDUE_LIST="$HIGGINS_D_OVERDUE_LIST $did"
             fi
         fi
-    done < <(_kb_parse_decisions "personal/decisions.md")
+    done < <(_higgins_parse_decisions "personal/decisions.md")
 fi
 
 # ── Last/next refresh dates ───────────────────────────────────────────────────
 
-KB_LAST_REFRESH="unknown"
-KB_NEXT_REFRESH="unknown"
+HIGGINS_LAST_REFRESH="unknown"
+HIGGINS_NEXT_REFRESH="unknown"
 HOSTNAME_SHORT=$(hostname -s)
-LAST_LOG=$(ls "$LOG_DIR"/kb-refresh-*-${HOSTNAME_SHORT}.log 2>/dev/null | sort | tail -1 || true)
+LAST_LOG=$(ls "$LOG_DIR"/higgins-refresh-*-${HOSTNAME_SHORT}.log kb-refresh-*-${HOSTNAME_SHORT}.log 2>/dev/null | sort | tail -1 || true)
 if [ -n "$LAST_LOG" ]; then
-    KB_LAST_REFRESH=$(basename "$LAST_LOG" .log | sed "s/kb-refresh-//" | sed "s/-${HOSTNAME_SHORT}//")
-    KB_NEXT_REFRESH=$(_kb_date_add_days "$KB_LAST_REFRESH" 30)
+    HIGGINS_LAST_REFRESH=$(basename "$LAST_LOG" .log | sed "s/higgins-refresh-//;s/kb-refresh-//" | sed "s/-${HOSTNAME_SHORT}//")
+    HIGGINS_NEXT_REFRESH=$(_higgins_date_add_days "$HIGGINS_LAST_REFRESH" 30)
 fi
 
 # Trim leading space
-KB_G_STALE_LIST="${KB_G_STALE_LIST# }"
-KB_D_OVERDUE_LIST="${KB_D_OVERDUE_LIST# }"
+HIGGINS_G_STALE_LIST="${HIGGINS_G_STALE_LIST# }"
+HIGGINS_D_OVERDUE_LIST="${HIGGINS_D_OVERDUE_LIST# }"
 
-log "vault-health: gotchas=$KB_G_TOTAL (stale=$KB_G_STALE) decisions=$KB_D_TOTAL (overdue=$KB_D_OVERDUE)"
+log "vault-health: gotchas=$HIGGINS_G_TOTAL (stale=$HIGGINS_G_STALE) decisions=$HIGGINS_D_TOTAL (overdue=$HIGGINS_D_OVERDUE)"
 
 # ============================================================================
 # 6. HEALTH REPORT (JSON snapshot)
@@ -451,24 +451,24 @@ cat >"$REPORT_DIR/health-$DATE.json" <<HEALTH_EOF
     "enabled": $JANITOR_AI_ENABLED,
     "model": "$JANITOR_AI_MODEL"
   },
-  "kb_health": {
+  "higgins_health": {
     "gotchas": {
-      "total": $KB_G_TOTAL,
-      "active": $KB_G_ACTIVE,
-      "watch": $KB_G_WATCH,
-      "resolved": $KB_G_RESOLVED,
-      "stale_renewal": $KB_G_STALE,
-      "stale_ids": $(to_json_array "$KB_G_STALE_LIST")
+      "total": $HIGGINS_G_TOTAL,
+      "active": $HIGGINS_G_ACTIVE,
+      "watch": $HIGGINS_G_WATCH,
+      "resolved": $HIGGINS_G_RESOLVED,
+      "stale_renewal": $HIGGINS_G_STALE,
+      "stale_ids": $(to_json_array "$HIGGINS_G_STALE_LIST")
     },
     "decisions": {
-      "total": $KB_D_TOTAL,
-      "pending": $KB_D_PENDING,
-      "validated": $KB_D_VALIDATED,
-      "overdue_validation": $KB_D_OVERDUE,
-      "overdue_ids": $(to_json_array "$KB_D_OVERDUE_LIST")
+      "total": $HIGGINS_D_TOTAL,
+      "pending": $HIGGINS_D_PENDING,
+      "validated": $HIGGINS_D_VALIDATED,
+      "overdue_validation": $HIGGINS_D_OVERDUE,
+      "overdue_ids": $(to_json_array "$HIGGINS_D_OVERDUE_LIST")
     },
-    "last_refresh": "$KB_LAST_REFRESH",
-    "next_refresh": "$KB_NEXT_REFRESH"
+    "last_refresh": "$HIGGINS_LAST_REFRESH",
+    "next_refresh": "$HIGGINS_NEXT_REFRESH"
   }
 }  
 HEALTH_EOF

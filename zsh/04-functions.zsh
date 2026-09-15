@@ -498,3 +498,17 @@ cloudcli-sessions() {
     [[ -x "$script" ]] || chmod +x "$script"
     "$script" "$@"
 }
+
+# =============================================================================
+# HIGGINS WRAPPER
+# =============================================================================
+# Single entry point: `higgins <cmd>` passes through to the vault binary,
+# while `higgins map …` routes to the dotfiles project-map dispatcher.
+higgins() {
+    if [[ "${1:-}" == "map" ]]; then
+        shift
+        "$HOME/dotfiles/scripts/projects/map.sh" "$@"
+    else
+        command higgins "$@"
+    fi
+}

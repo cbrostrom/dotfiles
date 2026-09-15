@@ -58,7 +58,7 @@ if $IS_MACOS; then
     export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 fi
 
-# Vault location (used by kb CLI, PI hooks, context-mode indexing)
+# Vault location (used by the higgins CLI, PI hooks, context-mode indexing)
 export VAULT_AI="$HOME/Vaults/Higgins/AI"
 
 # Herdr usagebar cache (also set in .zshenv for non-interactive herdr)
