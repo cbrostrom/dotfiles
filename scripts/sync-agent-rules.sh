@@ -3,7 +3,7 @@
 # Read-only. Exits 0 if clean, 1 if drift detected.
 
 DOTFILES="${DOTFILES_DIR:-$HOME/dotfiles}"
-CORE="$DOTFILES/.cursor/rules/core.mdc"
+CORE="$DOTFILES/stow/cursor/.cursor/rules/core.mdc"
 AGENTS="$DOTFILES/AGENTS.md"
 
 fail=0

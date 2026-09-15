@@ -1,0 +1,37 @@
+[user]
+	name = Christian Kjærulff Brostrøm
+	email = 2435832+cbrostrom@users.noreply.github.com
+
+[core]
+	autocrlf = input
+	excludesfile = ~/.gitignore_global
+	hooksPath = ~/.config/git/hooks
+
+[init]
+	defaultBranch = main
+
+[merge]
+	conflictstyle = diff3
+
+[diff]
+	colorMoved = default
+
+[gpg "ssh"]
+	allowedSignersFile = ~/.config/git/allowed_signers
+
+# Per-machine overrides (signing keys, work email, etc.)
+# Created from .gitconfig.local.example by install script.
+[include]
+	path = ~/.gitconfig.local
+[safe]
+	directory = /mnt/c/Users/christian/.engram
+	directory = /home/christian/engram-sync
+[merge "engram-manifest"]
+	name = Engram manifest union merge
+	driver = ~/engram-sync/scripts/merge-manifest.py %O %A %B
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential

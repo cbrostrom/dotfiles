@@ -3,6 +3,7 @@
 
 zsh
 git
+stow
 curl
 wget
 ca-certificates

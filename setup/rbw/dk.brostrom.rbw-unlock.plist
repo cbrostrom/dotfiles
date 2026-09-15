@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>dk.brostrom.rbw-unlock</string>
+
+    <!-- Unlock vault at login via Touch ID (pinentry-touchid).
+         One tap at login → silent for the rest of the day (lock_timeout=28800).
+         Subsequent rbw calls from any process (Pi, Cursor, Paseo, etc.)
+         find the vault already unlocked — no popups. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>__DOTFILES_DIR__/setup/rbw/rbw-unlock-if-locked.sh</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/rbw-unlock.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/rbw-unlock.log</string>
+</dict>
+</plist>

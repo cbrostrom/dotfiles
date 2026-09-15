@@ -1,9 +1,0 @@
-name = "lommr"
-group = "Personal"
-working_dir = "~/Projects/personal/lommr"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

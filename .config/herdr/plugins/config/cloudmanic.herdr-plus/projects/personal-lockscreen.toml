@@ -1,9 +1,0 @@
-name = "lockscreen"
-group = "Personal"
-working_dir = "~/Projects/personal/lockscreen"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

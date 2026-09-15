@@ -1,4 +1,0 @@
-name = "Confluence · Fiskars"
-description = "Fiskars wiki"
-type = "command"
-command = "open \"$ATLASSIAN_FISKARS_CONFLUENCE_URL\""

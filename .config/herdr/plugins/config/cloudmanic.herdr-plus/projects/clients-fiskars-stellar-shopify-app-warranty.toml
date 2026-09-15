@@ -1,9 +1,0 @@
-name = "warranty"
-group = "Fiskars"
-working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-warranty"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

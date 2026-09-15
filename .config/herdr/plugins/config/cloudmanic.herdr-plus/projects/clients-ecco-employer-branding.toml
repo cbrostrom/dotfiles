@@ -1,9 +1,0 @@
-name = "employer-branding"
-group = "Ecco"
-working_dir = "~/Projects/clients/Ecco/employer-branding"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

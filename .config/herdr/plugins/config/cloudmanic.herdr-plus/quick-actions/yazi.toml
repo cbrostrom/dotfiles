@@ -1,4 +1,0 @@
-name = "Yazi"
-description = "File picker in current directory"
-type = "command"
-command = "yazi"

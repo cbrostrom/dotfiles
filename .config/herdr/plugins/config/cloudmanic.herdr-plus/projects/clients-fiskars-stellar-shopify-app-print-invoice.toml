@@ -1,9 +1,0 @@
-name = "print-invoice"
-group = "Fiskars"
-working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-print-invoice"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

@@ -1,9 +1,0 @@
-name = "vscodium-settings"
-group = "Personal"
-working_dir = "~/Projects/personal/vscodium-settings"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

@@ -1,9 +1,0 @@
-name = "product-personalizer"
-group = "Fiskars"
-working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-product-personalizer"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

@@ -16,7 +16,7 @@ vault_higgins.zip
 *.bak.*
 *.old
 *~
-.config/cursor/extensions.json.backup*
+/.config/cursor/extensions.json.backup*
 
 # OS files
 .DS_Store
@@ -58,11 +58,8 @@ gaming/config/launch.log
 # Zellij compiled plugin binaries (downloaded at runtime)
 .config/zellij/plugins/*.wasm
 
-# Zed machine-specific settings (merged into settings.json per machine)
-.config/zed/settings.local.json
-# Zed sync state (machine-local timestamp)
+# Zed runtime settings are kept in ~/.config/zed, outside this repository.
 .zed-sync-ts
-
 
 # Codex (not used)
 .codex/
@@ -75,25 +72,10 @@ gaming/config/launch.log
 
 .attic/
 
-# Herdr runtime state (generated, machine-local)
-.config/herdr/session.json
-.config/herdr/session-history.json
-.config/herdr/release-notes.json
-.config/herdr/.plugins.lock
-
-# PI runtime state (generated, machine-local — auth/cache/sessions/npm tree stay local)
-.config/pi/agent/auth.json
-.config/pi/agent/cursor-sdk-model-list.json
-.config/pi/agent/cursor-sdk.json
-.config/pi/agent/trust.json
-.config/pi/agent/sessions/
-.config/pi/agent/npm/
-.config/pi/agent/pi-stats/
-
 *.original.md
 
-# Local MCP config (contains absolute paths, not shareable)
-.cursor/
+# Repository-local Cursor state, not the Stow package.
+/.cursor/
 
 # Tool artifacts
 .aislop/session.jsonl

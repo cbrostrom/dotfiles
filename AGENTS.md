@@ -1,4 +1,4 @@
 # Agent policy — dotfiles
 
 Full policy: `.agents/AGENTS.md`
-Cursor: `.cursor/rules/core.mdc` + `context-mode.mdc` (alwaysApply). Lean default; Pi is stricter — see Cross-harness defaults in full policy.
+Cursor: `stow/cursor/.cursor/rules/core.mdc` (deployed with Stow). Pi: `stow/pi/.pi/agent/AGENTS.md`. Lean default; see the full policy for cross-harness rules.

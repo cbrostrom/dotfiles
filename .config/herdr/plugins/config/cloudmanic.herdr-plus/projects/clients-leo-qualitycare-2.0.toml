@@ -1,9 +1,0 @@
-name = "qualitycare-2.0"
-group = "LEO"
-working_dir = "~/Projects/clients/LEO/qualitycare-2.0"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

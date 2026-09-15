@@ -4,41 +4,11 @@
 # Utility functions and custom commands
 
 
-# =============================================================================
-# DOTFILES FUNCTION
-# =============================================================================
-# Function to find and run dotfiles manager from anywhere
+# Preview or apply Stow profiles from anywhere.
 dotfiles() {
-    # Try to find dotfiles.sh in common locations
-    local dotfiles_path=""
-
-    # Check if we're in a dotfiles directory
-    if [[ -f "./dotfiles.sh" ]]; then
-        dotfiles_path="./dotfiles.sh"
-    # Check common installation paths
-    elif [[ -f "$HOME/.config/dotfiles/dotfiles.sh" ]]; then
-        dotfiles_path="$HOME/.config/dotfiles/dotfiles.sh"
-    elif [[ -f "$HOME/dotfiles/dotfiles.sh" ]]; then
-        dotfiles_path="$HOME/dotfiles/dotfiles.sh"
-    elif [[ -f "$HOME/.dotfiles/dotfiles.sh" ]]; then
-        dotfiles_path="$HOME/.dotfiles/dotfiles.sh"
-    # Search in git repositories
-    elif command -v git >/dev/null 2>&1; then
-        # Find git root and check for dotfiles.sh
-        local git_root; git_root=$(git rev-parse --show-toplevel 2>/dev/null)
-        if [[ -n "$git_root" ]] && [[ -f "$git_root/dotfiles.sh" ]]; then
-            dotfiles_path="$git_root/dotfiles.sh"
-        fi
-    fi
-
-    if [[ -n "$dotfiles_path" ]]; then
-        "$dotfiles_path" "$@"
-    else
-        echo "Error: dotfiles.sh not found"
-        echo "Please ensure you're in a dotfiles directory or have dotfiles installed"
-        echo "Searched: ~/.config/dotfiles, ~/dotfiles, ~/.dotfiles"
-        return 1
-    fi
+    local repo="${DOTFILES_DIR:-$HOME/dotfiles}"
+    [[ $# -eq 0 ]] && set -- plan
+    "$repo/stow.sh" "$@"
 }
 
 # =============================================================================
@@ -51,7 +21,7 @@ dotfiles-update() {
     local repo="${DOTFILES_DIR:-$HOME/dotfiles}"
     local git_bin="${DOTFILES_GIT_BIN:-$(command -v /opt/homebrew/bin/git 2>/dev/null || command -v git)}"
     ( cd "$repo" && "$git_bin" pull --ff-only ) || { echo "dotfiles pull failed"; return 1; }
-    if ! zsh -n "$repo/.zshrc" 2>/dev/null; then
+    if ! zsh -n "$repo/stow/zsh/.zshrc" 2>/dev/null; then
         echo "warning: new .zshrc has syntax errors — NOT re-execing"
         return 1
     fi
@@ -483,7 +453,7 @@ allow-app() {
 #        extract-sessions --reindex # re-extract all sessions
 #        extract-sessions --since 2026-07-01 # extract since date
 extract-sessions() {
-    local script="$HOME/dotfiles/.config/pi/agent/scripts/extract.ts"
+    local script="$HOME/.pi/agent/scripts/extract.ts"
     [[ -f "$script" ]] || {
         echo "extract-sessions: script not found: $script" >&2
         return 1
