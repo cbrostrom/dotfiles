@@ -12,7 +12,9 @@ import {
   parseBackgroundOpacity,
   preferences,
 } from "../shared/preferences.js";
+import { attentionBlockMarkdown, attentionBlockPlainText } from "../shared/copy-block.js";
 import { MarkdownText } from "./markdown-text.js";
+import { CopyControls } from "./copy-controls.js";
 import { useMessagePreferences } from "./use-message-preferences.js";
 import { stripInlineMarkdown } from "../shared/strip-markdown.js";
 
@@ -91,6 +93,14 @@ export function AttentionBlockCard({
           <Text style={textStyles.cardTitle} selectable>
             {block.title}
           </Text>
+          <View style={{ marginLeft: "auto" }}>
+            <CopyControls
+              markdown={attentionBlockMarkdown(block)}
+              text={attentionBlockPlainText(block)}
+              initialFormat={prefs.copyFormat}
+              theme={{ foreground: theme.colors.foregroundMuted, border: theme.colors.border }}
+            />
+          </View>
         </View>
         <MarkdownText
           text={revealed}

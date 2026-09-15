@@ -10,6 +10,7 @@ import { useMemo } from "react";
 import { Text, View } from "react-native";
 import {
   BORDER_STYLE_OPTIONS,
+  COPY_FORMAT_OPTIONS,
   DEFAULT_CARD_PREFERENCES,
   OPACITY_OPTIONS,
   preferences,
@@ -66,6 +67,16 @@ export function CardSettings(_props: PluginSurfaceProps) {
               void save({
                 backgroundOpacity: backgroundOpacity as typeof values.backgroundOpacity,
               })
+            }
+          />
+          <SettingsSelect
+            label="Copy format"
+            hint="Default payload for copy buttons on cards and code blocks"
+            value={values.copyFormat}
+            options={[...COPY_FORMAT_OPTIONS]}
+            disabled={disabled}
+            onValueChange={(copyFormat) =>
+              void save({ copyFormat: copyFormat as typeof values.copyFormat })
             }
           />
         </SettingsCard>

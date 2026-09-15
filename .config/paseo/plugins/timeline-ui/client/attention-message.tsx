@@ -7,6 +7,7 @@ import { MarkdownText } from "./markdown-text.js";
 import { ProseCard } from "./prose-card.js";
 import { useMessagePreferences } from "./use-message-preferences.js";
 import type { AttentionMessageData, AttentionSegmentData } from "../shared/attention-message.js";
+import { attentionProseToBlock } from "../shared/attention-blocks.js";
 
 function segmentsToPlainText(segments: readonly AttentionSegmentData[]): string {
   return segments
@@ -64,9 +65,29 @@ export function AttentionMessage({
   const { segments, phase } = item.data;
   const { values, typography } = useMessagePreferences(layout.compact);
   const stackStyle = useMemo(() => ({ gap: layout.compact ? 8 : 10 }), [layout.compact]);
+  // Safety net: prose segments starting with a **→ header render as cards.
+  const normalized = useMemo(() => {
+    const out: AttentionSegmentData[] = [];
+    let blockIndex = 0;
+    for (const segment of segments) {
+      if (segment.kind === "block") {
+        out.push(segment);
+        blockIndex += 1;
+        continue;
+      }
+      const converted = attentionProseToBlock(segment.text);
+      if (!converted) {
+        out.push(segment);
+        continue;
+      }
+      out.push({ kind: "block", ...converted, variantIndex: blockIndex });
+      blockIndex += 1;
+    }
+    return out;
+  }, [segments]);
 
   if (!values.attentionCards) {
-    const flat = segmentsToPlainText(segments);
+    const flat = segmentsToPlainText(normalized);
     return (
       <ProseCard
         values={values}
@@ -88,7 +109,7 @@ export function AttentionMessage({
 
   return (
     <View style={stackStyle}>
-      {segments.map((segment, index) => {
+      {normalized.map((segment, index) => {
         if (segment.kind === "prose") {
           const muted = index > 0 && index === segments.length - 1;
           return (

@@ -4,6 +4,7 @@ import type { DocumentBlock } from "../shared/markdown-document.js";
 import { parseMarkdownDocument } from "../shared/markdown-document.js";
 import { parseInlineMarkdown, type InlineSegment } from "../shared/inline-markdown.js";
 import { partitionMarkdown, type RenderPhase } from "../shared/markdown-stable.js";
+import { CopyControls } from "./copy-controls.js";
 
 const CODE_FONT = Platform.select({ ios: "Menlo", default: "monospace" });
 
@@ -157,13 +158,22 @@ function DocumentBlockView({
   if (block.kind === "code") {
     return (
       <View style={codeContainerStyle}>
-        {block.language ? (
-          <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {block.language ? (
             <Text style={codeLanguageStyle} selectable>
               {block.language}
             </Text>
+          ) : null}
+          <View style={{ marginLeft: "auto" }}>
+            <CopyControls
+              markdown={block.text}
+              theme={{
+                foreground: style.color as string,
+                border: (codeContainerStyle.borderColor as string) ?? "rgba(127,127,127,0.3)",
+              }}
+            />
           </View>
-        ) : null}
+        </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false}>
           <Text style={codeBlockStyle} selectable>
             {block.text}
