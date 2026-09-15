@@ -6,7 +6,13 @@ set -euo pipefail
 log() { printf '[npm-globals] %s\n' "$*"; }
 
 if ! command -v npm >/dev/null 2>&1; then
-    printf '[npm-globals] error: npm not found; install Node.js first\n' >&2
+    printf '[npm-globals] npm not found; bootstrapping fnm + Node.js
+'
+    "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/fnm.sh"
+fi
+
+if ! command -v npm >/dev/null 2>&1; then
+    printf '[npm-globals] error: npm still not found; run scripts/install/fnm.sh and check output\n' >&2
     exit 1
 fi
 
