@@ -139,9 +139,11 @@ Pi enforces via `pi-permissions.jsonc`. Cursor/CC: policy + hooks.
 
 ## Estimates and sparring
 
-- No time estimates (minutes/hours) unless explicitly asked for hours.
-  Instead give: complexity estimate (LoC/files/branches touched), token-usage
-  estimate when relevant (context size, read/write volume), and risk surface.
+- ALL estimates are token-usage + complexity. NEVER minutes/hours. Format:
+  token counts (context size, read volume, write volume), LoC + files/branches
+  touched, and risk surface. Time estimates ONLY when the user explicitly asks
+  for hours. Skipping an estimate is not an alternative to estimating tokens —
+  estimate tokens even when imprecise ("≈ small: <5k tok read, 200 tok write").
 - Always attach a recommendation and the why when presenting options.
 - Factual claims about code/behavior need a source (file:line, doc URL, or
   command output). No unsourced claims.
