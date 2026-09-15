@@ -52,9 +52,14 @@ npm install -g @getpaseo/cli
 configures Paseo to launch the local Pi provider. Paseo starts on loopback with
 the relay disabled; pair or expose it separately after reviewing the desired
 connection boundary. It excludes GUI configuration and standalone OpenCode.
-OpenCode Go remains available only through Pi's model policy. CloudBro must not receive a plaintext Higgins vault; it may hold only encrypted
-backup data and should reach the canonical writer through its configured remote
-boundary.
+OpenCode Go remains available only through Pi's model policy. CloudBro must not receive a plaintext Higgins
+vault; it may hold only encrypted backup data and should reach the canonical
+writer through its configured remote boundary.
+
+Server setup for CloudBro, LinuxBro, and SuperBro: see
+[docs/server-provisioning.md](docs/server-provisioning.md). A `dotfiles`
+command on PATH wraps `stow.sh` for any clone path:
+`dotfiles <plan|apply|remove> [profile]`.
 
 ## Profiles
 
