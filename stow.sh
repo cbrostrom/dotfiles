@@ -69,6 +69,8 @@ args=(
     --verbose=1
     --ignore='.*\.zwc$'
     --ignore='(^|/)\.DS_Store$'
+    --ignore='(^|/)node_modules(/|$)'
+    --ignore='(^|/)\.fallow(/|$)'
 )
 case "$command" in
     plan) args+=(--simulate --restow) ;;
