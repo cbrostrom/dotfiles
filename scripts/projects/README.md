@@ -64,6 +64,8 @@ Registry + CODEBASE generator. Entry point: `kb map <subcommand>`.
 | `map.sh` | Dispatcher — routes to map-*.sh |
 | `map-scan.sh` | Read `_inventory.json` → write `$VAULT_AI/personal/projects-registry.md` |
 | `map-codebase.sh` | Generate `CODEBASE.md` skeleton in repo root |
+| `repo-orient.py` | Capsule schema + generation under `~/.cache/repo-capsules/` (`ensure-capsule`, `fingerprint`) |
+| `map-cbm-review.sh` | codebase-memory index vs allowlist; review JSON; delete only with `--apply --yes` |
 | `map-doctor.sh` | AI setup audit (read-only) |
 
 **Config:** `~/dotfiles/config/projects-map.conf` — edit to add roots, repos, category rules.
@@ -77,3 +79,13 @@ kb map doctor                  # AI bloat audit
 ```
 
 Registry output: `~/Vaults/AI/personal/projects-registry.md`
+
+## Repo orientation (R0)
+
+```bash
+kb map orient ensure-capsule --path <repo>   # capsule under ~/.cache/repo-capsules/
+kb map orient l0 --path <repo>               # deterministic L0 identity
+kb map orient orient "<task>" [--graph]      # ≤3 verified paths, reasons, commands, skip list
+```
+
+Works in any shell (no Pi dependency). `--graph` optionally boosts with codebase-memory and falls back cleanly.

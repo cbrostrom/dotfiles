@@ -40,6 +40,8 @@ case "$cmd" in
     codebase) _run map-codebase.sh "$@" ;;
     init) _run map-init.sh "$@" ;;
     doctor) _run map-doctor.sh "$@" ;;
+    cbm-review) _run map-cbm-review.sh "$@" ;;
+    orient) python3 "$SCRIPT_DIR/repo-orient.py" "$@" ;;
     help | -h | --help)
         cat <<'EOF'
 kb map — project registry and CODEBASE generator
@@ -61,6 +63,15 @@ Usage: kb map <subcommand> [args]
 
   doctor
         AI setup audit — read-only report, no mutations.
+
+  cbm-review [--apply --yes]
+        Compare codebase-memory indexes to allowlist; write deletion review JSON.
+
+  orient ensure-capsule [--path DIR] [--force]
+        Write ~/.cache/repo-capsules/<stable-repo-id>/ (manifest, generation, architecture, routes).
+
+  orient fingerprint [--path DIR]
+        Compare codebase-memory indexes to allowlist; write deletion review JSON. — read-only report, no mutations.
 
 Config: ~/dotfiles/config/projects-map.conf
 EOF

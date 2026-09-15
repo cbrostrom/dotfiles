@@ -11,7 +11,7 @@ set -euo pipefail
 if ((BASH_VERSINFO[0] < 4)); then
     for _b in /opt/homebrew/bin/bash /usr/local/bin/bash; do
         [[ -x "$_b" ]] && exec "$_b" "$0" "$@"
-    done
+   done
     echo "${0##*/}: bash 4+ required (found $BASH_VERSION)" >&2
     exit 1
 fi
@@ -80,6 +80,7 @@ fi
 log "Building registry…"
 
 declare -a ROWS
+declare -a ALLOW_ENTRIES
 total=0
 with_brain=0
 with_codebase=0
@@ -106,6 +107,17 @@ while IFS=$'\t' read -r rel name stack flags; do
         with_codebase_local=$((with_codebase_local + 1))
     }
     [[ -n "$flags" ]] && issue_count=$((issue_count + 1))
+    decision=$(repo_persist_decision "$abs" "$category")
+    IFS='|' read -r persist_action persist_reason scope <<<"$decision"
+    ALLOW_ENTRIES+=("$(jq -nc \
+        --arg slug "$name" \
+        --arg path "$abs" \
+        --arg category "$category" \
+        --arg scope "$scope" \
+        --arg git_kind "$(repo_git_kind "$abs")" \
+        --arg persist "$persist_action" \
+        --arg reason "$persist_reason" \
+        '{slug:$slug,path:$path,category:$category,scope:$scope,git_kind:$git_kind,persist:$persist,reason:$reason}')")
     ROWS+=("$(registry_row "$name" "$abs" "$category" "$stack" "$brain_yn" "$codebase_yn" "$codebase_local_yn" "$flags")")
     total=$((total + 1))
 done < <(jq -r '.repos[] | [.path, .name, .stack, (.flags | join(","))] | @tsv' "$OUT_JSON")
@@ -131,9 +143,20 @@ if [[ -v EXTRA_REPOS ]]; then
             codebase_local_yn="yes"
             with_codebase_local=$((with_codebase_local + 1))
         }
+        decision=$(repo_persist_decision "$abs" "personal")
+        IFS='|' read -r persist_action persist_reason scope <<<"$decision"
+        ALLOW_ENTRIES+=("$(jq -nc \
+            --arg slug "$slug" \
+            --arg path "$abs" \
+            --arg category "personal" \
+            --arg scope "$scope" \
+            --arg git_kind "$(repo_git_kind "$abs")" \
+            --arg persist "$persist_action" \
+            --arg reason "$persist_reason" \
+            '{slug:$slug,path:$path,category:$category,scope:$scope,git_kind:$git_kind,persist:$persist,reason:$reason}')")
         ROWS+=("$(registry_row "$slug" "$abs" "personal" "$stack" "$brain_yn" "$codebase_yn" "$codebase_local_yn" "")")
         total=$((total + 1))
-    done
+   done
 fi
 
 # ── Extract problems from inventory JSON ───────────────────────────────────────
@@ -151,7 +174,7 @@ mkdir -p "$(dirname "$REGISTRY_PATH")"
     printf '|------|------|------|-------|-------|----------|----------------|-------|\n'
     for row in "${ROWS[@]}"; do
         printf '%s\n' "$row"
-    done
+   done
     printf '\n## Issues (from last scan)\n'
     [[ $dup_count -gt 0 ]] &&
         printf -- '- **Duplicates:** %d name/remote collisions — see _inventory.md\n' "$dup_count"
@@ -163,6 +186,21 @@ mkdir -p "$(dirname "$REGISTRY_PATH")"
         printf -- '_No issues detected._\n'
 } >"$REGISTRY_PATH"
 
+
+# ── Allowlist JSON (R0-02) ─────────────────────────────────────────────────────
+mkdir -p "${REPO_ORIENT_CACHE:-$HOME/.cache/repo-orientation}"
+_allow_tmp=$(mktemp)
+for _ent in "${ALLOW_ENTRIES[@]}"; do
+    printf '%s\n' "$_ent" >>"$_allow_tmp"
+done
+jq -s --arg gen "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '{
+    plan_id: "repo-orientation-mvp",
+    task_id: "R0-02",
+    generated_at: $gen,
+    repos: .
+}' "$_allow_tmp" >"${ALLOWLIST_JSON:-$HOME/.cache/repo-orientation/allowlist.json}"
+rm -f "$_allow_tmp"
+ok "Allowlist written: ${ALLOWLIST_JSON:-$HOME/.cache/repo-orientation/allowlist.json}"
 ok "Registry written: $REGISTRY_PATH"
 printf '\nSummary: %d repos · %d with brain · %d with CODEBASE.md · %d with local index · %d with issues\n' \
     "$total" "$with_brain" "$with_codebase" "$with_codebase_local" "$issue_count"
