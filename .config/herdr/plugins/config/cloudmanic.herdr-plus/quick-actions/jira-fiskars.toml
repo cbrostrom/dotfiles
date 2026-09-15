@@ -1,4 +1,0 @@
-name = "Jira · Fiskars"
-description = "Fiskars Jira board"
-type = "command"
-command = "open \"$ATLASSIAN_FISKARS_JIRA_URL\""

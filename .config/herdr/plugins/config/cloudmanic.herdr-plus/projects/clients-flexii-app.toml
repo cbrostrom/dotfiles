@@ -1,9 +1,0 @@
-name = "app"
-group = "Flexii"
-working_dir = "~/Projects/clients/Flexii/app"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

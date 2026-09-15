@@ -1,101 +1,97 @@
 # Dotfiles
 
-Cross-platform dotfiles for macOS, Linux (Debian/Ubuntu), and WSL2. Provisioned
-via a module system: each piece of setup (symlinks, fonts, Cursor/Pi config,
-MCP servers, etc.) is a self-contained module under `modules/`.
+Declarative home configuration with GNU Stow, plus a small setup layer for
+stateful operations that cannot be symlinked safely.
 
-## Structure
+## Layout
 
-```
+```text
 ~/dotfiles/
-├── bootstrap.sh                  # Module-driven entrypoint
-├── modules/                      # Module system + individual modules
-│   ├── _lib/                       # loader, log, platform, config helpers
-│   ├── packages/  symlinks/  fonts/  zsh/  rust-tools/  …
-│   └── README.md                   # How to add a module
-├── modules.conf                  # Repo-wide module defaults
-├── modules.conf.example          # Template for per-machine overrides
-├── .zshrc, .gitconfig, .gitignore_global   # Core dotfiles
-├── zsh/                          # Modular zsh config (00-09)
-├── .config/                      # bat, lazygit, procs, starship, cursor, zed…
-├── macos/ghostty/                # Ghostty terminal (macOS)
-├── linux/ghostty/                # Ghostty terminal (native Linux)
-├── wsl/windows-terminal/         # Windows Terminal settings (WSL)
-├── scripts/                      # Implementation scripts (called by modules)
-├── tui/                          # gum-based interactive front-end
-└── .local-config.example         # Machine-specific config template
+├── stow/                 # packages that mirror paths under $HOME
+│   ├── zsh/
+│   ├── git/
+│   ├── cli/
+│   ├── agents/
+│   ├── cursor/
+│   ├── pi/
+│   ├── zed/
+│   ├── desktop/
+│   ├── macos/
+│   └── linux/
+├── profiles/*.stow       # explicit package lists per machine class
+├── setup/                # generated settings and external side effects
+├── sources/              # tracked inputs used by setup scripts
+├── scripts/              # standalone maintenance and provisioning tools
+├── stow.sh               # plan, apply, or remove links
+└── install.sh            # apply links and configure mutable app state
 ```
 
-## Installation
+The rule is strict: **Stow owns links; setup scripts own effects.** Runtime
+state, credentials, caches, logs, authentication, and machine-local overrides
+are never Stowed.
 
-```bash
-git clone https://github.com/yourusername/dotfiles ~/dotfiles
-cd ~/dotfiles
-./bootstrap.sh                        # full install — discovers + runs all enabled modules
-./bootstrap.sh --list                 # see modules and their state on this machine
-./bootstrap.sh --only=symlinks,zsh    # run a subset
-./bootstrap.sh --skip=fonts           # opt out of one
-./bootstrap.sh --update               # git pull + re-run all enabled
+## Install
+
+Install GNU Stow, clone the repository as `~/dotfiles`, then choose a profile:
+
+```sh
+./stow.sh plan macos
+./install.sh macos
 ```
 
-Per-machine module overrides: `~/.config/dotfiles/modules.conf` (auto-created
-from `modules.conf.example` on first `bootstrap.sh` run). One module name per
-line; prefix `!` to disable.
+CloudBro uses the minimal Linux development profile with a local standalone
+Paseo daemon:
 
-See `modules/README.md` for module authoring details.
+```sh
+npm install -g @getpaseo/cli
+./stow.sh plan cloudbro
+./install.sh cloudbro
+```
 
-## Usage
-
-- `dotfiles` – Interactive TUI (requires `gum`)
-- `./bootstrap.sh --list` – Module status table
-- `./bootstrap.sh --update` – Refresh after `git pull`
-- `./scripts/doctor.sh` – Health check
-- `./uninstall.sh` – Remove symlinks, restore backups
-
-## Fleet
-
-Multi-host topology for agents: [`infra/fleet.md`](infra/fleet.md) (markdown) · [`infra/infra.html`](infra/infra.html) (browser). SSH source of truth: `config/fleet-hosts.conf`.
+`cloudbro` installs `zsh`, `git`, `cli`, `agents`, `pi`, and `linux`, then
+configures Paseo to launch the local Pi provider. Paseo starts on loopback with
+the relay disabled; pair or expose it separately after reviewing the desired
+connection boundary. It excludes GUI configuration and standalone OpenCode.
+OpenCode Go remains available only through Pi's model policy. CloudBro must not receive a plaintext Higgins vault; it may hold only encrypted
+backup data and should reach the canonical writer through its configured remote
+boundary.
 
 ## Profiles
 
-| Profile | Machines | Notes |
-|---------|----------|-------|
-| `desktop-full` | Mac | Full GUI + dev stack |
-| `server-headless` | LinuxBro, SuperBro | No GUI, lean agent set |
-| `wsl` | MonsterBro | TUI + Windows interop |
+| Profile | Purpose |
+|---|---|
+| `macos` | Full local workstation |
+| `linux` | Interactive Linux workstation |
+| `wsl` | WSL with Windows-side editor copies |
+| `server` | Minimal shell and shared agent policy |
+| `cloudbro` | Lean Linux development box with Paseo and Pi |
 
-## Platforms
+Profile files are plain package lists under `profiles/`. There is no dependency
+resolver or module registry.
 
-| Platform | Terminal | Notes |
-|----------|----------|-------|
-| **macOS** | Ghostty | Config in `macos/ghostty/` |
-| **Linux** | Ghostty | Config in `linux/ghostty/`; Debian/Ubuntu (apt) |
-| **WSL** | Windows Terminal | Ghostty skipped; settings in `wsl/windows-terminal/` |
+## Commands
 
-## Key Components
-
-- **zsh** – Modular config with direct-source plugins (no plugin manager), starship, fzf, zoxide
-- **Pi** – Daily-driver agent config under `.config/pi/` via `modules/pi`
-- **Cursor** – Rules, hooks, skills in `.cursor/`
-- **Higgins** – Vault CLI (`higgins`); vault at `~/Vaults/Higgins/AI`
-- **.local-config** – Machine-specific (git-ignored); copy from `.local-config.example`
-
-## Troubleshooting
-
-### SSH commit signing ("gpg failed to sign")
-
-`commit.gpgsign=true` with `gpg.format=ssh` — git invokes `ssh-keygen -Y sign` which reads
-the private key directly and prompts for passphrase non-interactively → fails silently → generic "gpg failed".
-
-Fix: use the **public key file** as the signingkey. Git then uses ssh-agent automatically:
-
-```ini
-[user]
-    signingkey = ~/.ssh/github.pub   # NOT ~/.ssh/github
-[gpg]
-    format = ssh
-[gpg "ssh"]
-    allowedSignersFile = ~/.config/git/allowed_signers
+```sh
+./stow.sh plan macos       # preview link changes
+./stow.sh apply macos      # apply or refresh links
+./stow.sh remove macos     # remove links owned by the profile
+./install.sh macos         # apply links and configure mutable app settings
+./install.sh cloudbro      # apply links and configure local Paseo + Pi
+./setup/paseo.sh           # explicitly sync/register Paseo plugins
 ```
 
-Verify with `/opt/homebrew/bin/git log --show-signature -1`.
+`bootstrap.sh` remains as a compatibility alias for `install.sh`.
+
+## Machine provisioning
+
+Stow does not install software. On macOS, packages remain declared in
+`Brewfile`. Linux package lists and focused installers remain under
+`scripts/install/`. OS defaults remain under `macos/`.
+
+## Safety
+
+- Never run `stow --adopt` against a real home directory.
+- Always run `./stow.sh plan <profile>` before applying.
+- Existing regular files are conflicts and are left untouched.
+- `~/.pi/agent/settings.json`, `~/.paseo`, secrets, and authentication files are
+  runtime-owned and are not linked.

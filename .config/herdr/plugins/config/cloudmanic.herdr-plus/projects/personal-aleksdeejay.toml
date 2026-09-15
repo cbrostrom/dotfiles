@@ -1,9 +1,0 @@
-name = "aleksdeejay"
-group = "Personal"
-working_dir = "~/Projects/personal/aleksdeejay"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

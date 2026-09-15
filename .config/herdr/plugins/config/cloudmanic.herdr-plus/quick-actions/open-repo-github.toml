@@ -1,4 +1,0 @@
-name = "Open repo on GitHub"
-description = "Open origin remote in browser"
-type = "command"
-command = "open \"$(git -C {{.WorkDir}} remote get-url origin | sed -E 's#git@github.com:#https://github.com/#; s#\\.git$##')\""

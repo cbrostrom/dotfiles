@@ -1,9 +1,0 @@
-name = "navspecialist"
-group = "Personal"
-working_dir = "~/Projects/personal/navspecialist"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

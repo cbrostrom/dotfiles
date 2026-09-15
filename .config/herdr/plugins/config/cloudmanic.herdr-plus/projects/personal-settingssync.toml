@@ -1,9 +1,0 @@
-name = "settingssync"
-group = "Personal"
-working_dir = "~/Projects/personal/settingssync"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

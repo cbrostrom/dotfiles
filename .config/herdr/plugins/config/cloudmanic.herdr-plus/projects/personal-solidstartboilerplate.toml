@@ -1,9 +1,0 @@
-name = "solidstartboilerplate"
-group = "Personal"
-working_dir = "~/Projects/personal/solidstartboilerplate"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

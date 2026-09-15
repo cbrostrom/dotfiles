@@ -1,9 +1,0 @@
-name = "order-information"
-group = "Fiskars"
-working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-order-information"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

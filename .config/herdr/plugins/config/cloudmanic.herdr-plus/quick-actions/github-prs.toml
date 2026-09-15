@@ -1,4 +1,0 @@
-name = "GitHub · my PRs"
-description = "Open GitHub pull requests"
-type = "command"
-command = "open https://github.com/pulls"

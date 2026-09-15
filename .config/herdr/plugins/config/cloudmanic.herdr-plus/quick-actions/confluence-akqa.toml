@@ -1,4 +1,0 @@
-name = "Confluence · AKQA"
-description = "AKQA wiki"
-type = "command"
-command = "open \"$ATLASSIAN_AKQA_CONFLUENCE_URL\""

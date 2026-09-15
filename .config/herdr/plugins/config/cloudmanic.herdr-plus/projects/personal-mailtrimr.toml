@@ -1,9 +1,0 @@
-name = "mailtrimr"
-group = "Personal"
-working_dir = "~/Projects/personal/mailtrimr"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

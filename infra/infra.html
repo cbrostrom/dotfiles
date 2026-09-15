@@ -138,7 +138,7 @@
       <tr>
         <td><strong>LinuxBro</strong></td>
         <td>Homelab / docker / media</td>
-        <td><code>server-headless</code></td>
+        <td><code>server</code></td>
         <td><code>100.100.1.100</code></td>
         <td><code>linuxbro</code></td>
         <td><span class="badge badge-warn">optional</span></td>
@@ -147,7 +147,7 @@
       <tr>
         <td><strong>SuperBro</strong></td>
         <td>VPS / janitor</td>
-        <td><code>server-headless</code></td>
+        <td><code>server</code></td>
         <td><code>100.100.1.50</code></td>
         <td><code>superbro</code></td>
         <td><span class="badge badge-warn">optional</span></td>
@@ -234,7 +234,7 @@ paseo --host ssh://monsterbro run --provider codex/gpt-5.4 \
 # Propagate dotfiles (MonsterBro WSL, if online)
 ping -c1 monsterbro-wsl && ssh monsterbro \
   'git -C ~/dotfiles pull && DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=wsl \
-   ~/dotfiles/bootstrap.sh --only=symlinks,opencode'</code></pre>
+   ~/dotfiles/install.sh server'</code></pre>
 
   <h2>MonsterBro bootstrap</h2>
   <ol style="color: var(--muted); font-size: 0.9rem;">

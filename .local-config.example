@@ -1,73 +1,11 @@
-# =============================================================================
-# LOCAL MACHINE CONFIGURATION
-# =============================================================================
-# Copy this file to .local-config and customize for your machine
-# This file is used to track which components are installed locally
-# 
-# The .local-config file is git-ignored and machine-specific
-# =============================================================================
+# Optional machine-local shell overrides.
+# Copy to ~/.local-config only when a host needs values not represented by its
+# Stow profile. This file is not tracked after copying.
 
-# -----------------------------------------------------------------------------
-# PLATFORM (auto-detected during installation)
-# -----------------------------------------------------------------------------
-# Options: linux, macos, wsl
-PLATFORM="linux"
-
-# -----------------------------------------------------------------------------
-# PROFILE — drives bootstrap.sh package selection + Zellij behavior
-# -----------------------------------------------------------------------------
-# Options:
-#   desktop-full     mac, dev workstation — full GUI + dev stack
-#   server-headless  VPS / homelab        — no GUI, lean Claude set, no auto-zellij
-#   wsl              monsterbro WSL       — TUI + Windows interop
-#
-# Resolution order (highest first):
-#   1. PROFILE env / `bootstrap.sh --profile=NAME`
-#   2. this file's PROFILE= line
-#   3. known-host map: hostname `linuxbro` or `superbro` → server-headless
-#   4. heuristic (DISPLAY present → desktop-full, else server-headless)
-#
-# Profile also drives Claude overlay files in .claude/:
-#   plugins.<profile>.list, mcp-servers.<profile>.list, skills/skills.<profile>.list
-#   plugins.host-<hostname>.list (per-host opt-in/out)
-# Lines prefixed '!' in any overlay disable a matching entry from base.
-PROFILE="desktop-full"
-
-# -----------------------------------------------------------------------------
-# ZELLIJ DEFAULT LAYOUT (optional override)
-# -----------------------------------------------------------------------------
-# Auto-mapping in zsh/07-zellij.zsh selects layout by hostname:
-#   mac/Macbook*  → dev    linuxbro/cloudbro → ops
-#   superbro      → vps    monsterbro/WSL    → dev
-# Set ZJ_DEFAULT_LAYOUT to override (must match a file in .config/zellij/layouts/)
-# Examples: dev | shopify | agent | ops | vps | default
-# Set in ~/.zshrc.local for per-host override:
-#   export ZJ_DEFAULT_LAYOUT=shopify
-# ZJ_DEFAULT_LAYOUT="dev"
-
-# -----------------------------------------------------------------------------
-# INSTALLED OPTIONAL COMPONENTS (comma-separated)
-# -----------------------------------------------------------------------------
-# Example: "ghostty,cursor"
-INSTALLED_OPTIONALS="ghostty,cursor"
-
-# -----------------------------------------------------------------------------
-# MACHINE IDENTIFIER (optional)
-# -----------------------------------------------------------------------------
-# Used for logging and debugging purposes
 MACHINE_NAME="my-workstation"
 
-# -----------------------------------------------------------------------------
-# HARDWARE SPECS (optional, for reference)
-# -----------------------------------------------------------------------------
-# Document your hardware for AI assistants and troubleshooting
-# CPU=""
-# RAM=""
-# GPU=""
-# STORAGE=""
+# Optional Zellij layout: dev | shopify | agent | ops | vps | default
+# ZJ_DEFAULT_LAYOUT="dev"
 
-# -----------------------------------------------------------------------------
-# NOTES
-# -----------------------------------------------------------------------------
-# Add any machine-specific notes here
+# Free-form host notes for local scripts.
 # NOTES=""

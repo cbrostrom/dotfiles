@@ -1,9 +1,0 @@
-name = "hopper"
-group = "Personal"
-working_dir = "~/Projects/personal/hopper"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

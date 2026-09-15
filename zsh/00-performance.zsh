@@ -85,7 +85,7 @@ _zsh_recompile_if_stale() {
     local f
     for f in \
         ~/.zshenv ~/.zshrc \
-        ~/dotfiles/.zshenv ~/dotfiles/.zshrc \
+        ~/dotfiles/stow/zsh/.zshenv ~/dotfiles/stow/zsh/.zshrc \
         ~/dotfiles/zsh/*.zsh(N)
     do
         [[ -f "$f" ]] || continue

@@ -1,9 +1,0 @@
-name = "leopharma"
-group = "LEO"
-working_dir = "~/Projects/clients/LEO/leopharma"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

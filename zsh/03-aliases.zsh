@@ -375,13 +375,6 @@ PI coding agent — quick reference
 EOF
 }
 
-# =============================================================================
-# WORKFLOW LAUNCHERS
-# =============================================================================
-if command -v herdr &>/dev/null; then
-    alias work='herdr'
-fi
-
 # Higgins vault CLI (binary at ~/.local/bin/higgins)
 # Engram removed — Higgins is the sole memory system
 

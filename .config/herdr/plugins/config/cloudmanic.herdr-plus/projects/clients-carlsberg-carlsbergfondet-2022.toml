@@ -1,9 +1,0 @@
-name = "carlsbergfondet-2022"
-group = "Carlsberg"
-working_dir = "~/Projects/clients/Carlsberg/carlsbergfondet-2022"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"
