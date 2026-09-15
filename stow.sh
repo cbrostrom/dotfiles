@@ -74,7 +74,7 @@ case "$command" in
     plan) args+=(--simulate --restow) ;;
     apply) args+=(--restow) ;;
     remove) args+=(--delete) ;;
-    -h|--help|help)
+    -h | --help | help)
         usage
         exit 0
         ;;

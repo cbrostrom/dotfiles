@@ -29,7 +29,7 @@ case "$profile" in
         "$ROOT/setup/cursor.sh"
         "$ROOT/setup/zed.sh"
         ;;
-    linux|wsl)
+    linux | wsl)
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/zed.sh"
         [[ "$profile" == "wsl" ]] && "$ROOT/setup/cursor.sh"

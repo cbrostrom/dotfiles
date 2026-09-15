@@ -57,7 +57,10 @@ mkdir -p "$CURSOR_DIR/hooks"
 if [[ "$CURSOR_DIR" == /mnt/* ]]; then
     for hook in run-hook.sh vault-save.sh; do
         src="$CURSOR_SRC/hooks/$hook"
-        [[ -f "$src" ]] || { warn "Hook source not found: $src"; continue; }
+        [[ -f "$src" ]] || {
+            warn "Hook source not found: $src"
+            continue
+        }
         cp "$src" "$CURSOR_DIR/hooks/$hook"
         success "Copied hooks/$hook to Windows host"
     done

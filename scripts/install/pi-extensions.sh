@@ -34,8 +34,11 @@ fi
 failures=0
 updated=0
 
-msg()  { printf '  %s\n' "$*"; }
-fail() { ((failures++)) || true; printf '  ✗ %s\n' "$*"; }
+msg() { printf '  %s\n' "$*"; }
+fail() {
+    ((failures++)) || true
+    printf '  ✗ %s\n' "$*"
+}
 
 # npm: entry — name lives after the prefix; scoped names keep their slash.
 install_npm() {
@@ -84,8 +87,8 @@ process_git() {
         fail "update skipped: $spec (git conflict, kept clone; see .pi-ext-update.log)"
     fi
     if [[ -f "$specdir/package.json" ]]; then
-        (cd "$specdir" && npm install --ignore-scripts --silent) \
-            || fail "dependency install failed: $spec"
+        (cd "$specdir" && npm install --ignore-scripts --silent) ||
+            fail "dependency install failed: $spec"
     fi
 }
 
@@ -115,7 +118,7 @@ else
         line="$(echo "$line" | tr -d '[:space:]')"
         [[ -z "$line" ]] && continue
         process_entry "$line"
-    done < "$MANIFEST"
+    done <"$MANIFEST"
 fi
 
 echo
