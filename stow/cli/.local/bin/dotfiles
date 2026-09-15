@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# dotfiles <plan|apply|remove> [profile] — thin wrapper around stow.sh.
+# Resolves the repository from this file's real target, so it works with any
+# clone path (~/dotfiles, ~/system/dotfiles, …) through the Stow symlink.
+set -euo pipefail
+
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+# bin -> .local -> cli -> stow -> repo root
+DOTFILES_DIR="$(cd "$(dirname "$SELF")/../../../.." && pwd)"
+
+exec "$DOTFILES_DIR/stow.sh" "$@"
