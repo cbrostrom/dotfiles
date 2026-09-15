@@ -1,0 +1,31 @@
+{
+  "$comment": "Tracked in the Pi Stow package so every machine gets the same protected-path coverage. Extend here, not per-machine.",
+  "paths": [
+    { "path": ".env", "deny": ["read", "write", "edit", "bash"] },
+    { "path": ".env.*", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "*.pem", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "*.key", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "*.p12", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "*.pfx", "deny": ["read", "write", "edit", "bash"] },
+    { "path": ".netrc", "deny": ["read", "write", "edit", "bash"] },
+    { "path": ".npmrc", "deny": ["read", "write", "edit", "bash"] },
+    { "path": ".pypirc", "deny": ["read", "write", "edit", "bash"] },
+    { "path": ".git-credentials", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "secrets.*", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "credentials.*", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "id_rsa", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "id_ed25519", "deny": ["read", "write", "edit", "bash"] },
+    { "path": ".git/", "deny": ["write", "edit"] },
+    { "path": "node_modules/", "deny": ["write", "edit"] },
+    { "path": "package-lock.json", "deny": ["write", "edit"] },
+    { "path": "yarn.lock", "deny": ["write", "edit"] },
+    { "path": "pnpm-lock.yaml", "deny": ["write", "edit"] },
+    { "path": "~/.pi/agent/auth.json", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "~/.pi/agent/configs/.env", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "~/.ssh/", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "~/.aws/", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "~/.gnupg/", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "~/.kube/config", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "~/.docker/config.json", "deny": ["read", "write", "edit", "bash"] }
+  ]
+}

@@ -1,9 +1,0 @@
-name = "akqa-dendach-teamgen"
-group = "AKQA"
-working_dir = "~/Projects/internal/akqa-dendach-teamgen"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

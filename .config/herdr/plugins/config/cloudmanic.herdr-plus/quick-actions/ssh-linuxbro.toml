@@ -1,4 +1,0 @@
-name = "SSH · linuxbro"
-description = "SSH to linuxbro media server"
-type = "command"
-command = "ssh linuxbro"

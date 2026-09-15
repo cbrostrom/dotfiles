@@ -1,4 +1,0 @@
-name = "Jira · AKQA — mine"
-description = "My open AKQA issues"
-type = "command"
-command = "open \"$ATLASSIAN_AKQA_JIRA_URL/issues/?jql=assignee%20%3D%20currentUser()%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20updated%20DESC\""

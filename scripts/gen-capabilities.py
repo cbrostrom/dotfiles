@@ -9,7 +9,7 @@ caching is unaffected):
   2. Pi extensions  — ~/.pi/agent/extensions/*/index.ts (first doc comment) + root *.ts
   3. Shared skills  — ~/.agents/skills/*/SKILL.md (frontmatter description)
 
-Run from modules/paseo/install.sh and modules/pi/install.sh. The manifest is a
+Run from setup/paseo.sh and setup/pi.sh. The manifest is a
 build artifact: staleness is fixed by regenerating, never by hand-editing.
 """
 
@@ -61,8 +61,8 @@ def readme_first_line(path: Path) -> str:
             line = line.strip()
             if line and not line.startswith("#"):
                 return line
-    except OSError:
-        pass
+    except OSError as error:
+        print(f"warning: cannot read {path}: {error}", file=sys.stderr)
     return ""
 
 
@@ -143,7 +143,7 @@ def main() -> None:
         "",
         "## Paseo plugins",
         "",
-        "Source: `~/Projects/personal/paseo-plugins` (dev clone) → deployed via `dotfiles modules/paseo/install.sh` → `~/dotfiles/.config/paseo/plugins`. UI-only plugins need no agent action; `paseo-steps-viewer` exposes MCP tools (`list_capabilities`, `save_steps`, `update_steps`, `list_steps`).",
+        "Source: `~/Projects/personal/paseo-plugins` (dev clone) → deployed via `~/dotfiles/setup/paseo.sh` → `~/dotfiles/sources/paseo/plugins`. UI-only plugins need no agent action; `paseo-steps-viewer` exposes MCP tools (`list_capabilities`, `save_steps`, `update_steps`, `list_steps`).",
         "",
         "| id | purpose |",
         "|----|---------|",

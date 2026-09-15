@@ -1,9 +1,0 @@
-name = "akqa-dk-hoc-activecampaign-shopify-connector"
-group = "Carlsberg"
-working_dir = "~/Projects/clients/Carlsberg/akqa-dk-hoc-activecampaign-shopify-connector"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

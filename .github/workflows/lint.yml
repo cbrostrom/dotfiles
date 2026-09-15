@@ -28,7 +28,7 @@ jobs:
             first=$(head -1 "$f")
             [[ "$first" =~ (^#!/.*zsh|zsh$) ]] && continue
             case "$f" in
-              modules/*/module.sh | zsh/lib/*.sh | functions/port-utils.sh) continue ;;
+              zsh/lib/*.sh | functions/port-utils.sh) continue ;;
             esac
             shellcheck -S error "$f" || fail=1
           done < <(git ls-files '*.sh')
@@ -42,7 +42,7 @@ jobs:
             first=$(head -1 "$f")
             [[ "$first" =~ (^#!/.*zsh|zsh$) ]] && continue
             case "$f" in
-              modules/*/module.sh | zsh/lib/*.sh | functions/port-utils.sh) continue ;;
+              zsh/lib/*.sh | functions/port-utils.sh) continue ;;
             esac
             files+=("$f")
           done < <(git ls-files '*.sh')

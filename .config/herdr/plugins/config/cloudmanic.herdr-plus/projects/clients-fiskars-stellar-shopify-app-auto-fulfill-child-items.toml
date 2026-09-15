@@ -1,9 +1,0 @@
-name = "auto-fulfill-child-items"
-group = "Fiskars"
-working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-auto-fulfill-child-items"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

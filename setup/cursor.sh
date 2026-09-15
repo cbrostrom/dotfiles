@@ -1,0 +1,208 @@
+#!/usr/bin/env bash
+# Configure mutable Cursor hooks after Stow deploys static files.
+# WSL copies the tracked files because Windows cannot follow WSL symlinks.
+#
+# hooks.json patches (idempotent):
+#   sessionStart  → no vault dump (MCP-only: agent uses Higgins on demand)
+#   preToolUse    → rtk hook cursor through run-hook.sh
+#   afterFileEdit → aislop hook cursor through run-hook.sh, if aislop installed
+#   stop          → vault-save.sh through run-hook.sh
+#   cleanup       → remove dead Code Island, legacy lean-ctx/rtk, and vault dump hooks
+set -euo pipefail
+
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+info() { echo -e "${BLUE}[cursor]${NC} $1"; }
+success() { echo -e "${GREEN}[cursor]${NC} $1"; }
+warn() { echo -e "${YELLOW}[cursor]${NC} $1"; }
+
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CURSOR_SRC="$DOTFILES/stow/cursor/.cursor"
+CURSOR_DIR=""
+
+# --- WSL Host Target Detection ---
+if grep -q Microsoft /proc/version 2>/dev/null; then
+    info "WSL detected. Targeting Windows host for Cursor config."
+    # Get Windows username from /etc/wsl.conf or by attempting to find the User folder in /mnt/c
+    # Fallback to standard Windows user path pattern if needed
+    WIN_USER=$(grep "user" /etc/wsl.conf 2>/dev/null | awk '{print $2}' || echo "$USER")
+    # Most common WSL setup: /mnt/c/Users/<User>/AppData/Roaming/Cursor
+    CURSOR_DIR="/mnt/c/Users/$WIN_USER/AppData/Roaming/Cursor"
+
+    # Verification: ensure the target directory actually exists
+    if [[ ! -d "$CURSOR_DIR" ]]; then
+        warn "Cursor directory not found at $CURSOR_DIR. Checking alternative paths..."
+        # Try to find the directory by globbing common Windows paths
+        for alt in /mnt/c/Users/*/AppData/Roaming/Cursor; do
+            if [[ -d "$alt" ]]; then
+                CURSOR_DIR="$alt"
+                break
+            fi
+        done
+    fi
+fi
+
+# Fallback for macOS/Native Linux
+if [[ -z "$CURSOR_DIR" ]] || [[ ! -d "$CURSOR_DIR" ]]; then
+    CURSOR_DIR="$HOME/.cursor"
+fi
+
+info "Targeting Cursor config at: $CURSOR_DIR"
+mkdir -p "$CURSOR_DIR/hooks"
+
+# Stow owns native links. WSL must copy across the Windows filesystem boundary.
+if [[ "$CURSOR_DIR" == /mnt/* ]]; then
+    for hook in run-hook.sh vault-save.sh; do
+        src="$CURSOR_SRC/hooks/$hook"
+        [[ -f "$src" ]] || {
+            warn "Hook source not found: $src"
+            continue
+        }
+        cp "$src" "$CURSOR_DIR/hooks/$hook"
+        success "Copied hooks/$hook to Windows host"
+    done
+fi
+
+# Drop legacy vault-dump sessionStart scripts if present (MCP-only cold start)
+for legacy in brain-load.sh kb-load.sh; do
+    dst="$CURSOR_DIR/hooks/$legacy"
+    if [[ -e "$dst" || -L "$dst" ]]; then
+        rm -f "$dst"
+        success "Removed legacy hooks/$legacy (MCP-only sessionStart)"
+    fi
+done
+
+if [[ "$CURSOR_DIR" == /mnt/* ]]; then
+    RULES_SRC="$CURSOR_SRC/rules"
+    RULES_DST="$CURSOR_DIR/rules"
+    mkdir -p "$RULES_DST"
+    rule="core.mdc"
+    src="$RULES_SRC/$rule"
+    if [[ -f "$src" ]]; then
+        cp "$src" "$RULES_DST/$rule"
+        success "Copied rules/$rule to Windows host"
+    else
+        warn "Rule source not found: $src"
+    fi
+fi
+
+# --- Patch hooks.json: keep managed Cursor hooks lean and seconds-based ---
+HOOKS_JSON="$CURSOR_DIR/hooks.json"
+
+if [[ ! -f "$HOOKS_JSON" ]]; then
+    info "Creating hooks.json at $HOOKS_JSON"
+    printf '{\n  "hooks": {},\n  "version": 1\n}\n' >"$HOOKS_JSON"
+fi
+
+python3 - "$HOOKS_JSON" <<'PYEOF'
+import json, os, shutil, sys
+
+path = sys.argv[1]
+with open(path) as f:
+    data = json.load(f)
+
+hooks = data.setdefault("hooks", {})
+changed = False
+
+DOTFILES = os.path.expanduser("~/dotfiles")
+
+def managed_command(command):
+    legacy = (
+        ".codeisland/codeisland-bridge",
+        "bash './hooks/rtk-rewrite.sh'",
+        "bash './hooks/lean-ctx-rewrite.sh'",
+        "rtk hook cursor",
+        "aislop hook cursor",
+        "bash './hooks/brain-load.sh'",
+        "bash './hooks/kb-load.sh'",
+        "bash './hooks/vault-save.sh'",
+    )
+    wrapped = (
+        "bash './hooks/run-hook.sh' rtk -- rtk hook cursor",
+        "bash './hooks/run-hook.sh' aislop -- aislop hook cursor",
+        "bash './hooks/run-hook.sh' brain-load -- bash './hooks/brain-load.sh'",
+        "bash './hooks/run-hook.sh' kb-load -- bash './hooks/kb-load.sh'",
+        "bash './hooks/run-hook.sh' vault-save -- bash './hooks/vault-save.sh'",
+        "bash './hooks/run-hook.sh' brain-save --",
+    )
+    # brain-load / kb-load are retired (MCP-only) — always strip, never re-add
+    dump_retired = ("brain-load", "kb-load")
+    return (
+        any(part in command for part in legacy)
+        or command in wrapped
+        or any(tag in command for tag in dump_retired)
+    )
+
+def cleanup_event(name):
+    global changed
+    entries = hooks.get(name, [])
+    kept = []
+    for entry in entries:
+        command = entry.get("command", "")
+        # Strip managed legacy hooks and any leftover .claude references
+        if managed_command(command) or ".claude" in command:
+            changed = True
+            continue
+        kept.append(entry)
+    if kept:
+        hooks[name] = kept
+    elif name in hooks:
+        del hooks[name]
+        changed = True
+
+for event in list(hooks):
+    cleanup_event(event)
+
+def add_entry(event, entry):
+    global changed
+    entries = hooks.setdefault(event, [])
+    if not any(h.get("command") == entry["command"] for h in entries):
+        entries.append(entry)
+        changed = True
+        print(f"\033[0;32m[cursor]\033[0m Patched hooks.json: added {entry['command']} to {event}")
+    else:
+        print(f"\033[0;34m[cursor]\033[0m hook already present in {event}: {entry['command']}")
+
+# sessionStart: MCP-only — do not inject vault dumps (agent uses kb_load/kb_search)
+print("\033[0;34m[cursor]\033[0m sessionStart vault dump hooks retired (MCP-only)")
+
+# RTK native hook: preToolUse Shell
+rtk_entry = {
+    "command": "bash './hooks/run-hook.sh' rtk -- rtk hook cursor",
+    "type": "command",
+    "matcher": "Shell",
+    "timeout": 5,
+}
+add_entry("preToolUse", rtk_entry)
+
+# aislop: afterFileEdit (only if aislop binary exists)
+if shutil.which("aislop"):
+    add_entry("afterFileEdit", {
+        "command": "bash './hooks/run-hook.sh' aislop -- aislop hook cursor",
+        "type": "command",
+        "timeout": 5,
+        "__aislop": {
+            "v": 1,
+            "managed": True,
+            "hash": "sha256:909500b88282a9d06547652124bcc76c",
+        },
+    })
+else:
+    print("\033[1;33m[cursor]\033[0m aislop not found — skipping afterFileEdit patch")
+
+# vault-save: stop (lightweight brain nudge after each task)
+add_entry("stop", {
+    "command": "bash './hooks/run-hook.sh' vault-save -- bash './hooks/vault-save.sh'",
+    "timeout": 5,
+})
+
+print("\033[0;34m[cursor]\033[0m preCompact brain-save retired (no .claude)")
+
+if changed:
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+PYEOF

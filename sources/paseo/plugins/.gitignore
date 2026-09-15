@@ -1,0 +1,9 @@
+# Cloned at install time by setup/paseo.sh; only local plugins are tracked.
+*
+!.gitignore
+!timeline-ui/
+!timeline-ui/**
+timeline-ui/node_modules/
+!summary-fork/
+!summary-fork/**
+summary-fork/node_modules/

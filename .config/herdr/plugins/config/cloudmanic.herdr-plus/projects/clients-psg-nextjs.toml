@@ -1,9 +1,0 @@
-name = "nextjs"
-group = "PSG"
-working_dir = "~/Projects/clients/PSG/nextjs"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

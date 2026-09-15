@@ -1,87 +1,45 @@
-# Codebase map — dotfiles
+# Codebase map
 
-Read this before searching. Jump directly to the right file.
+## Entrypoints
 
-## Root
+| Path | Responsibility |
+|---|---|
+| `stow.sh` | Preview, apply, and remove a Stow profile |
+| `install.sh` | Apply a profile and configure mutable app state |
+| `bootstrap.sh` | Compatibility alias for `install.sh` |
+| `setup/migrate-links.py` | One-time guarded migration from legacy links |
 
-| File | Purpose |
-|------|---------|
-| `AGENTS.md` | AI agent policy, approval gate, Higgins protocol, push guard |
-| `AGENT_SKILLS.md` | Skill inventory for all agents |
-| `CODEBASE.md` | This file — directory/file index |
-| `Brewfile` | macOS Homebrew packages |
-| `install.sh` | Bootstrap entry point |
-| `dotfiles.sh` | Main CLI (`dotfiles --update`, `dotfiles --status`) |
-| `modules.conf` | Repo-wide module defaults (read by bootstrap before per-host config) |
-| `modules.conf.example` | Template for `~/.config/dotfiles/modules.conf` (per-host overrides) |
-| `VERSION` | Current dotfiles version |
+## Declarative configuration
 
-## Key directories
+`stow/<package>/` mirrors `$HOME`. The package list for each machine lives in
+`profiles/<name>.stow`.
 
-### `modules/`
-Install units. Each module has `install.sh` + optional `doctor.sh`.
+- `stow/zsh/`: shell entrypoints and tmux
+- `stow/git/`: Git configuration and hooks
+- `stow/cli/`: small CLI configuration and commands
+- `stow/agents/`: shared policies and skills
+- `stow/cursor/`: stable Cursor agents, hooks, and rules
+- `stow/pi/`: stable Pi config, extensions, hooks, prompts, and shim
+- `stow/zed/`: stable Zed files
+- `stow/desktop/`, `stow/macos/`, `stow/linux/`: environment overlays
 
-| Module | Purpose |
-|--------|---------|
-| `skills/` | Agent skill installation (`~/.agents/skills/`, `~/.cursor/skills`) |
-| `symlinks/` | Dotfile symlink definitions |
-| `zsh/` | Zsh config module |
-| `packages/` | Cross-platform package install |
-| `starship/` | Starship prompt config |
-| `herdr/` | Herdr terminal multiplexer — opt-in per-host |
-| `pi/` | PI coding agent daily-driver — opt-in per-host |
-| `opencode/` | OpenCode config symlink — opt-in |
-| `rbw/` | Bitwarden CLI secrets — opt-in |
-| `_lib/` | Shared module helpers |
+## Imperative setup
 
-### `zsh/`
-Numbered zsh config files sourced in order:
+- `setup/pi.sh` and `setup/pi/settings.py`: merge runtime settings and model policy
+- `setup/cursor.sh`: patch mutable hooks and copy files across WSL boundaries
+- `setup/zed.sh`: merge mutable settings and copy files across WSL boundaries
+- `setup/paseo.sh`: synchronize and register plugins without linking `~/.paseo`
+- `scripts/install/`: focused package and machine setup scripts
 
-| File | Purpose |
-|------|---------|
-| `00-performance.zsh` | Profiling / lazy loading |
-| `01-environment.zsh` | `PATH`, env vars |
-| `02-plugins.zsh` | Direct-source plugins |
-| `03-aliases.zsh` | Shell aliases |
-| `04-functions.zsh` | Shell functions |
-| `05-integrations.zsh` | Tool integrations (fzf, zoxide, etc.) |
-| `06-autoupdate.zsh` | Autoupdate logic |
-| `08-workflow.zsh` | Workflow switches |
-| `09-herdr.zsh` / `09-cmux.zsh` | Multiplexer integrations |
-| `lib/` | Shared zsh helpers |
+## Source-only material
 
-### `scripts/`
-Standalone tools and install helpers.
+- `sources/paseo/`: tracked Paseo plugin source and manifest
+- `zsh/`: shell modules loaded by `stow/zsh/.zshrc`
+- `scripts/`: maintenance utilities not installed automatically
+- `infra/`: fleet documentation
 
-| Script | Purpose |
-|--------|---------|
-| `doctor.sh` | Dotfiles health check |
-| `janitor.sh` | Vault / session maintenance |
-| `ob` | Obsidian REST API CLI |
-| `pi` | PI coding agent shim |
-| `rtk/` | Token-compression rewrite policy |
-| `cursor/` | Cursor-specific helpers |
-| `install/` | Symlink and package installers |
-| `vault/` | Vault helpers |
-| `zsh/` | Zsh helpers |
+## Boundaries
 
-### `.cursor/`
-Cursor IDE config: `rules/`, `hooks/`, `agents/`.
-
-### `.config/pi/`
-PI agent config: extensions, hooks, settings layers, prompts.
-
-### `.agents/skills/`
-Shared, agent-agnostic skills. See `AGENT_SKILLS.md`.
-
-### `higgins/`
-Higgins vault tooling (janitor, etc.). Durable brain is `~/Vaults/Higgins/AI`.
-
-### `hooks/`
-Git hooks (pre-commit, pre-push).
-
-### `macos/` / `linux/` / `wsl/`
-Platform-specific Ghostty / defaults / Windows Terminal.
-
-### `tui/`
-Interactive `dotfiles` CLI screens (gum): banner, install, status, update, reset.
+Do not add another generic module system. New static configuration belongs in a
+Stow package. New generated or machine-mutating behavior belongs in one named
+setup script. Runtime state and secrets stay outside the repository.

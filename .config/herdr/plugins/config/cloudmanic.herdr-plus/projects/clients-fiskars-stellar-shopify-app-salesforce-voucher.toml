@@ -1,9 +1,0 @@
-name = "salesforce-voucher"
-group = "Fiskars"
-working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-salesforce-voucher"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

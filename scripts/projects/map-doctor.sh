@@ -36,7 +36,7 @@ done
 VAULT_AI="${VAULT_AI:-$HOME/Vaults/Higgins/AI}"
 AGENTS_SKILLS="$HOME/.agents/skills"
 CURSOR_SKILLS="$HOME/.cursor/skills"
-DOTFILES_AGENTS="$DOTFILES_DIR/.agents/skills"
+DOTFILES_AGENTS="$DOTFILES_DIR/stow/agents/.agents/skills"
 
 declare -a FIX REVIEW INFO
 
@@ -44,8 +44,8 @@ _fix() { FIX+=("$*"); }
 _review() { REVIEW+=("$*"); }
 _info() { INFO+=("$*"); }
 
-# ── 1. Skill layer duplicates ──────────────────────────────────────────────────
-# Canonical: ~/.agents/skills/  Source: dotfiles/.agents/skills/
+# ── 1. Skill layer ─────────────────────────────────────────────────────────────
+# Canonical source: stow/agents/.agents/skills/
 if [[ -d "$AGENTS_SKILLS" && -d "$DOTFILES_AGENTS" ]]; then
     _info "Skills source: $DOTFILES_AGENTS → discovery via $AGENTS_SKILLS"
 fi
@@ -87,20 +87,7 @@ if [[ -d "$HOME/.local/share/cursor-agent" ]]; then
     fi
 fi
 
-# ── 4. Stale/disabled modules ─────────────────────────────────────────────────
-modules_conf="$DOTFILES_DIR/modules.conf"
-if [[ -f "$modules_conf" ]]; then
-    while IFS= read -r line; do
-        [[ "$line" =~ ^!(.+) ]] || continue
-        mod="${BASH_REMATCH[1]}"
-        mod_dir="$DOTFILES_DIR/modules/$mod"
-        if [[ -d "$mod_dir" ]]; then
-            _review "Disabled module '!$mod' still has directory: modules/$mod/ — archive or delete if truly abandoned"
-        fi
-    done <"$modules_conf"
-fi
-
-# ── 5. lean-ctx remnants ──────────────────────────────────────────────────────
+# ── 4. lean-ctx remnants ──────────────────────────────────────────────────────
 # Exclude: policy/doc lines, cleanup legacy tuples, plugin cache, this script itself
 _lean_ctx_hits() {
     grep -r "lean-ctx\|lean_ctx" "$DOTFILES_DIR" \

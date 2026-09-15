@@ -1,9 +1,0 @@
-name = "gift-purchase-discount"
-group = "Fiskars"
-working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-gift-purchase-discount"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"
