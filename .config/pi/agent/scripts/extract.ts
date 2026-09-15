@@ -26,6 +26,9 @@ const PI_SESSIONS_DIR = join(homedir(), ".pi/agent/sessions");
 const VAULT_AI = process.env.VAULT_AI || join(homedir(), "Vaults/Higgins/AI");
 const VAULT_SESSIONS_DIR = join(VAULT_AI, "sessions");
 const STATE_FILE = join(VAULT_SESSIONS_DIR, ".extract-state.json");
+/** P2: brain-file updates go through the Higgins inbox as durable events;
+ * `higgins ingest` is the single writer that applies them. */
+const VAULT_INBOX = process.env.HIGGINS_INBOX || join(homedir(), "Vaults/Higgins/Inbox");
 
 // Per-run caps: keep raw regex extraction from flooding curated brain files.
 // Ongoing pruning is Higgins' job (idle-kb-tidy hook runs prune + compact);
@@ -525,45 +528,14 @@ function normalize(line: string): string {
   return line.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-async function appendIfNew(filePath: string, candidates: string[], budget: { remaining: number }): Promise<number> {
-  if (budget.remaining <= 0) return 0;
-  const clean = candidates.filter((l) => l.trim().length >= 20 && !META_NOISE_PATTERN.test(l));
-  if (clean.length === 0) return 0;
 
-  const existing = existsSync(filePath) ? await readFile(filePath, "utf-8") : "";
-  const existingNormalized = new Set(
-    existing
-      .split("\n")
-      .filter((l) => l.trim().startsWith("-"))
-      .map(normalize)
-  );
-
-  const seen = new Set(existingNormalized);
-  const newLines: string[] = [];
-  for (const line of clean) {
-    if (newLines.length >= budget.remaining) break;
-    const n = normalize(line);
-    if (seen.has(n)) continue;
-    seen.add(n);
-    newLines.push(line);
-  }
-
-  if (newLines.length === 0) return 0;
-
-  const separator = existing.endsWith("\n\n") || existing.endsWith("\n") ? "" : existing ? "\n" : "";
-  await writeFile(filePath, existing + separator + newLines.join("\n") + "\n");
-  budget.remaining -= newLines.length;
-  return newLines.length;
-}
-
+/** P2: emit brain-file candidates as one durable inbox event per session.
+ * Dedupe and application happen in `higgins ingest` (single writer), so this
+ * function performs no direct read-modify-write on vault Markdown. */
 async function updateBrainFiles(
   summary: SessionSummary,
   budgets: { gotchas: { remaining: number }; current: { remaining: number } }
 ): Promise<string[]> {
-  const brainDir = join(VAULT_AI, "personal");
-  await mkdir(brainDir, { recursive: true });
-  const notes: string[] = [];
-
   // Only promote errors that actually resolved to something — a transient
   // "Command aborted" with no recorded fix isn't a durable trap worth
   // keeping forever, it's session noise.
@@ -574,11 +546,7 @@ async function updateBrainFiles(
     ...summary.learnings
       .filter((l) => /gotcha|pitfall|watch out|be careful|don't|never|always|caveat/i.test(l))
       .map((l) => `- ${l}`),
-  ];
-  if (gotchaCandidates.length > 0) {
-    const n = await appendIfNew(join(brainDir, "gotchas.md"), gotchaCandidates, budgets.gotchas);
-    if (n > 0) notes.push(`gotchas.md +${n}`);
-  }
+  ].filter((l) => l.trim().length >= 20 && !META_NOISE_PATTERN.test(l));
 
   const currentCandidates: string[] = [
     ...summary.decisions
@@ -587,12 +555,30 @@ async function updateBrainFiles(
     ...summary.learnings
       .filter((l) => /prefer|pattern|convention|style|workflow/i.test(l))
       .map((l) => `- ${l}`),
-  ];
-  if (currentCandidates.length > 0) {
-    const n = await appendIfNew(join(brainDir, "current.md"), currentCandidates, budgets.current);
-    if (n > 0) notes.push(`current.md +${n}`);
-  }
+  ].filter((l) => l.trim().length >= 20 && !META_NOISE_PATTERN.test(l));
 
+  if (gotchaCandidates.length === 0 && currentCandidates.length === 0) return [];
+
+  const notes: string[] = [];
+  const id = `pi-extract:${summary.id}`;
+  const event = {
+    id,
+    created_at: new Date().toISOString(),
+    source: "pi-extract",
+    slug: "personal",
+    gotcha_lines: gotchaCandidates.slice(0, Math.max(0, budgets.gotchas.remaining)),
+    current_lines: currentCandidates.slice(0, Math.max(0, budgets.current.remaining)),
+    gotcha_budget: Math.max(0, budgets.gotchas.remaining),
+    current_budget: Math.max(0, budgets.current.remaining),
+  };
+  if (event.gotcha_lines.length === 0 && event.current_lines.length === 0) return [];
+
+  await mkdir(VAULT_INBOX, { recursive: true });
+  const safeName = id.replace(/[^a-zA-Z0-9._-]+/g, "-");
+  await writeFile(join(VAULT_INBOX, `${safeName}.json`), JSON.stringify(event, null, 2) + "\n");
+  notes.push(`inbox event +${event.gotcha_lines.length}g/${event.current_lines.length}c`);
+  budgets.gotchas.remaining -= event.gotcha_lines.length;
+  budgets.current.remaining -= event.current_lines.length;
   return notes;
 }
 
