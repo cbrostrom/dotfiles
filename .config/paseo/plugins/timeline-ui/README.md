@@ -32,6 +32,7 @@ Open **Settings → Plugins → timeline-ui**.
 | Timeline messages | Stable streaming | On / off |
 | Timeline messages | Prose density | Compact, default, comfortable |
 | Attention cards | Content icons, border, background tint | Multiple display options |
+| Attention cards | Copy format | Markdown, plain text (default for copy buttons on cards + code blocks) |
 | Reasoning | Expansion mode | Collapsed, latest expanded, expanded |
 | Composer | Session usage | On / off |
 | Composer | Usage label | Cost, cost and tokens |

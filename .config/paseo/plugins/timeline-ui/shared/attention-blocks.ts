@@ -161,3 +161,20 @@ export function parseAttentionBlocks(text: string): ParsedAttentionMessage | nul
     segments,
   };
 }
+
+/** Client-side safety net: prose text that starts with a **→ header becomes a block,
+ * so a `→` line can never leak out of the card grid as bare text. Tolerates an
+ * unclosed bold marker (streaming fragments like `**→ Both`). */
+export function attentionProseToBlock(text: string): { readonly title: string; readonly body: string } | null {
+  const lines = text.split("\n");
+  const first = lines[0]!.trim();
+  if (!ATTENTION_HEAD_LINE_RE.test(first)) return null;
+  const header = parseBlockHeader(first);
+  const title = (header ? header.title : first.replace(/^\*\*→\s*/, "").replace(/\*\*$/, "")).trim();
+  if (!title) return null;
+  const body = [header?.body ?? "", ...lines.slice(1)]
+    .filter((line) => line.trim().length > 0)
+    .join("\n")
+    .trim();
+  return { title, body };
+}
