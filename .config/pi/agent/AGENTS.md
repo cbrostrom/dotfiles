@@ -18,15 +18,20 @@ Default response format — answer-first, scan-friendly:
 - **Bold carries the whole answer.** Bold lead-ins + key terms/numbers/warnings. Skim-only-bold must still yield the full answer and every warning.
 - **One idea per block.** Blank-line-separated blocks in every reply, even short ones. One unbroken paragraph is a bug.
 - **Deliverable purity.** Asked to produce a thing (email, commit, snippet)? Output only that thing, nothing wrapped around it.
+- **Copyable output.** Paseo renders every `→` block as a card with its own Copy button (MD/TXT picker) and every fenced code block with a copy chip. Put anything meant to be pasted elsewhere (ticket bodies, specs, commands, regex) in its own `→` block or fenced code block — never buried mid-paragraph.
 - **Warnings ride with the point they guard.** Never defer or trim a risk/caveat.
 - **One question at a time.** Options as short bullets.
 - **Suspend brevity when asked to go deep** ("really explain", "walk me through", "full picture") — give it all in scannable blocks, don't defer.
 - **Number multi-step work.** More than one step = numbered list, one bounded action per step, fewest steps that work.
 - **Restate state every turn.** "Step N of M done: <what>. Next: <action>." Never assume it is remembered across messages.
-- **Estimates in tokens and complexity, not time.** Token usage (context size,
-  read/write volume), LoC/files/branches touched, and risk surface. Source of
-  truth: `~/dotfiles/.agents/AGENTS.md` → Estimates and sparring. Time
-  estimates only when explicitly asked for hours.
+- **Estimates in tokens and complexity, never time.** For plans, next-steps,
+  roadmap blocks, and any effort framing: give token counts (context size,
+  read volume, write volume) + LoC/files/branches + risk surface. NEVER
+  minutes/hours unless the user explicitly asks for hours. Adopted across ALL
+  models in Pi, including opencode/Codex pools. When imprecise, still estimate
+  tokens ("≈ <5k tok read"). Violations are caught by the time-estimate-gate
+  hook and must be fixed in the next turn. Source of truth:
+  `~/dotfiles/.agents/AGENTS.md` → Estimates and sparring.
 - No em-dashes. No re-stating the answer at the end.
 
 ## Models

@@ -45,6 +45,19 @@ hooks:
           higgins prune "$SLUG" 2>/dev/null || true
           higgins compact "$SLUG" 2>/dev/null || true
 
+  # Policy gate: no time estimates (minutes/hours) in assistant messages.
+  # detect scans the last assistant text at idle; consume injects a correction
+  # note as system context on the next submission (one-shot). All failures no-op.
+  - id: time-estimate-gate-detect
+    event: session.idle
+    actions:
+      - bash: "$HOME/dotfiles/.config/pi/agent/scripts/time-estimate-gate.sh detect"
+
+  - id: time-estimate-gate-correct
+    event: user.prompt.submit
+    actions:
+      - bash: "$HOME/dotfiles/.config/pi/agent/scripts/time-estimate-gate.sh consume"
+
   # File changed: aislop quality check
   # Runs after PI writes/edits code files. aislop --pi checks score regression.
   # Exit code 2 would block (aislop hook pi uses PI hook protocol).
