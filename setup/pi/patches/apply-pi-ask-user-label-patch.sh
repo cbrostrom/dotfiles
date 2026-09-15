@@ -7,13 +7,13 @@ TARGET="${PI_ASK_USER_INDEX:-$HOME/.pi/agent/npm/node_modules/pi-ask-user/index.
 MARKER="DOTFILES_PATCH: accept label alias"
 
 if [[ ! -f "$TARGET" ]]; then
-  echo "[pi-ask-user-patch] skip — not installed ($TARGET)"
-  exit 0
+    echo "[pi-ask-user-patch] skip — not installed ($TARGET)"
+    exit 0
 fi
 
 if grep -q "$MARKER" "$TARGET"; then
-  echo "[pi-ask-user-patch] already applied"
-  exit 0
+    echo "[pi-ask-user-patch] already applied"
+    exit 0
 fi
 
 python3 - "$TARGET" "$MARKER" <<'PY'

@@ -54,19 +54,33 @@ classify_one() {
     local name="$1" path="$2" nodes="$3"
     local rec=false class reason
     if path_denied_for_persist "$path"; then
-        class=invalid-path; reason=deny_substring; rec=true
+        class=invalid-path
+        reason=deny_substring
+        rec=true
     elif [[ "$path" == *"/private/var/"* ]] || [[ "$path" == *"opencode-"* ]]; then
-        class=ephemeral-temp; reason=temp_dir; rec=true
+        class=ephemeral-temp
+        reason=temp_dir
+        rec=true
     elif [[ "$(repo_git_kind "$path")" == "worktree" ]]; then
-        class=ephemeral-worktree; reason=git_worktree; rec=true
+        class=ephemeral-worktree
+        reason=git_worktree
+        rec=true
     elif [[ "$nodes" -le 1 ]]; then
-        class=invalid-minimal; reason=single_node; rec=true
+        class=invalid-minimal
+        reason=single_node
+        rec=true
     elif [[ -n "${ALLOW_PATHS[$path]:-}" ]]; then
-        class=active-allowed; reason=in_allowlist; rec=false
+        class=active-allowed
+        reason=in_allowlist
+        rec=false
     elif [[ -d "$path/.git" ]] || [[ -f "$path/.git" ]]; then
-        class=orphan-git; reason=not_in_allowlist; rec=true
+        class=orphan-git
+        reason=not_in_allowlist
+        rec=true
     else
-        class=invalid-directory; reason=not_git; rec=true
+        class=invalid-directory
+        reason=not_git
+        rec=true
     fi
     jq -nc \
         --arg name "$name" \

@@ -169,5 +169,3 @@ if python3 "$DOTFILES_DIR/scripts/gen-capabilities.py"; then
 else
     log "WARN: gen-capabilities.py failed — manifest may be stale"
 fi
-
-

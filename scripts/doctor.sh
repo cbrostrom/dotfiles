@@ -13,13 +13,22 @@ if [[ -z "$profile" ]]; then
                 profile="linux"
             fi
             ;;
-        *) printf 'error: pass a profile\n' >&2; exit 2 ;;
+        *)
+            printf 'error: pass a profile\n' >&2
+            exit 2
+            ;;
     esac
 fi
 
 profile_file="$ROOT/profiles/$profile.stow"
-[[ -f "$profile_file" ]] || { printf 'error: unknown profile: %s\n' "$profile" >&2; exit 2; }
-command -v stow >/dev/null 2>&1 || { printf 'error: GNU Stow is not installed\n' >&2; exit 1; }
+[[ -f "$profile_file" ]] || {
+    printf 'error: unknown profile: %s\n' "$profile" >&2
+    exit 2
+}
+command -v stow >/dev/null 2>&1 || {
+    printf 'error: GNU Stow is not installed\n' >&2
+    exit 1
+}
 
 python3 - "$ROOT" "$HOME" "$profile_file" <<'PY'
 import json

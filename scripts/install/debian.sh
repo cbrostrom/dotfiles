@@ -30,7 +30,7 @@ PKGS+=" $(read_list "$LIST_DIR/base.txt")"
 
 case "$PROFILE" in
     linux) PKGS+=" $(read_list "$LIST_DIR/desktop.txt")" ;;
-    server|cloudbro) PKGS+=" $(read_list "$LIST_DIR/server.txt")" ;;
+    server | cloudbro) PKGS+=" $(read_list "$LIST_DIR/server.txt")" ;;
     wsl) PKGS+=" $(read_list "$LIST_DIR/wsl.txt")" ;;
     *)
         echo "Unknown profile: $PROFILE" >&2

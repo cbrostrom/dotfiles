@@ -299,7 +299,7 @@ repo_persist_decision() {
     fi
     if ! category_allows_persist "$category"; then
         case "$category" in
-            archive|sandbox)
+            archive | sandbox)
                 echo "deny|category|$scope"
                 return
                 ;;

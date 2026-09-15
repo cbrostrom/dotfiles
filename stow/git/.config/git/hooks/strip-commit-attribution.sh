@@ -55,6 +55,6 @@ END {
     if (i in keep) print lines[i]
   }
 }
-' "$COMMIT_MSG_FILE" > "${COMMIT_MSG_FILE}.stripped"
+' "$COMMIT_MSG_FILE" >"${COMMIT_MSG_FILE}.stripped"
 
 mv "${COMMIT_MSG_FILE}.stripped" "$COMMIT_MSG_FILE"

@@ -35,13 +35,13 @@ TARGET="${PI_CURSOR_SDK_SESSION_AGENT_JS:-$HOME/.pi/agent/npm/node_modules/pi-cu
 MARKER="DOTFILES_PATCH: strict MCP-only tools"
 
 if [[ ! -f "$TARGET" ]]; then
-  echo "[pi-cursor-sdk-strict-mcp-patch] skip — not installed ($TARGET)"
-  exit 0
+    echo "[pi-cursor-sdk-strict-mcp-patch] skip — not installed ($TARGET)"
+    exit 0
 fi
 
 if grep -q "$MARKER" "$TARGET"; then
-  echo "[pi-cursor-sdk-strict-mcp-patch] already applied"
-  exit 0
+    echo "[pi-cursor-sdk-strict-mcp-patch] already applied"
+    exit 0
 fi
 
 python3 - "$TARGET" "$MARKER" <<'PY'
