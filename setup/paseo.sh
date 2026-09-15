@@ -4,6 +4,7 @@ set -euo pipefail
 
 DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 . "$DOTFILES_DIR/setup/lib.sh"
+activate_fnm
 
 PASEO_CONFIG_SRC="$DOTFILES_DIR/sources/paseo"
 PASEO_PLUGINS_DIR="$PASEO_CONFIG_SRC/plugins"
