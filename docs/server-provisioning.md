@@ -69,13 +69,19 @@ server for icons.
 CloudBro is a Paseo + Pi development box. After the profile:
 
 ```sh
-# Node.js (any current version; fnm/nvm both work)
-node --version && npm --version
-
-# Full flow — `install.sh` installs the npm globals (pi, paseo) and wires
-# providers. It is idempotent; rerun it any time.
 ./install.sh cloudbro
+```
 
+`install.sh` is idempotent and does everything: bootstraps `fnm` plus the
+latest Node.js if npm is missing (`scripts/install/fnm.sh`), installs the npm
+globals `pi` and `paseo` (`scripts/install/npm-globals.sh`), and wires the
+providers. Rerun it any time; new Node versions install via:
+
+```sh
+latest="$(fnm ls-remote | tail -1)"; fnm install "$latest" && fnm default "$latest"
+```
+
+```sh
 pi --version
 paseo --version
 ```
