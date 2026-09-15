@@ -229,6 +229,36 @@ else
     warn "~/.config/opencode/skills missing — opencode won't discover shared skills"
 fi
 
+# ----- pi extensions (manifest) -----
+pi_ext_list="$DOTFILES_DIR/scripts/install/pi-extensions.txt"
+if [[ -f "$pi_ext_list" ]]; then
+    while IFS= read -r _spec; do
+        _spec="${_spec%%#*}"
+        _spec="$(echo "$_spec" | tr -d '[:space:]')"
+        [[ -z "$_spec" ]] && continue
+        case "$_spec" in
+            git:*)
+                _path="${_spec#git:}"
+                if [[ -d "$HOME/.pi/agent/git/$_path/.git" ]]; then
+                    ok "pi ext: git:$_path"
+                else
+                    warn "pi ext missing: $_spec — Fix: ~/dotfiles/scripts/install/pi-extensions.sh"
+                fi
+                ;;
+            npm:*)
+                _name="${_spec#npm:}"
+                if [[ -f "$HOME/.pi/agent/npm/node_modules/$_name/package.json" ]]; then
+                    ok "pi ext: npm:$_name"
+                else
+                    warn "pi ext missing: $_spec — Fix: ~/dotfiles/scripts/install/pi-extensions.sh"
+                fi
+                ;;
+        esac
+    done < "$pi_ext_list"
+else
+    warn "pi-extensions.txt manifest missing (expected $pi_ext_list)"
+fi
+
 # ----- shared rules (Cursor) -----
 # Skipped on headless servers
 if [[ "$is_headless" == "false" ]]; then

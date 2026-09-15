@@ -350,6 +350,10 @@ if [[ "$IS_HEADLESS" == "false" ]]; then
         create_symlink "$SCRIPT_DIR/.config/pi/agent/rtk-config.json" "$HOME/.pi/agent/rtk-config.json" "pi rtk config"
     fi
 
+    if [[ -f "$SCRIPT_DIR/.config/pi/agent/sol-pi.json" ]]; then
+        create_symlink "$SCRIPT_DIR/.config/pi/agent/sol-pi.json" "$HOME/.pi/agent/sol-pi.json" "pi sol-pi config"
+    fi
+
     if [[ -f "$SCRIPT_DIR/.config/pi/agent/intercom/config.json" ]]; then
         mkdir -p "$HOME/.pi/agent/intercom"
         create_symlink "$SCRIPT_DIR/.config/pi/agent/intercom/config.json" "$HOME/.pi/agent/intercom/config.json" "pi intercom config"
