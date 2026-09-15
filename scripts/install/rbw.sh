@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 # =============================================================================
-# scripts/install/rbw.sh — install rbw (unofficial Bitwarden CLI) + pinentry
+# scripts/install/rbw.sh — install rbw and pinentry
 # =============================================================================
-# Cross-platform: macOS (brew), Debian/Ubuntu (apt), Arch (pacman), Fedora,
-# WSL (Linux package mgr), generic fallback (cargo).
+# Cross-platform: macOS, Debian/Ubuntu, Arch, Fedora, WSL, or cargo fallback.
 #
 # Writes ~/.config/rbw/config.json with platform-appropriate pinentry program
 # only if the file does not already exist. Subsequent runs leave user edits
 # untouched.
 #
 # Does NOT run `rbw login` — that is interactive and per-user. See README
-# of this module for setup steps (or ask the user when first running).
+# Run this script explicitly when setting up rbw on a machine.
 # =============================================================================
 
 set -euo pipefail
-. "$DOTFILES_DIR/modules/_lib/log.sh"
-. "$DOTFILES_DIR/modules/_lib/platform.sh"
+DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+. "$DOTFILES_DIR/setup/lib.sh"
+. "$DOTFILES_DIR/setup/platform.sh"
 
 RBW_EMAIL_DEFAULT="signup@christianbrostrom.com"
 RBW_BASE_URL_DEFAULT="https://vault.superbro.dk"
@@ -168,7 +168,7 @@ EOF
 }
 
 install_unlock_helper() {
-    local unlock_script="${DOTFILES_DIR}/modules/rbw/rbw-unlock-if-locked.sh"
+    local unlock_script="${DOTFILES_DIR}/setup/rbw/rbw-unlock-if-locked.sh"
     [[ -f "${unlock_script}" ]] || {
         warn "rbw unlock helper not found — skipping"
         return 0
@@ -179,9 +179,9 @@ install_unlock_helper() {
 
 install_launchagent() {
     is_macos || return 0
-    local plist_src="${DOTFILES_DIR}/modules/rbw/dk.brostrom.rbw-unlock.plist"
+    local plist_src="${DOTFILES_DIR}/setup/rbw/dk.brostrom.rbw-unlock.plist"
     local plist_dst="${HOME}/Library/LaunchAgents/dk.brostrom.rbw-unlock.plist"
-    local unlock_script="${DOTFILES_DIR}/modules/rbw/rbw-unlock-if-locked.sh"
+    local unlock_script="${DOTFILES_DIR}/setup/rbw/rbw-unlock-if-locked.sh"
     [[ -f "${plist_src}" ]] || {
         warn "rbw unlock plist not found — skipping LaunchAgent"
         return 0

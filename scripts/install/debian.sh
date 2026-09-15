@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # scripts/install/debian.sh — apt provisioning for all Debian environments
-# Covers: linuxbro (homelab), superbro (VPS), monsterbro WSL
+# Covers Linux desktop, server, CloudBro, and WSL profiles.
 # =============================================================================
 # Usage: ./debian.sh <profile>
-#   <profile>: desktop-full | server-headless | wsl
+#   <profile>: linux | server | cloudbro | wsl
 # =============================================================================
 
 set -euo pipefail
 
-PROFILE="${1:-server-headless}"
+PROFILE="${1:-server}"
 LIST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/apt"
 
 log() { printf "[debian] %s\n" "$*"; }
@@ -29,8 +29,8 @@ PKGS=""
 PKGS+=" $(read_list "$LIST_DIR/base.txt")"
 
 case "$PROFILE" in
-    desktop-full) PKGS+=" $(read_list "$LIST_DIR/desktop.txt")" ;;
-    server-headless) PKGS+=" $(read_list "$LIST_DIR/server.txt")" ;;
+    linux) PKGS+=" $(read_list "$LIST_DIR/desktop.txt")" ;;
+    server|cloudbro) PKGS+=" $(read_list "$LIST_DIR/server.txt")" ;;
     wsl) PKGS+=" $(read_list "$LIST_DIR/wsl.txt")" ;;
     *)
         echo "Unknown profile: $PROFILE" >&2

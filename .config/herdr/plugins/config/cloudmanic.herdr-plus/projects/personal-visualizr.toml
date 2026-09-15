@@ -1,9 +1,0 @@
-name = "visualizr"
-group = "Personal"
-working_dir = "~/Projects/personal/visualizr"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

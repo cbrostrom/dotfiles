@@ -1,9 +1,0 @@
-name = "base-ui-extensions"
-group = "Fiskars"
-working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-base-ui-extensions"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

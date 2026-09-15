@@ -1,9 +1,0 @@
-name = "bloomreach-enhancements"
-group = "Fiskars"
-working_dir = "~/Projects/clients/Fiskars/stellar-shopify-app-bloomreach-enhancements"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

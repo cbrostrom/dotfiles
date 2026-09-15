@@ -1,4 +1,0 @@
-name = "Pi"
-description = "Start pi (default model)"
-type = "command"
-command = "pi"

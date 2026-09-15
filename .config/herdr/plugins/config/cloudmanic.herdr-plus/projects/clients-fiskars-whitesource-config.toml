@@ -1,9 +1,0 @@
-name = "whitesource-config"
-group = "Fiskars"
-working_dir = "~/Projects/clients/Fiskars/whitesource-config"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

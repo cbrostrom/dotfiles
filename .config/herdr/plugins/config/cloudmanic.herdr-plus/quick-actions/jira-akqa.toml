@@ -1,4 +1,0 @@
-name = "Jira · AKQA"
-description = "AKQA Jira board"
-type = "command"
-command = "open \"$ATLASSIAN_AKQA_JIRA_URL\""

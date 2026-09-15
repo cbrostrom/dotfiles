@@ -1,4 +1,48 @@
 #!/usr/bin/env bash
-# install.sh — thin shim that delegates to bootstrap.sh
-# Kept for backward compatibility with `dotfiles.sh` and existing muscle memory.
-exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/bootstrap.sh" "$@"
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+profile="${1:-}"
+
+if [[ -z "$profile" ]]; then
+    case "$(uname -s)" in
+        Darwin) profile="macos" ;;
+        Linux)
+            if grep -qi microsoft /proc/version 2>/dev/null; then
+                profile="wsl"
+            else
+                profile="linux"
+            fi
+            ;;
+        *)
+            printf 'error: pass an explicit profile\n' >&2
+            exit 2
+            ;;
+    esac
+fi
+
+"$ROOT/stow.sh" apply "$profile"
+
+case "$profile" in
+    macos)
+        "$ROOT/setup/pi.sh"
+        "$ROOT/setup/cursor.sh"
+        "$ROOT/setup/zed.sh"
+        ;;
+    linux|wsl)
+        "$ROOT/setup/pi.sh"
+        "$ROOT/setup/zed.sh"
+        [[ "$profile" == "wsl" ]] && "$ROOT/setup/cursor.sh"
+        ;;
+    cloudbro)
+        "$ROOT/setup/pi.sh"
+        "$ROOT/setup/paseo.sh"
+        ;;
+    server) ;;
+    *)
+        printf 'error: unknown profile: %s\n' "$profile" >&2
+        exit 2
+        ;;
+esac
+
+printf 'dotfiles installed with profile: %s\n' "$profile"

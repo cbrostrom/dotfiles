@@ -21,8 +21,8 @@ MANIFEST="$DOTFILES_DIR/scripts/install/pi-extensions.txt"
 PI_AGENT_DIR="$HOME/.pi/agent"
 
 if ! command -v pi >/dev/null 2>&1; then
-    if [[ -x "$DOTFILES_DIR/scripts/pi" ]]; then
-        PI_BIN="$DOTFILES_DIR/scripts/pi"
+    if [[ -x "$DOTFILES_DIR/stow/pi/.local/bin/pi" ]]; then
+        PI_BIN="$DOTFILES_DIR/stow/pi/.local/bin/pi"
     else
         echo "pi: not found on PATH and no shim in dotfiles" >&2
         exit 1
@@ -73,7 +73,7 @@ process_git() {
     fi
     if git -C "$specdir" pull --ff-only >>"$specdir/.pi-ext-update.log" 2>&1; then
         local behind
-        behind="$(git -C "$specdir" log --oneline HEAD@{1}..HEAD 2>/dev/null | wc -l | tr -d ' ')"
+        behind="$(git -C "$specdir" log --oneline 'HEAD@{1}..HEAD' 2>/dev/null | wc -l | tr -d ' ')"
         if [[ "$behind" -gt 0 ]]; then
             msg "updated: $spec (+${behind} commits)"
             updated=$((updated + 1))

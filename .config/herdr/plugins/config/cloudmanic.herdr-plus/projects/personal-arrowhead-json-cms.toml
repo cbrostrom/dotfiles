@@ -1,9 +1,0 @@
-name = "arrowhead-json-cms"
-group = "Personal"
-working_dir = "~/Projects/personal/arrowhead-json-cms"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

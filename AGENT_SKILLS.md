@@ -1,6 +1,6 @@
 # Agent Skills Inventory
 
-One shared layer. All agents read from `.agents/skills/` → `~/.agents/skills/`.
+One shared layer. GNU Stow deploys `stow/agents/.agents/skills/` to `~/.agents/skills/`.
 Cursor reads via `~/.cursor/skills`.
 
 ## Shared Skills (17)
@@ -31,5 +31,5 @@ Do not edit — Cursor owns and re-syncs this directory.
 
 ## Promotion Rule
 
-Cross-agent workflows go in `.agents/skills/<name>/SKILL.md` — tool-neutral.
-Harness glue stays in adapters (`.cursor/`, `.config/pi/`, etc.).
+Cross-agent workflows go in `stow/agents/.agents/skills/<name>/SKILL.md`.
+Harness glue stays in `stow/cursor/`, `stow/pi/`, and focused `setup/` scripts.

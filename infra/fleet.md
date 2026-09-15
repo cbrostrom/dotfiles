@@ -9,11 +9,12 @@ _Last updated: 10-09-2026_
 
 | Host | Role | Profile | Tailscale | SSH / RDP | Paseo | Git push |
 |------|------|---------|-----------|-----------|-------|----------|
-| **Mac** | Control plane, author | `desktop-full` | yes | — | local daemon | allowed |
+| **Mac** | Control plane, author | `macos` | yes | — | local daemon | allowed |
+| **CloudBro** | Linux development box | `cloudbro` | pending | pending | Pi via Paseo | pending |
 | **MonsterBro (WSL)** | Work engine | `wsl` | `100.100.1.255` (`monsterbro-wsl`) | `monsterbro` / `monsterbro-wsl` `:27789` | WSL daemon via `ssh://monsterbro` | allowed |
 | **MonsterBro (Win)** | WSL host / desktop | — | `100.100.1.250` (`monsterbro`) | RDP `:3389` | — | — |
-| **LinuxBro** | Homelab / docker / media | `server-headless` | `100.100.1.100` | `linuxbro` | optional | **never** |
-| **SuperBro** | VPS services / janitor | `server-headless` | `100.100.1.50` | `superbro` | optional | **never** |
+| **LinuxBro** | Homelab / docker / media | `server` | `100.100.1.100` | `linuxbro` | optional | **never** |
+| **SuperBro** | VPS services / janitor | `server` | `100.100.1.50` | `superbro` | optional | **never** |
 
 Browser view: open [`infra/infra.html`](infra.html) locally.
 
@@ -37,11 +38,11 @@ One physical machine, two Tailscale identities:
 
 - **Purpose:** Always-on dev box when powered — builds, parallel agents, client repos (WSL).
 - **Hardware:** Gaming rig (muscle vs LinuxBro NUC); confirm with `machine-snapshot.sh`.
-- **Dotfiles:** `PROFILE=wsl` in WSL; propagate with `DOTFILES_WORKFLOWS=wsl`.
+- **Dotfiles:** apply with `~/dotfiles/install.sh wsl`.
 - **SSH:** Dotfiles alias `monsterbro` targets WSL (`.255:27789`); `monsterbro-wsl` is the same host for Tailscale name parity.
 - **RDP:** Mac Microsoft Remote Desktop → `monsterbro` or `100.100.1.250:3389` (Windows side; enable Remote Desktop + Tailscale firewall rule manually).
 - **Paseo:** Daemon in WSL; bind `127.0.0.1:6767`; remote via SSH transport from Mac.
-- **Providers:** Codex, Claude CLI, Pi, OpenCode — auth stays local in WSL.
+- **Providers:** Pi plus explicitly enabled providers; OpenCode Go is configured inside Pi.
 - **Caveat:** Sometimes off (gaming). Check `ping -c1 monsterbro-wsl` before propagate.
 
 ### LinuxBro (homelab)
@@ -131,7 +132,7 @@ systemd=true
 ```bash
 git clone git@github.com:cbrostrom/dotfiles.git ~/dotfiles
 echo 'PROFILE=wsl' >> ~/.local-config
-DOTFILES_NONINTERACTIVE=1 DOTFILES_WORKFLOWS=wsl ~/dotfiles/bootstrap.sh
+~/dotfiles/install.sh wsl
 
 npm i -g paseo
 paseo daemon set-password
@@ -203,4 +204,4 @@ bash ~/dotfiles/scripts/install/ssh-superbro.sh
 | `infra/infra.html` | Browser-readable fleet dashboard |
 | `scripts/install/ssh-superbro.sh` | Idempotent SSH blocks + keyscan |
 | `zsh/03-aliases.zsh` | Interactive `superbro`, `linuxbro`, `monsterbro` |
-| `.agents/skills/dotfiles-update/SKILL.md` | Propagation commands per host |
+| `stow/agents/.agents/skills/dotfiles-update/SKILL.md` | Propagation commands per host |

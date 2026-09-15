@@ -1,9 +1,0 @@
-name = "middleware-nova-jetstream"
-group = "Alustre"
-working_dir = "~/Projects/clients/Alustre/middleware-nova-jetstream"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

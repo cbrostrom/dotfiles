@@ -1,9 +1,0 @@
-name = "vaultkeeper"
-group = "Personal"
-working_dir = "~/Projects/personal/vaultkeeper"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

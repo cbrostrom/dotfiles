@@ -1,9 +1,0 @@
-name = "pitch"
-group = "PSG"
-working_dir = "~/Projects/clients/PSG/pitch"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

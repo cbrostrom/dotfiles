@@ -1,9 +1,0 @@
-name = "plager"
-group = "Personal"
-working_dir = "~/Projects/personal/plager"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"

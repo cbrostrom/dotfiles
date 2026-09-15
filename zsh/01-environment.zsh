@@ -61,10 +61,6 @@ fi
 # Vault location (used by the higgins CLI, PI hooks, context-mode indexing)
 export VAULT_AI="$HOME/Vaults/Higgins/AI"
 
-# Herdr usagebar cache (also set in .zshenv for non-interactive herdr)
-# Keeps statusLine state out of ~/.claude after Claude harness removal.
-export USAGEBAR_STATE_DIR="${USAGEBAR_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/herdr/usagebar}"
-
 # =============================================================================
 # EDITOR CONFIGURATION
 # =============================================================================

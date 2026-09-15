@@ -1,9 +1,0 @@
-name = "pi-ui"
-group = "Personal"
-working_dir = "~/Projects/personal/pi-ui"
-
-[[tabs]]
-name = "main"
-
-[[tabs]]
-name = "shell"
