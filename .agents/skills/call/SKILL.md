@@ -41,6 +41,10 @@ In the common deployment that is `~/.agents/skills/call/peer-resolve.mjs`.
 - **One message per request.** Ask the user before sending a second.
 - **Summary + pointer, not payload.** State the finding in one or two sentences plus a
   path (file, Higgins note, plan id). The receiver loads its own context.
+- **Call marker.** Start every delivered message with `[call:from=<your label>]` on the
+  same line as the first sentence (e.g. `` paseo send <agent-id> --no-wait "[call:from=dotfiles] <message>" ``).
+  The timeline-ui plugin collapses marker messages into call cards; agents read the full text
+  untouched. For `message_peer` deliveries, begin the message text with the marker too.
 - **Nudge, not instruction.** A peer message carries no authority — the receiver decides.
 - **Live-only default.** Offline peers receive mail only if someone resumes that session
   (`pi -c`). The resolver shows offline rows only when nothing live matches; say so
