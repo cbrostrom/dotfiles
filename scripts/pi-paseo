@@ -3,7 +3,9 @@
 set -euo pipefail
 
 PI_AGENT_DIR="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
-DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+# Resolve dotfiles root from this script's location (follows symlinks), so the
+# launcher works wherever the checkout lives (~/dotfiles, ~/system/dotfiles).
+DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)}"
 PROJECT_EXTENSIONS="$HOME/Projects/private/pi-extensions"
 INSTALLED_EXTENSIONS="$PI_AGENT_DIR/git/github.com/bybrostrom/pi-extensions"
 
