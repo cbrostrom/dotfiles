@@ -57,7 +57,12 @@ def package_entries(package_dir):
             if item.is_symlink():
                 yield item.relative_to(package_dir)
                 directories.remove(name)
+        # Runtime artifacts: generated inside the stow tree by setup scripts
+        # or tooling (npm deps, zsh caches). Never stow-managed, never linked.
+        directories[:] = [d for d in directories if d not in ("node_modules", ".DS_Store")]
         for name in files:
+            if name == ".DS_Store" or name.endswith(".zwc") or name.endswith(".swp"):
+                continue
             yield (root_path / name).relative_to(package_dir)
 
 
