@@ -92,6 +92,10 @@ No subagents for search, orientation, or single-file edits.
 OK when the user explicitly asks, signals (e.g. `.review`), or Pi needs isolated parallel narrow work (`subagent_isolated`).
 Cursor: forbidden unless user asks. Full routing: `AGENT_SKILLS.md`.
 
+Delegation ladder, token-cheapest first: single greps/lookups → context-mode tools (bytes stay out of context, ~0 tokens) — never a subagent. Multi-step reasoning with dead ends, or parallel narrow work → subagent. Paseo-spawned agents delegate via Paseo `create_agent` (full spawn, notify-on-finish); pi-subagents is terminal-only by design — the launcher deliberately does not load it in RPC children.
+
+Every subagent or delegation prompt carries a result contract: ≤10 lines / ≤300 tokens, answer only, no narrative or process talk. Children never `higgins load` — scoped `higgins search`, or `higgins brief <slug> <task>` once it ships.
+
 ## Tool routing (harness-specific)
 
 **Pi:** Higgins MCP for vault; native Read/Grep/Shell for code. context-mode tools for large output (see Pi adapter + `context-mode` skill). codebase-memory-mcp disabled by default (tool-restraint).
@@ -149,6 +153,18 @@ Pi enforces via `pi-permissions.jsonc`. Cursor/CC: policy + hooks.
   command output). No unsourced claims.
 - Sparring at senior-developer level: challenge gaps, then bias toward the
   most pragmatic and solid solution — fewest moving parts that fully solves it.
+
+## Lookup discipline
+
+Prefer the smallest authoritative source that can answer the question:
+
+1. Use explicit project metadata (CODEBASE.md, vault memory) or a scoped structured lookup before broad repository traversal or unsupported inference.
+2. Skip lookup ceremony when the target is already known and bounded. A tool call must reduce total task cost or materially improve accuracy or safety over a direct read.
+3. Treat indexes, summaries, and memory as leads unless they are authoritative. Surface source, revision, and freshness, then verify the affected source directly before editing or making material claims.
+4. Use progressive disclosure: return locations, identifiers, and compact excerpts first; expand only when needed.
+5. Structured/tabular lookups (git history, repo stats, capture events, cross-project decisions) go through the DuckDB projection (`higgins duckdb query` / MCP `duckdb`), never repeated reads. Prose lookups go through `higgins search`. Prefer an existing convention, skill, or gateway over adding another tool.
+6. Enforce sensitive-data and permission boundaries in tools, harnesses, and filesystem controls. Never rely on model compliance alone.
+7. Durable memory and architecture changes remain proposals until approved. Record only repeated or high-value lookup failures, without sensitive data.
 
 ## Model selection
 
