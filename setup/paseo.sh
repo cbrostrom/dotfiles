@@ -71,7 +71,10 @@ _sync_plugin() {
     # non-host npm deps (e.g. @modelcontextprotocol/sdk) need them installed
     # before the daemon's build step runs. Plugins with no runtime dependencies
     # (source-only: Paseo supplies everything) skip the step entirely.
-    if [[ -f "$dest/package-lock.json" ]] && jq -e '(.dependencies // {}) | length > 0' "$dest/package.json" >/dev/null; then
+    # devDependencies-only plugins that import @getpaseo/* types in server code
+    # also need node_modules present, or the daemon's esbuild boundary plugin
+    # fails to resolve the type-only imports at install time.
+    if [[ -f "$dest/package-lock.json" ]] && jq -e '((.dependencies // {}) + (.devDependencies // {})) | length > 0' "$dest/package.json" >/dev/null; then
         log "npm ci $id"
         if ! (cd "$dest" && npm ci >/dev/null 2>&1); then
             warn "npm ci failed for $id — plugin may fail to build"

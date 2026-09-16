@@ -18,6 +18,18 @@ for patch in "$ROOT/setup/pi/patches/"*.sh; do
     bash "$patch"
 done
 
+# Stowed extension files are symlinks into ~/dotfiles; Pi loads the real path, so
+# node_modules must live in the stow source tree (not only under ~/.pi/...).
+activate_fnm
+while IFS= read -r -d '' pkg; do
+    ext_dir="$(dirname "$pkg")"
+    if [[ ! -d "$ext_dir/node_modules" ]]; then
+        info "installing Pi extension deps: ${ext_dir#$ROOT/}"
+        (cd "$ext_dir" && npm ci --ignore-scripts) \
+            || warn "Pi extension npm ci failed: $ext_dir"
+    fi
+done < <(find "$ROOT/stow/pi/.pi/agent/extensions" -name package.json -not -path '*/node_modules/*' -print0 2>/dev/null)
+
 if [[ -f "$PI_HOME/extensions/pi-tool-display/config.json" ]]; then
     python3 - "$PI_HOME/extensions/pi-tool-display/config.json" <<'PY'
 import json
