@@ -52,7 +52,7 @@ If a project repo has no root `AGENTS.md`, only harness-specific rules apply. Sy
 ## Memory (Higgins)
 
 CLI: `higgins` (`~/.local/bin/higgins`). `kb` and `brain` are deprecated shims — they forward with a notice.
-Vault: `~/Vaults/Higgins/AI` (macOS, git-backed) — tiers: `personal/`, `modules/`, `projects/`, `infra/`, `sessions/`, `_ops/`
+Vault: `~/Vaults/Higgins/Me` — tiers: `personal/`, `modules/`, `projects/`, `infra/`, `sessions/`, `ops/` — synced via Syncthing; per-machine state in `ops/ledger/<machine>/` (single writer), derived DuckDB in `ops/duckdb/` (rebuilt with `higgins duckdb rebuild`)
 
 **Never auto-load at session start.** Use `higgins search` with 3–5 specific terms when a task needs a fact. Use `higgins load` only when the user explicitly asks or a task clearly needs the full project brain.
 
