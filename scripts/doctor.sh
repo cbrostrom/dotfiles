@@ -33,6 +33,8 @@ command -v stow >/dev/null 2>&1 || {
 python3 - "$ROOT" "$HOME" "$profile_file" <<'PY'
 import json
 import os
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -87,6 +89,18 @@ for relative in (Path(".pi/agent/settings.json"), Path(".paseo/config.json")):
         json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as error:
         errors.append(f"invalid JSON: ~/{relative}: {error}")
+
+# Git: ~/.gitconfig includes ~/.gitconfig.local; warn when missing and when
+# GitHub HTTPS operations would fall back to an interactive prompt.
+if (home / ".gitconfig").is_file() and not (home / ".gitconfig.local").is_file():
+    errors.append("missing: ~/.gitconfig.local (copy from .gitconfig.local.example,"
+                  " uncomment the credential helper)")
+if shutil.which("gh") and subprocess.run(
+    ["git", "config", "--get", "credential.https://github.com.helper"],
+    capture_output=True, text=True, check=False
+).returncode != 0:
+    errors.append("no GitHub credential helper configured — uncomment the"
+                  " credential block in ~/.gitconfig.local")
 
 print(f"profile={profile_path.stem} packages={len(packages)} links={checked} errors={len(errors)}")
 for error in errors:

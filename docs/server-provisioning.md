@@ -51,6 +51,15 @@ Profiles:
 | LinuxBro| `server`  | lean shell, Git, CLI, agent policy |
 | SuperBro| `server`  | lean shell, Git, CLI, agent policy |
 
+### Git credentials
+
+`install.sh` seeds `~/.gitconfig.local` from `.gitconfig.local.example` on
+first run. Before cloning any private repo, edit it: uncomment the
+**GitHub credential helper** block (resolves `gh` from PATH, works on macOS
+and Linux), then run `gh auth login`. Skip this and every HTTPS clone/push
+falls back to an interactive username prompt that hangs non-interactive
+sessions (pi package installs, CI, `pi-extensions.sh`).
+
 ## 5. Shell extras (prompt, fonts)
 
 `starship` is not in Debian's repos. The cross-platform installer handles it:

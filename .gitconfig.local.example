@@ -25,3 +25,18 @@
 # --- Work email override (example) -----------------------------------------
 # [includeIf "gitdir:~/work/"]
 # 	path = ~/.gitconfig.work
+
+# --- GitHub credential helper -----------------------------------------------
+# Required for cloning/pushing private GitHub repos over HTTPS. Without it git
+# prompts for a username on every clone. Resolves `gh` from PATH, so the same
+# line works on macOS and Linux.
+#
+# [credential "https://github.com"]
+# 	helper =
+# 	helper = !gh auth git-credential
+#
+# [credential "https://gist.github.com"]
+# 	helper =
+# 	helper = !gh auth git-credential
+#
+# Also run `gh auth login` once on this machine.
