@@ -1,5 +1,5 @@
 {
-  "$comment": "Model policy consumed by setup/pi.sh and extensions/model-policy-guard. OpenCode Go is a Pi provider, not a standalone CLI dependency. Classifications verified 11-09-2026; re-verify DeepSeek ZDR before 30-09-2026.",
+  "$comment": "Model policy consumed by setup/pi.sh and extensions/model-policy-guard. OpenCode Go is a Pi provider, not a standalone CLI dependency. Classifications verified 11-09-2026; re-verify DeepSeek ZDR before 30-09-2026. hosts[] entries may set excludePackages to remove packages from the merged settings.json packages list (desktop keep-awake / GUI-only extras do not belong on servers) — note: only real host objects may live under hosts, no comment keys.",
   "defaults": {
     "$comment": "Per-host defaults live in hosts[]. Hosts without an explicit default fall back to defaults.fallbackModel.",
     "fallbackModel": "opencode-go/glm-5.3-flash",
@@ -77,7 +77,6 @@
     ]
   },
   "hosts": {
-    "$comment2": "excludePackages removes packages from the merged settings.json packages list (desktop keep-awake / GUI-only extras do not belong on servers).",
     "workstation": {
       "aliases": ["GY-M-WHKK2PF6N7"],
       "groups": ["goPrivate", "goConditional", "goRetained", "cursorWork", "copilotWork"],
