@@ -20,13 +20,25 @@ done
 
 # Stowed extension files are symlinks into ~/dotfiles; Pi loads the real path, so
 # node_modules must live in the stow source tree (not only under ~/.pi/...).
+# A .platform stamp records where node_modules was built; a mismatch (e.g.
+# macOS-built modules reused on Linux) forces a reinstall.
 activate_fnm
+stamp="$(uname -s)-$(uname -m)"
 while IFS= read -r -d '' pkg; do
     ext_dir="$(dirname "$pkg")"
-    if [[ ! -d "$ext_dir/node_modules" ]]; then
-        info "installing Pi extension deps: ${ext_dir#$ROOT/}"
+    stamp_file="$ext_dir/node_modules/.platform"
+    current_stamp="$(cat "$stamp_file" 2>/dev/null || echo missing)"
+    if [[ ! -d "$ext_dir/node_modules" || "$current_stamp" != "$stamp" ]]; then
+        if [[ -d "$ext_dir/node_modules" ]]; then
+            info "stale node_modules ($current_stamp on $stamp): reinstalling Pi extension deps: ${ext_dir#$ROOT/}"
+            rm -rf "$ext_dir/node_modules"
+        else
+            info "installing Pi extension deps: ${ext_dir#$ROOT/}"
+        fi
         (cd "$ext_dir" && npm ci --ignore-scripts) \
             || warn "Pi extension npm ci failed: $ext_dir"
+        echo "$stamp" >"$ext_dir/node_modules/.platform" 2>/dev/null \
+            || warn "could not write platform stamp: $ext_dir/node_modules"
     fi
 done < <(find "$ROOT/stow/pi/.pi/agent/extensions" -name package.json -not -path '*/node_modules/*' -print0 2>/dev/null)
 
