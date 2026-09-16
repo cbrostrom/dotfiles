@@ -77,6 +77,7 @@
     ]
   },
   "hosts": {
+    "$comment2": "excludePackages removes packages from the merged settings.json packages list (desktop keep-awake / GUI-only extras do not belong on servers).",
     "workstation": {
       "aliases": ["GY-M-WHKK2PF6N7"],
       "groups": ["goPrivate", "goConditional", "goRetained", "cursorWork", "copilotWork"],
@@ -88,6 +89,7 @@
     "cloudbro": {
       "aliases": ["cloudbro"],
       "groups": ["goPrivate", "goConditional", "goRetained"],
+      "excludePackages": ["npm:@narumitw/pi-caffeinate"],
       "theme": "dark",
       "defaultProvider": "opencode-go",
       "defaultModel": "glm-5.3-flash",
@@ -96,6 +98,7 @@
     "linuxbro": {
       "aliases": [],
       "groups": ["goPrivate", "goConditional"],
+      "excludePackages": ["npm:@narumitw/pi-caffeinate"],
       "defaultProvider": "opencode-go",
       "defaultModel": "glm-5.3-flash",
       "defaultThinkingLevel": "low"
@@ -103,6 +106,7 @@
     "superbro": {
       "aliases": [],
       "groups": ["goPrivate", "goConditional"],
+      "excludePackages": ["npm:@narumitw/pi-caffeinate"],
       "defaultProvider": "opencode-go",
       "defaultModel": "glm-5.3-flash",
       "defaultThinkingLevel": "low"

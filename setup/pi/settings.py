@@ -109,7 +109,15 @@ def available_models() -> set[str]:
     return catalog
 
 
+def apply_policies(settings: dict[str, Any], host: dict[str, Any]) -> None:
+    """Drop host-excluded packages (GUI-only extras like pi-caffeinate)."""
+    excluded = set(host.get("excludePackages", []))
+    if excluded:
+        settings["packages"] = [p for p in settings.get("packages", []) if p not in excluded]
+
+
 def apply_policy(settings: dict[str, Any], policy: dict[str, Any], host: dict[str, Any]) -> list[str]:
+    apply_policies(settings, host)
     enabled: list[str] = []
     seen: set[str] = set()
     for group_name in host["groups"]:
