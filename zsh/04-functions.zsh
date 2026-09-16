@@ -158,8 +158,94 @@ gcl() {
         echo "Usage: gcl <repository_url>"
         return 1
     fi
-    
+
     git clone "$@" && cd "$(basename "$1" .git)" || return
+}
+
+# =============================================================================
+# GIT SMART COMMANDS
+# =============================================================================
+# Full-word git commands as single dispatch points, so the underlying
+# transport (git, gh pr checkout, jj, …) can be swapped later without
+# changing call sites.
+
+# Internal dispatcher. Swap the body when adding other pull/push backends.
+_git_pull_backend() {
+    git pull "$@"
+}
+
+_git_push_backend() {
+    git push "$@"
+}
+
+# pull - git pull (dispatch point for future pull methods)
+pull() {
+    _git_pull_backend "$@"
+}
+
+# push - git push (dispatch point for future push methods)
+push() {
+    _git_push_backend "$@"
+}
+
+# checkout [branch] - checkout branch; no arg = fzf picker (fallback: numbered list)
+checkout() {
+    if [ $# -gt 0 ]; then
+        git checkout "$@"
+        return
+    fi
+
+    local branch
+    if has fzf; then
+        branch=$(git branch --all --format='%(refname:short)' \
+            | sed 's|^origin/||' | sort -u \
+            | fzf --height=40% --prompt='checkout> ') || return
+    else
+        git branch --all --format='%(refname:short)' \
+            | sed 's|^origin/||' | sort -u \
+            | nl -w2 -s'  '
+        printf 'Branch number (blank to cancel): '
+        read -r choice
+        [ -n "$choice" ] || return 1
+        branch=$(git branch --all --format='%(refname:short)' \
+            | sed 's|^origin/||' | sort -u | sed -n "${choice}p")
+        [ -n "$branch" ] || { echo "No such branch number: $choice"; return 1; }
+    fi
+
+    [ -n "$branch" ] && git checkout "$branch"
+}
+
+# stash [name] - stash current changes with an optional message
+stash() {
+    if [ $# -eq 0 ]; then
+        git stash push -m "stash-$(date +%Y%m%d-%H%M%S)"
+    else
+        git stash push -m "$*"
+    fi
+}
+
+# pop - list stashes, pick one, pop it (fzf when available, numbered fallback)
+pop() {
+    if [ -z "$(git stash list)" ]; then
+        echo "No stashes."
+        return
+    fi
+
+    local pick stash_id
+    if has fzf; then
+        pick=$(git stash list | fzf --height=40% --prompt='pop stash> ') || return
+        stash_id=${pick%%:*}
+    else
+        git stash list | nl -w2 -s'  '
+        printf 'Stash number (blank to cancel): '
+        read -r choice
+        [ -n "$choice" ] || return 1
+        pick=$(git stash list | sed -n "${choice}p")
+        [ -n "$pick" ] || { echo "No such stash number: $choice"; return 1; }
+        stash_id=${pick%%:*}
+    fi
+
+    git stash pop "$stash_id"
 }
 
 # Find and kill process by name
