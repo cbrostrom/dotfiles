@@ -88,8 +88,8 @@
     },
     "cloudbro": {
       "aliases": ["cloudbro"],
-      "groups": ["goPrivate", "goConditional", "goRetained"],
-      "excludePackages": ["npm:@narumitw/pi-caffeinate"],
+      "groups": ["goPrivate", "goConditional", "goRetained", "copilotWork"],
+      "excludePackages": ["npm:@narumitw/pi-caffeinate", "npm:pi-cursor-sdk"],
       "theme": "dark",
       "defaultProvider": "opencode-go",
       "defaultModel": "glm-5.3-flash",
