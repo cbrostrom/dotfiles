@@ -29,6 +29,30 @@ if ! paseo plugin ls --json >/dev/null 2>&1; then
     paseo daemon start --no-relay >/dev/null
 fi
 
+# Fresh daemons start with plugins globally disabled, which makes every
+# `paseo plugin reload/install` below fail with "Plugins are globally
+# disabled". Enable them and reload before the sync loop.
+PASEO_CONFIG="${PASEO_HOME:-$HOME/.paseo}/config.json"
+mkdir -p "$(dirname "$PASEO_CONFIG")"
+python3 - "$PASEO_CONFIG" <<'PYEOF'
+import json, os, sys
+
+config_path = sys.argv[1]
+config = {}
+if os.path.exists(config_path):
+    with open(config_path) as f:
+        config = json.load(f)
+
+current = config.get("pluginsEnabled")
+if current is not True:
+    config["pluginsEnabled"] = True
+    os.makedirs(os.path.dirname(config_path), exist_ok=True)
+    with open(config_path, "w") as f:
+        json.dump(config, f, indent=2)
+        f.write("\n")
+PYEOF
+paseo reload --json >/dev/null
+
 if [[ ! -f "$MANIFEST" ]]; then
     err "missing manifest: $MANIFEST"
     exit 1
