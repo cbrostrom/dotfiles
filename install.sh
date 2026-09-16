@@ -33,12 +33,16 @@ fi
 
 case "$profile" in
     macos)
+        "$ROOT/scripts/install/higgins.sh"
         "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/cursor.sh"
         "$ROOT/setup/zed.sh"
         ;;
     linux | wsl)
+        "$ROOT/scripts/install/higgins.sh"
+        "$ROOT/scripts/install/rtk.sh"
+        "$ROOT/scripts/install/deja.sh"
         "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/zed.sh"
