@@ -24,7 +24,7 @@ if ! command -v paseo >/dev/null 2>&1; then
     die "paseo CLI not found; install it with: npm install -g @getpaseo/cli"
 fi
 
-IF ! paseo plugin ls --json >/dev/null 2>&1; then
+if ! paseo plugin ls --json >/dev/null 2>&1; then
     relay_args=(--no-relay)
     if [[ "${PASEO_RELAY:-off}" == "on" ]]; then
         relay_args=(--relay)
