@@ -19,7 +19,8 @@
         "mcp"
       ],
       "lifecycle": "keep-alive",
-      "directTools": true
+      "directTools": true,
+      "disabled": true
     },
     "cloudflare-dns-cloudbro": {
       "command": "${HOME}/.pi/agent/scripts/cloudflare-dns-mcp.sh",

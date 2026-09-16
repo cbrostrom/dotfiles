@@ -48,7 +48,7 @@ Two accelerators, one brain. context-mode (`~/.pi/context-mode/`, machine-local 
 
 ## MCP
 
-Direct (tools loaded inline, in `~/.pi/agent/mcp.json`): `higgins`, `deja`. Everything else goes through the `mcporter` proxy tool — one stable surface, no tool-schema bloat:
+Direct (tools loaded inline, in `~/.pi/agent/mcp.json`): `higgins`. Everything else goes through the `mcporter` proxy tool — one stable surface, no tool-schema bloat:
 - `mcporter({ search: "jira" })` — discover servers/tools by name or capability. Unknown selector? Always search first.
 - `mcporter({ action: "describe", selector: "server.tool" })` — schema before first call.
 - `mcporter({ action: "call", selector: "server.tool", args: {...} })` — execute.
