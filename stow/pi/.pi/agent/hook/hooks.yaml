@@ -43,6 +43,12 @@ hooks:
           fi
           higgins prune "$SLUG" 2>/dev/null || true
           higgins compact "$SLUG" 2>/dev/null || true
+          # DuckDB projection freshness (go higgins): rebuild if the projection is
+          # stale vs its ledger shards. Rebuild is cheap-ish; guard with () || true
+          # so a missing binary/CLI never blocks the hook.
+          if higgins duckdb status 2>/dev/null | grep -q '"stale": true'; then
+            higgins duckdb rebuild >/dev/null 2>&1 || true
+          fi
 
   # Policy gate: no time estimates (minutes/hours) in assistant messages.
   # detect scans the last assistant text at idle; consume injects a correction
@@ -102,6 +108,16 @@ hooks:
           # Allow-list: trivial, known-short, no-derivation commands pass straight through
           echo "$cmd" | grep -qE '^\s*(git (status|branch|diff --stat|log -1)|pwd|whoami|echo |which |ls( -la?)?\s*$)' && exit 0
 
+          # Fast/bounded lookups pass straight through (no context-mode redirect):
+          # mdfind is indexed (seconds); chains whose output is line-capped by
+          # head/tail/wc cannot flood context. NOTE: a recursive scan (find,
+          # grep -r/-R, ls -R) is NOT made safe by piping into head — those cap
+          # bytes written, not run time — so recursive scans never hit this escape.
+          echo "$cmd" | grep -q '\bmdfind\b' && exit 0
+          if ! echo "$cmd" | grep -qE '\b(find|ls -R|tree|du)\b|\bgrep +-[rR]' \
+             && echo "$cmd" | grep -qE '\|\s*(head|tail|wc)\b'; then
+            exit 0
+          fi
           reason=""
           chained=$(echo "$cmd" | grep -oE '&&|;|\|' | wc -l | tr -d ' ')
           [[ "$chained" -ge 3 ]] && reason="3+ chained commands — use ctx_batch_execute"
@@ -110,5 +126,45 @@ hooks:
 
           if [[ -n "$reason" ]]; then
             echo "[context-mode-guard] $reason: $cmd" >&2
+            exit 2
+          fi
+
+  # Before ctx tools: runaway-scan guard (reciprocal of guard-context-mode).
+  # The bash-side guards push the model into context-mode's ctx tools, but nothing
+  # inspected what enters them: a grep -rl over ~/.paseo or ~/Library/Application
+  # Support inside ctx_batch_execute with no `timeout` sat silent for 15+ minutes
+  # (context-mode intentionally fires no default timer off-antigravity, Issue #406 —
+  # it trusts an MCP host RPC timeout that Paseo does not enforce). Rule: any
+  # recursive filesystem scan (grep -r/-R, find, fd as walker, rg without a
+  # --max-time cap) inside an RPC-child ctx tool REQUIRES an explicit `timeout`.
+  # pi-paseo exports PI_RPC_CHILD=1; terminal sessions exit here (the
+  # context-mode-enforcer extension covers them) so we never double-prompt.
+  - id: guard-ctx-runtimeout
+    event: tool.before.ctx_batch_execute
+    actions:
+      - bash: |
+          [[ "${PI_RPC_CHILD:-}" == "1" ]] || exit 0
+          payload=$(cat)
+          code=$(printf '%s' "$payload" | jq -r '[.tool_args.commands[]?.command // empty] | join("\n")' 2>/dev/null)
+          [[ -z "$code" ]] && exit 0
+          case "$code" in *grep\ -[rR]*|*find\ *|*tree\ *|*du\ *) ;; *) exit 0 ;; esac
+          has_timeout=$(printf '%s' "$payload" | jq -r '.tool_args.timeout != null' 2>/dev/null)
+          if [[ "$has_timeout" != "true" ]]; then
+            echo "[ctx-guard] recursive filesystem scan (grep -r/-R|find) inside ctx_batch_execute without a timeout — add 'timeout: 120000' to the call, or bound the scan (rg --max-time 10 / --max-depth 3, scoped path). Bytes-capped (head/tail) does NOT bound run time." >&2
+            exit 2
+          fi
+
+  - id: guard-ctx-execute-runtimeout
+    event: tool.before.ctx_execute
+    actions:
+      - bash: |
+          [[ "${PI_RPC_CHILD:-}" == "1" ]] || exit 0
+          payload=$(cat)
+          code=$(printf '%s' "$payload" | jq -r '.tool_args.code // empty' 2>/dev/null)
+          [[ -z "$code" ]] && exit 0
+          case "$code" in *grep\ -[rR]*|*find\ *|*tree\ *|*du\ *) ;; *) exit 0 ;; esac
+          has_timeout=$(printf '%s' "$payload" | jq -r '.tool_args.timeout != null' 2>/dev/null)
+          if [[ "$has_timeout" != "true" ]]; then
+            echo "[ctx-guard] recursive filesystem scan (grep -r/-R|find) inside ctx_execute without a timeout — pass 'timeout: 120000', or bound the scan (rg --max-time 10 / --max-depth 3, scoped path). Bytes-capped (head/tail) does NOT bound run time." >&2
             exit 2
           fi

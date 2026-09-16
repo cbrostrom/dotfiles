@@ -57,6 +57,16 @@ const BLOCK_PATTERNS: Array<{ re: RegExp; reason: string }> = [
 const ALLOW_RE =
 	/^\s*(git\s+(status|branch|diff\s+--stat|log\s+-1)|pwd|whoami|echo\s|which\s|ls(\s+-la?)?\s*$)/;
 
+// Fast/bounded lookups that pass through before the BLOCK scan (mirrors the
+// guard-context-mode escape hatch in hooks.yaml):
+// - mdfind is Spotlight-backed: seconds, tiny output.
+// - A chain whose output is line-capped by head/tail/wc cannot flood context.
+//   NOTE: this does NOT cover recursive scans (find, grep -r, ls -R) — those
+//   cap bytes written, not run time — recursive-scan denial wins below.
+const FAST_ALLOW_RE = /\bmdfind\b/;
+const RECURSIVE_SCAN_RE = /\b(find|ls\s+-R|tree|du)\b|\bgrep\s+-[a-zA-Z]*[rR]/;
+const PIPE_CAPPED_RE = /\|\s*(head|tail|wc)\b/;
+
 function chainedCommandCount(cmd: string): number {
 	// Rough count of &&, ||, ; separators — mirrors the YAML hook's heuristic
 	// for "do this as one ctx_batch_execute instead of N bash calls".
@@ -89,6 +99,8 @@ export default function (pi: ExtensionAPI) {
 			if (!command) return;
 
 			if (ALLOW_RE.test(command)) return;
+			if (FAST_ALLOW_RE.test(command)) return;
+			if (!RECURSIVE_SCAN_RE.test(command) && PIPE_CAPPED_RE.test(command)) return;
 
 			if (chainedCommandCount(command) >= 3) {
 				return {
