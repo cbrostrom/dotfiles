@@ -47,6 +47,7 @@ case "$profile" in
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/zed.sh"
         [[ "$profile" == "wsl" ]] && "$ROOT/setup/cursor.sh"
+        [[ "$profile" == "wsl" ]] && PASEO_RELAY=on "$ROOT/setup/paseo.sh"
         ;;
     cloudbro)
         "$ROOT/scripts/install/higgins.sh"
