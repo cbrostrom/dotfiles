@@ -29,9 +29,6 @@
 [merge "engram-manifest"]
 	name = Engram manifest union merge
 	driver = ~/engram-sync/scripts/merge-manifest.py %O %A %B
-[credential "https://github.com"]
-	helper = 
-	helper = !/opt/homebrew/bin/gh auth git-credential
-[credential "https://gist.github.com"]
-	helper = 
-	helper = !/opt/homebrew/bin/gh auth git-credential
+
+# Credential helpers are per-machine: set gh as the helper in
+# ~/.gitconfig.local (see .gitconfig.local.example). No hardcoded paths here.
