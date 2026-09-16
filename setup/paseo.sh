@@ -24,9 +24,13 @@ if ! command -v paseo >/dev/null 2>&1; then
     die "paseo CLI not found; install it with: npm install -g @getpaseo/cli"
 fi
 
-if ! paseo plugin ls --json >/dev/null 2>&1; then
-    log "start local Paseo daemon (loopback, relay disabled)"
-    paseo daemon start --no-relay >/dev/null
+IF ! paseo plugin ls --json >/dev/null 2>&1; then
+    relay_args=(--no-relay)
+    if [[ "${PASEO_RELAY:-off}" == "on" ]]; then
+        relay_args=(--relay)
+    fi
+    log "start local Paseo daemon (loopback, relay: ${PASEO_RELAY:-off})"
+    paseo daemon start "${relay_args[@]}" >/dev/null
 fi
 
 # Fresh daemons start with plugins globally disabled, which makes every
@@ -180,6 +184,14 @@ providers = config.setdefault("agents", {}).setdefault("providers", {})
 pi = providers.setdefault("pi", {})
 pi["enabled"] = True
 pi["command"] = [launcher]
+
+# Relay policy is profile-driven: install.sh sets PASEO_RELAY=on for hosts
+# paired with the Paseo app (e.g. cloudbro). Default 'keep' leaves the live
+# value untouched so the daemon's own config patches are never reverted.
+relay = os.environ.get("PASEO_RELAY", "keep")
+if relay in ("on", "off"):
+    daemon = config.setdefault("daemon", {})
+    daemon.setdefault("relay", {})["enabled"] = (relay == "on")
 
 os.makedirs(os.path.dirname(config_path), exist_ok=True)
 with open(config_path, "w") as f:
