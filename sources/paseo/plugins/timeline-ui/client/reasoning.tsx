@@ -55,8 +55,10 @@ export function ReasoningTimelineItem({
   const { values: messagePreferences, typography } = useMessagePreferences(layout.compact);
   const streaming = item.data.phase === "streaming";
   const latest = useIsLatest(agentId, timestamp, streaming);
+  const prefersLine = preferences.mode === "line";
   const preferredExpanded =
-    preferences.mode === "expanded" || (preferences.mode === "expand_last" && latest);
+    preferences.mode === "expanded" ||
+    (preferences.mode === "expand_last" && latest && !prefersLine);
   const [manualExpanded, setManualExpanded] = useState<boolean | null>(null);
   const expanded = streaming || (manualExpanded ?? preferredExpanded);
   const revealed = useRevealedText(item.data.text, item.data.phase);
@@ -100,11 +102,47 @@ export function ReasoningTimelineItem({
         color: theme.colors.foregroundMuted,
         fontSize: layout.compact ? 11 : 12,
       },
+      line: {
+        alignItems: "center" as const,
+        flexDirection: "row" as const,
+        gap: layout.compact ? 5 : 6,
+        minHeight: 18,
+      },
+      oneLineLabel: {
+        color: theme.colors.foregroundMuted,
+        fontSize: layout.compact ? 12 : 13,
+        fontWeight: "600" as const,
+      },
+      oneLinePreview: {
+        color: theme.colors.foregroundMuted,
+        flex: 1,
+        fontSize: layout.compact ? 11 : 12,
+      },
     }),
     [layout.compact, theme.colors.foreground, theme.colors.foregroundMuted, typography],
   );
 
   const toggle = useCallback(() => setManualExpanded(!expanded), [expanded]);
+
+  if (prefersLine && !expanded) {
+    const preview = (revealed || "").replace(/\s+/g, " ").trim().slice(0, 140);
+    return (
+      <Pressable
+        accessibilityLabel="Expand thinking"
+        accessibilityRole="button"
+        onPress={toggle}
+        style={[styles.line, { minHeight: 18 }]}
+      >
+        <Icon name="ChevronRight" size={11} color={theme.colors.foregroundMuted} />
+        <Text style={styles.oneLineLabel}>Thinking</Text>
+        {preview ? (
+          <Text style={styles.oneLinePreview} numberOfLines={1} ellipsizeMode="tail">
+            {preview}
+          </Text>
+        ) : null}
+      </Pressable>
+    );
+  }
 
   return (
     <View style={chrome.outer}>

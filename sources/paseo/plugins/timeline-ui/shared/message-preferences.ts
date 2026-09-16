@@ -29,6 +29,7 @@ export const messagePreferences = defineSettings({
     stableStreaming: z.boolean().default(true),
     peerCards: z.boolean().default(true),
     peerCardStyle: z.enum(["bubble", "stripe"]).default("bubble"),
+    hideCompaction: z.boolean().default(false),
   }),
 });
 
@@ -42,6 +43,7 @@ export const DEFAULT_MESSAGE_PREFERENCES: MessagePreferences = {
   stableStreaming: true,
   peerCards: true,
   peerCardStyle: "bubble",
+  hideCompaction: false,
 };
 
 export function proseTypography(
