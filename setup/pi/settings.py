@@ -127,6 +127,8 @@ def apply_policy(settings: dict[str, Any], policy: dict[str, Any], host: dict[st
 
     fallback_provider, fallback_model = policy["defaults"]["fallbackModel"].split("/", 1)
     settings["enabledModels"] = enabled
+    if host.get("theme"):
+        settings["theme"] = host["theme"]
     settings["defaultProvider"] = host.get("defaultProvider") or fallback_provider
     settings["defaultModel"] = host.get("defaultModel") or fallback_model
     settings["defaultThinkingLevel"] = host.get("defaultThinkingLevel") or policy["defaults"]["thinking"]

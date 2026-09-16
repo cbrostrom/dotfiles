@@ -80,13 +80,15 @@
     "workstation": {
       "aliases": ["GY-M-WHKK2PF6N7"],
       "groups": ["goPrivate", "goConditional", "goRetained", "cursorWork", "copilotWork"],
+      "theme": "pi-desktop-github-dark",
       "defaultProvider": "cursor",
       "defaultModel": "default",
       "defaultThinkingLevel": "medium"
     },
     "cloudbro": {
-      "aliases": [],
+      "aliases": ["cloudbro"],
       "groups": ["goPrivate", "goConditional", "goRetained"],
+      "theme": "dark",
       "defaultProvider": "opencode-go",
       "defaultModel": "glm-5.3-flash",
       "defaultThinkingLevel": "low"
