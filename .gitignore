@@ -61,6 +61,11 @@ gaming/config/launch.log
 # Zed runtime settings are kept in ~/.config/zed, outside this repository.
 .zed-sync-ts
 
+# The global gitignore pattern '*.local' hides the Stow-managed pi launcher
+# shim; force-track it so the machine-independent shim ships to every host.
+!stow/pi/.local/
+!stow/pi/.local/**
+
 # Codex (not used)
 .codex/
 

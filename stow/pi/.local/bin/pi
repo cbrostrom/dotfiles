@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# PI shim — always resolves 'pi' from fnm default node version.
+# ponytail: keeps pi accessible when fnm activates a project-local node that lacks pi globally.
+#
+# ~/.local/bin is prepended before fnm multishell paths, so this shim wins on every cd.
+# To update pi: run 'fnm use default && pi update self' (or use the pi-update alias).
+
+# Locate fnm node versions dir — macOS vs Linux/XDG
+if [[ -d "$HOME/Library/Application Support/fnm/node-versions" ]]; then
+    _fnm_dir="$HOME/Library/Application Support/fnm/node-versions"
+elif [[ -n "${FNM_DIR:-}" && -d "${FNM_DIR}/node-versions" ]]; then
+    _fnm_dir="${FNM_DIR}/node-versions"
+else
+    _fnm_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fnm/node-versions"
+fi
+
+# Prefer fnm default alias symlink (fnm 1.38+ has no `fnm alias default` query)
+_fnm_root="$(dirname "$_fnm_dir")"
+_default_install="$(readlink "$_fnm_root/aliases/default" 2>/dev/null)"
+if [[ -n "$_default_install" && -x "$_default_install/bin/pi" ]]; then
+    _resolved="$_default_install"
+else
+    # Fallback: find pi in any fnm version (newest first via glob sort)
+    for _p in "$_fnm_dir"/*/installation/bin/pi; do
+        [[ -x "$_p" ]] && { _resolved="$(dirname "$(dirname "$_p")")"; break; }
+    done
+fi
+
+# The pi entry point is a node script with a `#!/usr/bin/env node` shebang, so
+# node must be on PATH — extend it here for bare, non-interactive shells
+# (Paseo RPC, cron, ssh one-shots), where fnm never ran.
+[[ -n "${_resolved:-}" ]] && export PATH="$_resolved/installation/bin:$_resolved/bin:$PATH"
+exec "$_resolved/bin/pi" "$@"
+
+echo "pi: not found — run: fnm use default && npm install -g @earendil-works/pi-coding-agent" >&2
+exit 1
