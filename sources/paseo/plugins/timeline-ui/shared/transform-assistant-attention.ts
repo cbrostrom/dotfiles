@@ -1,5 +1,5 @@
 import type { PluginTimelineItem } from "@getpaseo/plugin";
-import { parseAttentionBlocks } from "./attention-blocks.js";
+import { isBareAttentionMarker, parseAttentionBlocks } from "./attention-blocks.js";
 
 type AssistantMessageItem = { type: "assistant_message"; text: string };
 type TransformPhase = "streaming" | "complete";
@@ -20,6 +20,12 @@ function markdownPluginItem(text: string, phase: TransformPhase): PluginTimeline
 
 export function transformAssistantAttention({ item, phase }: TransformInput) {
   const hasMarker = item.text.includes("**→");
+
+  // Stream split stranded the header/bold opener in its own fragment (body lands in
+  // the next assistant_message item). Render nothing instead of a raw `**→`/`**` card.
+  if (isBareAttentionMarker(item.text)) {
+    return { items: [markdownPluginItem("", phase)] };
+  }
 
   if (phase === "streaming" && hasMarker) {
     return { items: [markdownPluginItem(item.text, phase)] };

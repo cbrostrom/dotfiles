@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { stripLeadingBareMarker, isBareAttentionMarker, parseAttentionBlocks } from "./attention-blocks.js";
+
 import { transformAssistantAttention } from "./transform-assistant-attention.js";
 
 describe("transformAssistantAttention", () => {
@@ -97,7 +99,39 @@ describe("transformAssistantAttention", () => {
 
     expect(result?.items[0]).toMatchObject({
       kind: "markdown-message",
-      data: { text: "**Bold** and `code`.", phase: "complete" },
+      data: { text: "**Bold** and `code`." , phase: "complete" },
     });
+  });
+
+  it("suppresses a bare `**→`/`**` opener fragment instead of leaking raw markdown", () => {
+    // Stream split around a reasoning block: header opener arrived alone.
+    for (const text of ["**→", "**→ **", "**→ \n", "**→\n\n", "**"]) {
+      const result = transformAssistantAttention({
+        item: { type: "assistant_message", text },
+        phase: "complete",
+      });
+      expect(result?.items[0]).toMatchObject({ kind: "markdown-message", data: { text: "" } });
+    }
+  });
+
+  it("never treats a fragment with real content as a bare marker", () => {
+    const result = transformAssistantAttention({
+      item: { type: "assistant_message", text: "**→ Freed.** Body text." },
+      phase: "complete",
+    });
+    expect(result?.items[0]).toMatchObject({ kind: "attention-message" });
+    expect(isBareAttentionMarker("**→ Freed")).toBe(false);
+  });
+
+  it("stripLeadingBareMarker drops an opener line and keeps the body", () => {
+    expect(stripLeadingBareMarker("**→\n\nFreed. Body")).toBe("Freed. Body");
+    expect(stripLeadingBareMarker("**\n→ Yes.** Body")).toBe("→ Yes.** Body");
+    expect(stripLeadingBareMarker("**→\n")).toBe("");
+    expect(stripLeadingBareMarker("Plain text with **bold**.")).toBe(
+      "Plain text with **bold**.",
+    );
+    expect(stripLeadingBareMarker("\n\nLeading blanks stay when no marker")).toBe(
+      "\n\nLeading blanks stay when no marker",
+    );
   });
 });

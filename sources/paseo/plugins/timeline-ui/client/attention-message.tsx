@@ -7,7 +7,7 @@ import { MarkdownText } from "./markdown-text.js";
 import { ProseCard } from "./prose-card.js";
 import { useMessagePreferences } from "./use-message-preferences.js";
 import type { AttentionMessageData, AttentionSegmentData } from "../shared/attention-message.js";
-import { attentionProseToBlock } from "../shared/attention-blocks.js";
+import { attentionProseToBlock, stripLeadingBareMarker } from "../shared/attention-blocks.js";
 
 function segmentsToPlainText(segments: readonly AttentionSegmentData[]): string {
   return segments
@@ -75,9 +75,11 @@ export function AttentionMessage({
         blockIndex += 1;
         continue;
       }
-      const converted = attentionProseToBlock(segment.text);
+      const cleanedText = stripLeadingBareMarker(segment.text);
+      if (!cleanedText.trim()) continue;
+      const converted = attentionProseToBlock(cleanedText);
       if (!converted) {
-        out.push(segment);
+        out.push({ kind: "prose", text: cleanedText });
         continue;
       }
       out.push({ kind: "block", ...converted, variantIndex: blockIndex });

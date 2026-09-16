@@ -4,7 +4,7 @@ import { useRevealedText } from "@getpaseo/plugin/client/react-native";
 import { useMemo } from "react";
 import { View } from "react-native";
 import { markdownToPlainText } from "../shared/copy-block.js";
-import { attentionProseToBlock } from "../shared/attention-blocks.js";
+import { attentionProseToBlock, stripLeadingBareMarker } from "../shared/attention-blocks.js";
 import { DEFAULT_CARD_PREFERENCES, preferences } from "../shared/preferences.js";
 import type { MarkdownMessageData } from "../shared/markdown-message.js";
 import { AttentionBlockCard } from "./attention-block.js";
@@ -20,17 +20,26 @@ export function MarkdownMessage({
 }: PluginTimelineItemProps<MarkdownMessageData>) {
   const { text, phase } = item.data;
   const revealed = useRevealedText(text, phase);
+  // Complete markdown fragments that start with a bare `**→` marker line (stream
+  // split left an opener without a body) drop the stray marker before rendering.
+  const repaired = useMemo(
+    () => (phase === "complete" ? stripLeadingBareMarker(revealed) : revealed),
+    [phase, revealed],
+  );
   const { values, typography } = useMessagePreferences(layout.compact);
   // Complete markdown fragments that start with a **→ header (e.g. a reply split
   // around streamed thinking) render as attention cards instead of prose.
   const headBlock = useMemo(
-    () => (phase === "complete" && values.attentionCards ? attentionProseToBlock(revealed) : null),
-    [phase, revealed, values.attentionCards],
+    () => (phase === "complete" && values.attentionCards ? attentionProseToBlock(repaired) : null),
+    [phase, repaired, values.attentionCards],
   );
+  // A complete fragment whose text got emptied (dangling `**→` opener after a
+  // stream split) renders as nothing rather than an empty card.
+  const empty = phase === "complete" && !repaired.trim() && !headBlock;
   const cards = useSettings(preferences);
   const copyFormat =
     cards.status === "ready" ? cards.values.copyFormat : DEFAULT_CARD_PREFERENCES.copyFormat;
-  const plainText = useMemo(() => markdownToPlainText(revealed), [revealed]);
+  const plainText = useMemo(() => markdownToPlainText(repaired), [repaired]);
   const style = useMemo(
     () => ({
       color: theme.colors.foreground,
@@ -39,6 +48,8 @@ export function MarkdownMessage({
     }),
     [theme.colors.foreground, typography.fontSize, typography.lineHeight],
   );
+
+  if (empty) return null;
 
   if (headBlock) {
     return (
@@ -61,7 +72,7 @@ export function MarkdownMessage({
       {values.proseCards ? (
         <View style={{ flexDirection: "row", justifyContent: "flex-end", marginBottom: 2 }}>
           <CopyControls
-            markdown={revealed}
+            markdown={repaired}
             text={plainText}
             initialFormat={copyFormat}
             theme={{ foreground: theme.colors.foregroundMuted, border: theme.colors.border }}
@@ -69,7 +80,7 @@ export function MarkdownMessage({
         </View>
       ) : null}
       <MarkdownText
-        text={revealed}
+        text={repaired}
         style={style}
         theme={theme}
         phase={phase}

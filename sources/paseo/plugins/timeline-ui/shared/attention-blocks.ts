@@ -16,6 +16,28 @@ export interface ParsedAttentionMessage {
 
 const ATTENTION_HEAD_RE = /^\*\*→\s*(.+?)\.?\*\*\s*(.*)$/s;
 const ATTENTION_HEAD_LINE_RE = /^\*\*→\s/;
+/** Split-stream openers that are alone in a fragment: `**→`, `**→ **`, `**`. */
+const BARE_MARKER_RE = /^\*\*(?:→\s*(?:\*\*)?)?$/;
+
+/** A fragment that is only the opening of an attention header (or bold pair): the
+ * stream got split (e.g. around a reasoning block) before the body/close landed in
+ * this item. Rendering this as raw markdown leaks a literal `**→`/`**` card. */
+export function isBareAttentionMarker(text: string): boolean {
+  return BARE_MARKER_RE.test(text.trim());
+}
+
+/** Drop leading bare marker lines (`**→`, `**, `**) plus surrounding blank lines.
+ * Used when a completed message carried a stray opener that no longer closes
+ * (split stream) — the fragment content after the marker is what survives. */
+export function stripLeadingBareMarker(text: string): string {
+  const lines = text.split("\n");
+  let first = 0;
+  while (first < lines.length && !lines[first]!.trim()) first += 1;
+  if (first >= lines.length || !isBareAttentionMarker(lines[first]!)) return text;
+  let index = first + 1;
+  while (index < lines.length && !lines[index]!.trim()) index += 1;
+  return lines.slice(index).join("\n");
+}
 
 function parseBlockHeader(line: string): { title: string; body: string } | null {
   const match = line.match(ATTENTION_HEAD_RE);
@@ -162,19 +184,34 @@ export function parseAttentionBlocks(text: string): ParsedAttentionMessage | nul
   };
 }
 
-/** Client-side safety net: prose text that starts with a **→ header becomes a block,
- * so a `→` line can never leak out of the card grid as bare text. Tolerates an
- * unclosed bold marker (streaming fragments like `**→ Both`). */
+/** Client-side safety net: prose text that starts with a `**→` (or a bare `→`) header
+ * becomes a block, so a `→` line can never leak out of the card grid as bare text.
+ * Tolerates split-stream fragments: an unclosed bold opener (`**→ Both`, `→ Yes, that
+ * works** More…`). */
 export function attentionProseToBlock(text: string): { readonly title: string; readonly body: string } | null {
   const lines = text.split("\n");
   const first = lines[0]!.trim();
-  if (!ATTENTION_HEAD_LINE_RE.test(first)) return null;
-  const header = parseBlockHeader(first);
-  const title = (header ? header.title : first.replace(/^\*\*→\s*/, "").replace(/\*\*$/, "")).trim();
-  if (!title) return null;
-  const body = [header?.body ?? "", ...lines.slice(1)]
-    .filter((line) => line.trim().length > 0)
-    .join("\n")
+  // Accept `**→ Title.** body` plus a bare split-stream `→ Title …` opener.
+  const headRest = first.match(/^(?:\*\*)?→\s*(.*)$/s)?.[1];
+  if (headRest === undefined) return null;
+  const close = headRest.indexOf("**");
+  if (close >= 0) {
+    const title = headRest
+      .slice(0, close)
+      .replace(/\.$/, "")
+      .trim();
+    if (!title) return null;
+    const tail = headRest.slice(close + 2).trim();
+    const body = [tail, ...lines.slice(1)].filter((line) => line.trim().length > 0).join("\n").trim();
+    return { title, body };
+  }
+  // No closing bold on the first line (streaming fragment like `**→ Both`): the rest
+  // of the first line up to the line break is the title candidate, later lines body.
+  const title = headRest
+    .replace(/\*{1,2}$/, "")
+    .replace(/\.$/, "")
     .trim();
+  if (!title) return null;
+  const body = lines.slice(1).filter((line) => line.trim().length > 0).join("\n").trim();
   return { title, body };
 }
