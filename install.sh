@@ -54,7 +54,7 @@ case "$profile" in
         "$ROOT/scripts/install/deja.sh"
         "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/setup/pi.sh"
-        "$ROOT/setup/paseo.sh"
+        PASEO_RELAY=on "$ROOT/setup/paseo.sh"
         ;;
     server) ;;
     *)
