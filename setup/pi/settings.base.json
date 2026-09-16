@@ -7,7 +7,6 @@
   "quietStartup": true,
   "collapseChangelog": true,
   "tuiMode": "regular",
-  "theme": "pi-desktop-github-dark",
   "packages": [
     "npm:@juanibiapina/pi-extension-settings",
     "npm:pi-cursor-sdk",
