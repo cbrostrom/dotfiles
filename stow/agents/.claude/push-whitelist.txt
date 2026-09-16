@@ -1,0 +1,7 @@
+# Repositories agents may run `git push` from (enforced by the guard-git-push
+# hook in stow/pi/.pi/agent/hook/hooks.yaml; script: stow/pi/.pi/agent/scripts/push-guard.sh).
+# One repo root per line. Entries may be relative to $HOME, absolute, or ~ style.
+# Client/other people's repos are never whitelisted.
+
+system/dotfiles
+dotfiles

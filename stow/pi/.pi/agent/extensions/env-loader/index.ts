@@ -11,6 +11,10 @@
  * receive Slack/GitHub/cloud tokens in its main process. See the Secret
  * boundary section of the Pi+Paseo+OpenCode Go rollout plan.
  *
+ * Server hosts also export PI_CAFFEINATE_DISABLED=1 here — pi-caffeinate has
+ * no business on headless boxes (no ScreenSaver D-Bus service, no workable
+ * sleep inhibit); its session-start inhibit failures are pure noise there.
+ *
  * Config location:
  *   ~/.pi/agent/configs/.env
  *
@@ -44,6 +48,12 @@ function resolveHostSlug(): string {
 export default function envLoaderExtension(pi: ExtensionAPI) {
 	const hostSlug = resolveHostSlug();
 	const isServerHost = !DESKTOP_SLUGS.has(hostSlug);
+
+	if (isServerHost) {
+		// Set before any other extension initialises: pi-caffeinate reads
+		// PI_CAFFEINATE_DISABLED at startup. Synchronous and idempotent.
+		process.env.PI_CAFFEINATE_DISABLED = "1";
+	}
 
 	// Load synchronously — runs before session_start, before any other extension
 	// that needs these vars (e.g. mcp) tries to use them. Skipped entirely on

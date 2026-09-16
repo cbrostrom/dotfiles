@@ -131,7 +131,9 @@ Never run `git push`, `gh release create`, `gh pr merge`, `npm publish`, `cargo 
 unless cwd is in `~/.claude/push-whitelist.txt`. Client repos never whitelisted.
 Never append AI attribution trailers (`Co-Authored-By`, `Signed-off-by`, etc.) to commit messages.
 
-Pi enforces via `pi-permissions.jsonc`. Cursor/CC: policy + hooks.
+Enforcement on Pi: `guard-git-push` hook (`guard-git-push` in `hooks.yaml` — real
+mechanism). `pi-permissions.jsonc` is documentation only until pi ships a
+permissions engine that reads it. Cursor/CC: policy + hooks.
 
 ## Planning thresholds
 
