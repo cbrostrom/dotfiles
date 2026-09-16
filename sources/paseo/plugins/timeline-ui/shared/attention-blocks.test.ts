@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseAttentionBlocks } from "./attention-blocks.js";
+import { attentionProseToBlock, parseAttentionBlocks } from "./attention-blocks.js";
 
 describe("parseAttentionBlocks", () => {
   it("returns null when no attention markers exist", () => {
@@ -103,6 +103,31 @@ describe("parseAttentionBlocks", () => {
         { kind: "block", title: "Second point", body: "Body two." },
         { kind: "prose", text: "Closing note." },
       ],
+    });
+  });
+
+  describe("attentionProseToBlock lenient split-stream openers", () => {
+    it("accepts a well-formed header", () => {
+      expect(attentionProseToBlock("**→ State.** Total damage.")).toEqual({
+        title: "State",
+        body: "Total damage.",
+      });
+    });
+
+    it("repairs a bare `→` opener whose close bold landed earlier in the split", () => {
+      expect(attentionProseToBlock("→ Yes, that works** Run pi on cloudbro.")).toEqual({
+        title: "Yes, that works",
+        body: "Run pi on cloudbro.",
+      });
+    });
+
+    it("repairs a streaming fragment with an unclosed opener", () => {
+      expect(attentionProseToBlock("**→ Both")?.title).toBe("Both");
+      expect(attentionProseToBlock("→ Question here")?.title).toBe("Question here");
+    });
+
+    it("still rejects plain prose", () => {
+      expect(attentionProseToBlock("Normal prose reply.")).toBeNull();
     });
   });
 });
