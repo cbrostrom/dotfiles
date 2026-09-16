@@ -10,7 +10,7 @@ _Last updated: 10-09-2026_
 | Host | Role | Profile | Tailscale | SSH / RDP | Paseo | Git push |
 |------|------|---------|-----------|-----------|-------|----------|
 | **Mac** | Control plane, author | `macos` | yes | — | local daemon | allowed |
-| **CloudBro** | Linux development box | `cloudbro` | pending | pending | Pi via Paseo | pending |
+| **CloudBro** | Linux development box | `cloudbro` | pending | pending | Pi via Paseo | dotfiles only |
 | **MonsterBro (WSL)** | Work engine | `wsl` | `100.100.1.255` (`monsterbro-wsl`) | `monsterbro` / `monsterbro-wsl` `:27789` | WSL daemon via `ssh://monsterbro` | allowed |
 | **MonsterBro (Win)** | WSL host / desktop | — | `100.100.1.250` (`monsterbro`) | RDP `:3389` | — | — |
 | **LinuxBro** | Homelab / docker / media | `server` | `100.100.1.100` | `linuxbro` | optional | **never** |
@@ -70,7 +70,7 @@ One physical machine, two Tailscale identities:
 | SSH | Key auth, ControlMaster, `StrictHostKeyChecking accept-new` via `scripts/install/ssh-superbro.sh` |
 | Credentials | Never sync API keys in dotfiles; each host uses local provider auth |
 | MCP | mcporter on-demand; dockhand per-host, not global native exposure |
-| Git | Push allowed: Mac, MonsterBro only |
+| Git | Push allowed: Mac, MonsterBro; CloudBro dotfiles repo only (`~/.claude/push-whitelist.txt`, `guard-git-push` hook) |
 | Relay QR | Treat like a password |
 
 ## Cross-host collaboration

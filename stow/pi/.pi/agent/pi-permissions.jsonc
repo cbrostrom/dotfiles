@@ -2,6 +2,12 @@
   // Minimal guard policy — agent has full freedom by default.
   // Hard denies cover only catastrophic or policy-violating actions.
   // Last-declared matching rule wins within each section.
+  //
+  // NOTE: no installed pi component currently reads this file (confirmed by
+  // grepping pi core + all packages, 16-09-2026). Treat as documentation.
+  // Live enforcement:
+  //   - rm -rf guard:   guard-destructive hook (hooks.yaml)
+  //   - git push guard: guard-git-push hook (hooks.yaml) + ~/.claude/push-whitelist.txt
 
   "defaultPolicy": {
     "tools":   "allow",
@@ -27,10 +33,11 @@
     "rm -rf --no-preserve-root *":     "deny",
 
     // ── Push / publish guard (mirrors AGENTS.md policy) ───────────────────
-    // Agents must never push, release, or publish without explicit user action.
-    "git push*":                       "deny",
-    "git push --force*":               "deny",
-    "git push --force-with-lease*":    "deny",
+    // NOTE: documentation only — the real git push enforcement is the
+    // guard-git-push hook (hooks.yaml) reading ~/.claude/push-whitelist.txt.
+    // "git push*":                       "deny",
+    // "git push --force*":               "deny",
+    // "git push --force-with-lease*":    "deny",
     "npm publish*":                    "deny",
     "yarn publish*":                   "deny",
     "pnpm publish*":                   "deny",

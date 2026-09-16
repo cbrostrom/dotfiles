@@ -75,7 +75,8 @@ hooks:
 
   # Before bash: catastrophic filesystem guard
   # Blocks rm -rf on root/home — defence-in-depth beside pi-permissions.jsonc.
-  # Push/publish/release/merge: pi-permissions.jsonc only (no duplicate hook patterns).
+  # Push: guard-git-push below (pi-permissions.jsonc is documentation only — no
+  # installed pi component reads it).
   - id: guard-destructive
     event: tool.before.bash
     actions:
@@ -91,6 +92,16 @@ hooks:
             echo "[pi-guard] Blocked catastrophic rm: $cmd" >&2
             exit 2
           fi
+
+  # Before bash: git push whitelist guard
+  # The real push enforcement (pi has no built-in permissions engine).
+  # `git push` is allowed only when the target repo resolves to an entry in
+  # ~/.claude/push-whitelist.txt. Everything else — including force pushes and
+  # pushes by absolute path — is blocked with an explanatory stderr line.
+  - id: guard-git-push
+    event: tool.before.bash
+    actions:
+      - bash: "$HOME/.pi/agent/scripts/push-guard.sh"
 
   # Before bash: context-mode tool-preference guard
   # RPC-children-only: terminal pi sessions already get the same enforcement from
