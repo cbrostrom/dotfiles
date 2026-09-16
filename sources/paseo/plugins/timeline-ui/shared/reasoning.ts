@@ -1,7 +1,7 @@
 import { defineSettings } from "@getpaseo/plugin";
 import { z } from "zod";
 
-export const reasoningDisplayModeSchema = z.enum(["collapsed", "expand_last", "expanded"]);
+export const reasoningDisplayModeSchema = z.enum(["collapsed", "expand_last", "expanded", "line"]);
 export type ReasoningDisplayMode = z.output<typeof reasoningDisplayModeSchema>;
 
 export const reasoningPreferences = defineSettings({

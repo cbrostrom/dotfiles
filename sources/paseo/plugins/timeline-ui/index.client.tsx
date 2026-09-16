@@ -11,6 +11,16 @@ import { markdownMessageSchema } from "./shared/markdown-message.js";
 import { peerMessageSchema } from "./shared/transform-peer-message.js";
 import { transformPeerMessage } from "./shared/transform-peer-message.js";
 import { transformCallMessage } from "./shared/transform-call-message.js";
+import { transformToolCall } from "./shared/transform-tool-call.js";
+import { transformCompaction } from "./shared/transform-compaction.js";
+import { ToolCallTimelineItem } from "./client/tool-call.js";
+import { CompactionTimelineItem } from "./client/compaction-line.js";
+import { compactionDataSchema } from "./shared/compaction-message.js";
+import {
+  TOOL_RENDERER_KIND,
+  TOOL_RENDERER_VERSION,
+  toolItemDataSchema,
+} from "./shared/tool-call.js";
 import {
   CALL_RENDERER_KIND,
   CALL_RENDERER_VERSION,
@@ -55,6 +65,16 @@ export default function contribute(client: PluginClientContext) {
     query: { itemType: "user_message" },
     transform: transformPeerMessage,
   });
+  client.addTimelineTransformer({
+    id: "tool-call",
+    query: { itemType: "tool_call" },
+    transform: transformToolCall,
+  });
+  client.addTimelineTransformer({
+    id: "compaction-line",
+    query: { itemType: "compaction" },
+    transform: transformCompaction,
+  });
   client.addTimelineRenderer({
     kind: "attention-message",
     version: 5,
@@ -78,6 +98,18 @@ export default function contribute(client: PluginClientContext) {
     version: CALL_RENDERER_VERSION,
     schema: callItemDataSchema,
     Component: CallTimelineItem,
+  });
+  client.addTimelineRenderer({
+    kind: TOOL_RENDERER_KIND,
+    version: TOOL_RENDERER_VERSION,
+    schema: toolItemDataSchema,
+    Component: ToolCallTimelineItem,
+  });
+  client.addTimelineRenderer({
+    kind: "compaction-line",
+    version: 1,
+    schema: compactionDataSchema,
+    Component: CompactionTimelineItem,
   });
   client.addTimelineRenderer({
     kind: REASONING_RENDERER_KIND,

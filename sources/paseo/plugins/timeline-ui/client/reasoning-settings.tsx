@@ -8,6 +8,7 @@ const DISPLAY_MODES = [
   { label: "Expand latest", value: "expand_last" },
   { label: "Collapsed", value: "collapsed" },
   { label: "Always expanded", value: "expanded" },
+  { label: "One-line", value: "line" },
 ] as const;
 
 export function ReasoningSettings(_props: PluginSurfaceProps) {

@@ -16,6 +16,11 @@ import {
   PROSE_DENSITY_OPTIONS,
   type MessagePreferences,
 } from "../shared/message-preferences.js";
+import {
+  DEFAULT_TOOL_PREFERENCES,
+  TOOL_STYLE_OPTIONS,
+  toolPreferences,
+} from "../shared/tool-call.js";
 
 export function MessageSettings(_props: PluginSurfaceProps) {
   const settings = useSettings(messagePreferences);
@@ -24,6 +29,10 @@ export function MessageSettings(_props: PluginSurfaceProps) {
       ? { ...DEFAULT_MESSAGE_PREFERENCES, ...settings.values }
       : DEFAULT_MESSAGE_PREFERENCES;
   const disabled = settings.status !== "ready" || settings.saving;
+  const toolSettings = useSettings(toolPreferences);
+  const toolValues =
+    toolSettings.status === "ready" ? toolSettings.values : DEFAULT_TOOL_PREFERENCES;
+  const toolDisabled = toolSettings.status !== "ready" || toolSettings.saving;
 
   const hintStyle = useMemo(
     () => ({ color: _props.theme.colors.foregroundMuted, fontSize: 13, lineHeight: 18 }),
@@ -72,6 +81,24 @@ export function MessageSettings(_props: PluginSurfaceProps) {
             value={values.proseCards}
             disabled={disabled}
             onValueChange={(proseCards) => void save({ proseCards })}
+          />
+          <SettingsSelect
+            label="Tool calls"
+            value={toolValues.style}
+            options={[...TOOL_STYLE_OPTIONS]}
+            disabled={toolDisabled}
+            onValueChange={(style) =>
+              toolSettings.status === "ready"
+                ? void toolSettings.save({ style: style as "inline" | "card" }, toolSettings.revision)
+                : undefined
+            }
+          />
+          <SettingsSwitch
+            label="Hide compaction rows"
+            hint="Hide the Compacted notice that appears after context compaction"
+            value={values.hideCompaction}
+            disabled={disabled}
+            onValueChange={(hideCompaction) => void save({ hideCompaction })}
           />
           <SettingsSwitch
             label="Stable streaming"
