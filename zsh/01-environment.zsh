@@ -163,9 +163,11 @@ HISTFILE=~/.zsh_history
 HISTSIZE=50000
 SAVEHIST=50000
 setopt EXTENDED_HISTORY          # Write timestamp to history file
-setopt INC_APPEND_HISTORY        # Append immediately, not on shell exit
+# NOTE: SHARE_HISTORY implies immediate append; do NOT add INC_APPEND_HISTORY
+# on top of it (documented source of interleaved/duplicate entries).
 setopt SHARE_HISTORY             # Share history between all sessions
-setopt HIST_IGNORE_DUPS          # Don't record duplicate entries
+setopt HIST_IGNORE_DUPS          # Don't record consecutive duplicate entries
+setopt HIST_IGNORE_ALL_DUPS      # Drop older duplicate entries from history
 setopt HIST_IGNORE_SPACE         # Don't record commands starting with space
 setopt HIST_REDUCE_BLANKS        # Remove unnecessary blanks
 setopt HIST_VERIFY               # Show command with history expansion before running

@@ -80,7 +80,9 @@ _cached_eval() {
 # ZWC BYTECODE — auto-recompile stale .zwc for rc files & modules
 # =============================================================================
 # zsh's `source` transparently picks the .zwc bytecode if it exists and is
-# newer than the .zsh source. Compile takes ~5ms per file, runs in background.
+# newer than the .zsh source. Compile synchronously: a backgrounded (&!)
+# job gets killed by fast shell exits (~180ms) before it ever finishes.
+# Only stale files are compiled (~5ms each), so this is near-free.
 _zsh_recompile_if_stale() {
     local f
     for f in \
@@ -90,7 +92,7 @@ _zsh_recompile_if_stale() {
     do
         [[ -f "$f" ]] || continue
         if [[ ! -f "${f}.zwc" ]] || [[ "$f" -nt "${f}.zwc" ]]; then
-            zcompile -R "$f" 2>/dev/null &!
+            zcompile -R "$f" 2>/dev/null
         fi
     done
 }

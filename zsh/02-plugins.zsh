@@ -183,11 +183,10 @@ fi
 # =============================================================================
 if (( $+commands[fnm] )); then
     export FNM_COREPACK_ENABLED=true
-    if typeset -f _cached_eval >/dev/null; then
-        _cached_eval "fnm" "fnm env --use-on-cd"
-    else
-        eval "$(fnm env --use-on-cd)"
-    fi
+    # Do NOT cache fnm env: it contains a per-shell FNM_MULTISHELL_PATH
+    # (PID-stamped), so a cached export points other shells at stale dirs.
+    # fnm env is ~5ms, bypass _cached_eval.
+    eval "$(fnm env --use-on-cd)"
     alias node16='fnm use 16'
     alias node18='fnm use 18'
     alias node20='fnm use 20'
