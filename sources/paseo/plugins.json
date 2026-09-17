@@ -66,11 +66,13 @@
     },
     {
       "id": "timeline-ui",
-      "local": true
+      "local": true,
+      "localPath": "~/Projects/personal/paseo-plugins/timeline-ui"
     },
     {
       "id": "summary-fork",
-      "local": true
+      "local": true,
+      "localPath": "~/Projects/personal/paseo-plugins/summary-fork"
     }
   ]
 }
