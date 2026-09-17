@@ -150,6 +150,29 @@ hooks:
   # --max-time cap) inside an RPC-child ctx tool REQUIRES an explicit `timeout`.
   # pi-paseo exports PI_RPC_CHILD=1; terminal sessions exit here (the
   # context-mode-enforcer extension covers them) so we never double-prompt.
+  # Before bash/ctx tools: unbounded-ssh guard.
+  # Motivation: `ssh monsterbro 'wscript.exe ...'` (and `sleep infinity`) inside
+  # ctx/bash tools without any timeout hung the tool call forever; the Paseo
+  # cancel path could NOT recover ("cancellation was not acknowledged" —
+  # hard-delete was the only kill). Rule: ssh/wsl in a tool call (a) must never
+  # start a never-exiting remote program, and (b) must carry -o ConnectTimeout
+  # when the tool arg has no timeout. runs on ALL sessions incl. terminal
+  # (idempotent, cheap: only fires when 'ssh|wsl' appears in the command).
+  - id: guard-ssh-unbounded-bash
+    event: tool.before.bash
+    actions:
+      - bash: "$HOME/.pi/agent/scripts/ssh-guard.sh bash"
+
+  - id: guard-ssh-unbounded-ctx-execute
+    event: tool.before.ctx_execute
+    actions:
+      - bash: "$HOME/.pi/agent/scripts/ssh-guard.sh ctx_execute"
+
+  - id: guard-ssh-unbounded-ctx-batch
+    event: tool.before.ctx_batch_execute
+    actions:
+      - bash: "$HOME/.pi/agent/scripts/ssh-guard.sh ctx_batch_execute"
+
   - id: guard-ctx-runtimeout
     event: tool.before.ctx_batch_execute
     actions:
