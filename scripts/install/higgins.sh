@@ -78,6 +78,12 @@ if [[ ! -x "$VENV_DIR/bin/python" ]]; then
 fi
 
 mkdir -p "$BIN_DIR"
+cat > "$WRAPPER" <<EOF
+#!/usr/bin/env bash
+export PYTHONPATH="\${PYTHONPATH:+$PYTHONPATH:}$HIGGINS_SRC"
+exec "$VENV_DIR/bin/python" -m higgins.cli "\$@"
+EOF
+chmod +x "$WRAPPER"
 log "installed wrapper: $WRAPPER (venv: $VENV_DIR, src: $HIGGINS_SRC)"
 if "$WRAPPER" status >/dev/null 2>&1; then
     log "higgins CLI responds"
