@@ -80,7 +80,7 @@ fi
 mkdir -p "$BIN_DIR"
 cat > "$WRAPPER" <<EOF
 #!/usr/bin/env bash
-export PYTHONPATH="\${PYTHONPATH:+$PYTHONPATH:}$HIGGINS_SRC"
+export PYTHONPATH="\${PYTHONPATH:+\$PYTHONPATH:}$HIGGINS_SRC"
 exec "$VENV_DIR/bin/python" -m higgins.cli "\$@"
 EOF
 chmod +x "$WRAPPER"
