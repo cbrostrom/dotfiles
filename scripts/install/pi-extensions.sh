@@ -19,6 +19,8 @@ set -uo pipefail
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 MANIFEST="$DOTFILES_DIR/scripts/install/pi-extensions.txt"
 PI_AGENT_DIR="$HOME/.pi/agent"
+# Kept in sync with setup/pi/settings.py REMOVED_PACKAGES (without npm: prefix).
+PRUNED_NPM_PACKAGES=(pi-tool-display)
 
 if ! command -v pi >/dev/null 2>&1; then
     if [[ -x "$DOTFILES_DIR/stow/pi/.local/bin/pi" ]]; then
@@ -119,6 +121,17 @@ else
         [[ -z "$line" ]] && continue
         process_entry "$line"
     done <"$MANIFEST"
+
+    for name in "${PRUNED_NPM_PACKAGES[@]}"; do
+        if [[ -d "$PI_AGENT_DIR/npm/node_modules/$name" ]]; then
+            msg "pruning removed package: $name"
+            if "$PI_BIN" uninstall "npm:$name" >/dev/null 2>&1; then
+                updated=$((updated + 1))
+            else
+                fail "prune failed: npm:$name (remove manually: pi uninstall npm:$name)"
+            fi
+        fi
+    done
 fi
 
 echo

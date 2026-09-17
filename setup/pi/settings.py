@@ -22,6 +22,9 @@ RUNTIME_KEYS = {
     "defaultThinkingLevel",
 }
 
+# Removed from scripts/install/pi-extensions.txt — strip on every settings merge.
+REMOVED_PACKAGES = frozenset({"npm:pi-tool-display"})
+
 
 def read_json(path: Path, default: dict[str, Any]) -> dict[str, Any]:
     if not path.exists():
@@ -61,8 +64,17 @@ def merge_settings(base: dict[str, Any], local: dict[str, Any]) -> dict[str, Any
     return result
 
 
+def host_entries(policy: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    hosts = policy.get("hosts", {})
+    return {
+        name: config
+        for name, config in hosts.items()
+        if isinstance(config, dict) and isinstance(config.get("groups"), list)
+    }
+
+
 def resolve_host(policy: dict[str, Any], host_path: Path) -> tuple[str, dict[str, Any]]:
-    hosts = policy["hosts"]
+    hosts = host_entries(policy)
     saved = read_json(host_path, {})
     requested = os.environ.get("PI_HOST_SLUG")
     hostname = socket.gethostname().split(".")[0]
@@ -110,10 +122,9 @@ def available_models() -> set[str]:
 
 
 def apply_policies(settings: dict[str, Any], host: dict[str, Any]) -> None:
-    """Drop host-excluded packages (GUI-only extras like pi-caffeinate)."""
-    excluded = set(host.get("excludePackages", []))
-    if excluded:
-        settings["packages"] = [p for p in settings.get("packages", []) if p not in excluded]
+    """Drop removed and host-excluded packages."""
+    excluded = set(host.get("excludePackages", [])) | REMOVED_PACKAGES
+    settings["packages"] = [p for p in settings.get("packages", []) if p not in excluded]
 
 
 def apply_policy(settings: dict[str, Any], policy: dict[str, Any], host: dict[str, Any]) -> list[str]:
@@ -162,6 +173,7 @@ def main() -> int:
         )
     else:
         print(f"[pi] warning: model policy missing: {policy_path}", file=sys.stderr)
+        apply_policies(settings, {})
 
     write_json(settings_path, settings)
     return 0

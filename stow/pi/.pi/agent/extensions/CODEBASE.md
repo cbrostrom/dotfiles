@@ -27,11 +27,11 @@ Runtime `~/.pi/agent/extensions/` mixes Stow-managed extensions with machine-loc
 | `secret-redaction/` | Last-line secret redaction defence |
 | `rtk.ts` | Rewrites bash commands to `rtk` for token savings |
 | `startup/` | Startup keybinding/config handling |
-| `styled-outputs/` | Themed TUI renderers for messages/tool calls |
+| `styled-outputs/` | Themed TUI renderers; built-in tool overrides (replaces `npm:pi-tool-display`) |
 
 ## Machine-local (not in dotfiles)
 
-`orca-*.ts` (orca-managed), `pi-desktop-*.ts`, `cmux-workspaces.ts`, `pi-rtk-optimizer/`+`pi-smart-voice-notify/`+`pi-tool-display/` (config-only dirs for npm extensions). Purposes for all entries: generated manifest at `~/.agents/capabilities.md`.
+`orca-*.ts` (orca-managed), `pi-desktop-*.ts`, `cmux-workspaces.ts`, `pi-rtk-optimizer/`+`pi-smart-voice-notify/` (config-only dirs for npm extensions). Purposes for all entries: generated manifest at `~/.agents/capabilities.md`.
 
 ## Conventions
 

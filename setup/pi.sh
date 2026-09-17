@@ -42,21 +42,16 @@ while IFS= read -r -d '' pkg; do
     fi
 done < <(find "$ROOT/stow/pi/.pi/agent/extensions" -name package.json -not -path '*/node_modules/*' -print0 2>/dev/null)
 
-if [[ -f "$PI_HOME/extensions/pi-tool-display/config.json" ]]; then
-    python3 - "$PI_HOME/extensions/pi-tool-display/config.json" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-with path.open(encoding="utf-8") as handle:
-    config = json.load(handle)
-config.setdefault("registerToolOverrides", {})["write"] = False
-with path.open("w", encoding="utf-8") as handle:
-    json.dump(config, handle, indent=2)
-    handle.write("\n")
-PY
-fi
+PRUNED_NPM=(pi-tool-display)
+for pkg in "${PRUNED_NPM[@]}"; do
+    if [[ -d "$PI_HOME/npm/node_modules/$pkg" ]] && command -v pi >/dev/null 2>&1; then
+        info "pruning removed Pi package: npm:$pkg"
+        pi uninstall "npm:$pkg" >/dev/null 2>&1 || warn "could not uninstall npm:$pkg (run: pi uninstall npm:$pkg)"
+    fi
+    if [[ ! -d "$PI_HOME/npm/node_modules/$pkg" && -d "$PI_HOME/extensions/$pkg" ]]; then
+        rm -rf "$PI_HOME/extensions/$pkg"
+    fi
+done
 
 if ! python3 "$ROOT/scripts/gen-capabilities.py"; then
     warn "capability map generation failed"
