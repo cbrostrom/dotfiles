@@ -66,13 +66,15 @@
     },
     {
       "id": "timeline-ui",
-      "local": true,
-      "localPath": "~/Projects/personal/paseo-plugins/timeline-ui"
+      "repo": "bybrostrom/paseo-plugins",
+      "path": "timeline-ui",
+      "ref": "main"
     },
     {
       "id": "summary-fork",
-      "local": true,
-      "localPath": "~/Projects/personal/paseo-plugins/summary-fork"
+      "repo": "bybrostrom/paseo-plugins",
+      "path": "summary-fork",
+      "ref": "main"
     }
   ]
 }
