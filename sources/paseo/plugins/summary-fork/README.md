@@ -39,14 +39,14 @@ This is a semantic fork, not Pi's exact JSONL branch copy. Use Pi's native `/for
 ## Install
 
 ```bash
-paseo plugin install ~/dotfiles/sources/paseo/plugins/summary-fork
+paseo plugin install ~/dotfiles/.config/paseo/plugins/summary-fork
 paseo plugin reload summary-fork
 ```
 
 ## Test
 
 ```bash
-cd ~/dotfiles/sources/paseo/plugins/summary-fork
+cd ~/dotfiles/.config/paseo/plugins/summary-fork
 npm install
 npm test
 npm run typecheck
