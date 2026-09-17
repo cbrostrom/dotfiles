@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# PASEO shim — resolves paseo from the node-agnostic ~/.local install, with the
+# fnm default node on PATH so bare (non-interactive) shells can run it.
+# Mirrors the pi shim (ponytail): wins over fnm multishell paths on every cd.
+
+set -euo pipefail
+
+_pkg_root="$HOME/.local/lib/node_modules/@getpaseo/cli"
+_local_paseo="${_pkg_root}/bin/paseo"
+
+# Locate fnm versions dir — macOS vs Linux/XDG
+if [[ -d "$HOME/Library/Application Support/fnm/node-versions" ]]; then
+    _fnm_dir="$HOME/Library/Application Support/fnm/node-versions"
+else
+    _fnm_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fnm/node-versions"
+fi
+
+_fnm_root="$(dirname "$_fnm_dir")"
+_default_install="$(readlink "$_fnm_root/aliases/default" 2>/dev/null || true)"
+[[ -d "$_default_install/bin" ]] && export PATH="$_default_install/bin:$_default_install/installation/bin:$PATH"
+
+if [[ -d "$_pkg_root" ]]; then
+    exec "$_local_paseo" "$@"
+fi
+
+# Fallback: any fnm version that has paseo installed
+for _p in "$_fnm_dir"/*/installation/bin/paseo; do
+    [[ -x "$_p" ]] && { _resolved="$(dirname "$_p")"; export PATH="$_resolved:$PATH"; exec "$_p" "$@"; }
+done
+
+echo "paseo: not found — run: npm i -g --prefix ~/.local @getpaseo/cli" >&2
+exit 1
