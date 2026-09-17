@@ -6,3 +6,4 @@
 system/dotfiles
 dotfiles
 Projects/private/higgins
+Projects/personal/paseo-plugins
