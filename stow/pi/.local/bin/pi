@@ -14,7 +14,20 @@ else
     _fnm_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fnm/node-versions"
 fi
 
-# Prefer fnm default alias symlink (fnm 1.38+ has no `fnm alias default` query)
+# Node-agnostic binary location: ~/.local survives fnm version installs/uninstalls.
+_pkg_root="$HOME/.local/lib/node_modules/@earendil-works/pi-coding-agent"
+_local_pi="${_pkg_root}/dist/bundle/cli.js"
+
+if [[ -s "$_local_pi" ]]; then
+    # Keep fnm default node on PATH (pi needs node >= 22.19) without resolving
+    # the pi binary from a fnm version.
+    _fnm_root="$(dirname "$_fnm_dir")"
+    _default_install="$(readlink "$_fnm_root/aliases/default" 2>/dev/null)"
+    [[ -d "$_default_install/bin" ]] && export PATH="$_default_install/bin:$_default_install/installation/bin:$PATH"
+    exec "$_local_pi" "$@"
+fi
+
+# Fallback: prefer fnm default alias symlink (fnm 1.38+ has no `fnm alias default` query)
 _fnm_root="$(dirname "$_fnm_dir")"
 _default_install="$(readlink "$_fnm_root/aliases/default" 2>/dev/null)"
 if [[ -n "$_default_install" && -x "$_default_install/bin/pi" ]]; then
