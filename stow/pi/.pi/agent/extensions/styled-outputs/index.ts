@@ -1,6 +1,6 @@
-/** styled-outputs — themed TUI renderers for assistant/user messages, tool calls, and skill invocations. */
+/** styled-outputs — themed TUI renderers for assistant/user messages, tool calls, and skill invocations. Replaces npm:pi-tool-display for built-in tool overrides (read/bash/edit/write/grep/find/ls). */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { AssistantMessageComponent, UserMessageComponent, ToolExecutionComponent, SkillInvocationMessageComponent, CustomMessageComponent, BashExecutionComponent, createReadTool, createBashTool, createEditTool, createLsTool, createGrepTool, createFindTool, truncateTail, DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, keyText } from "@earendil-works/pi-coding-agent";
+import { AssistantMessageComponent, UserMessageComponent, ToolExecutionComponent, SkillInvocationMessageComponent, CustomMessageComponent, BashExecutionComponent, createReadTool, createBashTool, createEditTool, createWriteTool, createLsTool, createGrepTool, createFindTool, truncateTail, DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, keyText } from "@earendil-works/pi-coding-agent";
 import { Markdown, Text } from "@earendil-works/pi-tui";
 import { PATCH_FLAG, setCurrentTheme, currentTheme, applyColor, toolPrefix, errorPrefix } from "./utils.js";
 import { CONFIG } from "./config.js";
@@ -11,7 +11,7 @@ import {
   renderReadCall, renderReadResult,
   renderBashCall, renderBashResult,
   renderEditCall, renderEditResult,
-
+  renderWriteCall, renderWriteResult,
   renderLsCall, renderLsResult,
   renderGrepCall, renderGrepResult,
   renderFindCall, renderFindResult,
@@ -437,6 +437,25 @@ export default function styledOutputs(pi: ExtensionAPI) {
     },
     renderResult(result, options, theme, ctx) {
       return renderEditResult(result, options, theme, ctx);
+    },
+  });
+
+  const writeTool = createWriteTool(cwd);
+  pi.registerTool({
+    name: "write",
+    label: "write",
+    description: writeTool.description,
+    promptSnippet: "Create or overwrite a file with full content",
+    renderShell: "default",
+    parameters: writeTool.parameters,
+    async execute(toolCallId, params, signal, onUpdate) {
+      return writeTool.execute(toolCallId, params, signal, onUpdate);
+    },
+    renderCall(args, theme, ctx) {
+      return renderWriteCall(args, theme, ctx);
+    },
+    renderResult(result, options, theme, ctx) {
+      return renderWriteResult(result, options, theme, ctx);
     },
   });
 
