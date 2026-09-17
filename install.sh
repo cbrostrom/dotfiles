@@ -57,7 +57,13 @@ case "$profile" in
         "$ROOT/setup/pi.sh"
         PASEO_RELAY=on "$ROOT/setup/paseo.sh"
         ;;
-    server) ;;
+    server) 
+        "$ROOT/scripts/install/higgins.sh"
+        "$ROOT/scripts/install/rtk.sh"
+        "$ROOT/scripts/install/deja.sh"
+        "$ROOT/scripts/install/npm-globals.sh"
+        "$ROOT/setup/pi.sh"
+        ;;
     *)
         printf 'error: unknown profile: %s\n' "$profile" >&2
         exit 2
