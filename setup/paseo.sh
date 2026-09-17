@@ -112,7 +112,23 @@ _sync_plugin() {
 
 _install_plugin() {
     local id="$1"
-    local plugin_path="$PASEO_PLUGINS_DIR/$id"
+    # Preferred source for local plugins: the live dev repo (manifest `localPath`).
+    # Falls back to the tracked copy under sources/ when the dev repo checkout is
+    # missing (other machines), so a stale tracked copy never silently wins over
+    # the repo where the work actually happens.
+    local local_path="$(jq -r --arg id "$id" '.plugins[] | select(.id == $id) | .localPath // empty' "$MANIFEST")"
+    local plugin_path=""
+    if [[ -n "$local_path" ]]; then
+        local_path="${local_path/#\~/$HOME}"
+        if [[ -d "$local_path" ]]; then
+            plugin_path="$local_path"
+        else
+            err "$id: localPath missing: $local_path"
+        fi
+    fi
+    if [[ -z "$plugin_path" ]]; then
+        plugin_path="$PASEO_PLUGINS_DIR/$id"
+    fi
 
     if [[ ! -d "$plugin_path" ]]; then
         err "missing plugin directory: $plugin_path"
@@ -125,7 +141,7 @@ _install_plugin() {
             log "reload $id"
             paseo plugin reload "$id" >/dev/null
         else
-            log "repoint $id → dotfiles"
+            log "repoint $id → $plugin_path"
             paseo plugin remove "$id" >/dev/null
             paseo plugin install "$plugin_path" >/dev/null
         fi
