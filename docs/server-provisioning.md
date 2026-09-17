@@ -48,8 +48,8 @@ Profiles:
 | Host    | Profile   | What it wires              |
 | ------- | --------- | -------------------------- |
 | CloudBro| `cloudbro`| Paseo (loopback) + Pi dev box |
-| LinuxBro| `server`  | lean shell, Git, CLI, agent policy |
-| SuperBro| `server`  | lean shell, Git, CLI, agent policy |
+| LinuxBro| `server`  | lean shell, Git, CLI, agent policy, Pi (+ higgins/rtk/deja) |
+| SuperBro| `server`  | lean shell, Git, CLI, agent policy, Pi (+ higgins/rtk/deja) |
 
 ### Git credentials
 
