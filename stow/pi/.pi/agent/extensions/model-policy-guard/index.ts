@@ -71,7 +71,8 @@ function resolveHostSlug(policy: Policy): string {
 
 	const host = hostname();
 	for (const [slug, hp] of Object.entries(policy.hosts)) {
-		if (hp.aliases?.includes(host)) return slug;
+		if (!hp || typeof hp !== "object" || !Array.isArray(hp.aliases)) continue;
+		if (hp.aliases.includes(host)) return slug;
 	}
 
 	return policy.hosts["default-desktop"] ? "default-desktop" : Object.keys(policy.hosts)[0];
@@ -106,6 +107,7 @@ class PolicyIndex {
 		for (const key of policy.groups.goConditional ?? []) this.conditional.add(key);
 
 		for (const [slug, hp] of Object.entries(policy.hosts)) {
+			if (!hp || typeof hp !== "object" || !Array.isArray(hp.groups)) continue;
 			const set = new Set<string>();
 			for (const groupName of hp.groups) {
 				for (const key of policy.groups[groupName] ?? []) set.add(key);
