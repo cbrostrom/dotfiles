@@ -85,17 +85,6 @@ else
     printf '  or: fnm use default && npm install -g @earendil-works/pi-coding-agent\n' >&2
     exit 127
 fi
-if [[ -x "$HOME/.local/bin/pi" ]]; then
-    PI_BIN="$HOME/.local/bin/pi"
-elif [[ -x "$DOTFILES_DIR/scripts/pi" ]]; then
-    PI_BIN="$DOTFILES_DIR/scripts/pi"
-elif pi_path="$(command -v pi 2>/dev/null)"; then
-    PI_BIN="$pi_path"
-else
-    printf 'pi-paseo: pi not found — run: ln -sf "%s/scripts/pi" ~/.local/bin/pi\n' "$DOTFILES_DIR" >&2
-    printf '  or: fnm use default && npm install -g @earendil-works/pi-coding-agent\n' >&2
-    exit 127
-fi
 export PI_BIN="$PI_BIN"
 
 # RPC interpreter: rate-shapes pi's message_update delta stream into
@@ -103,8 +92,9 @@ export PI_BIN="$PI_BIN"
 # markdown-unsafe boundaries (fragment `**→` cards, partial thinking cards).
 # Terminal / non-RPC invocations exit untouched via exec passthrough in the shim.
 INTERPRETER="$PERSONAL_EXTENSIONS/scripts/pi-rpc-interpreter.mjs"
-if [[ -f "$INTERPRETER" ]] && command -v node >/dev/null 2>&1; then
+if [[ "${PI_PASEO_NO_INTERPRETER:-}" != "1" && -f "$INTERPRETER" ]] && command -v node >/dev/null 2>&1; then
     export PI_RPC_CHILD=1
+    export PI_RPC_STREAM_MS="${PI_RPC_STREAM_MS:-300}"
     exec node "$INTERPRETER" \
         --no-extensions \
         --no-skills \
