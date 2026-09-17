@@ -98,10 +98,24 @@ Write a fact the moment it's earned, not at digest time. Four triggers:
 
 - **Traced something non-obvious** (network path, config location, why a service does X) → `gotcha`, immediately.
 - **Made a decision with a reason** you'd otherwise re-derive → `current` or a project `decisions.md` line.
-- **Corrected a wrong assumption** → overwrite the fact via `current`, don't leave the old one standing.
+- **Corrected a wrong assumption** → append the correction with `supersedes:` naming the old claim; never leave both standing unmarked (see Deposit format below).
 - **Finished a session with durable state change** → `wrap` with a one-line summary.
 
 This is what makes janitor downtime cosmetic instead of existential — durable facts get written at the moment they're cheap (already in context), not reconstructed later from session logs.
+
+## Deposit format — provenance and corrections
+
+Every deposit carries a source tag so provenance survives: `[src: <slug> | YYYY-MM-DD | <session-or-file-hint>]`. Applies to `gotcha`, `current`, `next`, and `decisions.md` lines. The hint is whatever identifies the origin best — a session id when known, otherwise the triggering file/command.
+
+```text
+higgins gotcha "NEVER run prune on synced vaults before checking sync state [src: dotfiles | 2026-09-17 | session-a1b2]"
+```
+
+Corrections propagate: before appending a gotcha/current fact that contradicts an existing one, `higgins search` for the affected claims, then append the correction with an explicit `supersedes:` naming the old claim (quote its key phrase). Never leave both standing unmarked — the `supersedes:` reference is the staleness signal janitor/digest reads.
+
+```text
+higgins gotcha "prune IS safe on synced vaults if run after sync completes; supersedes: 'NEVER run prune on synced vaults' [src: dotfiles | 2026-09-17]"
+```
 
 ## Save protocol — when to use what
 
