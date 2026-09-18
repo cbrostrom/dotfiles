@@ -107,6 +107,15 @@ if shutil.which("gh") and subprocess.run(
     errors.append("no GitHub credential helper configured — uncomment the"
                   " credential block in ~/.gitconfig.local")
 
+# Higgins write-through: when the wrapper exists, require the canonical
+# writer VM to be reachable (fail fast -- no silent brain loss).
+writer = home / ".local/bin/higgins-writer"
+if writer.is_file() and subprocess.run(
+    [str(writer), "status"], capture_output=True, text=True, timeout=20,
+    check=False
+).returncode != 0:
+    errors.append("higgins-writer unreachable -- canonical writer VM down?")
+
 print(f"profile={profile_path.stem} packages={len(packages)} links={checked} errors={len(errors)}")
 for error in errors:
     print(f"error: {error}")

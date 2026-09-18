@@ -29,6 +29,29 @@ VENV_DIR="${HIGGINS_VENV_DIR:-$HOME/.local/share/higgins-venv}"
 BIN_DIR="$HOME/.local/bin"
 WRAPPER="$BIN_DIR/higgins"
 
+# Writer mode: HIGGINS_ROLE=write-through also installs a `higgins-writer`
+# wrapper that proxies MCP stdio over SSH to the canonical writer VM
+# (higgs-writer, direct higgins@ ssh). Reads stay local on the Mac.
+HIGGINS_ROLE="${HIGGINS_ROLE:-local}"
+HIGGINS_WRITER_HOST="${HIGGINS_WRITER_HOST:-higgs-writer-brain}"
+HIGGINS_WRITER_BIN="${HIGGINS_WRITER_BIN:-/home/higgins/.local/bin/higgins}"
+WRITER_WRAPPER="$BIN_DIR/higgins-writer"
+
+install_writer_wrapper() {
+    if [[ "$HIGGINS_ROLE" != "write-through" ]]; then
+        rm -f "$WRITER_WRAPPER"
+        return 0
+    fi
+    cat > "$WRITER_WRAPPER" <<EOF
+#!/usr/bin/env bash
+# higgins write-through: MCP stdio proxied to the canonical writer VM.
+exec ssh -o BatchMode=yes -o ConnectTimeout=10 "$HIGGINS_WRITER_HOST" \
+    exec "$HIGGINS_WRITER_BIN" mcp
+EOF
+    chmod +x "$WRITER_WRAPPER"
+    log "installed writer wrapper: $WRITER_WRAPPER (ssh: $HIGGINS_WRITER_HOST)"
+}
+
 log() { printf '[higgins-install] %s\n' "$*"; }
 err() { printf '[higgins-install] error: %s\n' "$*" >&2; }
 
@@ -49,6 +72,7 @@ if command -v go >/dev/null 2>&1 && [[ -d "$GO_SRC" ]]; then
     else
         log "note: higgins status returned non-zero (vault may not be initialized yet)"
     fi
+    install_writer_wrapper
     exit 0
 fi
 
@@ -90,3 +114,4 @@ if "$WRAPPER" status >/dev/null 2>&1; then
 else
     log "note: higgins status returned non-zero (vault may not be initialized yet)"
 fi
+install_writer_wrapper
