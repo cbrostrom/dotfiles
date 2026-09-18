@@ -125,3 +125,8 @@ if [[ ! -f "$HOME/.llmtrim/ca.pem" ]]; then
   unset HTTPS_PROXY HTTP_PROXY ALL_PROXY https_proxy http_proxy all_proxy
   unset NO_PROXY no_proxy
 fi
+
+# Show fastfetch in interactive shells (skip non-interactive and agent sessions)
+if [[ -o interactive && -t 1 && -z "$PI_SESSION" && -z "$AGENT" ]]; then
+  fastfetch
+fi
