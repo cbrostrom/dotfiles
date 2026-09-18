@@ -58,6 +58,13 @@ for project_skills in "$project_root/.agents/skills" "$project_root/.pi/skills";
     [[ -d "$project_skills" ]] && skills+=("$project_skills")
 done
 
+# Drop-in dir for Paseo-specific skills (auto-included, no whitelist edit needed):
+# create ~/.pi/agent/skills/paseo/<skill-name>/SKILL.md and every NEW Paseo agent
+# run through this shim picks it up on next session start. Reload agent does NOT
+# re-run this launcher — it resumes the pi process — so new skills need a new agent.
+PASEO_SKILLS_DIR="${PASEO_SKILLS_DIR:-$HOME/.pi/agent/skills/paseo}"
+[[ -d "$PASEO_SKILLS_DIR" ]] && skills+=("$PASEO_SKILLS_DIR")
+
 extension_args=()
 for extension in "${extensions[@]}"; do
     if [[ ! -f "$extension" ]]; then

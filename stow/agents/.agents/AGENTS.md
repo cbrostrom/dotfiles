@@ -70,21 +70,30 @@ Full MCP reference: `~/.agents/skills/higgins/SKILL.md`.
 ## Steps viewer (paseo-steps-viewer)
 
 Available everywhere: auto-injected into every Paseo agent (`server.before("agent.create")`) and
-registered in mcporter (`~/.pi/agent/mcp.json`) for Pi and other harnesses. Tools: `save_steps`,
-`update_steps`, `list_steps`. Plugin source: `~/Projects/personal/paseo-plugins/paseo-steps-viewer`.
+registered in mcporter (`~/.pi/agent/mcp.json`) for Pi and other harnesses. Plugin source:
+`~/Projects/personal/paseo-steps-viewer`. Full reference: `/skill:stepwise` (Pi terminal) —
+the rules below are harness-independent.
 
-**Auto-trigger `save_steps` without being asked** when a response is about to become a substantial
-multi-step plan/walkthrough. Use it when ANY of:
-- 6+ distinct steps
-- any step needs non-trivial detail (code, config, multi-line commands, branching guidance)
-- the plan spans multiple sessions/phases
+**The document is a live step ledger, not a static write-up.** Trigger: when the user says
+"step by step", or when work has 6+ steps / non-trivial detail / multiple phases. In that mode:
 
-Do not use for 2-5 short bullets, a single command, or anything answerable in one paragraph --
-answer inline as normal. This is a judgment call, same class as picking a subagent: when in doubt,
-lean toward answering inline.
+1. Probe enough to write a real plan (commands, file paths, expected signals per step).
+2. `save_steps` with `## Step N — Title` sections — NEVER print the plan in chat; the Steps
+   panel shows it. Say one line: "Plan saved — N steps. Starting Step 1."
+3. Each turn: `next_step(session_label)` → execute exactly that step → report its outcome in
+   1-3 sentences → `complete_step(session_label, result)`. Result text summarizes findings
+   (errors, numbers, surprises), not raw dumps — it is the ledger's memory of WHY the plan changed.
+4. **Mutate the ledger on findings, immediately, unprompted:** console output or user paste that
+   changes a later step → `amend_step`; new distinct work discovered → `add_step`; step made
+   moot → `drop_step`; whole decomposition wrong → `update_steps` (carry over `> result`/`> note`
+   blocks) and tell the user in one line that you re-planned. Step that must eventually succeed
+   but failed → `complete_step` with `status: "blocked"`; never silently skip past it.
+5. Questions to the user carry ONLY the question plus minimal context — never surrounding plan
+   text. If the step can run without an answer, run it and note the assumption in the result.
 
-Pick a short, stable `session_label` per plan (slug from its title) and reuse it. Only call
-`update_steps` when the user explicitly asks to revise the steps -- never rewrite it unprompted.
+Skip the ledger entirely for 2-5 short bullets or one-paragraph answers — respond inline.
+Pick a short, stable `session_label` per plan (slug from its title) and reuse it across sessions;
+a new session resumes with `next_step`.
 
 ## Subagents
 
@@ -122,8 +131,11 @@ Overall rule for any piece of work: quick outline first, manual verification aft
 the user wants a checkable plan before execution and evidence (counts, diffs, test
 output) after, for every agent, every harness.
 
-**"Step by step" = text instructions only.** Do not execute until user says "go", "proceed", "do it".
-**"outline"** = theory-testing mode. Grill the idea, compare options, recommend. Wait for approval.
+**"Step by step"** = run the step-ledger loop (save_steps → next_step → act → complete_step)
+for step-like work. When NO steps tools exist, it means: give a numbered plan, then execute one
+step per turn, waiting for my pasted output/screenshots before the next step. Never dump the
+whole plan as a doc to review first. **"outline"** = theory-testing mode. Grill the idea,
+compare options, recommend. Wait for approval.
 
 ## Push / publish guard
 
