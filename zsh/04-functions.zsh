@@ -7,6 +7,10 @@
 # Preview or apply Stow profiles from anywhere.
 dotfiles() {
     local repo="${DOTFILES_DIR:-$HOME/dotfiles}"
+    if [[ "${1:-}" == "--update" ]]; then
+        dotfiles-update
+        return
+    fi
     [[ $# -eq 0 ]] && set -- plan
     "$repo/stow.sh" "$@"
 }
@@ -17,15 +21,11 @@ dotfiles() {
 # Companion functions for the auto-update notification system (06-autoupdate.zsh).
 
 # Pull dotfiles and re-exec shell. Only place exec zsh is invoked.
+# Core update logic lives in the `dotfiles` wrapper (stow/cli/.local/bin/dotfiles);
+# this function adds the zsh-only re-exec.
 dotfiles-update() {
     local repo="${DOTFILES_DIR:-$HOME/dotfiles}"
-    local git_bin="${DOTFILES_GIT_BIN:-$(command -v /opt/homebrew/bin/git 2>/dev/null || command -v git)}"
-    ( cd "$repo" && "$git_bin" pull --ff-only ) || { echo "dotfiles pull failed"; return 1; }
-    if ! zsh -n "$repo/stow/zsh/.zshrc" 2>/dev/null; then
-        echo "warning: new .zshrc has syntax errors — NOT re-execing"
-        return 1
-    fi
-    rm -f "$HOME/.cache/dotfiles/status" "$HOME/.cache/dotfiles/notified-sha"
+    ""$repo/stow/cli/.local/bin/dotfiles"" --update || return 1
     exec zsh
 }
 
