@@ -7,7 +7,7 @@ caching is unaffected):
 
   1. Paseo plugins  — ~/Projects/personal/paseo-plugins/*/  (paseo-plugin.json + README)
   2. Pi extensions  — ~/.pi/agent/extensions/*/index.ts (first doc comment) + root *.ts
-  3. Shared skills  — ~/.agents/skills/*/SKILL.md (frontmatter description)
+  3. Shared skills  — ~/.agents/skills/*/SKILL.md + ~/.pi/agent/skills/paseo/*/SKILL.md (frontmatter description)
 
 Run from setup/paseo.sh and setup/pi.sh. The manifest is a
 build artifact: staleness is fixed by regenerating, never by hand-editing.
@@ -24,6 +24,7 @@ HOME = Path.home()
 PLUGINS_DIR = HOME / "Projects/personal/paseo-plugins"
 EXTENSIONS_DIR = HOME / ".pi/agent/extensions"
 SKILLS_DIR = HOME / ".agents/skills"
+PASEO_SKILLS_DIR = HOME / ".pi/agent/skills/paseo"
 OUT_FILE = HOME / ".agents/capabilities.md"
 
 VERIFY_PATHS = [
@@ -124,10 +125,11 @@ def skill_description(skill_md: Path) -> str:
 
 def skills() -> list[str]:
     rows = []
-    for skill_dir in sorted(SKILLS_DIR.iterdir()) if SKILLS_DIR.is_dir() else []:
-        skill_md = skill_dir / "SKILL.md"
-        if skill_md.is_file():
-            rows.append(f"| `{skill_dir.name}` | {skill_description(skill_md) or '—'} |")
+    for base in (SKILLS_DIR, PASEO_SKILLS_DIR):
+        for skill_dir in sorted(base.iterdir()) if base.is_dir() else []:
+            skill_md = skill_dir / "SKILL.md"
+            if skill_md.is_file():
+                rows.append(f"| `{skill_dir.name}` | {skill_description(skill_md) or '—'} |")
     return rows
 
 
