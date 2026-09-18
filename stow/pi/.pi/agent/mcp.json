@@ -13,6 +13,12 @@
       "lifecycle": "keep-alive",
       "directTools": true
     },
+    "higgins-writer": {
+      "command": "higgins-writer",
+      "args": ["mcp"],
+      "lifecycle": "keep-alive",
+      "directTools": true
+    },
     "deja": {
       "command": "deja",
       "args": [
