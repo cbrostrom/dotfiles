@@ -40,12 +40,6 @@
       "ref": "main"
     },
     {
-      "id": "mcporter-pill",
-      "repo": "bybrostrom/paseo-plugins",
-      "path": "mcporter-pill",
-      "ref": "main"
-    },
-    {
       "id": "bash-slash",
       "repo": "bybrostrom/paseo-plugins",
       "path": "bash-slash",
