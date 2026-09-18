@@ -11,7 +11,10 @@
         "mcp"
       ],
       "lifecycle": "keep-alive",
-      "directTools": true
+      "directTools": true,
+      "env": {
+        "HIGGINS_READ_ONLY": "1"
+      }
     },
     "higgins-writer": {
       "command": "higgins-writer",
