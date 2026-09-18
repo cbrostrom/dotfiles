@@ -1,55 +1,61 @@
 {
-  "$schema": "https://raw.githubusercontent.com/openclaw/mcporter/main/mcporter.schema.json",
-  "mcpServers": {
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "lifecycle": "keep-alive"
-    },
-    "codebase-memory-mcp": {
-      "command": "/Users/Christian.Brostrom/.local/bin/codebase-memory-mcp",
-      "args": [],
-      "lifecycle": "keep-alive"
-    },
-    "paseo-steps-viewer": {
-      "command": "node",
-      "args": [
-        "${HOME}/dotfiles/sources/paseo/plugins/paseo-steps-viewer/bin/mcp-stdio.mjs"
-      ],
-      "lifecycle": "keep-alive",
-      "_note": "Runs from the dotfiles-deployed plugin copy (deps verified: @modelcontextprotocol/sdk 1.30.0, zod 4.6.2 in its node_modules). Same tmp index as the Paseo-injected MCP server, so both sides share documents. Tools: save_steps, update_steps, list_steps, list_capabilities."
-    },
-    "shopify-dev-mcp": {
-      "command": "npx",
-      "args": ["-y", "@shopify/dev-mcp@latest"],
-      "lifecycle": "keep-alive"
-    },
-    "dockhand-linuxbro": {
-      "baseUrl": "http://100.100.1.100:8092/mcp"
-    },
-    "dockhand-superbro": {
-      "baseUrl": "http://100.100.1.50:8080/mcp"
-    },
-    "atlassian-fiskars": {
-      "baseUrl": "https://mcp.atlassian.com/v1/sse",
-      "tokenCacheDir": "${HOME}/.mcporter/tokens/atlassian-fiskars",
-      "oauthRedirectUrl": "http://127.0.0.1:65432/callback",
-      "auth": "oauth",
-      "disabled": true,
-      "_note": "Fiskars org admin restricts OAuth redirect URL allowlist. Fixed redirect http://127.0.0.1:65432/callback still needs org admin allowlist for fiskars.atlassian.net."
-    },
-    "atlassian-akqa": {
-      "baseUrl": "https://mcp.atlassian.com/v1/sse",
-      "auth": "oauth",
-      "tokenCacheDir": "${HOME}/.mcporter/tokens/atlassian-akqa",
-      "lifecycle": "keep-alive"
-    },
-    "cloudflare-dns-superbro": {
-      "command": "${HOME}/.pi/agent/scripts/cloudflare-dns-mcp.sh",
-      "env": {
-        "CLOUDFLARE_ZONE_ID": "d527e17ef5e6ccbeb3b7e48478624ee0"
-      },
-      "lifecycle": "keep-alive"
-    }
+ "$schema": "https://raw.githubusercontent.com/openclaw/mcporter/main/mcporter.schema.json",
+ "mcpServers": {
+  "github": {
+   "command": "npx",
+   "args": [
+    "-y",
+    "@modelcontextprotocol/server-github"
+   ],
+   "lifecycle": "keep-alive"
+  },
+  "codebase-memory-mcp": {
+   "command": "/Users/Christian.Brostrom/.local/bin/codebase-memory-mcp",
+   "args": [],
+   "lifecycle": "keep-alive"
+  },
+  "paseo-steps-viewer": {
+   "command": "node",
+   "args": [
+    "${HOME}/dotfiles/sources/paseo/plugins/paseo-steps-viewer/bin/mcp-stdio.mjs"
+   ],
+   "lifecycle": "keep-alive",
+   "_note": "Runs from the dotfiles-deployed plugin copy (deps verified: @modelcontextprotocol/sdk 1.30.0, zod 4.6.2 in its node_modules). Same tmp index as the Paseo-injected MCP server, so both sides share documents. Step-ledger tools: next_step, complete_step, amend_step, add_step, drop_step, step_status + save_steps/update_steps/list_steps/list_capabilities. Doc convention: '## Step N \u2014 Title [pending|active|done|blocked]' with '> result DD-MM-YYYY:' note blocks; pair with the stepwise skill."
+  },
+  "shopify-dev-mcp": {
+   "command": "npx",
+   "args": [
+    "-y",
+    "@shopify/dev-mcp@latest"
+   ],
+   "lifecycle": "keep-alive"
+  },
+  "dockhand-linuxbro": {
+   "baseUrl": "http://100.100.1.100:8092/mcp"
+  },
+  "dockhand-superbro": {
+   "baseUrl": "http://100.100.1.50:8080/mcp"
+  },
+  "atlassian-fiskars": {
+   "baseUrl": "https://mcp.atlassian.com/v1/sse",
+   "tokenCacheDir": "${HOME}/.mcporter/tokens/atlassian-fiskars",
+   "oauthRedirectUrl": "http://127.0.0.1:65432/callback",
+   "auth": "oauth",
+   "disabled": true,
+   "_note": "Fiskars org admin restricts OAuth redirect URL allowlist. Fixed redirect http://127.0.0.1:65432/callback still needs org admin allowlist for fiskars.atlassian.net."
+  },
+  "atlassian-akqa": {
+   "baseUrl": "https://mcp.atlassian.com/v1/sse",
+   "auth": "oauth",
+   "tokenCacheDir": "${HOME}/.mcporter/tokens/atlassian-akqa",
+   "lifecycle": "keep-alive"
+  },
+  "cloudflare-dns-superbro": {
+   "command": "${HOME}/.pi/agent/scripts/cloudflare-dns-mcp.sh",
+   "env": {
+    "CLOUDFLARE_ZONE_ID": "d527e17ef5e6ccbeb3b7e48478624ee0"
+   },
+   "lifecycle": "keep-alive"
   }
+ }
 }
