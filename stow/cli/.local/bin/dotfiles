@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# dotfiles <plan|apply|remove> [profile] — thin wrapper around stow.sh.
+# dotfiles <plan|apply|remove> [profile] | dotfiles --update
+# Thin wrapper around stow.sh, plus updater via --update.
+# --update: pull dotfiles (--ff-only), syntax-check the new .zshrc, clear the
+# auto-update notification state. Reloading the shell is the caller's job
+# (the zsh dotfiles-update function re-execs; other shells should exec zsh).
 # Resolves the repository from this file's real target, so it works with any
 # clone path (~/dotfiles, ~/system/dotfiles, …) through the Stow symlink.
 set -euo pipefail
@@ -7,5 +11,25 @@ set -euo pipefail
 SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 # bin -> .local -> cli -> stow -> repo root
 DOTFILES_DIR="$(cd "$(dirname "$SELF")/../../../.." && pwd)"
+
+if [[ "${1:-}" == "--update" ]]; then
+    git_bin="${DOTFILES_GIT_BIN:-git}"
+
+    (cd "$DOTFILES_DIR" && "$git_bin" pull --ff-only --quiet) \
+        || { echo "dotfiles pull failed" >&2; exit 1; }
+
+    if command -v zsh >/dev/null 2>&1; then
+        if ! zsh -n "$DOTFILES_DIR/zsh/.zshrc" 2>/dev/null; then
+            echo "warning: new .zshrc has syntax errors — fix before applying" >&2
+            exit 1
+        fi
+    else
+        echo "warning: zsh not found — skipped .zshrc syntax check" >&2
+    fi
+
+    rm -f "$HOME/.cache/dotfiles/status" "$HOME/.cache/dotfiles/notified-sha"
+    echo "dotfiles updated — restart your shell (exec zsh) to load changes"
+    exit 0
+fi
 
 exec "$DOTFILES_DIR/stow.sh" "$@"
