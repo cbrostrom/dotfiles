@@ -19,7 +19,7 @@ if [[ "${1:-}" == "--update" ]]; then
         || { echo "dotfiles pull failed" >&2; exit 1; }
 
     if command -v zsh >/dev/null 2>&1; then
-        if ! zsh -n "$DOTFILES_DIR/zsh/.zshrc" 2>/dev/null; then
+        if ! zsh -n "$DOTFILES_DIR/stow/zsh/.zshrc" 2>/dev/null; then
             echo "warning: new .zshrc has syntax errors — fix before applying" >&2
             exit 1
         fi
