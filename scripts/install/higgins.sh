@@ -31,9 +31,9 @@ WRAPPER="$BIN_DIR/higgins"
 
 # Writer mode: HIGGINS_ROLE=write-through also installs a `higgins-writer`
 # wrapper that proxies MCP stdio over SSH to the canonical writer VM
-# (higgs-writer, direct higgins@ ssh). Reads stay local on the Mac.
+# (higgins-writer, direct higgins@ ssh). Reads stay local on the Mac.
 HIGGINS_ROLE="${HIGGINS_ROLE:-local}"
-HIGGINS_WRITER_HOST="${HIGGINS_WRITER_HOST:-higgs-writer-brain}"
+HIGGINS_WRITER_HOST="${HIGGINS_WRITER_HOST:-higgins-writer-brain}"
 HIGGINS_WRITER_BIN="${HIGGINS_WRITER_BIN:-/home/higgins/.local/bin/higgins}"
 WRITER_WRAPPER="$BIN_DIR/higgins-writer"
 
