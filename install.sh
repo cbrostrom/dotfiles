@@ -51,14 +51,16 @@ case "$profile" in
         ;;
     cloudbro)
         "$ROOT/scripts/install/higgins.sh"
+        "$ROOT/scripts/install/syncthing.sh"
         "$ROOT/scripts/install/rtk.sh"
         "$ROOT/scripts/install/deja.sh"
         "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/setup/pi.sh"
         PASEO_RELAY=on "$ROOT/setup/paseo.sh"
         ;;
-    server) 
-        "$ROOT/scripts/install/higgins.sh"
+    server)
+        HIGGINS_ROLE=write-through "$ROOT/scripts/install/higgins.sh"
+        "$ROOT/scripts/install/syncthing.sh"
         "$ROOT/scripts/install/rtk.sh"
         "$ROOT/scripts/install/deja.sh"
         "$ROOT/scripts/install/npm-globals.sh"
