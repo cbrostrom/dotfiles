@@ -91,3 +91,4 @@ tui/scripts/
 # Build/cache artifacts
 .build/
 __pycache__/
+.pi/
