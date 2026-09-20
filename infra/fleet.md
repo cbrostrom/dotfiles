@@ -196,6 +196,26 @@ paseo --host ssh://monsterbro run --provider codex/gpt-5.4 \
 bash ~/dotfiles/scripts/install/ssh-superbro.sh
 ```
 
+## Recovery playbook (LinuxBro 2026-09-20)
+
+- **No more load-driven reboots.** Watchdog runs `softdog` at
+  `/dev/watchdog1` with thresholds 120/90/60; the `immich-sync.service`
+  crash loop that fed the old watchdog trips is retired (unit renamed
+  `.disabled`). See `docs/server-provisioning.md` §9.
+- **Boot-order repair.** `linuxbro-boot-repair.service` re-attaches Docker
+  containers whose endpoints failed at boot; check
+  `journalctl -u linuxbro-boot-repair` when you see unreachable services or
+  530s on tunnel routes. See `docs/server-provisioning.md` §10.
+- **WUD upgrader.** Runs `9.1.0`, watches containers, auto-updates with
+  `wud.trigger.exclude=docker.local` on itself + watchdog. UI at
+  `wud-lab.superbro.dk` (Tailscale-only). Compose canonical in Dockhand
+  stack `wud` (not the live path outside `_tooling/wud`).
+- **Dockhand rule.** Never raw `docker compose up` over SSH — always via
+  `dockhand-linuxbro` MCP (`update_stack_compose`, `restart_stack`,
+  `restart_container`, ...).
+- **`repo-sync` intentionally stopped** on LinuxBro until config corrected —
+  do not start it with automation.
+
 ## Related files
 
 | File | Purpose |
