@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# PI-ACP shim — launches the globally pinned pi-acp adapter with node on PATH.
+# ponytail: Zed (GUI) spawns this without any shell profile, so fnm/npm-global
+# paths must be reconstructed here. Keeps the pi-acp version pinned to the
+# npm-global install instead of `npx -y pi-acp` fetching latest on every launch.
+#
+# The spawned pi binary is resolved by pi-acp via PI_ACP_PI_COMMAND
+# (set in Zed's agent config to ~/.local/bin/pi), so pi and pi-acp
+# version independently but deterministically.
+
+# Node >= 22 is required by pi. Prefer the fnm default install.
+if [[ -d "$HOME/Library/Application Support/fnm/node-versions" ]]; then
+    _fnm_dir="$HOME/Library/Application Support/fnm/node-versions"
+elif [[ -n "${FNM_DIR:-}" && -d "${FNM_DIR}/node-versions" ]]; then
+    _fnm_dir="${FNM_DIR}/node-versions"
+else
+    _fnm_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fnm/node-versions"
+fi
+
+_fnm_root="$(dirname "$_fnm_dir")"
+_default_install="$(readlink "$_fnm_root/aliases/default" 2>/dev/null)"
+[[ -d "$_default_install/bin" ]] && export PATH="$_default_install/bin:$_default_install/installation/bin:$PATH"
+
+# npm global prefix (where pi-acp lives) + its bin for the launcher script.
+export PATH="$HOME/.npm-global/bin:$PATH"
+
+exec "$HOME/.npm-global/lib/node_modules/pi-acp/dist/index.js" "$@"
