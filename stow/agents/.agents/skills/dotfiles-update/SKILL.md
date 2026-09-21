@@ -23,20 +23,36 @@ Do not pull over local changes. Review Stow conflicts before applying.
 ## Remote profiles
 
 ```sh
-ssh linuxbro 'git -C ~/dotfiles pull --ff-only && ~/dotfiles/install.sh server'
-ssh superbro 'git -C ~/dotfiles pull --ff-only && ~/dotfiles/install.sh server'
-ssh monsterbro 'git -C ~/dotfiles pull --ff-only && ~/dotfiles/install.sh wsl'
-ssh cloudbro 'git -C ~/dotfiles pull --ff-only && ~/dotfiles/install.sh cloudbro'
+./scripts/system/fleet-update.sh --list
+./scripts/system/fleet-update.sh                 # all configured targets
+./scripts/system/fleet-update.sh --host linuxbro # one target
 ```
 
-Skip unreachable machines. Do not install standalone OpenCode; OpenCode Go is a
-Pi model provider configured by `setup/pi/settings.py`.
+The updater uses key-only SSH, refuses dirty or locally-ahead repositories,
+fast-forwards only, previews Stow changes, runs `install.sh`, applies an optional
+`setup/hosts/<name>.sh` hook, and finishes with `scripts/doctor.sh`. It continues
+after unreachable or failed hosts, writes separate logs under
+`~/.local/state/dotfiles/fleet/`, and exits non-zero if any host failed.
+
+Do not bypass a failed stage with reset, stash, force, or an agent-authored
+repair. Inspect that host's log and resolve the cause explicitly. Do not install
+standalone OpenCode; OpenCode Go is a Pi model provider configured by
+`setup/pi/settings.py`.
+
+## Alerts
+
+Failures trigger a local macOS notification. For another channel, point
+`DOTFILES_FLEET_NOTIFY_CMD` at an executable. It receives `status`, `summary`,
+and `run-directory` arguments. Keep webhook tokens and other credentials outside
+the repository.
 
 ## Verification
 
 ```sh
 ./stow.sh plan <profile>
+./scripts/doctor.sh <profile>
 ```
 
-A successful simulation must report no conflicts. Verify machine-specific
-services separately because Stow owns links, not runtime state.
+A successful simulation must report no conflicts and doctor must report zero
+errors. Verify machine-specific services separately because Stow owns links,
+not runtime state.
