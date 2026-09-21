@@ -186,6 +186,35 @@ paseo --host ssh://monsterbro run --provider codex/gpt-5.4 \
   --cwd ~/dotfiles "Run ./scripts/doctor.sh; failures only"
 ```
 
+## Dotfiles fleet updates
+
+The Mac control plane updates the unique targets in `FLEET_DOTFILES_HOSTS`.
+`monsterbro-wsl` is intentionally excluded because it aliases `monsterbro`.
+CloudBro should be added only after its canonical `FLEET_SSH` entry and key-only
+SSH access exist.
+
+```bash
+./scripts/system/fleet-update.sh --list
+./scripts/system/fleet-update.sh
+./scripts/system/fleet-update.sh --host linuxbro --host superbro
+```
+
+Each host transaction acquires a non-blocking `flock`, refuses a dirty,
+detached, divergent, or locally-ahead checkout, fetches and fast-forwards its
+tracking branch, previews Stow, runs `install.sh`, applies an optional tracked
+`setup/hosts/<name>.sh`, and runs `scripts/doctor.sh`. One failure does not stop
+later hosts. Logs live under `~/.local/state/dotfiles/fleet/<run>/` on the
+control plane.
+
+Failures produce a terminal summary and a macOS notification. Set
+`DOTFILES_FLEET_NOTIFY_CMD` to an executable for another notification channel;
+it receives `failure`, the summary, and the run directory. Store webhook tokens
+and credentials outside this repository.
+
+Host hooks are for idempotent, tracked, non-secret configuration. Runtime state,
+credentials, and genuine machine-local overrides remain outside Git. See
+`setup/hosts/README.md` for the hook contract.
+
 ## Maintenance
 
 ```bash
@@ -220,8 +249,11 @@ bash ~/dotfiles/scripts/install/ssh-superbro.sh
 
 | File | Purpose |
 |------|---------|
-| `config/fleet-hosts.conf` | SSH + role source of truth |
+| `config/fleet-hosts.conf` | SSH, role, and unique update-target source of truth |
 | `infra/infra.html` | Browser-readable fleet dashboard |
 | `scripts/install/ssh-superbro.sh` | Idempotent SSH blocks + keyscan |
+| `scripts/system/fleet-update.sh` | Fleet controller, logs, summaries, and alerts |
+| `scripts/system/fleet-apply.sh` | Streamed, locked remote update transaction |
+| `setup/hosts/README.md` | Optional tracked host-configuration contract |
 | `zsh/03-aliases.zsh` | Interactive `superbro`, `linuxbro`, `monsterbro` |
-| `stow/agents/.agents/skills/dotfiles-update/SKILL.md` | Propagation commands per host |
+| `stow/agents/.agents/skills/dotfiles-update/SKILL.md` | Safe local and fleet update workflow |
