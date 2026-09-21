@@ -28,9 +28,9 @@
       "ref": "main"
     },
     {
-      "id": "handover-slash",
+      "id": "digest",
       "repo": "bybrostrom/paseo-plugins",
-      "path": "handover-slash",
+      "path": "digest",
       "ref": "main"
     },
     {
