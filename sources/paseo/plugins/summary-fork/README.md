@@ -1,40 +1,37 @@
-# summary-fork
+# Handover (plugin id: summary-fork)
 
-Paseo plugin that forks a chat into a fresh conversation — same workspace (new tab) or a new isolated workspace — using a model-generated, editable summary. No Paseo patching, no temporary files.
+Paseo plugin: **Handover** — press the Handover pill (or `/handover <focus>`)
+to hand the current agent's task to a fresh conversation.
 
 ## Flow
 
-1. **Fork** pill opens a menu:
-   - **Fork in a new tab** — new agent in the same workspace (target pre-selected in the panel).
-   - **Fork in a new workspace** — new `branch-off` worktree workspace (falls back to a plain directory workspace when the source checkout is not a git repo).
-   - ⌘K "Fork with summary" also opens the panel.
-2. Pick target: New tab / New workspace (pre-selected from the menu, changeable).
-3. Pick scope: since last compaction (default) / full / last 10-25-50 turns.
-3. Optional focus instructions.
-4. **Generate summary** — a throwaway auto-archived summarizer agent (host-scoped model setting, default `opencode-go/glm-5.3-flash`) reads a bounded text-only transcript and returns a structured handoff.
-5. Edit the preview.
-6. Optional **Save durable decisions to Higgins** (off by default; decisions/gotchas/blockers only).
-7. **Create fork** — new agent, same provider/model/mode/thinking, receiving only the summary as a persisted virtual text attachment (`contextKind: "fork-summary"`). The panel opens the new tab, or the new workspace.
+1. **Handover** pill opens a menu:
+   - **Handover in a new tab** — new agent in the same workspace.
+   - **Handover in a new workspace** — new `branch-off` worktree workspace (falls back to a plain directory workspace when the source checkout is not a git repo).
+   - ⌘K "Handover" also opens the panel; `/handover <focus>` opens it with focus prefilled.
+2. Pick target, scope (since last compaction / full / last N turns) and optional focus instructions.
+3. **Generate handover summary** — a throwaway auto-archived summarizer agent (host-scoped model setting, default `opencode-go/glm-5.3-flash`) reads a bounded text-only transcript and returns a structured handoff. A stuck run is cut off after 4 minutes and shows a clear error.
+4. Edit the preview.
+5. Optional **Save durable decisions to Higgins** (off by default).
+6. **Create handover** — the approved summary is
+   - written to the daemon artifact copy under `~/.paseo/handoffs/` (7-day retention),
+   - attached to the receiving agent (so a missing file never loses the handover),
+   - referenced by path in the receiving agent's prompt.
+7. The new agent opens automatically (new tab or new workspace). The source agent stays intact.
 
-## Token and cache discipline
+## Continuity rules
 
-- The source chat is never touched, so its prompt cache stays intact.
-- Transcript is fetched once from the timeline RPC (max 3 pages), filtered to user/assistant text only (no tool results or reasoning), and hard-capped (default 120 KB, oldest turns trimmed first).
-- The fork chat starts with only the summary attachment.
-- The summarizer is one cheap-model pass; its agent auto-archives after the run.
+- The default scope **includes the latest completed compaction summary** — it is
+  the context of everything before it, so dropping it lost all pre-compaction
+  history.
+- Receiving-agent model copying only applies to model-policy-approved models;
+  otherwise the receiver starts on the Pi default and `model-policy-guard`
+  reverts any blocked selection before a request is sent.
 
-## Settings
+## Internal name
 
-Settings → Plugins → summary-fork (host-scoped):
-
-| Setting | Default |
-| --- | --- |
-| Summarizer model | `opencode-go/glm-5.3-flash` |
-| Transcript byte cap | 120000 |
-
-## Limits
-
-This is a semantic fork, not Pi's exact JSONL branch copy. Use Pi's native `/fork` in a TUI when exact branch ancestry matters.
+The plugin id and directory remain `summary-fork` for install-path stability;
+every user-facing surface is named Handover.
 
 ## Install
 
@@ -46,7 +43,6 @@ paseo plugin reload summary-fork
 ## Test
 
 ```bash
-cd ~/dotfiles/.config/paseo/plugins/summary-fork
 npm install
 npm test
 npm run typecheck

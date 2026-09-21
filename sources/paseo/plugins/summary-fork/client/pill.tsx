@@ -14,52 +14,61 @@ const RECONCILE_MS = 30_000;
  */
 export let pendingForkTarget: "tab" | "workspace" = "tab";
 
+/** Optional focus instructions passed by the /handover slash command. */
+export let pendingFocus = "";
+
+/** Preselects the handover target for the next panel mount. */
+export function primeHandover(target: "tab" | "workspace", focus: string): void {
+  pendingForkTarget = target;
+  pendingFocus = focus;
+}
+
 /**
- * One Fork pill per agent. Registered idempotently from the agent directory
+ * One Handover pill per agent. Registered idempotently from the agent directory
  * and reconciled on a short interval, so the pill reappears after daemon
  * reloads or reconnects even when no agent update arrives (the owned
  * `list({ subscribe: {} })` observation is not available in the 0.8.0 SDK).
  */
-export function contributeForkPills(client: PluginClientContext) {
+export function contributeHandoverPills(client: PluginClientContext) {
   const pills = new Map<string, PluginButtonRegistration>();
   let stopped = false;
 
   function register(agentId: string, workspaceId: string) {
     if (pills.has(agentId)) return;
     const contribution = {
-      id: "fork",
+      id: "handover",
       workspaceId,
       agentId,
       button: {
-        title: "Fork with summary",
+        title: "Handover",
         icon: "GitFork",
-        label: "Fork",
+        label: "Handover",
         behavior: {
           kind: "menu",
           items: [
             {
               kind: "item",
-              id: "fork-tab",
-              title: "Fork in a new tab",
+              id: "handover-tab",
+              title: "Handover in a new tab",
               icon: "GitFork",
               behavior: {
                 kind: "action",
                 onPress() {
-                  pendingForkTarget = "tab";
-                  client.openPanel("fork", { workspaceId, agentId });
+                  primeHandover("tab", "");
+                  client.openPanel("handover", { workspaceId, agentId });
                 },
               },
             },
             {
               kind: "item",
-              id: "fork-workspace",
-              title: "Fork in a new workspace",
+              id: "handover-workspace",
+              title: "Handover in a new workspace",
               icon: "GitFork",
               behavior: {
                 kind: "action",
                 onPress() {
-                  pendingForkTarget = "workspace";
-                  client.openPanel("fork", { workspaceId, agentId });
+                  primeHandover("workspace", "");
+                  client.openPanel("handover", { workspaceId, agentId });
                 },
               },
             },
