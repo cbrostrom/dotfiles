@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tailnet Access Plan — Superbro Fleet (Approved)</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#c9d1d9; --dim:#8b949e; --green:#3fb950; --red:#f85149; --amber:#d29922; --blue:#58a6ff; --purple:#bc8cff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; padding:24px; }
+  h1 { font-size:22px; border-bottom:1px solid var(--border); padding-bottom:12px; }
+  h2 { font-size:17px; margin-top:32px; color:var(--blue); }
+  .dim { color:var(--dim); }
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px 20px; margin:16px 0; }
+  table { border-collapse:collapse; width:100%; margin:12px 0; }
+  th,td { border:1px solid var(--border); padding:6px 10px; text-align:left; font-size:13px; }
+  th { background:var(--panel); color:var(--dim); font-weight:600; }
+  svg text { font-family:-apple-system,sans-serif; }
+  .legend { display:flex; gap:20px; flex-wrap:wrap; margin-top:8px; font-size:12px; color:var(--dim); }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  code { background:var(--border); padding:1px 5px; border-radius:4px; font-size:12px; }
+  ul,ol { padding-left:20px; }
+  li { margin:4px 0; }
+  .note { border-left:3px solid var(--amber); padding:8px 14px; background:rgba(210,153,34,.06); border-radius:0 6px 6px 0; margin:10px 0; }
+  .ok { color:var(--green); font-weight:600; }
+  .no { color:var(--red); font-weight:600; }
+</style>
+</head>
+<body>
+
+<h1>Tailnet Access Plan — Superbro Fleet</h1>
+<p class="dim">Approved spec 21-09-2026 · companion to <code>docs/tailnet-access-plan.md</code> · documentation only, nothing applied yet · execution order: 1 → 2 → 5 → 3 → 4 → 6</p>
+
+<div class="panel">
+<h2 style="margin-top:0">Fleet graph — approved target state</h2>
+<svg viewBox="0 0 940 620" width="100%" style="max-width:940px">
+  <defs>
+    <marker id="ag" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#3fb950"/></marker>
+    <marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#f85149"/></marker>
+    <marker id="ab" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#58a6ff"/></marker>
+  </defs>
+
+  <g font-size="13">
+    <!-- Mobile pilots -->
+    <rect x="40" y="60" width="130" height="50" rx="10" fill="#1c2128" stroke="#58a6ff" stroke-width="1.5"/>
+    <text x="105" y="82" text-anchor="middle" fill="#c9d1d9" font-weight="700">iPhone</text>
+    <text x="105" y="98" text-anchor="middle" fill="#8b949e" font-size="10">pilot · user device</text>
+
+    <rect x="40" y="140" width="130" height="50" rx="10" fill="#1c2128" stroke="#58a6ff" stroke-width="1.5"/>
+    <text x="105" y="162" text-anchor="middle" fill="#c9d1d9" font-weight="700">iPad</text>
+    <text x="105" y="178" text-anchor="middle" fill="#8b949e" font-size="10">pilot · user device</text>
+
+    <!-- Mac -->
+    <rect x="230" y="80" width="170" height="60" rx="10" fill="#1c2128" stroke="#58a6ff" stroke-width="2"/>
+    <text x="315" y="105" text-anchor="middle" fill="#c9d1d9" font-weight="700">Mac</text>
+    <text x="315" y="123" text-anchor="middle" fill="#8b949e" font-size="11">pilot · control plane · .20</text>
+
+    <!-- MonsterBro Windows + WSL -->
+    <rect x="230" y="220" width="170" height="60" rx="10" fill="#1c2128" stroke="#58a6ff" stroke-width="1.5"/>
+    <text x="315" y="245" text-anchor="middle" fill="#c9d1d9" font-weight="700">MonsterBro Win</text>
+    <text x="315" y="263" text-anchor="middle" fill="#8b949e" font-size="11">pilot · RDP :3389 · .250</text>
+
+    <rect x="230" y="330" width="170" height="60" rx="10" fill="#1c2128" stroke="#d29922" stroke-width="1.5"/>
+    <text x="315" y="355" text-anchor="middle" fill="#c9d1d9" font-weight="700">MonsterBro WSL</text>
+    <text x="315" y="373" text-anchor="middle" fill="#8b949e" font-size="11">workstation · Paseo/Pi · .255</text>
+
+    <!-- Servers -->
+    <rect x="620" y="80" width="180" height="60" rx="10" fill="#1c2128" stroke="#3fb950" stroke-width="2"/>
+    <text x="710" y="105" text-anchor="middle" fill="#c9d1d9" font-weight="700">LinuxBro</text>
+    <text x="710" y="123" text-anchor="middle" fill="#8b949e" font-size="11">server NUC · :27789 · .100</text>
+
+    <rect x="620" y="230" width="180" height="60" rx="10" fill="#1c2128" stroke="#3fb950" stroke-width="2"/>
+    <text x="710" y="255" text-anchor="middle" fill="#c9d1d9" font-weight="700">SuperBro</text>
+    <text x="710" y="273" text-anchor="middle" fill="#8b949e" font-size="11">server VPS · :27789 · .50</text>
+
+    <!-- CloudBro orchestrator -->
+    <rect x="620" y="390" width="180" height="60" rx="10" fill="#1c2128" stroke="#bc8cff" stroke-width="2"/>
+    <text x="710" y="415" text-anchor="middle" fill="#c9d1d9" font-weight="700">CloudBro</text>
+    <text x="710" y="433" text-anchor="middle" fill="#8b949e" font-size="11">orchestrator · :27789 · .11</text>
+
+    <!-- Internet label -->
+    <text x="710" y="60" text-anchor="middle" fill="#f85149" font-size="11">public :22 → closed (D3)</text>
+    <line x1="710" y1="66" x2="710" y2="76" stroke="#f85149" stroke-width="2"/>
+  </g>
+
+  <!-- Pilot grants: green -->
+  <g stroke="#3fb950" stroke-width="2" fill="none">
+    <line x1="400" y1="100" x2="615" y2="100" marker-end="url(#ag)"/>
+    <line x1="400" y1="115" x2="615" y2="245" marker-end="url(#ag)"/>
+    <line x1="400" y1="250" x2="615" y2="255" marker-end="url(#ag)"/>
+    <line x1="170" y1="85"  x2="225" y2="95"  marker-end="url(#ag)"/>
+    <line x1="170" y1="165" x2="225" y2="115" marker-end="url(#ag)"/>
+    <line x1="400" y1="130" x2="615" y2="410" marker-end="url(#ag)" stroke-dasharray="4 3"/>
+  </g>
+
+  <!-- Orchestrator grants: purple -->
+  <g stroke="#bc8cff" stroke-width="2" fill="none">
+    <line x1="620" y1="420" x2="590" y2="420" />
+    <path d="M 620 420 C 560 420 560 280 615 268" marker-end="url(#ab)"/>
+    <path d="M 620 405 C 570 360 640 160 618 120" marker-end="url(#ab)"/>
+  </g>
+
+  <!-- WSL workstation ssh: amber -->
+  <g stroke="#d29922" stroke-width="2" fill="none">
+    <line x1="400" y1="360" x2="615" y2="425" marker-end="url(#ag)"/>
+  </g>
+
+  <!-- Denied: server to server, red dashed -->
+  <g stroke="#f85149" stroke-width="2" fill="none" stroke-dasharray="6 4">
+    <line x1="660" y1="145" x2="660" y2="225" marker-end="url(#ar)"/>
+    <line x1="760" y1="295" x2="760" y2="385" marker-end="url(#ar)"/>
+  </g>
+
+  <text x="470" y="90"  fill="#3fb950" font-size="10">ssh :27789 + web UIs</text>
+  <text x="470" y="268" fill="#3fb950" font-size="10">ssh + web UIs</text>
+  <text x="440" y="410" fill="#3fb950" font-size="10">ssh :27789</text>
+  <text x="440" y="448" fill="#d29922" font-size="10">agent ssh :27789</text>
+  <text x="545" y="345" fill="#bc8cff" font-size="10">maintenance: ssh + dockhand MCP</text>
+  <text x="668" y="190" fill="#f85149" font-size="10">denied</text>
+  <text x="768" y="345" fill="#f85149" font-size="10">denied</text>
+
+  <g class="legend" transform="translate(40,560)">
+    <span><svg width="34" height="10"><line x1="0" y1="5" x2="30" y2="5" stroke="#3fb950" stroke-width="2"/></svg> pilots → servers (ssh + web UI)</span>
+    <span><svg width="34" height="10"><line x1="0" y1="5" x2="30" y2="5" stroke="#bc8cff" stroke-width="2"/></svg> CloudBro orchestrator grants</span>
+    <span><svg width="34" height="10"><line x1="0" y1="5" x2="30" y2="5" stroke="#f85149" stroke-width="2" stroke-dasharray="6 4"/></svg> denied (structural, D8)</span>
+  </g>
+  <text x="40" y="600" fill="#8b949e" font-size="11">Tailscale SSH (check mode) from any personal device = break-glass recovery to all servers. Blue = pilot · amber = workstation · green = server · purple = orchestrator</text>
+</svg>
+</div>
+
+<div class="panel">
+<h2 style="margin-top:0">ACL matrix (approved)</h2>
+<table>
+<tr><th>Source</th><th>Destination</th><th>Allowed</th></tr>
+<tr><td><code>group:pilots</code> — Mac, iPhone, iPad, MonsterBro Win</td><td><code>tag:server</code></td><td class="ok">SSH :27789 · web UIs (dockhand 8080/8092, Plex, Immich, *arr, WUD) · RDP :3389 → .250</td></tr>
+<tr><td><code>autogroup:member</code> — Tailscale SSH, check mode</td><td><code>tag:server</code></td><td class="ok">break-glass SSH, nonroot + root, periodic re-auth (D4)</td></tr>
+<tr><td><code>tag:orchestrator</code> — CloudBro</td><td>LinuxBro, SuperBro</td><td class="ok">SSH :27789 + dockhand MCP :8080/:8092 only (D1/D7)</td></tr>
+<tr><td>MonsterBro WSL</td><td><code>tag:server</code></td><td class="ok">agent SSH :27789 (explicit entry, not widened tag)</td></tr>
+<tr><td><code>tag:server</code></td><td>anything</td><td class="no">nothing — structural containment (D8)</td></tr>
+<tr><td>Internet</td><td>SuperBro :22</td><td class="no">closed after tailnet path verified (D3)</td></tr>
+</table>
+</div>
+
+<div class="panel">
+<h2 style="margin-top:0">Keys (approved model)</h2>
+<table>
+<tr><th>Host</th><th>Human key</th><th>Agent key</th><th>Notes</th></tr>
+<tr><td>Mac</td><td><code>id_ed25519_mac</code></td><td><code>agent_mac_ed25519</code></td><td>pilot seat; agents separated</td></tr>
+<tr><td>MonsterBro WSL</td><td><code>id_ed25519_monsterbro</code></td><td><code>agent_monsterbro_ed25519</code></td><td>Paseo/Pi live here (D1)</td></tr>
+<tr><td>LinuxBro / SuperBro</td><td><code>id_ed25519_linuxbro</code> / <code>id_ed25519_superbro</code></td><td>respective agent keys</td><td>accept-only; <code>from=</code> restricted</td></tr>
+<tr><td>CloudBro</td><td class="no">none (D7)</td><td><code>agent_cloudbro_ed25519</code></td><td>orchestrator; agent@ user on targets; rebuildable</td></tr>
+<tr><td>Git (github/bitbucket/gitlab)</td><td colspan="2">dedicated per-service keys</td><td>never reused for server login (D9)</td></tr>
+</table>
+</div>
+
+<div class="panel">
+<h2 style="margin-top:0">Blast radius</h2>
+<table>
+<tr><th>Event</th><th>Lost</th><th>Safe</th><th>Recovery</th></tr>
+<tr><td>Server rooted</td><td>that host</td><td>all private keys, other hosts</td><td>contained by D8; rebuild; rotate outbound agent key</td></tr>
+<tr><td>Workstation infected</td><td>its host + agent key</td><td>Mac key, git keys, other identities</td><td>delete its <code>authorized_keys</code> lines; regenerate</td></tr>
+<tr><td>CloudBro compromised</td><td>maintenance credentials to 2 servers</td><td>human identity, Mac, mobile</td><td>remove agent section + <code>tag:orchestrator</code> grants; rebuild</td></tr>
+<tr><td>Phone lost</td><td>tailnet access from it</td><td>keys (none on phone)</td><td>remove device in admin console; check-mode re-auth bounds stale sessions</td></tr>
+</table>
+<div class="note"><strong>No shared secret code.</strong> Readable by good agents = readable by malware on the same host. Substitute: identity + policy + expiry.</div>
+</div>
+
+<div class="panel">
+<h2 style="margin-top:0">Execution order</h2>
+<ol>
+<li><strong>Phase 1 — Registry:</strong> CloudBro + role column into <code>fleet-hosts.conf</code>.</li>
+<li><strong>Phase 2 — SSH config cleanup (Mac):</strong> one block per host, single IdentityFile, kill grab-bag + duplicates.</li>
+<li><strong>Phase 5 — Tailscale SSH recovery first:</strong> RunSSH on servers, check mode from member devices — the break-glass layer goes live <em>before</em> any door closes.</li>
+<li><strong>Phase 3 — Key migration + SuperBro lockout:</strong> new keys verified over tailnet, then public :22 closed (D3).</li>
+<li><strong>Phase 4 — ACLs:</strong> matrix above applied incrementally with policy <code>tests</code> + probe verification.</li>
+<li><strong>Phase 6 — Dashboard:</strong> script probes every ordered pair (<code>tailscale ping</code> + TCP), regenerates this graph with live latency/state.</li>
+</ol>
+</div>
+
+<div class="panel">
+<h2 style="margin-top:0">Later track</h2>
+<ul>
+<li>Tailscale Serve: HTTPS + MagicDNS names for web UIs (replaces <code>ip:port</code> from iPhone/iPad).</li>
+<li>Short-lived SSH certificates for agents; session recording.</li>
+<li>Fold <code>higgins-writer</code> into agent-key model; stabilize Mac Tailscale client (currently unstable build).</li>
+</ul>
+</div>
+
+</body>
+</html>
