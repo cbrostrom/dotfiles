@@ -142,6 +142,12 @@ export default function modelPolicyGuard(pi: ExtensionAPI) {
 
 	let reverting = false;
 
+	// Restored-session exemption: a session that resumes with a pre-policy model
+	// keeps its stored selection untouched (no revert, no warning). The flag
+	// clears the moment a deliberate new selection ("set"/"cycle") happens, at
+	// which point normal enforcement applies again.
+	let restoredSession = false;
+
 	function findFallback(ctx: Parameters<Parameters<ExtensionAPI["on"]>[1]>[1]) {
 		const hp = policy!.hosts[hostSlug];
 		const candidates = [
@@ -165,6 +171,7 @@ export default function modelPolicyGuard(pi: ExtensionAPI) {
 		previousModel: unknown,
 	) {
 		if (reverting) return;
+		if (restoredSession) return;
 
 		if (isCursorFastVariant(provider, rawId)) {
 			ctx.ui.notify(
@@ -216,6 +223,11 @@ export default function modelPolicyGuard(pi: ExtensionAPI) {
 	}
 
 	pi.on("model_select", async (event, ctx) => {
+		if (event.source === "restore") {
+			restoredSession = true;
+			return;
+		}
+		if (event.source === "set" || event.source === "cycle") restoredSession = false;
 		const model = event.model;
 		if (!model) return;
 		await enforce(model.provider, model.id, ctx, event.previousModel);

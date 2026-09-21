@@ -123,6 +123,65 @@ export default function (pi: ExtensionAPI) {
 		}
 	});
 
+	// Recursion + unbounded-runtime guard for the ctx tools themselves.
+	// Moved here from pi-yaml-hooks: tool.before.ctx_* hooks could not be
+	// validated against custom tool names (load advisories on every session).
+	// Same policy for every provider:
+	//   1. Recursive filesystem scan (grep -r/-R, find, tree, du) without a
+	//      tool `timeout` is rejected; bytes-capped output does NOT bound
+	//      run time.
+	//   2. ssh/wsl inside a ctx tool must (a) never start a never-exiting
+	//      remote program and (b) carry -o ConnectTimeout when the call has
+	//      no timeout.
+	const ctxRecursiveScanRe = /\b(grep -[rR]|find |tree |du )/;
+	const sshLikeRe = /\b(ssh|wsl|wsl\.exe)\b/;
+	const neverExitingRemoteRe = /wscript|cscript|mshta|sleep +infinity|tail +-f|bash +-i|ssh +-t\b/;
+
+	function guardCtxTool(toolName: string, code: string, timeout: unknown): string | undefined {
+		if (!code) return undefined;
+		const unbounded = timeout === undefined || timeout === null;
+
+		if (unbounded && ctxRecursiveScanRe.test(code)) {
+			const hasShellTimeout = /(^|[\s;&])timeout +[0-9]/.test(code);
+			if (!hasShellTimeout) {
+				return "[ctx-guard] recursive filesystem scan (grep -r/-R|find|tree|du) inside a ctx tool without a timeout — pass 'timeout: 120000', or bound the scan (rg --max-time 10 / --max-depth 3, scoped path). Bytes-capped (head/tail) does NOT bound run time.";
+			}
+		}
+
+		if (unbounded) {
+			for (const line of code.split("\n")) {
+				if (sshLikeRe.test(line) && neverExitingRemoteRe.test(line)) {
+					return "[ssh-guard] never-exiting remote program (wscript/cscript/mshta/sleep infinity/tail -f/interactive shell/forced tty) over ssh/wsl — bound it remotely ('timeout <n> <cmd>', 'cmd /c <n> <cmd>') or make it exit. This pattern already orphaned a Paseo agent (unrecoverable cancel bug).";
+				}
+			}
+			if (/\bssh\s/.test(code) && !/ConnectTimeout=[0-9]+/.test(code)) {
+				return "[ssh-guard] ssh without ConnectTimeout and no tool timeout: add '-o ConnectTimeout=10' to each ssh (remote command as arg, no tty, no interactive shell). ssh over SSH hangs forever in RPC tools.";
+			}
+		}
+		return undefined;
+	}
+
+	pi.on("tool_call", (event, ctx) => {
+		try {
+			const toolName = String(event.toolName ?? "");
+			if (toolName === "ctx_execute" || toolName === "ctx_batch_execute") {
+				if (parseEnvBoolean(process.env[DISABLE_ENV], false)) return;
+				const input = event.input as { code?: string; commands?: Array<{ command?: string }>; timeout?: number } | undefined;
+				if (input) {
+					const code =
+						toolName === "ctx_execute"
+							? String(input.code ?? "")
+							: (input.commands ?? []).map((c) => c?.command ?? "").join("\n");
+					const verdict = guardCtxTool(toolName, code, input.timeout);
+					if (verdict) return { block: true, reason: verdict };
+				}
+				return;
+			}
+		} catch {
+			// Never let a guard bug block a legitimate tool call.
+		}
+	});
+
 	// Safety net: if a non-context tool still returns an oversized result
 	// (e.g. an unrecognized command pattern, or a model that ignored the
 	// block above via a differently-shaped call), truncate before it enters

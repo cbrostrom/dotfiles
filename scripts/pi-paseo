@@ -27,6 +27,7 @@ extensions=(
     "$PI_AGENT_DIR/npm/node_modules/@juicesharp/rpiv-todo/index.ts"
     "$PI_AGENT_DIR/npm/node_modules/pi-mcporter/dist/index.js"
     "$DOTFILES_DIR/stow/pi/.pi/agent/extensions/file-search/index.ts"
+    "$PI_AGENT_DIR/extensions/model-policy-guard/index.ts"
     "$PERSONAL_EXTENSIONS/extensions/style/index.ts"
     "$PERSONAL_EXTENSIONS/extensions/unslop/index.ts"
 )
@@ -98,14 +99,18 @@ export PI_BIN="$PI_BIN"
 # block-complete content so Paseo's timeline provider never closes items on
 # markdown-unsafe boundaries (fragment `**→` cards, partial thinking cards).
 # Terminal / non-RPC invocations exit untouched via exec passthrough in the shim.
+# PI_RPC_STREAM_MS=0 (default) = block-complete only: no partial flushes, no
+# half-rendered cards for ANY provider (cursor/copilot/opencode/codex). Set an
+# explicit value to re-enable faster partial streaming if so desired.
 INTERPRETER="$PERSONAL_EXTENSIONS/scripts/pi-rpc-interpreter.mjs"
 if [[ "${PI_PASEO_NO_INTERPRETER:-}" != "1" && -f "$INTERPRETER" ]] && command -v node >/dev/null 2>&1; then
     export PI_RPC_CHILD=1
-    export PI_RPC_STREAM_MS="${PI_RPC_STREAM_MS:-300}"
+    export PI_RPC_STREAM_MS="${PI_RPC_STREAM_MS:-0}"
     exec node "$INTERPRETER" \
         --no-extensions \
         --no-skills \
         --exclude-tools powershell,grep,find,ls \
+        --cursor-no-fast \
         "${extension_args[@]}" \
         "${skill_args[@]}" \
         "$@"
@@ -116,6 +121,7 @@ exec "$PI_BIN" \
     --no-extensions \
     --no-skills \
     --exclude-tools powershell,grep,find,ls \
+    --cursor-no-fast \
     "${extension_args[@]}" \
     "${skill_args[@]}" \
     "$@"

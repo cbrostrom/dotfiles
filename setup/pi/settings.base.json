@@ -2,6 +2,11 @@
   "defaultModel": "default",
   "defaultProvider": "cursor",
   "defaultThinkingLevel": "medium",
+  "compaction": {
+    "enabled": true,
+    "reserveTokens": 24000,
+    "keepRecentTokens": 30000
+  },
   "editorPaddingX": 1,
   "enableInstallTelemetry": false,
   "quietStartup": true,

@@ -7,29 +7,14 @@
 # To disable: remove or comment out individual hook entries
 
 hooks:
-  # Paseo integration: report turn boundaries to the Paseo daemon timeline.
-  # session.created -> session_start (startup/new), session.idle -> agent_end.
-  # No-op outside Paseo (resolver exits empty when no ~/.paseo agent record matches).
-  # All failures are swallowed: this hook must never block or error the agent loop.
-  - id: paseo-hooks-bridge
-    event: session.created
-    actions:
-      - bash: |
-          id=$("$HOME/.pi/agent/scripts/paseo-agent-id.sh" || true)
-          [[ -n "$id" ]] && paseo hooks "$id" turn_start >/dev/null 2>&1 || true
-  - id: paseo-hooks-bridge-idle
-    event: session.idle
-    actions:
-      - bash: |
-          id=$("$HOME/.pi/agent/scripts/paseo-agent-id.sh" || true)
-          [[ -n "$id" ]] && paseo hooks "$id" turn_end >/dev/null 2>&1 || true
 
   # Session-start readiness notify → pane-notify extension (pi-extensions).
   # Re-enable here only if pane-notify is removed.
 
-  # Idle: auto-prune + compact
-  # Fires after turn completion with no pending messages.
-  # Silently runs higgins prune + compact to keep brains tidy.
+  # Idle: auto-prune + compact (daily)
+  # Same hook but throttled to once per day per project slug via a state-file
+  # timestamp; keeps Higgins maintenance automatic without running git/DuckDB
+  # work after every idle agent turn. Silently runs higgins prune + compact.
   # Does NOT auto-save narrative context — that requires agent judgement (.remember).
   - id: idle-kb-tidy
     event: session.idle
@@ -41,6 +26,17 @@ hooks:
           else
             SLUG="$(basename "$PWD")"
           fi
+          # Daily throttle: skip when this slug ran within the last 24h.
+          STAMP_DIR="${TMPDIR:-/tmp}/higgins-tidy"
+          STAMP="$STAMP_DIR/$SLUG.stamp"
+          mkdir -p "$STAMP_DIR" 2>/dev/null || true
+          if [[ -f "$STAMP" ]]; then
+            LAST=$(cat "$STAMP" 2>/dev/null || echo 0)
+            NOW=$(date +%s)
+            AGE=$((NOW - LAST))
+            [[ "$LAST" =~ ^[0-9]+$ ]] && [[ $AGE -lt 86400 ]] && exit 0
+          fi
+          printf '%s\n' "$(date +%s)" > "$STAMP" 2>/dev/null || true
           higgins prune "$SLUG" 2>/dev/null || true
           higgins compact "$SLUG" 2>/dev/null || true
           # DuckDB projection freshness (go higgins): rebuild if the projection is
@@ -163,42 +159,8 @@ hooks:
     actions:
       - bash: "$HOME/.pi/agent/scripts/ssh-guard.sh bash"
 
-  - id: guard-ssh-unbounded-ctx-execute
-    event: tool.before.ctx_execute
-    actions:
-      - bash: "$HOME/.pi/agent/scripts/ssh-guard.sh ctx_execute"
-
-  - id: guard-ssh-unbounded-ctx-batch
-    event: tool.before.ctx_batch_execute
-    actions:
-      - bash: "$HOME/.pi/agent/scripts/ssh-guard.sh ctx_batch_execute"
-
-  - id: guard-ctx-runtimeout
-    event: tool.before.ctx_batch_execute
-    actions:
-      - bash: |
-          [[ "${PI_RPC_CHILD:-}" == "1" ]] || exit 0
-          payload=$(cat)
-          code=$(printf '%s' "$payload" | jq -r '[.tool_args.commands[]?.command // empty] | join("\n")' 2>/dev/null)
-          [[ -z "$code" ]] && exit 0
-          case "$code" in *grep\ -[rR]*|*find\ *|*tree\ *|*du\ *) ;; *) exit 0 ;; esac
-          has_timeout=$(printf '%s' "$payload" | jq -r '.tool_args.timeout != null' 2>/dev/null)
-          if [[ "$has_timeout" != "true" ]]; then
-            echo "[ctx-guard] recursive filesystem scan (grep -r/-R|find) inside ctx_batch_execute without a timeout — add 'timeout: 120000' to the call, or bound the scan (rg --max-time 10 / --max-depth 3, scoped path). Bytes-capped (head/tail) does NOT bound run time." >&2
-            exit 2
-          fi
-
-  - id: guard-ctx-execute-runtimeout
-    event: tool.before.ctx_execute
-    actions:
-      - bash: |
-          [[ "${PI_RPC_CHILD:-}" == "1" ]] || exit 0
-          payload=$(cat)
-          code=$(printf '%s' "$payload" | jq -r '.tool_args.code // empty' 2>/dev/null)
-          [[ -z "$code" ]] && exit 0
-          case "$code" in *grep\ -[rR]*|*find\ *|*tree\ *|*du\ *) ;; *) exit 0 ;; esac
-          has_timeout=$(printf '%s' "$payload" | jq -r '.tool_args.timeout != null' 2>/dev/null)
-          if [[ "$has_timeout" != "true" ]]; then
-            echo "[ctx-guard] recursive filesystem scan (grep -r/-R|find) inside ctx_execute without a timeout — pass 'timeout: 120000', or bound the scan (rg --max-time 10 / --max-depth 3, scoped path). Bytes-capped (head/tail) does NOT bound run time." >&2
-            exit 2
-          fi
+  # NOTE: hooks moved out of YAML into the context-mode-enforcer extension
+  # (its tool_call handler): ssh inside ctx_execute/ctx_batch_execute (same
+  # rules as ssh-guard.sh) and recursive-scan-without-timeout protection.
+  # Rationale: tool.before.<custom-tool> hooks produce load advisories every
+  # session and fire outside the Pi tool layer; bash keeps its YAML guards.
