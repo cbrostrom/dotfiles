@@ -29,7 +29,29 @@ import {
   type ForkScope,
   type ForkTarget,
 } from "../shared/summary-fork.js";
-import { pendingForkTarget } from "./pill.js";
+import { saveHandoff } from "../shared/handoff-artifact.js";
+import { useRpc } from "@getpaseo/plugin/client";
+import { pendingForkTarget, pendingFocus } from "./pill.js";
+
+/** Models approved in model-policy.json catalogs. Copying any other source
+ * model would recreate a blocked/expensive selection on the receiving agent. */
+const ALLOWED_SOURCE_MODELS = new Set([
+  "cursor/composer-2.5",
+  "cursor/composer-2-5",
+  "cursor/gpt-5-6-sol@272k",
+  "cursor/gpt-5.6-sol@272k",
+  "opencode-go/glm-5.3-flash",
+  "opencode-go/kimi-k2.7-code",
+  "opencode-go/glm-5.3",
+  "opencode-go/deepseek-v4-flash",
+  "opencode-go/deepseek-v4-pro",
+  "opencode-go/qwen3.8-flash",
+  "github-copilot/gpt-5.4-mini",
+  "github-copilot/gpt-5.4",
+  "github-copilot/claude-sonnet-5",
+  "github-copilot/claude-opus-5",
+  "github-copilot/gpt-5.6-sol",
+]);
 
 const FETCH_LIMIT = 200;
 const MAX_PAGES = 3;
@@ -56,13 +78,14 @@ type TimelinePage = {
 
 export function ForkPanel({ theme, layout, workspaceId, agentId, navigation }: PluginAgentPanelProps) {
   const paseo = usePaseo();
+  const saveArtifact = useRpc(saveHandoff);
   const settings = useSettings(forkSettings);
   const settingsValues =
     settings.status === "ready" ? settings.values : DEFAULT_FORK_SETTINGS;
 
   const [scope, setScope] = useState<ForkScope>("since_compaction");
   const [target, setTarget] = useState<ForkTarget>(pendingForkTarget);
-  const [focus, setFocus] = useState("");
+  const [focus, setFocus] = useState(pendingFocus);
   const [saveDurable, setSaveDurable] = useState(false);
   const [summaryDraft, setSummaryDraft] = useState("");
   const [phase, setPhase] = useState<Phase>({ state: "idle" });
@@ -167,23 +190,31 @@ export function ForkPanel({ theme, layout, workspaceId, agentId, navigation }: P
       const summarizer = await paseo.agents.create({
         config: { provider: `pi/${settingsValues.summarizerModel}` },
         cwd,
-        title: `Fork summary · ${sourceTitle}`,
+        title: `Handover summary · ${sourceTitle}`,
         autoArchive: true,
         outputSchema: SUMMARIZER_OUTPUT_SCHEMA,
       });
       let result;
       try {
-        result = await summarizer.run(buildSummarizerPrompt(focus), {
-          attachments: [
-            {
-              type: "text",
-              mimeType: "text/plain",
-              contextKind: "fork-transcript",
-              title: `Transcript · ${sourceTitle}`,
-              text: transcript,
-            },
-          ],
-        });
+        // The declared SUMMARIZER_TIMEOUT_MS was previously unused, so a stuck
+        // summarizer left the flow hanging forever. Race the run against the
+        // timeout and surface a clear error instead.
+        result = await Promise.race([
+          summarizer.run(buildSummarizerPrompt(focus), {
+            attachments: [
+              {
+                type: "text",
+                mimeType: "text/plain",
+                contextKind: "fork-transcript",
+                title: `Transcript · ${sourceTitle}`,
+                text: transcript,
+              },
+            ],
+          }),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`Summarizer did not finish within ${Math.round(SUMMARIZER_TIMEOUT_MS / 1000)}s — try a smaller scope`)), SUMMARIZER_TIMEOUT_MS),
+          ),
+        ]);
       } finally {
         void summarizer;
       }
@@ -204,7 +235,7 @@ export function ForkPanel({ theme, layout, workspaceId, agentId, navigation }: P
     }
   }, [agentId, fetchTranscript, focus, paseo, settingsValues.summarizerModel]);
 
-  const createFork = useCallback(async () => {
+  const createHandover = useCallback(async () => {
     setPhase({ state: "summarizing" });
     try {
       const source = await paseo.agents.ref(agentId).refresh();
@@ -212,26 +243,43 @@ export function ForkPanel({ theme, layout, workspaceId, agentId, navigation }: P
       const sourceTitle = agent?.title?.trim() || agentId.slice(0, 8);
       if (!agent?.model) throw new Error("Source model is unknown; cannot copy its configuration");
       if (!agent.cwd) throw new Error("Source workspace directory is unavailable");
-      const config = {
-        provider: `${agent.provider}/${agent.model}`,
-        ...(agent.currentModeId ? { modeId: agent.currentModeId } : {}),
-        ...(agent.thinkingOptionId ? { thinkingOptionId: agent.thinkingOptionId } : {}),
-        ...(agent.features
-          ? {
-              featureValues: Object.fromEntries(
-                agent.features.map((feature) => [feature.id, feature.value]),
-              ),
-            }
-          : {}),
-      };
-      const title = `Fork · ${sourceTitle}`;
-      const prompt = saveDurable ? FORK_PROMPT_SAVE_DURABLE : FORK_PROMPT;
+      const sourceModelKey = `${agent.provider}/${agent.model}`;
+      // Blocked/expensive source models are not copied; the user picks a
+      // profile in the app for those. Approved models pass through untouched.
+      const config = ALLOWED_SOURCE_MODELS.has(sourceModelKey)
+        ? {
+            provider: sourceModelKey,
+            ...(agent.currentModeId ? { modeId: agent.currentModeId } : {}),
+            ...(agent.thinkingOptionId ? { thinkingOptionId: agent.thinkingOptionId } : {}),
+            ...(agent.features
+              ? {
+                  featureValues: Object.fromEntries(
+                    agent.features.map((feature) => [feature.id, feature.value]),
+                  ),
+                }
+              : {}),
+          }
+        : { provider: "pi" };
+      const title = `Handover · ${sourceTitle}`;
+      // The artifact is a convenience backup path on the daemon machine; the
+      // receiving agent also gets the summary as a persisted attachment, so a
+      // missing file never loses the handover.
+      let artifactPath = "";
+      try {
+        const saved = await saveArtifact({ text: summaryDraft, sourceTitle });
+        artifactPath = saved.path;
+      } catch (error) {
+        console.error("handover: artifact save failed", error);
+      }
+      const prompt =
+        (saveDurable ? FORK_PROMPT_SAVE_DURABLE : FORK_PROMPT) +
+        (artifactPath ? `\nA copy of this summary is saved at: ${artifactPath} (read it if the attachment is not visible).` : "");
       const attachments = [
         {
           type: "text" as const,
           mimeType: "text/plain" as const,
           contextKind: "fork-summary",
-          title: `Fork summary · ${sourceTitle}`,
+          title: `Handover summary · ${sourceTitle}`,
           text: summaryDraft,
         },
       ];
@@ -290,7 +338,7 @@ export function ForkPanel({ theme, layout, workspaceId, agentId, navigation }: P
     <ScrollView contentContainerStyle={styles.screen}>
       <View style={styles.row}>
         <Icon name="GitFork" size={18} color={theme.colors.accent} />
-        <Text style={styles.title}>Fork with summary</Text>
+        <Text style={styles.title}>Handover</Text>
       </View>
 
       <Text style={styles.label}>Scope</Text>
@@ -366,11 +414,11 @@ export function ForkPanel({ theme, layout, workspaceId, agentId, navigation }: P
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            onPress={() => void createFork()}
+            onPress={() => void createHandover()}
             disabled={busy || summaryDraft.trim().length === 0}
             style={styles.button}
           >
-            <Text style={styles.buttonText}>{busy ? "Creating..." : "Create fork"}</Text>
+            <Text style={styles.buttonText}>{busy ? "Handing over..." : "Create handover"}</Text>
           </Pressable>
         </>
       ) : (

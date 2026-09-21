@@ -37,11 +37,11 @@ export const SCOPE_OPTIONS = [
 ] as const;
 
 export interface TimelineEntry {
-  kind: "user" | "assistant";
+  kind: "user" | "assistant" | "summary";
   text: string;
 }
 
-type RawTimelineItem = { type: string; text?: unknown; status?: unknown };
+type RawTimelineItem = { type: string; text?: unknown; status?: unknown; };
 
 /** Keep only user and assistant text rows; drop tools, reasoning, notices, plugins. */
 export function collectTextMessages(items: readonly RawTimelineItem[]): TimelineEntry[] {
@@ -61,8 +61,20 @@ export function scopeTranscript(items: readonly RawTimelineItem[], scope: ForkSc
     items.forEach((item, index) => {
       if (item.type === "compaction" && item.status === "completed") lastCompactionIndex = index;
     });
-    const source = lastCompactionIndex < 0 ? items : items.slice(lastCompactionIndex + 1);
-    return collectTextMessages(source);
+    if (lastCompactionIndex < 0) return collectTextMessages(items);
+    // The compaction summary IS the context of everything before it — dropping
+    // it loses the whole pre-compaction history. Include it as a dedicated
+    // entry, then user/assistant text after it.
+    const source = items.slice(lastCompactionIndex);
+    const entries: TimelineEntry[] = [];
+    for (const item of source) {
+      if (item.type === "compaction" && item.status === "completed" && typeof item.text === "string" && item.text.trim()) {
+        entries.push({ kind: "summary", text: item.text.trim() });
+      } else if ((item.type === "user_message" || item.type === "assistant_message") && typeof item.text === "string") {
+        entries.push({ kind: item.type === "user_message" ? "user" : "assistant", text: item.text });
+      }
+    }
+    return entries;
   }
   const entries = collectTextMessages(items);
   if (scope === "full") return entries;
@@ -88,7 +100,13 @@ export function capTranscript(
 
 export function renderTranscript(entries: readonly TimelineEntry[]): string {
   return entries
-    .map((entry) => (entry.kind === "user" ? `## User\n${entry.text}` : `## Assistant\n${entry.text}`))
+    .map((entry) =>
+      entry.kind === "user"
+        ? `## User\n${entry.text}`
+        : entry.kind === "assistant"
+          ? `## Assistant\n${entry.text}`
+          : `## Compaction summary (context of everything before it)\n${entry.text}`,
+    )
     .join("\n\n");
 }
 

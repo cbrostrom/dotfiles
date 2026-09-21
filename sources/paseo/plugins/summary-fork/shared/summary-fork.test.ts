@@ -12,6 +12,11 @@ const user = (text: string) => ({ type: "user_message", text });
 const assistant = (text: string) => ({ type: "assistant_message", text });
 const tool = () => ({ type: "tool_call" });
 const compaction = (status: string) => ({ type: "compaction", status });
+const completedCompaction = (summary: string) => ({
+  type: "compaction",
+  status: "completed",
+  text: summary,
+});
 
 describe("collectTextMessages", () => {
   it("keeps only user and assistant text rows", () => {
@@ -28,22 +33,31 @@ describe("scopeTranscript", () => {
     user("one"),
     assistant("two"),
     tool(),
-    compaction("completed"),
+    compaction("loading"),
+    completedCompaction("Compacted summary of earlier work"),
     user("three"),
     assistant("four"),
-    compaction("loading"),
     user("five"),
   ];
 
-  it("cuts after the newest completed compaction", () => {
+  it("keeps the compaction summary plus the messages after it", () => {
     expect(scopeTranscript(items, "since_compaction")).toEqual([
+      { kind: "summary", text: "Compacted summary of earlier work" },
       { kind: "user", text: "three" },
       { kind: "assistant", text: "four" },
       { kind: "user", text: "five" },
     ]);
   });
 
+  it("works when a compaction row carries no text", () => {
+    const bare = [user("one"), compaction("completed"), user("three")];
+    expect(scopeTranscript(bare, "since_compaction")).toEqual([
+      { kind: "user", text: "three" },
+    ]);
+  });
+
   it("uses the whole conversation for full scope", () => {
+    // compaction rows without text are dropped; nothing else is
     expect(scopeTranscript(items, "full")).toHaveLength(5);
   });
 
