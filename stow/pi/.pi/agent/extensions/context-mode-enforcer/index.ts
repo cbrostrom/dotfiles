@@ -26,35 +26,38 @@ const DISABLE_ENV = "PI_CONTEXT_ENFORCER_DISABLE";
 // Commands that always flood context when run raw. Mirrors and extends the
 // pi-yaml-hooks guard-context-mode allow/block lists so the same policy
 // applies uniformly across every tool-call path (native Pi + Cursor bridge).
+//
+// Optimization stance: the block reason is the ONLY thing that enters context
+// when a call is rejected — keep it one short line, name the target tool, and
+// never echo the command back (the model just wrote it; echoing is pure burn).
 const BLOCK_PATTERNS: Array<{ re: RegExp; reason: string }> = [
 	{
+		re: /\b(?:python3?|node|ruby|perl|php)\s+(?:-\s*)?<<|<<\s*['\"]?EOF\b|\b(?:python3?|node|ruby|perl|php)\s+-[ec]\b/,
+		reason: "inline interpreter via bash — use ctx_execute(language python/typescript/ruby/perl)",
+	},
+	{
 		re: /\b(cat|head|tail|less|more)\b/,
-		reason: "file dump command — use ctx_execute_file to analyze instead of reading raw",
+		reason: "file dump — use ctx_execute_file to analyze instead of reading raw",
 	},
 	{
 		re: /\bfind\b.*-type|ls\s+-R|\bgrep\s+-[a-zA-Z]*r\b/,
-		reason: "recursive file/dir scan — use ctx_execute (shell) or ctx_batch_execute",
+		reason: "recursive scan — use ctx_execute (shell) or ctx_batch_execute",
 	},
 	{
 		re: /\b(curl|wget)\b/,
-		reason: "raw HTTP fetch — use ctx_execute with fetch(), or ctx_fetch_and_index for docs",
+		reason: "raw HTTP — use ctx_execute fetch(), or ctx_fetch_and_index for docs",
 	},
 	{
 		re: /\b(npm|pnpm|yarn)\s+(test|run\s+test|ls|outdated|audit)\b|\bpytest\b|\bgo\s+test\b|\bvitest\b/,
-		reason: "test/build/audit runner — output can be large; use ctx_execute to capture + summarize",
+		reason: "test/build runner — use ctx_execute to capture + summarize",
 	},
 	{
 		re: /\bgit\s+(log\s+-p|diff)\b/,
-		reason: "potentially large git output — use ctx_execute to capture + summarize",
-	},
-	{
-		re: /\b(?:python3?|node|ruby|perl|php)\s+(?:-\s*)?<<|<<\s*['\"]?EOF\b|\b(?:python3?|node|ruby|perl|php)\s+-[ec]\b/,
-		reason:
-			"inline interpreter/heredoc via bash — the script source AND its raw stdout both enter context verbatim; use ctx_execute(language: \"python\"|\"typescript\"|\"ruby\"|\"perl\"|\"shell\") instead so derivation runs in the sandbox and only the printed summary returns",
+		reason: "large git output — use ctx_execute to capture + summarize",
 	},
 	{
 		re: /\bdocker\s+(ps|logs|inspect)\b|\bkubectl\s+get\b/,
-		reason: "infra inspection command — use ctx_execute to capture + summarize",
+		reason: "infra inspection — use ctx_execute to capture + summarize",
 	},
 ];
 
@@ -108,19 +111,12 @@ export default function (pi: ExtensionAPI) {
 			if (!RECURSIVE_SCAN_RE.test(command) && PIPE_CAPPED_RE.test(command)) return;
 
 			if (chainedCommandCount(command) >= 3) {
-				return {
-					block: true,
-					reason:
-						"[context-mode-enforcer] 3+ chained commands — use ctx_batch_execute instead of one long bash chain.",
-				};
+				return { block: true, reason: "[ctx] 3+ chained commands — use ctx_batch_execute" };
 			}
 
 			for (const { re, reason } of BLOCK_PATTERNS) {
 				if (re.test(command)) {
-					return {
-						block: true,
-						reason: `[context-mode-enforcer] ${reason}: ${command.slice(0, 200)}`,
-					};
+					return { block: true, reason: `[ctx] ${reason}` };
 				}
 			}
 		} catch {
@@ -188,13 +184,35 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	// Safety net: if a non-context tool still returns an oversized result
-	// (e.g. an unrecognized command pattern, or a model that ignored the
-	// block above via a differently-shaped call), truncate before it enters
-	// the next model request. This is a backstop, not the primary control.
-	// Aligned with RTK output compaction (truncate.maxChars: 12000) so every
-	// path — bash, built-ins, MCP — hits the same ceiling. Head-kept: leading
-	// lines carry file paths/structure; RTK compaction handles error-tail cases.
+	// (e.g. an unrecognized command pattern, MCP output, or a model that
+	// ignored the redirect above), COMPACT before it enters the next model
+	// request. Backstop, not primary control. Aligned with RTK output
+	// compaction (truncate.maxChars: 12000) so every path hits the same
+	// ceiling, but this cut is AI-readable rather than a dumb head-chop:
+	//   1. strip ANSI escape sequences (mcporter/CLI bridges leak them)
+	//   2. squeeze 3+ blank lines to one
+	//   3. keep head (file paths / structure) AND tail (errors live there)
+	//      with an explicit trimmed-chars marker in between.
 	const MAX_RESULT_CHARS = 12_000;
+	const HEAD_KEEP = 9_000;
+	const TAIL_KEEP = 2_500;
+	const ANSI_RE = /\x1b\[[0-9;]*[A-Za-z]|\x1b\][^\x07]*(?:\x07|\x1b\\)/g;
+
+	function compactResultText(text: string): string | null {
+		// ANSI strip + blank-line squeeze first: these reduce length without
+		// losing any information.
+		let out = text.replace(ANSI_RE, "").replace(/\n{3,}/g, "\n\n");
+		if (out.length <= MAX_RESULT_CHARS) {
+			return out === text ? null : out; // null = unchanged, skip rebuild
+		}
+		const trimmed = out.length - HEAD_KEEP - TAIL_KEEP;
+		out =
+			out.slice(0, HEAD_KEEP) +
+			`\n\n[ctx: ${trimmed} chars trimmed — head+tail kept; rerun via ctx_execute/ctx_execute_file for full Indexed output]\n\n` +
+			out.slice(-TAIL_KEEP);
+		return out;
+	}
+
 	pi.on("tool_result", (event) => {
 		try {
 			const toolName = String(event.toolName ?? "");
@@ -206,15 +224,11 @@ export default function (pi: ExtensionAPI) {
 			const nextContent = content.map((block) => {
 				if (block && typeof block === "object" && "type" in block && block.type === "text") {
 					const text = (block as { text?: string }).text ?? "";
-					if (text.length > MAX_RESULT_CHARS) {
+					if (!text) return block;
+					const compacted = compactResultText(text);
+					if (compacted !== null) {
 						changed = true;
-						return {
-							...block,
-							text:
-								text.slice(0, MAX_RESULT_CHARS) +
-								`\n\n[context-mode-enforcer: truncated ${text.length - MAX_RESULT_CHARS} chars — ` +
-								`prefer ctx_execute/ctx_execute_file to avoid this next time]`,
-						};
+						return { ...block, text: compacted };
 					}
 				}
 				return block;
