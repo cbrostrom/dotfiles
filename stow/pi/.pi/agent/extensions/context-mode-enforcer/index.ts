@@ -48,6 +48,11 @@ const BLOCK_PATTERNS: Array<{ re: RegExp; reason: string }> = [
 		reason: "potentially large git output — use ctx_execute to capture + summarize",
 	},
 	{
+		re: /\b(?:python3?|node|ruby|perl|php)\s+(?:-\s*)?<<|<<\s*['\"]?EOF\b|\b(?:python3?|node|ruby|perl|php)\s+-[ec]\b/,
+		reason:
+			"inline interpreter/heredoc via bash — the script source AND its raw stdout both enter context verbatim; use ctx_execute(language: \"python\"|\"typescript\"|\"ruby\"|\"perl\"|\"shell\") instead so derivation runs in the sandbox and only the printed summary returns",
+	},
+	{
 		re: /\bdocker\s+(ps|logs|inspect)\b|\bkubectl\s+get\b/,
 		reason: "infra inspection command — use ctx_execute to capture + summarize",
 	},
@@ -186,7 +191,10 @@ export default function (pi: ExtensionAPI) {
 	// (e.g. an unrecognized command pattern, or a model that ignored the
 	// block above via a differently-shaped call), truncate before it enters
 	// the next model request. This is a backstop, not the primary control.
-	const MAX_RESULT_CHARS = 20_000;
+	// Aligned with RTK output compaction (truncate.maxChars: 12000) so every
+	// path — bash, built-ins, MCP — hits the same ceiling. Head-kept: leading
+	// lines carry file paths/structure; RTK compaction handles error-tail cases.
+	const MAX_RESULT_CHARS = 12_000;
 	pi.on("tool_result", (event) => {
 		try {
 			const toolName = String(event.toolName ?? "");
