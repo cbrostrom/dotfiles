@@ -48,7 +48,6 @@ write_host_block() {
     local block
     block="$(
         cat <<EOF
-
 $begin
 Host $name
     HostName $address
@@ -64,21 +63,23 @@ Host $name
 $end
 EOF
     )"
+    local tmp
+    tmp="$(mktemp)"
     if grep -qF "$begin" "$ssh_config"; then
         log "refreshing SSH config block for $name"
-        local tmp
-        tmp="$(mktemp)"
         awk -v b="$begin" -v e="$end" '
             $0 == b { skip=1; next }
             skip && $0 == e { skip=0; next }
             !skip { print }
         ' "$ssh_config" >"$tmp"
         cat "$tmp" >"$ssh_config"
-        rm -f "$tmp"
     else
         log "adding SSH config block for $name"
     fi
-    printf '%s\n' "$block" >>"$ssh_config"
+    # normalize: collapse 3+ blank-line runs to two, exactly one trailing newline
+    perl -0pe 's/\n{3,}/\n\n/g; s/\n+\z/\n/' "$ssh_config" >"$tmp" && cat "$tmp" >"$ssh_config"
+    rm -f "$tmp"
+    printf '\n%s\n' "$block" >>"$ssh_config"
     chmod 600 "$ssh_config"
 }
 
@@ -141,7 +142,7 @@ strip_legacy_block "# >>> dotfiles:superbro >>>" "# <<< dotfiles:superbro <<<"
 strip_legacy_block "# >>> dotfiles:linuxbro >>>" "# <<< dotfiles:linuxbro <<<"
 
 for entry in "${FLEET_SSH[@]}"; do
-    IFS='|' read -r name address port user _profile _push _paseo _notes <<<"$entry"
+    IFS='|' read -r name address port user _profile _role _push _paseo _notes <<<"$entry"
     [[ "$name" == "mac" ]] && continue
     write_host_block "$name" "$address" "$port" "$user"
     keyscan_host "$name"

@@ -90,7 +90,7 @@
     <line x1="400" y1="250" x2="615" y2="255" marker-end="url(#ag)"/>
     <line x1="170" y1="85"  x2="225" y2="95"  marker-end="url(#ag)"/>
     <line x1="170" y1="165" x2="225" y2="115" marker-end="url(#ag)"/>
-    <line x1="400" y1="130" x2="615" y2="410" marker-end="url(#ag)" stroke-dasharray="4 3"/>
+    <line x1="400" y1="130" x2="615" y2="410" marker-end="url(#ag)"/>
   </g>
 
   <!-- Orchestrator grants: purple -->
@@ -113,7 +113,7 @@
 
   <text x="470" y="90"  fill="#3fb950" font-size="10">ssh :27789 + web UIs</text>
   <text x="470" y="268" fill="#3fb950" font-size="10">ssh + web UIs</text>
-  <text x="440" y="410" fill="#3fb950" font-size="10">ssh :27789</text>
+  <text x="440" y="410" fill="#3fb950" font-size="10">human ssh :27789</text>
   <text x="440" y="448" fill="#d29922" font-size="10">agent ssh :27789</text>
   <text x="545" y="345" fill="#bc8cff" font-size="10">maintenance: ssh + dockhand MCP</text>
   <text x="668" y="190" fill="#f85149" font-size="10">denied</text>
@@ -134,6 +134,7 @@
 <tr><th>Source</th><th>Destination</th><th>Allowed</th></tr>
 <tr><td><code>group:pilots</code> — Mac, iPhone, iPad, MonsterBro Win</td><td><code>tag:server</code></td><td class="ok">SSH :27789 · web UIs (dockhand 8080/8092, Plex, Immich, *arr, WUD) · RDP :3389 → .250</td></tr>
 <tr><td><code>autogroup:member</code> — Tailscale SSH, check mode</td><td><code>tag:server</code></td><td class="ok">break-glass SSH, nonroot + root, periodic re-auth (D4)</td></tr>
+<tr><td><code>group:pilots</code> — Mac, iPhone, iPad, MonsterBro Win</td><td><code>tag:orchestrator</code> (CloudBro)</td><td class="ok">SSH :27789 only — human login; no MCP/web ports</td></tr>
 <tr><td><code>tag:orchestrator</code> — CloudBro</td><td>LinuxBro, SuperBro</td><td class="ok">SSH :27789 + dockhand MCP :8080/:8092 only (D1/D7)</td></tr>
 <tr><td>MonsterBro WSL</td><td><code>tag:server</code></td><td class="ok">agent SSH :27789 (explicit entry, not widened tag)</td></tr>
 <tr><td><code>tag:server</code></td><td>anything</td><td class="no">nothing — structural containment (D8)</td></tr>
@@ -175,6 +176,60 @@
 <li><strong>Phase 4 — ACLs:</strong> matrix above applied incrementally with policy <code>tests</code> + probe verification.</li>
 <li><strong>Phase 6 — Dashboard:</strong> script probes every ordered pair (<code>tailscale ping</code> + TCP), regenerates this graph with live latency/state.</li>
 </ol>
+</div>
+
+<div class="panel">
+<h2 style="margin-top:0">Step-by-step guide (follow along during execution)</h2>
+<p class="dim">Run phases in order. Each phase ends with a verification step — do not proceed until it passes. A pilot session (Pi agent) can execute each phase; show it this section.</p>
+
+<h2>Phase 1 — Registry</h2>
+<ol>
+<li>Add to <code>config/fleet-hosts.conf</code>: <code>cloudbro|100.100.1.11|27789|christian|cloudbro|allowed|ssh|Orchestrator devbox</code></li>
+<li>Add <code>role</code> to each line: <code>pilot</code> (mac, monsterbro-win), <code>workstation</code> (monsterbro-wsl), <code>server</code> (linuxbro, superbro), <code>orchestrator</code> (cloudbro).</li>
+<li>Update <code>scripts/install/ssh-superbro.sh</code> parsing for the new column.</li>
+<li><strong>Verify:</strong> <code>./stow.sh plan macos</code> clean; re-run <code>ssh-superbro.sh</code> idempotently (no diff).</li>
+</ol>
+
+<h2>Phase 2 — SSH config cleanup (Mac)</h2>
+<ol>
+<li>In <code>scripts/install/ssh-superbro.sh</code>: each destination gets exactly one block — Tailscale IP, port 27789, one explicit <code>IdentityFile</code> (temporarily the current working key per host).</li>
+<li>Delete the <code>Host *</code> IdentityFile grab-bag and all duplicate blocks (superbro public variant, dup monsterbro/linuxbro).</li>
+<li><strong>Verify:</strong> <code>ssh -o BatchMode=yes superbro true</code>, same for <code>linuxbro</code>, <code>monsterbro</code>, <code>cloudbro</code>, <code>higgins-writer</code>; <code>ssh -v</code> shows exactly one key offered per host.</li>
+</ol>
+
+<h2>Phase 5 — Tailscale SSH recovery (before any lockout)</h2>
+<ol>
+<li>On each server (linuxbro, superbro, cloudbro): <code>sudo tailscale up --ssh</code> (or enable SSH in admin console).</li>
+<li>Admin console → policy: add SSH rule <code>autogroup:member</code> → <code>tag:server</code> + <code>tag:orchestrator</code>, action <code>check</code>, users <code>autogroup:nonroot</code>, <code>root</code>.</li>
+<li><strong>Verify (break-glass test):</strong> from Mac <code>tailscale ssh christian@superbro true</code>; from iPhone/iPad Tailscale app SSH into one server; confirm it prompts re-auth per check period.</li>
+</ol>
+
+<h2>Phase 3 — Key migration + SuperBro lockout</h2>
+<ol>
+<li>On Mac: <code>ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_mac</code> and <code>ssh-keygen -t ed25519 -f ~/.ssh/agent_mac_ed25519</code>. Repeat on monsterbro-wsl, linuxbro, superbro with their names. CloudBro: agent key only.</li>
+<li>Append each public key to target servers' <code>~/.ssh/authorized_keys</code> with restriction: <code>from="100.100.1.20" ssh-ed25519 AAAA... mac</code> (pin source tailnet IP; agent keys under a marked <code># agent keys</code> section; create <code>agent@</code> user per D7 where automation runs).</li>
+<li><strong>Verify each new key over tailnet</strong> before removing anything: <code>ssh -i ~/.ssh/id_ed25519_mac superbro true</code>.</li>
+<li>Only then: close SuperBro public :22 (Contabo firewall / sshd <code>ListenAddress</code> on tailnet IP or <code>AddressFamily</code> rules), remove the public-IP block from <code>~/.ssh/config</code>.</li>
+<li>Remove legacy lines from all servers' <code>authorized_keys</code> (incl. the <code>github</code> key on SuperBro). Delete orphaned local private keys after verifying all servers reject them.</li>
+<li><strong>Verify:</strong> old keys fail (<code>ssh -i ~/.ssh/github superbro-ts</code> → permission denied), new keys pass, Tailscale SSH still works as backstop.</li>
+</ol>
+
+<h2>Phase 4 — ACLs</h2>
+<ol>
+<li>Draft the policy file per the ACL matrix above; include <code>tests</code> asserting allow/deny pairs.</li>
+<li>Apply incrementally in admin console: pilots→servers first; probe; then pilots→cloudbro; probe; then orchestrator grants; probe; finally server→anything deny; probe.</li>
+<li>After each step re-run fleet probes (fleet-update or manual <code>tailscale ping</code> + TCP checks) — automation must stay green.</li>
+<li><strong>Verify:</strong> <code>tailscale status</code> + dashboard graph matches the matrix; Paseo-over-SSH, fleet-update, dockhand all still work.</li>
+</ol>
+
+<h2>Phase 6 — Dashboard</h2>
+<ol>
+<li>Script reads <code>fleet-hosts.conf</code>; per ordered pair runs <code>tailscale ping</code> (direct/relayed, latency) + TCP connect to :27789.</li>
+<li>Regenerates this HTML's graph section with live state (green/red arrows, latency labels).</li>
+<li><strong>Verify:</strong> graph matches ACL matrix; run after every future ACL change.</li>
+</ol>
+
+<div class="note"><strong>Rollback per phase:</strong> dotfiles → git revert; SSH keys → keep old keys until phase N+1 verified; ACLs → re-edit policy in admin console; SuperBro :22 → reopen firewall rule. Tailscale SSH (Phase 5) is the permanent safety net for all later phases.</div>
 </div>
 
 <div class="panel">

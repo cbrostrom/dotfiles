@@ -16,7 +16,7 @@ Sources: `config/fleet-hosts.conf`, `infra/fleet.md`, `scripts/install/ssh-super
 | D4 | Tailscale SSH = break-glass recovery path. `check` mode (periodic re-auth). Works from any personal device, including iPhone/iPad (untagged user devices — tagged devices cannot use check mode). |
 | D5 | Personal devices untagged: Mac, iPhone, iPad, MonsterBro (Windows). Servers tagged `tag:server`. CloudBro tagged `tag:orchestrator` (distinct, narrower). |
 | D6 | Web UIs reachable from pilots (Mac, iPhone, iPad, MonsterBro) by `ip:port` for now; Tailscale Serve/MagicDNS is a later improvement track. |
-| D7 | CloudBro holds agent keys only — no human key, no long-lived secrets. Low-privilege `agent@` user on target servers. Rebuildable box. |
+| D7 | CloudBro holds agent keys only — no human *outbound* key, no long-lived secrets. Humans SSH in with pilot keys (inbound; CloudBro stores no private keys at all). Low-privilege `agent@` user on target servers. Rebuildable box. |
 | D8 | Structural containment: `tag:server` → anything = denied. Replaces the old ad-hoc "keep SuperBro out" wall. |
 | D9 | One keypair per source host (human) + separate agent keys per host. Git-hosting keys never used for server login. |
 | D10 | Dashboard: own minimal static HTML generated from `fleet-hosts.conf` + live probes. NetBird itself rejected (would replace Tailscale). |
@@ -30,7 +30,7 @@ Sources: `config/fleet-hosts.conf`, `infra/fleet.md`, `scripts/install/ssh-super
 | MonsterBro WSL (`monsterbro-wsl`) | workstation / work engine | `tag:server` | 100.100.1.255 | 27789 | `id_ed25519_monsterbro` | `agent_monsterbro_ed25519` |
 | LinuxBro (`linuxbro`) | server NUC, homelab | `tag:server` | 100.100.1.100 | 27789 | `id_ed25519_linuxbro` | `agent_linuxbro_ed25519` |
 | SuperBro (`superbro`) | server VPS (Contabo) | `tag:server` | 100.100.1.50 | 27789 | `id_ed25519_superbro` | `agent_superbro_ed25519` |
-| CloudBro (`cloudbro`) | **orchestrator** devbox | `tag:orchestrator` | 100.100.1.11 | 27789 | none | `agent_cloudbro_ed25519` |
+| CloudBro (`cloudbro`) | **orchestrator** devbox | `tag:orchestrator` | 100.100.1.11 | 27789 | none (outbound; pilots SSH in) | `agent_cloudbro_ed25519` |
 | iPhone / iPad | pilot (mobile) | — (user devices) | .70 / .60 | — (Tailscale app SSH) | n/a | n/a |
 
 Out of scope but noted: `higgins-writer` (.33, `debian@`, `id_ed25519`) — fold into agent-key model later or leave as-is; `routerbro`, `steambro` (offline).
@@ -42,6 +42,7 @@ Default-deny underneath. Every arrow is an explicit grant.
 | Source | Destination | Grants |
 |---|---|---|
 | `group:pilots` (Mac, iPhone, iPad, MonsterBro Windows) | `tag:server` | SSH :27789; web UI ports (dockhand 8080/8092, Plex, Immich, *arr, WUD); RDP :3389 → monsterbro/.250 |
+| `group:pilots` (Mac, iPhone, iPad, MonsterBro Windows) | `tag:orchestrator` (CloudBro) | SSH :27789 only — human login; no MCP/web ports |
 | `autogroup:member` via Tailscale SSH, `check` mode | `tag:server` | Break-glass SSH, users `autogroup:nonroot` + `root`, periodic re-auth |
 | `tag:orchestrator` (CloudBro) | `tag:server` (LinuxBro, SuperBro) | SSH :27789, dockhand MCP :8080/:8092 only |
 | `tag:server` | anything | **nothing** — structural containment (D8) |
