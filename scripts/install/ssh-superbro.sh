@@ -42,9 +42,14 @@ touch "$ssh_config"
 chmod 600 "$ssh_config"
 
 write_host_block() {
-    local name="$1" address="$2" port="$3" user="$4"
+    local name="$1" address="$2" port="$3" user="$4" key="$5"
     local begin="# >>> dotfiles:fleet:$name >>>"
     local end="# <<< dotfiles:fleet:$name <<<"
+    local ident=""
+    if [[ -n "$key" ]]; then
+        ident="    IdentityFile ~/.ssh/$key
+    IdentitiesOnly yes"
+    fi
     local block
     block="$(
         cat <<EOF
@@ -53,6 +58,7 @@ Host $name
     HostName $address
     User $user
     Port $port
+$ident
     StrictHostKeyChecking accept-new
     ServerAliveInterval 15
     ServerAliveCountMax 6
@@ -142,9 +148,9 @@ strip_legacy_block "# >>> dotfiles:superbro >>>" "# <<< dotfiles:superbro <<<"
 strip_legacy_block "# >>> dotfiles:linuxbro >>>" "# <<< dotfiles:linuxbro <<<"
 
 for entry in "${FLEET_SSH[@]}"; do
-    IFS='|' read -r name address port user _profile _role _push _paseo _notes <<<"$entry"
+    IFS='|' read -r name address port user _profile _role _push _paseo _key _notes <<<"$entry"
     [[ "$name" == "mac" ]] && continue
-    write_host_block "$name" "$address" "$port" "$user"
+    write_host_block "$name" "$address" "$port" "$user" "$_key"
     keyscan_host "$name"
 done
 
