@@ -16,8 +16,9 @@
 		// "ssh" section below; port 22 network access is required for it.
 		{"src": ["autogroup:member"], "dst": ["tag:server"], "ip": ["*"]},
 
-		// Pilots -> CloudBro (orchestrator): human SSH only, no MCP/web.
-		{"src": ["autogroup:member"], "dst": ["tag:orchestrator"], "ip": ["tcp:27789"]},
+		// Pilots -> CloudBro (orchestrator): human SSH + Tailscale SSH :22,
+		// auth gated by the "ssh" section. No MCP/web.
+		{"src": ["autogroup:member"], "dst": ["tag:orchestrator"], "ip": ["tcp:27789", "tcp:22"]},
 
 		// Pilots -> MonsterBro Windows: RDP only (user-to-user device).
 		{"src": ["autogroup:member"], "dst": ["100.100.1.250"], "ip": ["tcp:3389"]},
