@@ -84,9 +84,9 @@ done
 ((${#selected[@]})) || selected=("${FLEET_DOTFILES_HOSTS[@]}")
 
 lookup_profile() {
-    local wanted="$1" entry name _address _port _user profile _role _push _paseo _notes
+    local wanted="$1" entry name _address _port _user profile _role _push _paseo _key _notes
     for entry in "${FLEET_SSH[@]}"; do
-        IFS='|' read -r name _address _port _user profile _role _push _paseo _notes <<<"$entry"
+        IFS='|' read -r name _address _port _user profile _role _push _paseo _key _notes <<<"$entry"
         if [[ "$name" == "$wanted" ]]; then
             printf '%s\n' "$profile"
             return 0
