@@ -22,7 +22,7 @@ source "$FLEET_CONF"
 [[ -n "$OUT_DIR" ]] && mkdir -p "$OUT_DIR"
 
 for entry in "${FLEET_SSH[@]}"; do
-    IFS='|' read -r name _address _port _user _profile _push _paseo _notes <<<"$entry"
+    IFS='|' read -r name _address _port _user _profile _role _push _paseo _notes <<<"$entry"
 
     if [[ "$name" == "mac" ]]; then
         if [[ -x "$SNAPSHOT" ]]; then
