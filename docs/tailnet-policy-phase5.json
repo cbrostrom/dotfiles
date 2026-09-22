@@ -1,0 +1,77 @@
+// Superbro tailnet — Phase 5 break-glass + Phase 4 grants (docs/tailnet-access-plan.md)
+{
+	// Tag ownership. "autogroup:admin" = you (single-user tailnet).
+	"tagOwners": {
+		"tag:home":         ["autogroup:admin"],
+		"tag:vps":          ["autogroup:admin"],
+		"tag:server":       ["autogroup:admin"],
+		"tag:orchestrator": ["autogroup:admin"],
+	},
+
+	// Network grants. Default-deny underneath: anything not listed is refused.
+	"grants": [
+		// Pilots (user devices: Mac, iPhone, iPad) -> all servers.
+		// "*" covers SSH :27789, Tailscale SSH :22, dockhand/kb-mcp and
+		// the approved web UI ports. Tailscale SSH auth is gated by the
+		// "ssh" section below; port 22 network access is required for it.
+		{"src": ["autogroup:member"], "dst": ["tag:server"], "ip": ["*"]},
+
+		// Pilots -> CloudBro (orchestrator): human SSH only, no MCP/web.
+		{"src": ["autogroup:member"], "dst": ["tag:orchestrator"], "ip": ["tcp:27789"]},
+
+		// Pilots -> MonsterBro Windows: RDP only (user-to-user device).
+		{"src": ["autogroup:member"], "dst": ["100.100.1.250"], "ip": ["tcp:3389"]},
+
+		// Orchestrator (CloudBro) -> LinuxBro + SuperBro: maintenance only.
+		{"src": ["tag:orchestrator"], "dst": ["100.100.1.100"], "ip": ["tcp:27789", "tcp:8092"]},
+		{"src": ["tag:orchestrator"], "dst": ["100.100.1.50"], "ip": ["tcp:27789", "tcp:8080"]},
+
+		// MonsterBro-WSL agents -> servers: explicit IP entry, NOT via
+		// tag:server, so servers never widen. Structural rule D8
+		// (server -> server = denied) holds.
+		{"src": ["100.100.1.255"], "dst": ["tag:server"], "ip": ["tcp:27789"]},
+
+		// Preserve public-egress-over-tailnet for servers + orchestrator
+		// (formerly the tag:vps -> autogroup:internet grant).
+		{"src": ["tag:server", "tag:orchestrator"], "dst": ["autogroup:internet"], "ip": ["*"]},
+	],
+
+	// Tailscale SSH: re-authenticated break-glass from your user devices
+	// (Mac, iPhone, iPad) into any server/orchestrator. Tagged sources
+	// (MonsterBro-WSL etc.) deliberately omitted: tagged devices cannot
+	// use check mode, and they keep OpenSSH keys for automation.
+	"ssh": [
+		{
+			"action":      "check",
+			"src":         ["autogroup:member"],
+			"dst":         ["tag:server", "tag:orchestrator"],
+			"users":       ["autogroup:nonroot", "root"],
+			"checkPeriod": "12h",
+		},
+	],
+
+	// Funnel policy kept as-is.
+	"nodeAttrs": [
+		{
+			"target": ["autogroup:member"],
+			"attr":   ["funnel"],
+		},
+	],
+
+	// Evaluated on every save. Tests src = tags (device holders of these
+	// tags): all tag:server devices must be denied tailnet-internal access;
+	// CloudBro (tag:orchestrator) must reach exactly LinuxBro + SuperBro.
+	"tests": [
+		// Servers cannot reachanything inside the tailnet: D8 containment.
+		{
+			"src":   "tag:server",
+			"deny":  ["100.100.1.20:27789", "100.100.1.100:27789", "100.100.1.11:27789", "100.100.1.100:8092", "100.100.1.50:8080", "100.100.1.250:3389"]
+		},
+		// Orchestrator: exactly LinuxBro + SuperBro on maintenance ports.
+		{
+			"src":   "tag:orchestrator",
+			"accept": ["100.100.1.100:27789", "100.100.1.100:8092", "100.100.1.50:27789", "100.100.1.50:8080"],
+			"deny":  ["100.100.1.20:27789", "100.100.1.100:8080", "100.100.1.50:8092", "100.100.1.250:3389"],
+		},
+	],
+}
