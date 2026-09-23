@@ -64,6 +64,10 @@ Auto-discovered from `~/.agents/skills/`. Load on demand: `/skill:<name>`.
 
 `list_peers` + `message_peer` in every session; ask in words, model picks the tool. Inbound: `PI_PEER_INBOUND=accept` local, `PI_PEER_INBOUND_REMOTE=ask` (prompts before model sees remote messages). Cross-machine setup: `~/Vaults/Higgins/AI/infra/superbro/redis-setup.md` or `/peer-remote`.
 
+## Paseo plugins
+
+Own plugins are git-installed from `bybrostrom/paseo-plugins` (canonical source; no dotfiles copies). After editing that repo: commit, push, then `paseo plugin update <id>` per touched plugin — a push alone does NOT update running plugins. When a Paseo plugin misbehaves, first check `paseo plugin ls` for a stale revision (installed revision < pushed main) or a failed status; update or reload before deeper debugging. If you cannot run the update, flag it to the user instead of hand-editing `~/.paseo/plugins/` checkouts (daemon-managed; hand edits are lost on update).
+
 ## Misc
 
 - Project trust: `/trust` once in trusted repos; keep `defaultProjectTrust` at `"ask"`.
