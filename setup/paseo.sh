@@ -89,7 +89,12 @@ _sync_plugin() {
 
     log "sync $id from $repo${subpath:+:$subpath} @ $ref"
     git clone --depth 1 --branch "$ref" "$url" "$tmp/repo" >/dev/null 2>&1 ||
-        git clone --depth 1 "$url" "$tmp/repo" >/dev/null
+        git clone --depth 1 "$url" "$tmp/repo" >/dev/null 2>&1 || {
+        # https may be unauthenticated on agent hosts (no gh credential helper);
+        # fall back to the Git-over-SSH form which works with pilot keys.
+        local ssh_url="git@github.com:${repo}.git"
+        git clone --depth 1 --branch "$ref" "$ssh_url" "$tmp/repo" >/dev/null
+    }
 
     rm -rf "$dest"
     if [[ -n "$subpath" ]]; then
