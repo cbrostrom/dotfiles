@@ -3,6 +3,7 @@ name: paseo-advisor
 description: Spin up a single agent as an advisor — second opinion on the current task. Use when the user says "advisor", "second opinion", "what does X think", or wants an outside take without delegating the work itself.
 user-invocable: true
 argument-hint: "[--profile <name>] <question or topic>"
+disable-model-invocation: true
 ---
 
 # Paseo Advisor
