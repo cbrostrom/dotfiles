@@ -1,0 +1,83 @@
+#!/usr/bin/env zsh
+# pi-skill-scope — enable/disable skill families per-project via .pi/settings.json.
+# Usage:
+#   pi-skill-scope                # show current scope for cwd
+#   pi-skill-scope off twg        # hide twg-* skills in this project (gitignore .pi/settings.json)
+#   pi-skill-scope on twg         # restore them
+#   pi-skill-scope off draft dockhand shopify   # multiple families
+# Created 05-02-2026 (startup token audit session).
+
+set -euo pipefail
+
+# family glob map — add new families here
+typeset -A FAMILY
+FAMILY[twg]="$HOME/.agents/skills/twg*"
+FAMILY[dockhand]="$HOME/.agents/skills/dockhand*"
+FAMILY[shopify]="$HOME/.agents/skills/shopify*"
+FAMILY[paseo]="$HOME/.agents/skills/paseo*"
+
+cmd="${1:-show}"; shift 2>/dev/null || true
+
+dir="${PI_SKILL_SCOPE_DIR:-$PWD}"
+settings="$dir/.pi/settings.json"
+mkdir -p "$dir/.pi"
+
+ensure_gitignored() {
+  local gi="$dir/.gitignore"
+  if [[ -f "$gi" ]] && grep -q "^\.pi/settings\.json$" "$gi"; then return; fi
+  grep -qs "^\.pi/" "$gi" && return  # project already ignores whole .pi
+  echo ".pi/settings.json" >> "$gi"
+  echo "[pi-skill-scope] added .pi/settings.json to $gi (project-local override stays out of git)"
+}
+
+current_excludes() {
+  [[ -f "$settings" ]] || return 0
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print("\n".join(p[1:] for p in d.get("skills",[]) if p.startswith("!")))' "$settings" 2>/dev/null || true
+}
+
+case "$cmd" in
+  show)
+    if [[ -f "$settings" ]]; then
+      echo "project: $dir"
+      current_excludes | sed 's/^/  excluded: /' || true
+      [[ -z "$(current_excludes)" ]] && echo "  no exclusions"
+    else
+      echo "project: $dir — no override (global defaults apply)"
+    fi
+    ;;
+  off|on)
+    [[ -n "$1" ]] || { echo "usage: pi-skill-scope off|on <family> [family...]"; exit 1; }
+    python3 - "$cmd" "$settings" "$@" <<'EOF'
+import json, pathlib, sys
+mode, path, fams = sys.argv[1], pathlib.Path(sys.argv[2]), sys.argv[3:]
+d = {}
+if path.exists():
+    d = json.load(open(path))
+skills = d.get("skills", [])
+globs = {"twg": ["~/.agents/skills/twg*"], "dockhand": ["~/.agents/skills/dockhand*"],
+         "shopify": ["~/.agents/skills/shopify*"], "paseo": ["~/.agents/skills/paseo*"]}
+changed = []
+for fam in fams:
+    for g in globs.get(fam, []):
+        ex = "!" + g
+        if mode == "off" and ex not in skills:
+            skills.append(ex); changed.append(ex)
+        elif mode == "on" and ex in skills:
+            skills.remove(ex); changed.append(ex)
+if skills:
+    d["skills"] = skills
+    path.write_text(json.dumps(d, indent=2) + "\n")
+else:
+    d.pop("skills", None)
+    if d:
+        path.write_text(json.dumps(d, indent=2) + "\n")
+    elif path.exists():
+        path.unlink()
+        print("override file removed (no exclusions left)")
+print(f"{mode}: {', '.join(changed)}" if changed else "no change")
+EOF
+    [[ "$cmd" == "off" ]] && ensure_gitignored
+    ;;
+  *)
+    echo "usage: pi-skill-scope [show|off|on] [family...] — families: ${(@k)FAMILY}" >&2; exit 1 ;;
+esac
