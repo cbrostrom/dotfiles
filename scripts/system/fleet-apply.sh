@@ -6,7 +6,13 @@ set -euo pipefail
 
 host_name="${1:-}"
 profile="${2:-}"
-repo="${DOTFILES_DIR:-$HOME/dotfiles}"
+# Resolve the dotfiles checkout on this host: canonical path first, then the
+# stow-wrapped variant used by hosts that mount dotfiles under ~/system.
+repo=""
+for candidate in "${DOTFILES_DIR:-}" "$HOME/dotfiles" "$HOME/system/dotfiles"; do
+    [[ -n "$candidate" && -d "$candidate/.git" ]] && repo="$candidate" && break
+done
+repo="${repo:-$HOME/dotfiles}"
 stage="preflight"
 old_revision="unknown"
 new_revision="unknown"

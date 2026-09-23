@@ -124,7 +124,17 @@ def available_models() -> set[str]:
 def apply_policies(settings: dict[str, Any], host: dict[str, Any]) -> None:
     """Drop removed and host-excluded packages."""
     excluded = set(host.get("excludePackages", [])) | REMOVED_PACKAGES
-    settings["packages"] = [p for p in settings.get("packages", []) if p not in excluded]
+    # Local settings may carry non-string package entries (e.g. dicts); leave
+    # anything unhashable untouched and exclude only hashable matches.
+    kept: list[Any] = []
+    for package in settings.get("packages", []):
+        try:
+            drop = package in excluded
+        except TypeError:
+            drop = False
+        if not drop:
+            kept.append(package)
+    settings["packages"] = kept
 
 
 def apply_policy(settings: dict[str, Any], policy: dict[str, Any], host: dict[str, Any]) -> list[str]:
