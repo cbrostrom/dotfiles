@@ -95,6 +95,21 @@ Skip the ledger entirely for 2-5 short bullets or one-paragraph answers — resp
 Pick a short, stable `session_label` per plan (slug from its title) and reuse it across sessions;
 a new session resumes with `next_step`.
 
+## Paseo plugins (install model 2026-09-23)
+
+Own plugins are git-installed from private `bybrostrom/paseo-plugins` (canonical; the old
+dotfiles copies were deleted). The repo remote is the only source of truth.
+
+- After editing that repo: commit, push, then `paseo plugin update <id>` per touched plugin
+  (or `--all --yes`). **A push alone does NOT update running plugins.** If you cannot run the
+  update, flag the stale revision to the user instead of hand-editing `~/.paseo/plugins/`
+  checkouts (daemon-managed; hand edits are lost on update).
+- When a Paseo plugin misbehaves, FIRST check `paseo plugin ls` for a stale revision
+  (installed revision < pushed main) or a failed status; update or reload before deeper
+  debugging.
+- `paseo plugin update --all --check` is cheap and read-only; run it when plugin behavior
+  looks wrong or after any repo push.
+
 ## Subagents
 
 No subagents for search, orientation, or single-file edits.
