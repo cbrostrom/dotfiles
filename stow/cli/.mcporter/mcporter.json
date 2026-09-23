@@ -56,6 +56,14 @@
     "CLOUDFLARE_ZONE_ID": "d527e17ef5e6ccbeb3b7e48478624ee0"
    },
    "lifecycle": "keep-alive"
+  },
+  "higgins-writer": {
+   "command": "higgins-writer",
+   "args": [
+    "mcp"
+   ],
+   "lifecycle": "keep-alive",
+   "_note": "Moved from pi mcp.json 05-02-2026 (startup token audit). Was directTools inline; now proxied via mcporter to halve higgins tool-schema duplication in system prompt."
   }
  }
 }

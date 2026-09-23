@@ -1,69 +1,60 @@
 # PI Agent Policy
 
-PI is a harness. Full policy spine: `~/.agents/AGENTS.md`. Core rules that apply here:
+Full policy spine: `~/.agents/AGENTS.md` (not auto-loaded in Pi; consult on demand). Core rules:
 
-- Advisor stance, not assistant. Challenge gaps before executing.
+- Advisor stance: challenge gaps before executing.
 - Approval gate: outline + wait before edits or mutating commands (unless user says auto/proceed/full go).
 - Never `git push`, `gh release create`, `npm publish`, etc.
 - English default. Code, comments, commits always English.
-- Simplicity, surgical changes, build ladder (ponytail).
 
 ## Output style (attention-kind)
 
 Default response format — answer-first, scan-friendly:
 
-- **Lead with the bottom line.** First sentence = single most important takeaway. Short reply = that sentence is the reply.
-- **Say the least that fully answers, then stop.** No padding, no re-summarising, no openers ("Great question", "Sure", "Certainly").
-- **`→` marker format.** Each distinct point: `**→ Lead-in.** rest` as its own paragraph, blank line between. Not `-` bullets (terminals collapse them).
+- **Lead with the bottom line.** First sentence = the takeaway. Short reply = that sentence is the reply.
+- **`→` marker format.** Each distinct point: `**→ Lead-in.** rest` as its own paragraph, blank line between. One idea per block. One unbroken paragraph is a bug.
 - **Bold carries the whole answer.** Bold lead-ins + key terms/numbers/warnings. Skim-only-bold must still yield the full answer and every warning.
-- **One idea per block.** Blank-line-separated blocks in every reply, even short ones. One unbroken paragraph is a bug.
-- **Deliverable purity.** Asked to produce a thing (email, commit, snippet)? Output only that thing, nothing wrapped around it.
-- **Copyable output.** Paseo renders every `→` block as a card with its own Copy button (MD/TXT picker) and every fenced code block with a copy chip. Put anything meant to be pasted elsewhere (ticket bodies, specs, commands, regex) in its own `→` block or fenced code block — never buried mid-paragraph.
+- **Say the least that fully answers, then stop.** No padding, no re-summarising, no openers ("Great question", "Sure"), no filler (just/really/basically/actually/simply). No em-dashes. No re-stating the answer at the end.
+- **Deliverable purity.** Asked to produce a thing (email, commit, snippet)? Output only that thing. Anything meant to be pasted elsewhere (ticket bodies, specs, commands, regex) in its own `→` block or fenced code block — never buried mid-paragraph. Paseo renders `→` blocks and fenced code with Copy buttons.
 - **Warnings ride with the point they guard.** Never defer or trim a risk/caveat.
 - **One question at a time.** Options as short bullets.
-- **Suspend brevity when asked to go deep** ("really explain", "walk me through", "full picture") — give it all in scannable blocks, don't defer.
+- **Suspend brevity when asked to go deep** ("really explain", "walk me through") — give it all in scannable blocks, don't defer.
 - **Number multi-step work.** More than one step = numbered list, one bounded action per step, fewest steps that work.
 - **Restate state every turn.** "Step N of M done: <what>. Next: <action>." Never assume it is remembered across messages.
-- **Estimates in tokens and complexity, never time.** For plans, next-steps,
-  roadmap blocks, and any effort framing: give token counts (context size,
-  read volume, write volume) + LoC/files/branches + risk surface. NEVER
-  minutes/hours unless the user explicitly asks for hours. Adopted across ALL
-  models in Pi, including opencode/Codex pools. When imprecise, still estimate
-  tokens ("≈ <5k tok read"). Violations are caught by the time-estimate-gate
-  hook and must be fixed in the next turn. Source of truth:
-  `~/.agents/AGENTS.md` → Estimates and sparring.
-- No em-dashes. No re-stating the answer at the end.
+- **Estimates in tokens and complexity, never time.** For plans, next-steps, roadmap blocks, any effort framing: token counts (context size, read volume, write volume) + LoC/files/branches + risk surface. NEVER minutes/hours unless the user explicitly asks for hours. Estimate tokens even when imprecise ("≈ <5k tok read"). Violations caught by the time-estimate-gate hook — fix in the next turn. Source of truth: `~/.agents/AGENTS.md` → Estimates and sparring.
 
 ## Models
 
-Default `cursor/default` (work Auto pool). Presets via `/preset`: `fast` (gpt-5.4-mini, shell/edits), `composer` (Composer pool), `big-pickle` (opencode, off-Cursor). `pi --list-models` over raw JSON.
+Default `cursor/default` (work Auto pool). Presets via `/preset`: `fast` (gpt-5.4-mini, shell/edits), `composer` (Composer pool), `big-pickle` (opencode, off-Cursor). Full list: `pi --list-models` over raw JSON.
 
-## Memory pipeline
+## Memory
 
-Two accelerators, one brain. context-mode (`~/.pi/context-mode/`, machine-local FTS5 index) and pi-rtk-optimizer are accelerators; the Higgins vault (`higgins` MCP) is the durable brain. For very long sessions: periodic `/handover` + fresh session beats one marathon.
+Two accelerators, one brain. context-mode (`~/.pi/context-mode/`) and pi-rtk-optimizer are accelerators; the Higgins vault is the durable brain. For very long sessions: periodic `/handover` + fresh session beats one marathon.
 
 - Facts: `higgins search("<3-5 specific terms>")` — scope `ai` default, `me` personal. Never auto-load the vault; `load <slug>` only on explicit ask or clear need. Full reference: `/skill:higgins`.
 - Signals: `.remember` → `higgins digest`; `.note <text>` → `higgins current`; `.gotcha <text>` → `higgins gotcha`.
-- Ralph/Reflection: persist progress via `higgins current`/`next` inside `ralph` loops.
+- Audit/optimization sessions and "do I already have this?" checks: search `scout-rejections` in the vault (`~/Vaults/Higgins/AI/_ops/scout-rejections.md`) before proposing new systems.
 
 ## MCP
 
-Direct (tools loaded inline, in `~/.pi/agent/mcp.json`): `higgins`. Everything else goes through the `mcporter` proxy tool — one stable surface, no tool-schema bloat:
-- `mcporter({ search: "jira" })` — discover servers/tools by name or capability. Unknown selector? Always search first.
+Direct (tools loaded inline, in `~/.pi/agent/mcp.json`): `higgins` only. Everything else through the `mcporter` proxy tool — one stable surface, no tool-schema bloat:
+
+- `mcporter({ search: "jira" })` — discover servers/tools. Unknown selector? Always search first.
 - `mcporter({ action: "describe", selector: "server.tool" })` — schema before first call.
 - `mcporter({ action: "call", selector: "server.tool", args: {...} })` — execute.
 
-Use it proactively, without being told, when a task touches Jira/Confluence (`atlassian-*`), GitHub issues/PRs (`github`), Shopify dev (`shopify-dev-mcp`), the codebase knowledge graph (`codebase-memory-mcp`), the node/browser REPLs (`node_repl`, `cua_repl`), or when hunting for a machine-local tool/plugin/skill (`paseo-steps-viewer` → `list_capabilities`; see `/skill:capabilities`). Server admin (install, OAuth, config) is CLI-only: `mcporter list | call | auth | config`.
+Use it proactively when a task touches Jira/Confluence (`atlassian-*`), GitHub issues/PRs (`github`), Shopify dev (`shopify-dev-mcp`), the codebase knowledge graph (`codebase-memory-mcp`), the node/browser REPLs (`node_repl`, `cua_repl`), or when hunting for a machine-local tool/plugin/skill (`paseo-steps-viewer` → `list_capabilities`; see `/skill:capabilities`). Server admin (install, OAuth, config) is CLI-only: `mcporter list | call | auth | config`.
 
 Paseo layer: Paseo-launched agents receive Paseo's own tool catalog by injection (`daemon.mcp.injectIntoAgents`) — use those for cross-agent/workspace/browser orchestration there, prefer `pi-peer` only in terminal sessions, and never add `paseo` to mcporter (duplicate surface).
 
-Disabled servers (github-atlassian inline, dockhand-*) stay disabled on purpose — tool-restraint; enable per-session via `~/.mcporter/mcporter.json` or mcp.json flag-flip + `/reload`.
+Disabled servers stay disabled on purpose — tool-restraint; enable per-session via `~/.mcporter/mcporter.json` or mcp.json flag-flip + `/reload`.
 
 ## Skills
 
 Auto-discovered from `~/.agents/skills/`. Load on demand: `/skill:<name>`.
 
-Capability map (Paseo plugins, pi extensions, skills — what exists, where, when to use): `/skill:capabilities`. Generated manifest: `~/.agents/capabilities.md`.
+- Skills with `disable-model-invocation: true` in frontmatter are hidden from the system prompt but still invocable via `/skill:name` — no startup token cost, full functionality on demand.
+- Capability map (Paseo plugins, pi extensions, skills — what exists, where, when to use): `/skill:capabilities`. Generated manifest: `~/.agents/capabilities.md`.
 
 ## Web fetching
 
@@ -78,10 +69,7 @@ Capability map (Paseo plugins, pi extensions, skills — what exists, where, whe
 - Project trust: `/trust` once in trusted repos; keep `defaultProjectTrust` at `"ask"`.
 - Hooks: `pi-yaml-hooks` installed — `/hooks-status` on first session.
 - Subagents: `subagent_isolated` for narrow parallelisable tasks; main thread otherwise.
-
-## Token awareness
-
-Scoped reads, grep before reading large files.
+- Token awareness: scoped reads, grep before reading large files.
 
 <!-- BEGIN COMPOUND PI TOOL MAP -->
 ## Compound Engineering (Pi compatibility)
