@@ -39,7 +39,7 @@ if [[ ! -x "$TARGET" ]]; then
     # Release asset name pattern: syncthing-linux-amd64-<version>.tar.gz
     # (v2 releases have no unversioned /latest/download alias).
     SYNCTHING_VERSION="${SYNCTHING_VERSION:-2.1.5}"
-    URL="https://github.com/syncthing/syncthing/releases/download/v${SYNCTHING_VERSION}/syncthing-linux-amd64-${SYNCTHING_VERSION}.tar.gz"
+    URL="https://github.com/syncthing/syncthing/releases/download/v${SYNCTHING_VERSION}/syncthing-linux-amd64-v${SYNCTHING_VERSION}.tar.gz"
     log "downloading: $URL"
     TMP="$(mktemp -d)"
     trap 'rm -rf "$TMP"' EXIT
