@@ -39,6 +39,10 @@ import {
 } from "./shared/turn-status.js";
 import { TurnStatusTimelineItem } from "./client/turn-status.js";
 import { transformReasoning } from "./shared/transform-reasoning.js";
+import { PiTaskList, PiTasksPanel } from "./client/pi-tasks.js";
+import { contributeClient as contributePiTasks } from "./client/pi-tasks-controller.js";
+import { transformPiTodoToolCall } from "./client/transform-pi-tasks.js";
+import { piTaskListSchema } from "./shared/pi-tasks.js";
 import { registerSplitProbeSink, splitProbeContract } from "./shared/split-probe.js";
 
 export default function contribute(client: PluginClientContext) {
@@ -80,6 +84,11 @@ export default function contribute(client: PluginClientContext) {
     id: "tool-call",
     query: { itemType: "tool_call" },
     transform: transformToolCall,
+  });
+  client.addTimelineTransformer({
+    id: "pi-tasks",
+    query: { itemType: "tool_call" },
+    transform: transformPiTodoToolCall,
   });
   client.addTimelineTransformer({
     id: "compaction-line",
@@ -129,14 +138,30 @@ export default function contribute(client: PluginClientContext) {
     Component: ReasoningTimelineItem,
   });
   client.addTimelineRenderer({
+    kind: "pi-task-list",
+    version: 1,
+    schema: piTaskListSchema,
+    Component: PiTaskList,
+  });
+  client.addTimelineRenderer({
     kind: TURN_STATUS_RENDERER_KIND,
     version: TURN_STATUS_RENDERER_VERSION,
     schema: turnStatusDataSchema,
     Component: TurnStatusTimelineItem,
   });
+  client.addWorkspacePanel({
+    id: "pi-tasks",
+    title: "Active Pi tasks",
+    icon: "ListChecks",
+    context: "agent",
+    locations: ["workspace", "explorer"],
+    Component: PiTasksPanel,
+  });
+  const removePiTasks = contributePiTasks(client);
   return () => {
     removeProbe();
     removeSessionUsagePills();
     removeThemes();
+    removePiTasks();
   };
 }

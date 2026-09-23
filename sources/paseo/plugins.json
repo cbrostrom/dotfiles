@@ -3,13 +3,6 @@
   "legacyCatalog": "https://github.com/omercnet/awesome-paseo-plugins",
   "plugins": [
     {
-      "id": "pi-tasks-timeline",
-      "repo": "mcowger/paseo-plugins",
-      "path": "pi-tasks-timeline",
-      "ref": "main",
-      "patch": "v0.8"
-    },
-    {
       "id": "workspace-activity",
       "repo": "bybrostrom/paseo-plugins",
       "path": "workspace-activity",
