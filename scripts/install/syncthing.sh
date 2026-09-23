@@ -43,9 +43,16 @@ if [[ ! -x "$TARGET" ]]; then
     log "downloading: $URL"
     TMP="$(mktemp -d)"
     trap 'rm -rf "$TMP"' EXIT
-    curl -fsSL "$URL" | tar -xz -C "$TMP" --strip-components=1 syncthing/syncthing syncthing/syncthing.1 2>/dev/null \
-        || { err "download/extract failed from $URL"; exit 1; }
-    install -m 755 "$TMP/syncthing" "$TARGET"
+    # Newer release tarballs unpack to syncthing-linux-amd64-v<ver>/syncthing —
+    # extract only the binary (member paths after --strip-components: 'syncthing').
+    # v2 release tarballs unpack to syncthing-linux-amd64-v<ver>/syncthing —
+    # grab only the binary (and its man page, optional), without assuming a
+    # legacy 'syncthing/' top dir.
+    if ! curl -fsSL "$URL" | tar -xz -C "$TMP" "syncthing-linux-amd64-v${SYNCTHING_VERSION}/syncthing"; then
+        err "download/extract failed from $URL"
+        exit 1
+    fi
+    install -m 755 "$TMP/syncthing-linux-amd64-v${SYNCTHING_VERSION}/syncthing" "$TARGET"
     log "installed binary: $TARGET"
 else
     log "binary already present: $TARGET"
