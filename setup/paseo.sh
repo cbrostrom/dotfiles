@@ -25,12 +25,10 @@ if ! command -v paseo >/dev/null 2>&1; then
 fi
 
 if ! paseo plugin ls --json >/dev/null 2>&1; then
-    relay_args=(--no-relay)
-    if [[ "${PASEO_RELAY:-off}" == "on" ]]; then
-        relay_args=(--relay)
-    fi
+    # Paseo 0.9 removed --relay/--no-relay daemon flags; relay is config-driven
+    # (daemon.relay.enabled), patched further below when PASEO_RELAY is set.
     log "start local Paseo daemon (loopback, relay: ${PASEO_RELAY:-off})"
-    paseo daemon start "${relay_args[@]}" >/dev/null
+    paseo daemon start >/dev/null
 fi
 
 # Fresh daemons start with plugins globally disabled, which makes every
