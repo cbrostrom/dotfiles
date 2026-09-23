@@ -31,6 +31,14 @@ if ! paseo plugin ls --json >/dev/null 2>&1; then
     paseo daemon start >/dev/null
 fi
 
+# Password-protected daemon (auth management 2026-09-23): local CLI ops need
+# PASEO_PASSWORD; dotfiles provisioning must not fail on gated daemons. Sync
+# continues below only when the CLI can respond about plugins.
+if ! paseo plugin ls --json >/dev/null 2>&1; then
+    log "paseo ops skipped: daemon requires auth (set PASEO_PASSWORD or pair the local CLI)"
+    exit 0
+fi
+
 # Fresh daemons start with plugins globally disabled, which makes every
 # `paseo plugin reload/install` below fail with "Plugins are globally
 # disabled". Enable them and reload before the sync loop.
