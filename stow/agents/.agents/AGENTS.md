@@ -123,6 +123,10 @@ Codex-specific: `.codex/skills/`. Full inventory: `AGENT_SKILLS.md`.
 Prefer scoped output. Say context risk before likely-large reads (>200 lines or >10k chars).
 RTK handles compression for CC + Cursor automatically. Token heuristic: 1k tokens ≈ 750 words.
 
+## Planning and new-system guard
+
+Before proposing new systems, tools, extensions, or workflows: search the vault for prior verdicts — `~/Vaults/Higgins/AI/_ops/scout-rejections.md` and related ops notes (`higgins search` or direct read). Rebuilding a rejected idea wastes a cycle; the log records why and when to revisit. A proposal in a rejected area needs explicit new evidence.
+
 ## Approval gate
 
 For non-trivial work: outline issue + solution, wait for approval before mutating.

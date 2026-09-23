@@ -16,12 +16,6 @@
         "HIGGINS_READ_ONLY": "1"
       }
     },
-    "higgins-writer": {
-      "command": "higgins-writer",
-      "args": ["mcp"],
-      "lifecycle": "keep-alive",
-      "directTools": true
-    },
     "deja": {
       "command": "deja",
       "args": [
