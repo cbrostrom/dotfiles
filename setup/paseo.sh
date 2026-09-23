@@ -35,7 +35,10 @@ fi
 # PASEO_PASSWORD; dotfiles provisioning must not fail on gated daemons. Sync
 # continues below only when the CLI can respond about plugins.
 if ! paseo plugin ls --json >/dev/null 2>&1; then
-    log "paseo ops skipped: daemon requires auth (set PASEO_PASSWORD or pair the local CLI)"
+    log "paseo ops skipped: daemon is password-protected and no PASEO_PASSWORD was provided"
+    log "plugin sync is skipped; ssh in and run manually:"
+    log "  ssh <host> "
+    log "  PASEO_PASSWORD=<pw> paseo plugin ls   # or run: paseo daemon set-password"
     exit 0
 fi
 
