@@ -7,7 +7,9 @@ DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 activate_fnm
 
 PASEO_CONFIG_SRC="$DOTFILES_DIR/sources/paseo"
-PASEO_PLUGINS_DIR="$PASEO_CONFIG_SRC/plugins"
+# Plugins are runtime state, not dotfiles: keep them outside the git tree so
+# plugin syncs never dirty the checkout the fleet updater guards.
+PASEO_PLUGINS_DIR="${PASEO_PLUGINS_DIR:-$HOME/.paseo/plugins}"
 PATCH_SCRIPT="$PASEO_CONFIG_SRC/patches/apply-v0.8.py"
 MANIFEST="$PASEO_CONFIG_SRC/plugins.json"
 # Git-installed or superseded plugins — remove if still registered.
