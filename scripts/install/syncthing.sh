@@ -36,11 +36,10 @@ fi
 
 mkdir -p "$BIN_DIR"
 if [[ ! -x "$TARGET" ]]; then
-    if [[ -z "$SYNCTHING_VERSION" ]]; then
-        URL="https://github.com/syncthing/syncthing/releases/latest/download/syncthing-linux-amd64-v2.tar.gz"
-    else
-        URL="https://github.com/syncthing/syncthing/releases/download/v${SYNCTHING_VERSION}/syncthing-linux-amd64-v2-${SYNCTHING_VERSION}.tar.gz"
-    fi
+    # Release asset name pattern: syncthing-linux-amd64-<version>.tar.gz
+    # (v2 releases have no unversioned /latest/download alias).
+    SYNCTHING_VERSION="${SYNCTHING_VERSION:-2.1.5}"
+    URL="https://github.com/syncthing/syncthing/releases/download/v${SYNCTHING_VERSION}/syncthing-linux-amd64-${SYNCTHING_VERSION}.tar.gz"
     log "downloading: $URL"
     TMP="$(mktemp -d)"
     trap 'rm -rf "$TMP"' EXIT
