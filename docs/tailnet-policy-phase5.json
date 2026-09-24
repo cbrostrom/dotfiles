@@ -33,6 +33,9 @@
 		// tag:server, so servers never widen. Structural rule D8
 		// (server -> server = denied) holds.
 		{"src": ["100.100.1.255"], "dst": ["tag:server"], "ip": ["tcp:27789"]},
+		// monsterbro-wsl -> orchestrator: work engine ssh into cloudbro (23-09-2026,
+		// user-approved extension; explicit IP entry per D8 carve-out pattern)
+		{"src": ["100.100.1.255"], "dst": ["tag:orchestrator"], "ip": ["tcp:27789"]},
 
 		// Preserve public-egress-over-tailnet for servers + orchestrator
 		// (formerly the tag:vps -> autogroup:internet grant).
