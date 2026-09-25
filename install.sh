@@ -44,6 +44,7 @@ case "$profile" in
         "$ROOT/scripts/install/rtk.sh"
         "$ROOT/scripts/install/deja.sh"
         "$ROOT/scripts/install/npm-globals.sh"
+        "$ROOT/scripts/install/fastfetch.sh"
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/zed.sh"
         [[ "$profile" == "wsl" ]] && "$ROOT/setup/cursor.sh"
@@ -55,6 +56,7 @@ case "$profile" in
         "$ROOT/scripts/install/rtk.sh"
         "$ROOT/scripts/install/deja.sh"
         "$ROOT/scripts/install/npm-globals.sh"
+        "$ROOT/scripts/install/fastfetch.sh"
         "$ROOT/setup/pi.sh"
         PASEO_RELAY=on "$ROOT/setup/paseo.sh"
         ;;
@@ -64,6 +66,7 @@ case "$profile" in
         "$ROOT/scripts/install/rtk.sh"
         "$ROOT/scripts/install/deja.sh"
         "$ROOT/scripts/install/npm-globals.sh"
+        "$ROOT/scripts/install/fastfetch.sh"
         "$ROOT/setup/pi.sh"
         ;;
     *)
