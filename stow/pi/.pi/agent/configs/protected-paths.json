@@ -26,6 +26,10 @@
     { "path": "~/.aws/", "deny": ["read", "write", "edit", "bash"] },
     { "path": "~/.gnupg/", "deny": ["read", "write", "edit", "bash"] },
     { "path": "~/.kube/config", "deny": ["read", "write", "edit", "bash"] },
-    { "path": "~/.docker/config.json", "deny": ["read", "write", "edit", "bash"] }
+    { "path": "~/.docker/config.json", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "passwords*", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "vault*", "deny": ["read", "write", "edit", "bash"] },
+    { "path": "*export*.json", "deny": ["read", "edit", "bash"] },
+    { "path": "*backup*.json", "deny": ["read", "edit", "bash"] }
   ]
 }
