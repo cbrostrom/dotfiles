@@ -15,27 +15,57 @@ else
     PERSONAL_EXTENSIONS="$INSTALLED_EXTENSIONS"
 fi
 
-extensions=(
-    "$PI_AGENT_DIR/npm/node_modules/pi-cursor-sdk/dist/index.js"
-    "$PI_AGENT_DIR/npm/node_modules/pi-yaml-hooks/extensions/pi-yaml-hooks/index.ts"
-    "$PI_AGENT_DIR/npm/node_modules/pi-ask-user/index.ts"
-    "$PI_AGENT_DIR/npm/node_modules/context-mode/build/adapters/pi/extension.js"
-    "$PI_AGENT_DIR/npm/node_modules/pi-mcp-adapter/index.ts"
-    "$PI_AGENT_DIR/npm/node_modules/pi-rtk-optimizer/index.ts"
-    "$PI_AGENT_DIR/npm/node_modules/@narumitw/pi-caffeinate/dist/index.ts"
-    "$PI_AGENT_DIR/npm/node_modules/@shift-labs/pi-peer/src/extension/index.ts"
-    "$PI_AGENT_DIR/npm/node_modules/@juicesharp/rpiv-todo/index.ts"
-    "$PI_AGENT_DIR/npm/node_modules/pi-mcporter/dist/index.js"
+SETTINGS="$PI_AGENT_DIR/settings.json"
+command -v jq >/dev/null 2>&1 || { printf 'pi-paseo: jq is required\n' >&2; exit 1; }
+[[ -f "$SETTINGS" ]] || { printf 'pi-paseo: missing %s — run setup/pi.sh\n' "$SETTINGS" >&2; exit 1; }
+
+# Packages come from settings.json (same list terminal Pi loads), so installs
+# never drift between terminal and Paseo. Skip terminal-only packages: TUI
+# managers, interactive permission prompts, and providers workers never use.
+# bybrostrom/pi-extensions is skipped here and cherry-picked below.
+PASEO_SKIP_PACKAGES=(pi-extension-settings pi-extmgr rpiv-config pi-permission-system
+  pi-subagents pi-ollama-cloud pi-blackhole pi-extensions)
+
+extensions=()
+skills=("$PI_AGENT_DIR/skills/moli-webfetch")
+
+resolve_entry() {
+    local path="$1"
+    if [[ -d "$path" ]]; then
+        for index in index.ts index.js; do
+            [[ -f "$path/$index" ]] && { printf '%s\n' "$path/$index"; return; }
+        done
+    fi
+    printf '%s\n' "$path"
+}
+
+while IFS= read -r package; do
+    case "$package" in
+        npm:*) dir="$PI_AGENT_DIR/npm/node_modules/${package#npm:}" ;;
+        git:*) dir="$PI_AGENT_DIR/git/${package#git:}" ;;
+        *) continue ;;
+    esac
+    name="$(basename "$dir")"
+    for skip in "${PASEO_SKIP_PACKAGES[@]}"; do
+        [[ "$name" == "$skip" ]] && continue 2
+    done
+    if [[ ! -f "$dir/package.json" ]]; then
+        printf 'pi-paseo: missing package: %s\nRun: pi update --all\n' "$package" >&2
+        exit 1
+    fi
+    while IFS= read -r entry; do
+        extensions+=("$(resolve_entry "$dir/${entry#./}")")
+    done < <(jq -r '.pi.extensions[]? // empty' "$dir/package.json")
+    while IFS= read -r entry; do
+        skills+=("$dir/${entry#./}")
+    done < <(jq -r '.pi.skills[]? // empty' "$dir/package.json")
+done < <(jq -r '.packages[]? | if type == "string" then . else .source // empty end' "$SETTINGS")
+
+extensions+=(
     "$DOTFILES_DIR/stow/pi/.pi/agent/extensions/file-search/index.ts"
     "$PI_AGENT_DIR/extensions/model-policy-guard/index.ts"
     "$PERSONAL_EXTENSIONS/extensions/style/index.ts"
     "$PERSONAL_EXTENSIONS/extensions/unslop/index.ts"
-)
-
-skills=(
-    "$PI_AGENT_DIR/npm/node_modules/pi-ask-user/skills/ask-user"
-    "$PI_AGENT_DIR/npm/node_modules/context-mode/skills/context-mode"
-    "$PI_AGENT_DIR/skills/moli-webfetch"
 )
 
 # Single source of truth: auto-include every shared skill in ~/.agents/skills.
@@ -94,6 +124,13 @@ else
     exit 127
 fi
 export PI_BIN="$PI_BIN"
+
+# Paseo only hands MCP servers to Pi when it detects pi-mcp-adapter's /mcp
+# command; without it agents fail with "Provider 'pi' does not support MCP
+# servers". Exclusive mode reads only the --mcp-config Paseo writes (global
+# mcp.json + Paseo servers) and skips project/host discovery, whose approval
+# confirm() has no answer over RPC and makes Pi exit 0.
+export PI_MCP_CONFIG_MODE=exclusive
 
 # RPC interpreter: rate-shapes pi's message_update delta stream into
 # block-complete content so Paseo's timeline provider never closes items on
