@@ -193,6 +193,21 @@ if shutil.which("aislop"):
 else:
     print("\033[1;33m[cursor]\033[0m aislop not found — skipping afterFileEdit patch")
 
+# Shared agent guards (~/.agents/hooks, also wired into Pi's hooks.yaml):
+# push whitelist + release/publish block, and the output style gate.
+add_entry("beforeShellExecution", {
+    "command": "bash './hooks/run-hook.sh' push-guard -- bash \"$HOME/.agents/hooks/push-guard.sh\" cursor",
+    "timeout": 5,
+})
+add_entry("afterAgentResponse", {
+    "command": "bash './hooks/run-hook.sh' style-gate -- \"$HOME/.agents/hooks/style-gate\" cursor detect",
+    "timeout": 5,
+})
+add_entry("postToolUse", {
+    "command": "bash './hooks/run-hook.sh' style-gate -- \"$HOME/.agents/hooks/style-gate\" cursor consume",
+    "timeout": 5,
+})
+
 # vault-save: stop (lightweight brain nudge after each task)
 add_entry("stop", {
     "command": "bash './hooks/run-hook.sh' vault-save -- bash './hooks/vault-save.sh'",
