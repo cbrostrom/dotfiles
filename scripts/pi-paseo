@@ -26,8 +26,27 @@ command -v jq >/dev/null 2>&1 || { printf 'pi-paseo: jq is required\n' >&2; exit
 PASEO_SKIP_PACKAGES=(pi-extension-settings pi-extmgr rpiv-config pi-permission-system
   pi-subagents pi-ollama-cloud pi-blackhole pi-extensions)
 
+# Every listed skill costs its description in every worker's system prompt, so
+# shared and package skills are opt-in: new ones stay out until listed here.
+PASEO_SKILLS=(call capabilities codebase codebase-memory commit higgins orchestration
+  paseo systematic-debugging verification-before-completion fallow tool-restraint
+  ask-user context-mode)
+
 extensions=()
 skills=("$PI_AGENT_DIR/skills/moli-webfetch")
+
+add_allowed_skills() {
+    local root="$1" dir name
+    for dir in "$root" "$root"/*/; do
+        dir="${dir%/}"
+        [[ -f "$dir/SKILL.md" ]] || continue
+        name="$(basename "$dir")"
+        for allowed in "${PASEO_SKILLS[@]}"; do
+            [[ "$name" == "$allowed" ]] && { skills+=("$dir"); break; }
+        done
+    done
+    return 0
+}
 
 resolve_entry() {
     local path="$1"
@@ -57,7 +76,7 @@ while IFS= read -r package; do
         extensions+=("$(resolve_entry "$dir/${entry#./}")")
     done < <(jq -r '.pi.extensions[]? // empty' "$dir/package.json")
     while IFS= read -r entry; do
-        skills+=("$dir/${entry#./}")
+        add_allowed_skills "$dir/${entry#./}"
     done < <(jq -r '.pi.skills[]? // empty' "$dir/package.json")
 done < <(jq -r '.packages[]? | if type == "string" then . else .source // empty end' "$SETTINGS")
 
@@ -68,21 +87,7 @@ extensions+=(
     "$PERSONAL_EXTENSIONS/extensions/unslop/index.ts"
 )
 
-# Single source of truth: auto-include every shared skill in ~/.agents/skills.
-# EXCLUDED_SKILLS keeps harness/one-off skills out of Paseo workers.
-# orchestration is intentionally absent above: it lives in ~/.agents/skills too,
-# so listing both would trigger a pi name-collision warning.
-EXCLUDED_SKILLS=(shopify release-notes pi orca-cli \
-  paseo-advisor paseo-committee paseo-handoff paseo-help \
-  writing dotfiles-update dockhand)
-for dir in "$HOME/.agents/skills"/*/; do
-    name="$(basename "$dir")"
-    excluded=false
-    for skill in "${EXCLUDED_SKILLS[@]}"; do
-        [[ "$name" == "$skill" ]] && excluded=true
-    done
-    [[ -f "$dir/SKILL.md" && "$excluded" == false ]] && skills+=("${dir%/}")
-done
+add_allowed_skills "$HOME/.agents/skills"
 
 project_root="$(git -C "$PWD" rev-parse --show-toplevel 2>/dev/null || printf '%s' "$PWD")"
 for project_skills in "$project_root/.agents/skills" "$project_root/.pi/skills"; do
