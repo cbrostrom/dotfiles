@@ -6,7 +6,7 @@
   "maxMatchedTools": 8,
   "servers": {
     "higgins-writer": {
-      "exposure": "match"
+      "exposure": "index"
     },
     "github": {
       "exposure": "index"
