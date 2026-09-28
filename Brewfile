@@ -109,8 +109,8 @@ brew "llama.cpp"
 # =============================================================================
 # ZSH plugins
 # =============================================================================
-brew "zsh-autosuggestions"
-brew "zsh-syntax-highlighting"
+tap "Giammarco-Ferranti/deja"
+brew "Giammarco-Ferranti/deja/deja"
 
 # =============================================================================
 # Tap-scoped formulae

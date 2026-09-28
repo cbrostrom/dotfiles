@@ -33,18 +33,20 @@ _plugin_load() {
 }
 
 # =============================================================================
-# ZSH-AUTOSUGGESTIONS
+# DEJA — ghost-text autosuggestions (replaces zsh-autosuggestions)
 # =============================================================================
-_plugin_load zsh-autosuggestions \
-    https://github.com/zsh-users/zsh-autosuggestions \
-    zsh-autosuggestions.zsh \
-    /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
-    /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
-    /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+# Deja (brew Giammarco-Ferranti/deja/deja) owns the `deja` binary name.
+# It spawns its own daemon and generates ~/.local/share/deja/init.zsh.
+export DEJA_HIGHLIGHT_STYLE='fg=#585858'  # dim grey, from Ghostty palette 8
+export DEJA_CYCLE_KEY='^[t'              # Alt+T cycles alternatives (Tab kept for fzf-tab)
+export DEJA_ACCEPT_KEY=''                 # keep the explicit accept keys unbound
+export DEJA_WORD_ACCEPT_KEY=''
 
-# Dimmed grey autosuggestions — clearly distinct from typed text
-# Using color from your Ghostty palette 8 (#d6dbe5 at ~40% opacity)
-export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#585858'
+if [[ -r "$HOME/.local/share/deja/init.zsh" ]]; then
+    source "$HOME/.local/share/deja/init.zsh"
+else
+    (( $+commands[deja] )) && eval "$(deja init zsh)"
+fi
 
 # =============================================================================
 # FZF-TAB — must load before syntax highlighting, after compinit
