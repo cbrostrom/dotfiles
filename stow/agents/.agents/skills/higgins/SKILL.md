@@ -35,7 +35,7 @@ $VAULT_AI/
 
 ## MCP tools (13, agent-facing)
 
-Registered on the `higgins` MCP server. Pi shows them as `mcp__higgins_<name>` (e.g. `mcp__higgins_search`) — note there is no double `higgins_higgins_` prefix; the tool names below are bare on purpose.
+Registered on the `higgins` MCP server. Harnesses with direct MCP tools show them as `mcp__higgins_<name>` (e.g. `mcp__higgins_search`) — note there is no double `higgins_higgins_` prefix; the tool names below are bare on purpose. Pi reaches them through mcporter: `mcporter({ action: "call", selector: "higgins-writer.search", args: {...} })`.
 
 ```
 search(query, tier="", scope="ai", max_tokens=2000)

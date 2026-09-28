@@ -1,8 +1,7 @@
 {
   "settings": {
     "toolPrefix": "mcp",
-    "hostConfigDiscovery": "on",
-    "disableProxyTool": true
+    "hostConfigDiscovery": "on"
   },
   "mcpServers": {
     "higgins": {
@@ -11,7 +10,7 @@
         "mcp"
       ],
       "lifecycle": "keep-alive",
-      "directTools": true,
+      "disabled": true,
       "env": {
         "HIGGINS_READ_ONLY": "1"
       }
