@@ -5,6 +5,9 @@
   "discoveryTimeoutMs": 2000,
   "maxMatchedTools": 8,
   "servers": {
+    "higgins-writer": {
+      "exposure": "match"
+    },
     "github": {
       "exposure": "index"
     },
