@@ -160,7 +160,7 @@ PRAGMA create_fts_index('fts_events', 'events', 'payload');  -- or equivalent vi
 | P1 | `higgins ledger` (export-import Deja, prune, status) | ~150 LoC |
 | P2 | `higgins duckdb` (rebuild, query, freshness report) | ~250 LoC |
 | P3 | MCP tool + AGENTS.md lookup-discipline rule + skill doc update | ~40 LoC |
-| P4 | Retire overlapping Deja reading path; keep `deja sync` as capture transport | config |
+| P4 | Retire overlapping Deja reading path; keep `dejavu sync` as capture transport | config |
 
 ## 8. Success criteria
 

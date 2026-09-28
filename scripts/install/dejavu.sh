@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # =============================================================================
-# scripts/install/deja.sh — install the deja session-recall CLI from releases
+# scripts/install/dejavu.sh — install the deja-vu session-recall CLI from releases
 # =============================================================================
-# deja (https://github.com/vshulcz/deja-vu) — search past coding-agent
-# sessions; provides the `deja mcp` server used by pi.
+# dejavu (https://github.com/vshulcz/deja-vu) — search past coding-agent
+# sessions; provides the `dejavu mcp` server used by pi.
+# NOTE: binary name is `dejavu`, not `deja` — the `deja` name belongs to
+# Giammarco-Ferranti/deja (zsh ghost-text autosuggestions, brew).
 #
 # Idempotent: skips when the requested version is already installed;
 # set DEJA_VERSION=latest (default) or a tag like v0.20.1 to pin.
@@ -12,11 +14,11 @@
 set -euo pipefail
 
 BIN_DIR="$HOME/.local/bin"
-TARGET="$BIN_DIR/deja"
+TARGET="$BIN_DIR/dejavu"
 VERSION="${DEJA_VERSION:-latest}"
 
-log() { printf '[deja-install] %s\n' "$*"; }
-err() { printf '[deja-install] error: %s\n' "$*" >&2; }
+log() { printf '[dejavu-install] %s\n' "$*"; }
+err() { printf '[dejavu-install] error: %s\n' "$*" >&2; }
 
 case "$(uname -s)-$(uname -m)" in
     Linux-x86_64) plat="linux_amd64" ;;
@@ -39,7 +41,7 @@ fi
 asset_version="${VERSION#v}"
 
 if [[ -x "$TARGET" ]] && "$TARGET" --version 2>/dev/null | grep -q "$asset_version"; then
-    log "deja $asset_version already installed"
+    log "deja-vu $asset_version already installed"
     exit 0
 fi
 
@@ -52,7 +54,7 @@ curl -fsSL "$url" -o "$tmp/deja.tar.gz"
 
 tar -xzf "$tmp/deja.tar.gz" -C "$tmp"
 binary="$(find "$tmp" -type f -name deja | head -1)"
-[[ -n "$binary" ]] || { err "deja binary not found in tarball"; exit 1; }
+[[ -n "$binary" ]] || { err "deja-vu binary not found in tarball"; exit 1; }
 
 mkdir -p "$BIN_DIR"
 install -m 755 "$binary" "$TARGET"

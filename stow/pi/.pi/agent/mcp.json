@@ -16,7 +16,7 @@
       }
     },
     "deja": {
-      "command": "deja",
+      "command": "dejavu",
       "args": [
         "mcp"
       ],

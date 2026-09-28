@@ -37,7 +37,7 @@ Four failures, three unprovisioned tools + one stale node_modules:
 
 1. Commit + push these changes from the Mac (or pull the branch).
 2. On cloudbro: `git -C ~/dotfiles pull`, then `./install.sh cloudbro`.
-3. Verify: `higgins status`, `deja --version`, `rtk --version`, and pi
+3. Verify: `higgins status`, `dejavu --version`, `rtk --version`, and pi
    starts without MCP/extension errors.
 
 ## Sources
