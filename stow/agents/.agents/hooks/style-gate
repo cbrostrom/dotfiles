@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+"""style-gate: flag mechanical output-style violations and correct them next turn.
+
+Checks the latest assistant reply (code blocks and inline code ignored) for:
+time estimates, em-dashes, filler openers, and heavy filler-word use.
+Never blocks: detect writes a one-shot flag, consume injects a correction.
+
+  style-gate pi detect        pi-yaml-hooks session.idle (PI_SESSION_ID env)
+  style-gate pi consume       pi-yaml-hooks user.prompt.submit
+  style-gate cursor detect    Cursor afterAgentResponse (stdin: text, conversation_id)
+  style-gate cursor consume   Cursor postToolUse -> additional_context
+
+Source of truth for the rules: ~/.agents/AGENTS.md. All failures are no-ops.
+"""
+from __future__ import annotations
+
+import glob
+import json
+import os
+import re
+import sys
+import tempfile
+
+FLAG_DIR = os.path.join(os.environ.get("TMPDIR") or tempfile.gettempdir(), "agent-style-gate")
+PI_SESSIONS = os.path.expanduser("~/.pi/agent/sessions")
+
+TIME_RE = re.compile(
+    r"~?\d+(?:[-–]\d+)?\s*(?:min(?:ute)?s?|hours?|hrs?)\b|~?\d+(?:[.,]\d+)?\s*h(?:ours)?\b",
+    re.I,
+)
+OPENER_RE = re.compile(
+    r"^\W*(great question|good question|sure|certainly|absolutely|of course|happy to help)\b", re.I
+)
+FILLER_RE = re.compile(r"\b(just|really|basically|actually|simply)\b", re.I)
+FILLER_LIMIT = 3
+
+
+def prose(text: str) -> str:
+    text = re.sub(r"```.*?```", "", text, flags=re.S)
+    text = re.sub(r"~~~.*?~~~", "", text, flags=re.S)
+    return re.sub(r"`[^`\n]*`", "", text)
+
+
+def violations(text: str) -> list[str]:
+    body = prose(text)
+    found = []
+    if TIME_RE.search(body):
+        found.append("time estimate (minutes/hours): restate effort as tokens + complexity (LoC, files, risk)")
+    if "\u2014" in body:
+        found.append("em-dash: use a comma, colon, parentheses or a new sentence")
+    first = next((line for line in body.splitlines() if line.strip()), "")
+    if OPENER_RE.search(first):
+        found.append("filler opener: start with the answer")
+    fillers = len(FILLER_RE.findall(body))
+    if fillers >= FILLER_LIMIT:
+        found.append(f"filler words ({fillers}x just/really/basically/actually/simply): cut them")
+    return found
+
+
+def flag_path(harness: str, key: str) -> str:
+    safe = re.sub(r"[^\w.-]", "_", key)
+    return os.path.join(FLAG_DIR, f"{harness}-{safe}.flag")
+
+
+def write_flag(harness: str, key: str, found: list[str]) -> None:
+    if not key or not found:
+        return
+    os.makedirs(FLAG_DIR, exist_ok=True)
+    with open(flag_path(harness, key), "w") as f:
+        f.write("\n".join(found))
+
+
+def take_flag(harness: str, key: str) -> str | None:
+    if not key:
+        return None
+    path = flag_path(harness, key)
+    try:
+        with open(path) as f:
+            found = f.read().strip()
+        os.remove(path)
+    except OSError:
+        return None
+    if not found:
+        return None
+    bullets = "\n".join(f"- {line}" for line in found.splitlines())
+    return (
+        "[style-gate] Your previous reply broke these output rules:\n"
+        f"{bullets}\n"
+        "Follow them from this reply on. Do not apologise for or mention this note."
+    )
+
+
+def last_pi_assistant_text(session_id: str) -> str:
+    matches = glob.glob(os.path.join(PI_SESSIONS, "*", f"*{session_id}*.jsonl"))
+    if not matches:
+        return ""
+    with open(matches[0], "rb") as f:
+        f.seek(0, os.SEEK_END)
+        f.seek(max(0, f.tell() - 2_000_000))
+        lines = f.read().decode("utf-8", "replace").splitlines()
+    for line in reversed(lines):
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        message = entry.get("message") or {}
+        if entry.get("type") != "message" or message.get("role") != "assistant":
+            continue
+        text = "\n".join(
+            block.get("text", "") for block in message.get("content") or [] if block.get("type") == "text"
+        )
+        if text.strip():
+            return text
+    return ""
+
+
+def read_stdin_json() -> dict:
+    try:
+        return json.loads(sys.stdin.read() or "{}")
+    except ValueError:
+        return {}
+
+
+def main() -> None:
+    harness, action = (sys.argv[1:3] + ["", ""])[:2]
+    if harness == "pi":
+        session_id = os.environ.get("PI_SESSION_ID", "")
+        if action == "detect":
+            write_flag("pi", session_id, violations(last_pi_assistant_text(session_id)))
+        elif action == "consume":
+            note = take_flag("pi", session_id)
+            if note:
+                print(f"status: success\n{note}")
+    elif harness == "cursor":
+        payload = read_stdin_json()
+        conversation = str(payload.get("conversation_id") or "")
+        if action == "detect":
+            write_flag("cursor", conversation, violations(str(payload.get("text") or "")))
+        elif action == "consume":
+            note = take_flag("cursor", conversation)
+            print(json.dumps({"additional_context": note} if note else {}))
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        pass
