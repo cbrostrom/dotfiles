@@ -22,7 +22,7 @@ command -v jq >/dev/null 2>&1 || { printf 'pi-paseo: jq is required\n' >&2; exit
 # Packages come from settings.json (same list terminal Pi loads), so installs
 # never drift between terminal and Paseo. Skip terminal-only packages: TUI
 # managers, interactive permission prompts, and providers workers never use.
-# bybrostrom/pi-extensions is skipped here and cherry-picked below.
+# bybrostrom/pi-extensions is skipped here and loaded below from the local checkout.
 PASEO_SKIP_PACKAGES=(pi-extension-settings pi-extmgr rpiv-config pi-permission-system
   pi-subagents pi-ollama-cloud pi-blackhole pi-extensions)
 
@@ -83,9 +83,12 @@ done < <(jq -r '.packages[]? | if type == "string" then . else .source // empty 
 extensions+=(
     "$DOTFILES_DIR/stow/pi/.pi/agent/extensions/file-search/index.ts"
     "$PI_AGENT_DIR/extensions/model-policy-guard/index.ts"
-    "$PERSONAL_EXTENSIONS/extensions/style/index.ts"
-    "$PERSONAL_EXTENSIONS/extensions/unslop/index.ts"
 )
+# Personal extensions gate themselves (extensions/lib/runtime.ts): terminal-only ones
+# return early under PASEO_AGENT_ID, so the whole manifest is safe to load.
+while IFS= read -r entry; do
+    extensions+=("$PERSONAL_EXTENSIONS/${entry#./}")
+done < <(jq -r '.pi.extensions[]? // empty' "$PERSONAL_EXTENSIONS/package.json")
 
 add_allowed_skills "$HOME/.agents/skills"
 
