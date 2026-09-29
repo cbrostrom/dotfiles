@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+# ob - Obsidian Local REST API CLI
+# Requires: Obsidian running with the Local REST API plugin enabled
+# https://github.com/coddingtonbear/obsidian-local-rest-api
+
+set -euo pipefail
+
+OB_PORT="${OBSIDIAN_PORT:-27124}"
+
+# Load secrets if not already in env
+if [[ -z "${OBSIDIAN_API_KEY:-}" && -f "$HOME/.local-secrets" ]]; then
+    # shellcheck source=/dev/null
+    source "$HOME/.local-secrets"
+fi
+
+OB_KEY="${OBSIDIAN_API_KEY:-}"
+
+if [[ -z "$OB_KEY" ]]; then
+    echo "ob: OBSIDIAN_API_KEY not set. Add to ~/.local-secrets:" >&2
+    echo "  export OBSIDIAN_API_KEY=your-key-here" >&2
+    echo "" >&2
+    echo "Find key in Obsidian → Settings → Local REST API" >&2
+    exit 1
+fi
+
+# Detect host: WSL uses Windows gateway, native Linux/macOS uses localhost
+_ob_host() {
+    if [[ -n "${OBSIDIAN_HOST:-}" ]]; then
+        echo "$OBSIDIAN_HOST"
+        return
+    fi
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+        # WSL2 NAT mode: Windows host is at the default gateway
+        ip route show default 2>/dev/null | awk '/default/ {print $3; exit}'
+    else
+        echo "localhost"
+    fi
+}
+
+OB_HOST="$(_ob_host)"
+OB_BASE="https://${OB_HOST}:${OB_PORT}"
+
+_curl() {
+    curl -sk \
+        -H "Authorization: Bearer $OB_KEY" \
+        "$@"
+}
+
+# URL-encode a string via curl's built-in urlencode
+_urlencode() {
+    curl -Gso /dev/null -w '%{url_effective}' \
+        --data-urlencode "$1" "" 2>/dev/null | sed 's|.*\?||'
+}
+
+cmd="${1:-help}"
+shift || true
+
+case "$cmd" in
+    search|s)
+        [[ $# -gt 0 ]] || { echo "ob search <query>" >&2; exit 1; }
+        query="$*"
+        _curl "${OB_BASE}/search/simple/?query=$(_urlencode "$query")"
+        ;;
+
+    read|get|r|cat)
+        [[ $# -gt 0 ]] || { echo "ob read <path>" >&2; exit 1; }
+        _curl "${OB_BASE}/vault/$1"
+        ;;
+
+    write|put|w)
+        [[ $# -gt 0 ]] || { echo "ob write <path> [content|-]" >&2; exit 1; }
+        path="$1"; shift
+        if [[ $# -eq 0 || "${1:-}" == "-" ]]; then
+            content="$(cat)"
+        else
+            content="$*"
+        fi
+        _curl -X PUT \
+            -H "Content-Type: text/markdown" \
+            --data "$content" \
+            "${OB_BASE}/vault/${path}"
+        ;;
+
+    append|a)
+        [[ $# -gt 0 ]] || { echo "ob append <path> [content|-]" >&2; exit 1; }
+        path="$1"; shift
+        if [[ $# -eq 0 || "${1:-}" == "-" ]]; then
+            content="$(cat)"
+        else
+            content="$*"
+        fi
+        _curl -X POST \
+            -H "Content-Type: text/markdown" \
+            --data "$content" \
+            "${OB_BASE}/vault/${path}"
+        ;;
+
+    list|ls|l)
+        dir="${1:-}"
+        [[ -n "$dir" && "${dir: -1}" != "/" ]] && dir="${dir}/"
+        result=$(_curl "${OB_BASE}/vault/${dir}")
+        # Print file list if JSON, raw content otherwise
+        if echo "$result" | grep -q '"files"' 2>/dev/null; then
+            echo "$result" | grep -o '"[^"]*\.md"' | tr -d '"' | sort
+        else
+            echo "$result"
+        fi
+        ;;
+
+    open|o)
+        [[ $# -gt 0 ]] || { echo "ob open <path>" >&2; exit 1; }
+        _curl -X POST "${OB_BASE}/open/$1"
+        ;;
+
+    active)
+        _curl "${OB_BASE}/active/"
+        ;;
+
+    inbox)
+        # Append a quick note to Inbox/Inbox.md
+        [[ $# -gt 0 ]] || { echo "ob inbox <text>" >&2; exit 1; }
+        content="- $(date '+%Y-%m-%d %H:%M') $*"
+        _curl -X POST \
+            -H "Content-Type: text/markdown" \
+            --data "$content" \
+            "${OB_BASE}/vault/Inbox/Inbox.md"
+        ;;
+
+    help|--help|-h|"")
+        cat >&2 <<'EOF'
+ob - Obsidian REST API CLI
+
+Usage: ob <command> [args]
+
+Commands:
+  search|s <query>            Full-text search
+  read|get <path>             Read note content
+  write|put <path> [content]  Create/overwrite note (stdin if no content)
+  append|a <path> [content]   Append to note (stdin if no content)
+  list|ls [dir]               List notes in vault or directory
+  open|o <path>               Open note in Obsidian
+  active                      Show active note
+  inbox <text>                Append quick note to Inbox/Inbox.md
+
+Environment:
+  OBSIDIAN_API_KEY   Required. Set in ~/.local-secrets
+  OBSIDIAN_PORT      Default: 27124
+  OBSIDIAN_HOST      Override host (auto-detected: localhost or WSL gateway)
+
+Examples:
+  ob search "project ideas"
+  ob read "Daily Notes/2024-01-01.md"
+  ob append "Projects/todo.md" "- new task"
+  echo "# New Note" | ob write "Notes/new.md"
+  ob inbox "remember to check the logs"
+EOF
+        exit 1
+        ;;
+
+    *)
+        echo "ob: unknown command '$cmd'. Try: ob help" >&2
+        exit 1
+        ;;
+esac
