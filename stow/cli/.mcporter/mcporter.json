@@ -17,10 +17,10 @@
   "paseo-steps-viewer": {
    "command": "node",
    "args": [
-    "${HOME}/dotfiles/sources/paseo/plugins/paseo-steps-viewer/bin/mcp-stdio.mjs"
+    "${HOME}/Projects/personal/paseo-plugins/paseo-steps-viewer/bin/mcp-stdio.ts"
    ],
    "lifecycle": "keep-alive",
-   "_note": "Runs from the dotfiles-deployed plugin copy (deps verified: @modelcontextprotocol/sdk 1.30.0, zod 4.6.2 in its node_modules). Same tmp index as the Paseo-injected MCP server, so both sides share documents. Step-ledger tools: next_step, complete_step, amend_step, add_step, drop_step, step_status + save_steps/update_steps/list_steps/list_capabilities. Doc convention: '## Step N \u2014 Title [pending|active|done|blocked]' with '> result DD-MM-YYYY:' note blocks; pair with the stepwise skill."
+   "_note": "Runs from the paseo-plugins dev clone (workspace node_modules at the repo root; Node strips types, no build). Reuses the plugin HTTP server tools and tmp index, so both sides share documents. Step-ledger tools: next_step, complete_step, amend_step, add_step, drop_step, step_status + save_steps/update_steps/list_steps/list_capabilities. Doc convention: '## Step N — Title [pending|active|done|blocked]' with '> result DD-MM-YYYY:' note blocks; pair with the stepwise skill."
   },
   "shopify-dev-mcp": {
    "command": "npx",
