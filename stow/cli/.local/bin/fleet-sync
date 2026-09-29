@@ -27,8 +27,8 @@ SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 DOTFILES_DIR="$(cd "$(dirname "$SELF")/../../../.." && pwd)"
 SSH_OPTS=(-o ControlMaster=no -o ControlPath=none -o ConnectTimeout=8)
 
-# Retained on every host by --ping and every sync run (idempotent):
-# safe fast-forward-only pull helper that aborts cleanly on divergence.
+# Retained on every host by every sync run (idempotent):
+# fast-forward-only pull helper that aborts cleanly on divergence.
 FLEET_PULL='#!/usr/bin/env bash
 # fleet-sync helper: fast-forward-only pull, aborting cleanly on divergence.
 set -euo pipefail
@@ -37,9 +37,9 @@ git pull --ff-only --quiet
 '
 
 hosts=(cloudbro linuxbro monsterbro-wsl)
-host_alias() { case "$1" in cloudbro) printf 'cloudbro' ;; linuxbro) printf 'linuxbro' ;; monsterbro-wsl) printf 'monsterbro-wsl' ;; esac; }
-host_user()   { case "$1" in *) printf 'christian' ;; esac; }
-host_remote() { case "$1" in cloudbro) printf '%s/system/dotfiles' "$HOME" ;; *) printf '%s/dotfiles' "$HOME" ;; esac; }
+host_alias() { case "$1" in *) printf '%s' "$1" ;; esac; }
+host_user()   { printf 'christian'; }
+host_remote() { case "$1" in cloudbro) printf '$HOME/system/dotfiles' ;; *) printf '$HOME/dotfiles' ;; esac; }
 host_profile() { case "$1" in cloudbro) printf 'cloudbro' ;; linuxbro) printf 'linux' ;; monsterbro-wsl) printf 'wsl' ;; esac; }
 
 usage() { sed -n '2,20p' "$0" >&2; exit "${1:-0}"; }
@@ -72,7 +72,7 @@ sync_host() {
     printf '==> %s (%s, profile=%s)\n' "$host" "$remote" "$profile"
 
     install_pull_helper "$host" || { printf '    unreachable\n'; return 1; }
-    remote_run "$host" "~/.fleet-pull $remote" || { printf '    pull failed\n'; return 1; }
+    remote_run "$host" "~/.fleet-pull $remote" || { printf '    pull failed (unpushed commits? conflicts?)\n'; return 1; }
 
     if [[ -n "$full" ]]; then
         remote_run "$host" "cd $remote && ./install.sh $profile" || { printf '    install failed\n'; return 1; }
@@ -99,7 +99,6 @@ done
 [[ -n "$target" ]] || target=all
 
 if [[ $ping -eq 1 ]]; then
-    install_pull_helper() { :; }
     for h in "${hosts[@]}"; do ping_host "$h"; done
     exit 0
 fi
