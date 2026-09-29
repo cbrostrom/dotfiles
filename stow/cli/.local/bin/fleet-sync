@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# fleet-sync — sync dotfiles (pi/paseo setup) across the bro fleet
+# =============================================================================
+# MacBro's dotfiles checkout (git@github.com:cbrostrom/dotfiles.git) is the
+# source of truth. Each host keeps a git checkout and applies its own profile:
+#
+#   cloudbro       ~/system/dotfiles   profile: cloudbro
+#   linuxbro       ~/dotfiles          profile: linux
+#   monsterbro-wsl ~/dotfiles          profile: wsl
+#
+# Installed globally via stow (stow/cli/.local/bin), like the `dotfiles` CLI.
+#
+# Usage: fleet-sync [host|all] [-i|--install] [-p|--ping] [-y|--yes]
+#   (default)          git pull --ff-only + re-stow the profile (fast, safe)
+#   -i  --install      additionally run ./install.sh <profile> (full install)
+#   -p  --ping         status probe only: pi/paseo versions + checkout state
+#   -y  --yes          skip the per-host confirmation prompt
+# Never force-pulls: conflicts are reported and the host is skipped.
+#
+# Workflow: commit + push on MacBro, then `fleet-sync all -i` on bootstrap
+# changes, plain `fleet-sync all` for script/config tweaks.
+# =============================================================================
+set -uo pipefail
+
+# bin -> .local -> cli -> stow -> repo root (same layout as the `dotfiles` CLI)
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+DOTFILES_DIR="$(cd "$(dirname "$SELF")/../../../.." && pwd)"
+SSH_OPTS=(-o ControlMaster=no -o ControlPath=none -o ConnectTimeout=8)
+
+# Retained on every host by --ping and every sync run (idempotent):
+# safe fast-forward-only pull helper that aborts cleanly on divergence.
+FLEET_PULL='#!/usr/bin/env bash
+# fleet-sync helper: fast-forward-only pull, aborting cleanly on divergence.
+set -euo pipefail
+cd "$1"
+git pull --ff-only --quiet
+'
+
+hosts=(cloudbro linuxbro monsterbro-wsl)
+host_alias() { case "$1" in cloudbro) printf 'cloudbro' ;; linuxbro) printf 'linuxbro' ;; monsterbro-wsl) printf 'monsterbro-wsl' ;; esac; }
+host_user()   { case "$1" in *) printf 'christian' ;; esac; }
+host_remote() { case "$1" in cloudbro) printf '%s/system/dotfiles' "$HOME" ;; *) printf '%s/dotfiles' "$HOME" ;; esac; }
+host_profile() { case "$1" in cloudbro) printf 'cloudbro' ;; linuxbro) printf 'linux' ;; monsterbro-wsl) printf 'wsl' ;; esac; }
+
+usage() { sed -n '2,20p' "$0" >&2; exit "${1:-0}"; }
+
+remote_run() {
+    ssh "${SSH_OPTS[@]}" "$(host_user "$1")@$(host_alias "$1")" "$2"
+}
+
+ping_host() {
+    local h="$1" out
+    out="$(remote_run "$h" 'bash -s' <<'PROBE' 2>&1 || echo unreachable
+        echo "host=$(hostname)"
+        printf 'pi=%s ' "$(pi --version 2>/dev/null | head -1)"
+        printf 'paseo=%s\n' "$(paseo --version 2>/dev/null | head -1)"
+PROBE
+)"
+    printf '%-14s %s\n' "$h" "$out"
+}
+
+install_pull_helper() {
+    remote_run "$1" "cat > /dev/null" || return 1
+    printf '%s' "$FLEET_PULL" | remote_run "$1" "cat > /tmp/.fleet-pull && chmod +x /tmp/.fleet-pull && mv /tmp/.fleet-pull ~/.fleet-pull"
+}
+
+sync_host() {
+    local host="$1" full="$2" remote profile
+    remote="$(host_remote "$host")"
+    profile="$(host_profile "$host")"
+
+    printf '==> %s (%s, profile=%s)\n' "$host" "$remote" "$profile"
+
+    install_pull_helper "$host" || { printf '    unreachable\n'; return 1; }
+    remote_run "$host" "~/.fleet-pull $remote" || { printf '    pull failed\n'; return 1; }
+
+    if [[ -n "$full" ]]; then
+        remote_run "$host" "cd $remote && ./install.sh $profile" || { printf '    install failed\n'; return 1; }
+    else
+        remote_run "$host" "cd $remote && ./stow.sh apply $profile" || { printf '    stow failed\n'; return 1; }
+    fi
+    printf '    ok\n'
+}
+
+target=""
+full=""
+ping=0
+yes=0
+for arg in "$@"; do
+    case "$arg" in
+        -i|--install) full=1 ;;
+        -p|--ping) ping=1 ;;
+        -y|--yes) yes=1 ;;
+        cloudbro|linuxbro|monsterbro-wsl|all) target="$arg" ;;
+        -h|--help) usage 0 ;;
+        *) printf 'error: unknown argument: %s\n' "$arg" >&2; usage 1 ;;
+    esac
+done
+[[ -n "$target" ]] || target=all
+
+if [[ $ping -eq 1 ]]; then
+    install_pull_helper() { :; }
+    for h in "${hosts[@]}"; do ping_host "$h"; done
+    exit 0
+fi
+
+case "$target" in
+    all) sync_list=("${hosts[@]}") ;;
+    *) sync_list=("$target") ;;
+esac
+
+if [[ $yes -ne 1 ]]; then
+    printf 'fleet-sync: pull --ff-only%s on: %s\n' "$([[ -n "$full" ]] && printf ' + install.sh')" "${sync_list[*]}"
+    printf 'continue? [y/N] '
+    read -r answer
+    [[ "$answer" == [yY]* ]] || { printf 'aborted\n'; exit 1; }
+fi
+
+for h in "${sync_list[@]}"; do
+    sync_host "$h" "$full"
+done
