@@ -33,8 +33,11 @@ FLEET_PULL='#!/usr/bin/env bash
 # fleet-sync helper: fast-forward-only pull, aborting cleanly on divergence.
 set -euo pipefail
 cd "$1"
-git pull --ff-only --quiet
+out=$(git pull --ff-only 2>&1)
+echo "$out"
+# Cap the sync hop: a pull that hangs (network) aborts after 90s.
 '
+FLEET_PULL_TIMEOUT=90
 
 hosts=(cloudbro linuxbro monsterbro-wsl)
 host_alias() { case "$1" in *) printf '%s' "$1" ;; esac; }
@@ -46,6 +49,12 @@ usage() { sed -n '2,20p' "$0" >&2; exit "${1:-0}"; }
 
 remote_run() {
     ssh "${SSH_OPTS[@]}" "$(host_user "$1")@$(host_alias "$1")" "$2"
+}
+
+# remote_run_t <host> <cmd> <timeout_s>: remote command with a wall-clock cap
+# so a stuck pull/stow hop can never make the driver look hung.
+remote_run_t() {
+    ssh "${SSH_OPTS[@]}" "$(host_user "$1")@$(host_alias "$1")" "timeout $3 bash -c '$2'"
 }
 
 ping_host() {
@@ -64,6 +73,8 @@ install_pull_helper() {
     printf '%s' "$FLEET_PULL" | remote_run "$1" "cat > /tmp/.fleet-pull && chmod +x /tmp/.fleet-pull && mv /tmp/.fleet-pull ~/.fleet-pull"
 }
 
+step() { printf '    %s...\n' "$1"; }
+
 sync_host() {
     local host="$1" full="$2" remote profile
     remote="$(host_remote "$host")"
@@ -71,13 +82,13 @@ sync_host() {
 
     printf '==> %s (%s, profile=%s)\n' "$host" "$remote" "$profile"
 
-    install_pull_helper "$host" || { printf '    unreachable\n'; return 1; }
-    remote_run "$host" "~/.fleet-pull $remote" || { printf '    pull failed (unpushed commits? conflicts?)\n'; return 1; }
+    step 'connect';    install_pull_helper "$host" || { printf '    unreachable\n'; return 1; }
+    step 'git pull --ff-only'; remote_run_t "$host" "~/.fleet-pull $remote" 90 || { printf '    pull failed (unpushed commits? conflicts?)\n'; return 1; }
 
     if [[ -n "$full" ]]; then
-        remote_run "$host" "cd $remote && ./install.sh $profile" || { printf '    install failed\n'; return 1; }
+        step "install.sh $profile"; remote_run_t "$host" "cd $remote && ./install.sh $profile" 600 || { printf '    install failed\n'; return 1; }
     else
-        remote_run "$host" "cd $remote && ./stow.sh apply $profile" || { printf '    stow failed\n'; return 1; }
+        step 'stow reapply'; remote_run_t "$host" "cd $remote && ./stow.sh apply $profile" 120 || { printf '    stow failed\n'; return 1; }
     fi
     printf '    ok\n'
 }
