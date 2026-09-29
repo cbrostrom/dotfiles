@@ -62,9 +62,11 @@ gaming/config/launch.log
 .zed-sync-ts
 
 # The global gitignore pattern '*.local' hides the Stow-managed pi launcher
-# shim; force-track it so the machine-independent shim ships to every host.
+# shim and the stowed CLI scripts; force-track both so they ship to every host.
 !stow/pi/.local/
 !stow/pi/.local/**
+!stow/cli/.local/
+!stow/cli/.local/**
 
 # Codex (not used)
 .codex/
