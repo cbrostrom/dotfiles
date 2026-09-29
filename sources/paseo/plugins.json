@@ -6,43 +6,78 @@
       "id": "workspace-activity",
       "repo": "bybrostrom/paseo-plugins",
       "path": "workspace-activity",
-      "ref": "main"
+      "ref": "main",
+      "install": "git"
     },
     {
-      "id": "higgins-panel",
+      "id": "timeline-ui",
       "repo": "bybrostrom/paseo-plugins",
-      "path": "higgins-panel",
-      "ref": "main"
+      "path": "timeline-ui",
+      "ref": "main",
+      "install": "git"
     },
     {
-      "id": "pi-peer-roster",
+      "id": "peers-and-calls",
       "repo": "bybrostrom/paseo-plugins",
-      "path": "pi-peer-roster",
-      "ref": "main"
+      "path": "peers-and-calls",
+      "ref": "main",
+      "install": "git"
     },
     {
-      "id": "digest",
+      "id": "pi-admin",
       "repo": "bybrostrom/paseo-plugins",
-      "path": "digest",
-      "ref": "main"
+      "path": "pi-admin",
+      "ref": "main",
+      "install": "git"
+    },
+    {
+      "id": "ops",
+      "repo": "bybrostrom/paseo-plugins",
+      "path": "ops",
+      "ref": "main",
+      "install": "git"
+    },
+    {
+      "id": "summary-fork",
+      "repo": "bybrostrom/paseo-plugins",
+      "path": "summary-fork",
+      "ref": "main",
+      "install": "git"
     },
     {
       "id": "thread-tabs",
       "repo": "bybrostrom/paseo-plugins",
       "path": "thread-tabs",
-      "ref": "main"
-    },
-    {
-      "id": "bash-slash",
-      "repo": "bybrostrom/paseo-plugins",
-      "path": "bash-slash",
-      "ref": "main"
+      "ref": "main",
+      "install": "git"
     },
     {
       "id": "paseo-steps-viewer",
       "repo": "bybrostrom/paseo-plugins",
       "path": "paseo-steps-viewer",
-      "ref": "main"
+      "ref": "main",
+      "install": "git"
+    },
+    {
+      "id": "profile-sync",
+      "repo": "bybrostrom/paseo-plugins",
+      "path": "profile-sync",
+      "ref": "main",
+      "install": "git"
+    },
+    {
+      "id": "higgins-panel",
+      "repo": "bybrostrom/paseo-plugins",
+      "path": "higgins-panel",
+      "ref": "main",
+      "install": "git"
+    },
+    {
+      "id": "digest",
+      "repo": "bybrostrom/paseo-plugins",
+      "path": "digest",
+      "ref": "main",
+      "install": "git"
     },
     {
       "id": "skills",
@@ -50,18 +85,6 @@
       "path": "skills",
       "ref": "main",
       "patch": "v0.8"
-    },
-    {
-      "id": "timeline-ui",
-      "repo": "bybrostrom/paseo-plugins",
-      "path": "timeline-ui",
-      "ref": "main"
-    },
-    {
-      "id": "summary-fork",
-      "repo": "bybrostrom/paseo-plugins",
-      "path": "summary-fork",
-      "ref": "main"
     }
   ]
 }

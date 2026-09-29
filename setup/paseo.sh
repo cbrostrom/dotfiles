@@ -20,6 +20,16 @@ ORPHAN_PLUGINS=(
     reasoning-display
     subagent-activity
     usage-sidebar
+    # merged into workspace-activity, peers-and-calls, pi-admin and ops (29-09-2026)
+    agents-history
+    calls-board
+    pi-peer-roster
+    pi-maintenance
+    model-policy
+    mcporter-pill
+    force-stop
+    hostname-tag
+    bash-slash
 )
 
 if ! command -v paseo >/dev/null 2>&1; then
@@ -75,6 +85,14 @@ fi
 
 mkdir -p "$PASEO_PLUGINS_DIR"
 
+# Host settings follow a plugin id; carry hostname-tag's alias over to ops once.
+PLUGIN_SETTINGS_DIR="${PASEO_HOME:-$HOME/.paseo}/plugin-settings"
+if [[ -f "$PLUGIN_SETTINGS_DIR/hostname-tag/tag.json" && ! -f "$PLUGIN_SETTINGS_DIR/ops/tag.json" ]]; then
+    mkdir -p "$PLUGIN_SETTINGS_DIR/ops"
+    cp "$PLUGIN_SETTINGS_DIR/hostname-tag/tag.json" "$PLUGIN_SETTINGS_DIR/ops/tag.json"
+    log "migrated hostname-tag settings → ops"
+fi
+
 for orphan in "${ORPHAN_PLUGINS[@]}"; do
     if paseo plugin ls --json 2>/dev/null | jq -e --arg id "$orphan" '.[] | select(.id == $id)' >/dev/null; then
         log "remove orphan $orphan"
@@ -126,6 +144,25 @@ _sync_plugin() {
     fi
 }
 
+# npm-workspace repos (bybrostrom/paseo-plugins) cannot be copied per subdirectory:
+# plugins depend on sibling workspace packages. Paseo's own git install checks out the
+# whole repo and runs the plugin's `npm ci` from inside it.
+_install_git_plugin() {
+    local id="$1" repo="$2" subpath="$3" ref="$4"
+    local remote="https://github.com/${repo}.git"
+    local installed
+    installed="$(paseo plugin ls --json | jq -r --arg id "$id" \
+        '.[] | select(.id == $id) | "\(.installation.identity.remote // "")|\(.installation.identity.pluginPath // "")"')"
+    if [[ "$installed" == "$remote|$subpath" ]]; then
+        log "update $id @ $ref"
+        paseo plugin update "$id" --ref "$ref" --yes >/dev/null
+    else
+        [[ -n "$installed" ]] && paseo plugin remove "$id" >/dev/null
+        log "install $id from $repo:$subpath @ $ref"
+        paseo plugin install "${remote}:${subpath}" --ref "$ref" >/dev/null
+    fi
+}
+
 _install_plugin() {
     local id="$1"
     # Preferred source for local plugins: the live dev repo (manifest `localPath`).
@@ -165,7 +202,11 @@ _install_plugin() {
         log "install $id"
         paseo plugin install "$plugin_path" >/dev/null
     fi
+    _check_running "$id"
+}
 
+_check_running() {
+    local id="$1" status
     status="$(paseo plugin ls --json | jq -r --arg id "$id" '.[] | select(.id == $id) | .status')"
     if [[ "$status" == "running" ]]; then
         ok "$id → running"
@@ -190,15 +231,14 @@ while IFS= read -r row; do
     subpath="$(jq -r '.path // empty' <<<"$row")"
     ref="$(jq -r '.ref // "main"' <<<"$row")"
     patch="$(jq -r '.patch // empty' <<<"$row")"
+    if [[ "$(jq -r '.install // empty' <<<"$row")" == "git" ]]; then
+        _install_git_plugin "$id" "$repo" "$subpath" "$ref"
+        _check_running "$id"
+        continue
+    fi
     _sync_plugin "$id" "$repo" "$subpath" "$ref" "$patch"
     _install_plugin "$id"
 done < <(jq -c '.plugins[]' "$MANIFEST")
-
-# Local maintenance plugin is intentionally outside the shared plugin manifest.
-# It monitors this machine's Pi installation and has no remote source to sync.
-if [[ -d "$PASEO_PLUGINS_DIR/pi-maintenance" ]]; then
-    _install_plugin "pi-maintenance"
-fi
 
 # Paseo agents use a curated Pi launcher; direct terminal Pi keeps full discovery.
 PASEO_CONFIG="${PASEO_HOME:-$HOME/.paseo}/config.json"
