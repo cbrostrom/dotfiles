@@ -9,10 +9,14 @@ DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 PROJECT_EXTENSIONS="$HOME/Projects/private/pi-extensions"
 INSTALLED_EXTENSIONS="$PI_AGENT_DIR/git/github.com/bybrostrom/pi-extensions"
 
-if [[ -d "$PROJECT_EXTENSIONS/extensions" ]]; then
+# Agents run the same installed copy as terminal pi, so uncommitted edits never go
+# live by accident. PI_EXTENSIONS_DEV=1 (in Paseo's env) loads the working copy.
+if [[ "${PI_EXTENSIONS_DEV:-}" == "1" && -d "$PROJECT_EXTENSIONS/extensions" ]]; then
     PERSONAL_EXTENSIONS="$PROJECT_EXTENSIONS"
-else
+elif [[ -d "$INSTALLED_EXTENSIONS/extensions" ]]; then
     PERSONAL_EXTENSIONS="$INSTALLED_EXTENSIONS"
+else
+    PERSONAL_EXTENSIONS="$PROJECT_EXTENSIONS"
 fi
 
 SETTINGS="$PI_AGENT_DIR/settings.json"
@@ -133,12 +137,14 @@ else
 fi
 export PI_BIN="$PI_BIN"
 
-# Paseo only hands MCP servers to Pi when it detects pi-mcp-adapter's /mcp
-# command; without it agents fail with "Provider 'pi' does not support MCP
-# servers". Exclusive mode reads only the --mcp-config Paseo writes (global
-# mcp.json + Paseo servers) and skips project/host discovery, whose approval
-# confirm() has no answer over RPC and makes Pi exit 0.
-export PI_MCP_CONFIG_MODE=exclusive
+# Pi 0.99's built-in MCP extension owns /mcp and reads the --mcp-config file
+# Paseo supplies. The launcher disables extension discovery below, so load the
+# native MCP/codemode/tool-search trio explicitly.
+native_mcp_args=(
+    --extension builtin:mcp
+    --extension builtin:codemode
+    --extension builtin:tool-search
+)
 
 # --cursor-no-fast is only accepted by pi builds where the cursor provider is
 # registered (Cursor CLI/auth present). On hosts without it (e.g. CloudBro) pi
@@ -164,6 +170,7 @@ if [[ "${PI_PASEO_NO_INTERPRETER:-}" != "1" && -f "$INTERPRETER" ]] && command -
         --no-skills \
         --exclude-tools powershell,grep,find,ls \
         "${cursor_fast_args[@]}" \
+        "${native_mcp_args[@]}" \
         "${extension_args[@]}" \
         "${skill_args[@]}" \
         "$@"
@@ -175,6 +182,7 @@ exec "$PI_BIN" \
     --no-skills \
     --exclude-tools powershell,grep,find,ls \
     "${cursor_fast_args[@]}" \
+    "${native_mcp_args[@]}" \
     "${extension_args[@]}" \
     "${skill_args[@]}" \
     "$@"
