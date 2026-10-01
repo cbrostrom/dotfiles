@@ -7,6 +7,12 @@
  * session_start and before_agent_start (covers Paseo-created agents and
  * session restore, which model_select alone does not).
  *
+ * Live-reload caveat: the policy file is re-read on mtime change at each
+ * enforcement point, but between request-start and the API call there is no
+ * interception hook. A policy edit landing mid-request therefore lets that
+ * single request through under the previous policy; every later turn sees
+ * the edit.
+ *
  * enabledModels only scopes /scoped-models and Ctrl+P — it is not
  * enforcement. This extension owns the final decision for /model, CLI
  * arguments, Paseo-launched agents, and extension-driven model changes.
@@ -21,7 +27,7 @@
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, statSync } from "node:fs";
 import { homedir, hostname } from "node:os";
 import { join } from "node:path";
 
@@ -48,11 +54,32 @@ const HOST_PATH = join(homedir(), ".pi", "agent", "host.json");
 
 // ─── Loading ────────────────────────────────────────────────────────────────
 
-function loadPolicy(): Policy | null {
+// Hot reload: policy file is re-read when its mtime/id changes (Paseo
+// model-policy panel edits it on the fly; new agents and long-running
+// sessions both pick changes up without restart).
+let cachedPolicy: Policy | null = null;
+let cachedKey = "";
+
+function policyFileKey(): string {
 	try {
-		return JSON.parse(readFileSync(POLICY_PATH, "utf8")) as Policy;
+		return `${statSync(POLICY_PATH).mtimeMs}`;
 	} catch {
-		return null;
+		return "";
+	}
+}
+
+function loadPolicy(): Policy | null {
+	const key = policyFileKey();
+	if (key && key === cachedKey && cachedPolicy) return cachedPolicy;
+	if (!key) return cachedPolicy; // file missing: keep last-good policy
+	try {
+		const parsed = JSON.parse(readFileSync(POLICY_PATH, "utf8")) as Policy;
+		cachedPolicy = parsed;
+		cachedKey = key;
+		return parsed;
+	} catch {
+		// parse failure: keep last-good policy rather than going unenforced
+		return cachedPolicy;
 	}
 }
 
@@ -130,15 +157,9 @@ class PolicyIndex {
 // ─── Extension ──────────────────────────────────────────────────────────────
 
 export default function modelPolicyGuard(pi: ExtensionAPI) {
-	const policy = loadPolicy();
-	if (!policy) {
-		// No tracked policy file — nothing to enforce. cursor-model-guard still
-		// covers Cursor as a fallback until the installer lays this down.
-		return;
-	}
+	if (!loadPolicy()) return;
 
-	const index = new PolicyIndex(policy);
-	const hostSlug = resolveHostSlug(policy);
+	const hostSlug = resolveHostSlug(loadPolicy()!);
 
 	let reverting = false;
 
@@ -149,10 +170,13 @@ export default function modelPolicyGuard(pi: ExtensionAPI) {
 	let restoredSession = false;
 
 	function findFallback(ctx: Parameters<Parameters<ExtensionAPI["on"]>[1]>[1]) {
-		const hp = policy!.hosts[hostSlug];
+		const policy = loadPolicy();
+		if (!policy) return undefined;
+		const index = new PolicyIndex(policy);
+		const hp = policy.hosts[hostSlug];
 		const candidates = [
 			hp?.defaultModel && hp?.defaultProvider ? `${hp.defaultProvider}/${hp.defaultModel}` : undefined,
-			policy!.defaults.fallbackModel,
+			policy.defaults.fallbackModel,
 		].filter(Boolean) as string[];
 
 		for (const key of candidates) {
@@ -170,6 +194,9 @@ export default function modelPolicyGuard(pi: ExtensionAPI) {
 		ctx: Parameters<Parameters<ExtensionAPI["on"]>[1]>[1],
 		previousModel: unknown,
 	) {
+		const policy = loadPolicy();
+		if (!policy) return;
+		const index = new PolicyIndex(policy);
 		if (reverting) return;
 		if (restoredSession) return;
 
