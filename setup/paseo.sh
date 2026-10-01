@@ -10,8 +10,13 @@ PASEO_CONFIG_SRC="$DOTFILES_DIR/sources/paseo"
 # Plugins are runtime state, not dotfiles: keep them outside the git tree so
 # plugin syncs never dirty the checkout the fleet updater guards.
 PASEO_PLUGINS_DIR="${PASEO_PLUGINS_DIR:-$HOME/.paseo/plugins}"
-PATCH_SCRIPT="$PASEO_CONFIG_SRC/patches/apply-v0.8.py"
 MANIFEST="$PASEO_CONFIG_SRC/plugins.json"
+PLUGIN_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/paseo-plugin-sync"
+PASEO_FORCE_PLUGIN_SYNC="${PASEO_FORCE_PLUGIN_SYNC:-0}"
+UPDATED_COUNT=0
+INSTALLED_COUNT=0
+REMOVED_COUNT=0
+SKIPPED_COUNT=0
 # Git-installed or superseded plugins — remove if still registered.
 ORPHAN_PLUGINS=(
     attention-blocks-timeline
@@ -26,6 +31,7 @@ ORPHAN_PLUGINS=(
     pi-peer-roster
     pi-maintenance
     model-policy
+    skills
     mcporter-pill
     force-stop
     hostname-tag
@@ -59,7 +65,7 @@ fi
 # disabled". Enable them and reload before the sync loop.
 PASEO_CONFIG="${PASEO_HOME:-$HOME/.paseo}/config.json"
 mkdir -p "$(dirname "$PASEO_CONFIG")"
-python3 - "$PASEO_CONFIG" <<'PYEOF'
+plugins_enabled_changed="$(python3 - "$PASEO_CONFIG" <<'PYEOF'
 import json, os, sys
 
 config_path = sys.argv[1]
@@ -68,15 +74,20 @@ if os.path.exists(config_path):
     with open(config_path) as f:
         config = json.load(f)
 
-current = config.get("pluginsEnabled")
-if current is not True:
+if config.get("pluginsEnabled") is True:
+    print("0")
+else:
     config["pluginsEnabled"] = True
     os.makedirs(os.path.dirname(config_path), exist_ok=True)
     with open(config_path, "w") as f:
         json.dump(config, f, indent=2)
         f.write("\n")
+    print("1")
 PYEOF
-paseo reload --json >/dev/null
+)"
+if [[ "$plugins_enabled_changed" == "1" ]]; then
+    paseo reload --json >/dev/null
+fi
 
 if [[ ! -f "$MANIFEST" ]]; then
     err "missing manifest: $MANIFEST"
@@ -93,76 +104,99 @@ if [[ -f "$PLUGIN_SETTINGS_DIR/hostname-tag/tag.json" && ! -f "$PLUGIN_SETTINGS_
     log "migrated hostname-tag settings → ops"
 fi
 
+PLUGIN_STATE_JSON="$(paseo plugin ls --json)"
+mkdir -p "$PLUGIN_CACHE_DIR"
+rm -f "$PLUGIN_CACHE_DIR"/*.revision
+
+_refresh_plugin_state() {
+    PLUGIN_STATE_JSON="$(paseo plugin ls --json)"
+}
+
 for orphan in "${ORPHAN_PLUGINS[@]}"; do
-    if paseo plugin ls --json 2>/dev/null | jq -e --arg id "$orphan" '.[] | select(.id == $id)' >/dev/null; then
+    if jq -e --arg id "$orphan" '.[] | select(.id == $id)' <<<"$PLUGIN_STATE_JSON" >/dev/null; then
         log "remove orphan $orphan"
         paseo plugin remove "$orphan" >/dev/null
+        REMOVED_COUNT=$((REMOVED_COUNT + 1))
+        _refresh_plugin_state
     fi
 done
-
-_sync_plugin() {
-    local id="$1" repo="$2" subpath="${3:-}" ref="${4:-main}" patch="${5:-}"
-    local dest="$PASEO_PLUGINS_DIR/$id"
-    local url="https://github.com/${repo}.git"
-    local tmp
-    tmp="$(mktemp -d)"
-
-    log "sync $id from $repo${subpath:+:$subpath} @ $ref"
-    git clone --depth 1 --branch "$ref" "$url" "$tmp/repo" >/dev/null 2>&1 ||
-        git clone --depth 1 "$url" "$tmp/repo" >/dev/null 2>&1 || {
-        # https may be unauthenticated on agent hosts (no gh credential helper);
-        # fall back to the Git-over-SSH form which works with pilot keys.
-        local ssh_url="git@github.com:${repo}.git"
-        git clone --depth 1 --branch "$ref" "$ssh_url" "$tmp/repo" >/dev/null
-    }
-
-    rm -rf "$dest"
-    if [[ -n "$subpath" ]]; then
-        cp -R "$tmp/repo/$subpath" "$dest"
-    else
-        cp -R "$tmp/repo" "$dest"
-        rm -rf "$dest/.git"
-    fi
-    rm -rf "$tmp"
-
-    if [[ "$patch" == "v0.8" ]]; then
-        python3 "$PATCH_SCRIPT" "$dest"
-    fi
-
-    # Synced copies ship without node_modules; plugins whose server code imports
-    # non-host npm deps (e.g. @modelcontextprotocol/sdk) need them installed
-    # before the daemon's build step runs. Plugins with no runtime dependencies
-    # (source-only: Paseo supplies everything) skip the step entirely.
-    # devDependencies-only plugins that import @getpaseo/* types in server code
-    # also need node_modules present, or the daemon's esbuild boundary plugin
-    # fails to resolve the type-only imports at install time.
-    if [[ -f "$dest/package-lock.json" ]] && jq -e '((.dependencies // {}) + (.devDependencies // {})) | length > 0' "$dest/package.json" >/dev/null; then
-        log "npm ci $id"
-        # Upstream lockfiles drift from package.json (EUSAGE); the synced copy is
-        # throwaway, so let npm install rewrite the lock instead.
-        if ! (cd "$dest" && { npm ci >/dev/null 2>&1 || npm install >/dev/null 2>&1; }); then
-            warn "npm install failed for $id — plugin may fail to build"
-        fi
-    fi
-}
 
 # npm-workspace repos (bybrostrom/paseo-plugins) cannot be copied per subdirectory:
 # plugins depend on sibling workspace packages. Paseo's own git install checks out the
 # whole repo and runs the plugin's `npm ci` from inside it.
+_remote_revision() {
+    local repo="$1" ref="$2" key cache remote revision
+    key="${repo//\//-}-${ref//\//-}"
+    cache="$PLUGIN_CACHE_DIR/$key.revision"
+    if [[ -s "$cache" ]]; then
+        cat "$cache"
+        return
+    fi
+    remote="https://github.com/${repo}.git"
+    revision="$(git ls-remote "$remote" "refs/heads/$ref" 2>/dev/null | awk 'NR == 1 { print $1 }')"
+    if [[ -z "$revision" ]]; then
+        revision="$(git ls-remote "git@github.com:${repo}.git" "refs/heads/$ref" 2>/dev/null | awk 'NR == 1 { print $1 }')"
+    fi
+    if [[ -n "$revision" ]]; then
+        printf '%s\n' "$revision" >"$cache"
+    fi
+    printf '%s\n' "$revision"
+}
+
+_plugin_path_unchanged() {
+    local repo="$1" ref="$2" installed_revision="$3" remote_revision="$4" subpath="$5"
+    local key mirror https ssh
+    key="${repo//\//-}"
+    mirror="$PLUGIN_CACHE_DIR/$key.git"
+    https="https://github.com/${repo}.git"
+    ssh="git@github.com:${repo}.git"
+
+    if [[ ! -d "$mirror" ]]; then
+        git clone --mirror "$https" "$mirror" >/dev/null 2>&1 ||
+            git clone --mirror "$ssh" "$mirror" >/dev/null 2>&1 || return 1
+    else
+        git -C "$mirror" fetch --quiet --prune origin "$ref" || return 1
+    fi
+    git -C "$mirror" cat-file -e "$installed_revision^{commit}" 2>/dev/null ||
+        git -C "$mirror" fetch --quiet origin "$installed_revision" || return 1
+    git -C "$mirror" cat-file -e "$remote_revision^{commit}" 2>/dev/null || return 1
+    git -C "$mirror" diff --quiet "$installed_revision" "$remote_revision" -- "$subpath"
+}
+
 _install_git_plugin() {
     local id="$1" repo="$2" subpath="$3" ref="$4"
     local remote="https://github.com/${repo}.git"
-    local installed
-    installed="$(paseo plugin ls --json | jq -r --arg id "$id" \
-        '.[] | select(.id == $id) | "\(.installation.identity.remote // "")|\(.installation.identity.pluginPath // "")"')"
-    if [[ "$installed" == "$remote|$subpath" ]]; then
+    local source installed_revision remote_revision status
+    source="$(jq -r --arg id "$id" '.[] | select(.id == $id) | "\(.installation.identity.remote // "")|\(.installation.identity.pluginPath // "")"' <<<"$PLUGIN_STATE_JSON")"
+    installed_revision="$(jq -r --arg id "$id" '.[] | select(.id == $id) | .installation.currentRevision // empty' <<<"$PLUGIN_STATE_JSON")"
+    status="$(jq -r --arg id "$id" '.[] | select(.id == $id) | .status // empty' <<<"$PLUGIN_STATE_JSON")"
+    remote_revision="$(_remote_revision "$repo" "$ref")"
+
+    if [[ "$PASEO_FORCE_PLUGIN_SYNC" != "1" && "$source" == "$remote|$subpath" && "$status" == "running" ]]; then
+        if [[ -n "$remote_revision" && "$installed_revision" == "$remote_revision" ]]; then
+            ok "$id → current"
+            SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
+            return
+        fi
+        if [[ -n "$installed_revision" && -n "$remote_revision" ]] &&
+            _plugin_path_unchanged "$repo" "$ref" "$installed_revision" "$remote_revision" "$subpath"; then
+            ok "$id → unchanged at $installed_revision"
+            SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
+            return
+        fi
+    fi
+
+    if [[ "$source" == "$remote|$subpath" ]]; then
         log "update $id @ $ref"
         paseo plugin update "$id" --ref "$ref" --yes >/dev/null
+        UPDATED_COUNT=$((UPDATED_COUNT + 1))
     else
-        [[ -n "$installed" ]] && paseo plugin remove "$id" >/dev/null
+        [[ -n "$source" ]] && paseo plugin remove "$id" >/dev/null
         log "install $id from $repo:$subpath @ $ref"
         paseo plugin install "${remote}:${subpath}" --ref "$ref" >/dev/null
+        INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
     fi
+    _refresh_plugin_state
 }
 
 _install_plugin() {
@@ -171,8 +205,8 @@ _install_plugin() {
     # Falls back to the tracked copy under sources/ when the dev repo checkout is
     # missing (other machines), so a stale tracked copy never silently wins over
     # the repo where the work actually happens.
-    local local_path="$(jq -r --arg id "$id" '.plugins[] | select(.id == $id) | .localPath // empty' "$MANIFEST")"
-    local plugin_path=""
+    local local_path plugin_path=""
+    local_path="$(jq -r --arg id "$id" '.plugins[] | select(.id == $id) | .localPath // empty' "$MANIFEST")"
     if [[ -n "$local_path" ]]; then
         local_path="${local_path/#\~/$HOME}"
         if [[ -d "$local_path" ]]; then
@@ -204,17 +238,18 @@ _install_plugin() {
         log "install $id"
         paseo plugin install "$plugin_path" >/dev/null
     fi
+    _refresh_plugin_state
     _check_running "$id"
 }
 
 _check_running() {
     local id="$1" status
-    status="$(paseo plugin ls --json | jq -r --arg id "$id" '.[] | select(.id == $id) | .status')"
+    status="$(jq -r --arg id "$id" '.[] | select(.id == $id) | .status // "missing"' <<<"$PLUGIN_STATE_JSON")"
     if [[ "$status" == "running" ]]; then
         ok "$id → running"
     else
         err "$id → $status"
-        paseo plugin ls --json | jq -r --arg id "$id" '.[] | select(.id == $id) | .error // empty'
+        jq -r --arg id "$id" '.[] | select(.id == $id) | .error // empty' <<<"$PLUGIN_STATE_JSON"
         exit 1
     fi
 }
@@ -232,20 +267,17 @@ while IFS= read -r row; do
     repo="$(jq -r '.repo' <<<"$row")"
     subpath="$(jq -r '.path // empty' <<<"$row")"
     ref="$(jq -r '.ref // "main"' <<<"$row")"
-    patch="$(jq -r '.patch // empty' <<<"$row")"
-    if [[ "$(jq -r '.install // empty' <<<"$row")" == "git" ]]; then
-        _install_git_plugin "$id" "$repo" "$subpath" "$ref"
-        _check_running "$id"
-        continue
+    if [[ "$(jq -r '.install // empty' <<<"$row")" != "git" ]]; then
+        die "$id: repository plugins must declare install=git"
     fi
-    _sync_plugin "$id" "$repo" "$subpath" "$ref" "$patch"
-    _install_plugin "$id"
+    _install_git_plugin "$id" "$repo" "$subpath" "$ref"
+    _check_running "$id"
 done < <(jq -c '.plugins[]' "$MANIFEST")
 
 # Paseo agents use a curated Pi launcher; direct terminal Pi keeps full discovery.
 PASEO_CONFIG="${PASEO_HOME:-$HOME/.paseo}/config.json"
 PI_PASEO_LAUNCHER="$DOTFILES_DIR/scripts/pi-paseo"
-python3 - "$PASEO_CONFIG" "$PI_PASEO_LAUNCHER" <<'PYEOF'
+paseo_config_changed="$(python3 - "$PASEO_CONFIG" "$PI_PASEO_LAUNCHER" <<'PYEOF'
 import json, os, sys
 
 config_path, launcher = sys.argv[1], sys.argv[2]
@@ -253,6 +285,7 @@ config = {}
 if os.path.exists(config_path):
     with open(config_path) as f:
         config = json.load(f)
+before = json.dumps(config, sort_keys=True)
 
 providers = config.setdefault("agents", {}).setdefault("providers", {})
 pi = providers.setdefault("pi", {})
@@ -267,15 +300,22 @@ if relay in ("on", "off"):
     daemon = config.setdefault("daemon", {})
     daemon.setdefault("relay", {})["enabled"] = (relay == "on")
 
-os.makedirs(os.path.dirname(config_path), exist_ok=True)
-with open(config_path, "w") as f:
-    json.dump(config, f, indent=2)
-    f.write("\n")
+if json.dumps(config, sort_keys=True) == before:
+    print("0")
+else:
+    os.makedirs(os.path.dirname(config_path), exist_ok=True)
+    with open(config_path, "w") as f:
+        json.dump(config, f, indent=2)
+        f.write("\n")
+    print("1")
 PYEOF
-paseo reload --json >/dev/null
-ok "Paseo Pi provider → lean launcher"
+)"
+if [[ "$paseo_config_changed" == "1" ]]; then
+    paseo reload --json >/dev/null
+    ok "Paseo Pi provider → lean launcher"
+fi
 
-ok "paseo plugins synced from dotfiles"
+ok "paseo plugins: $SKIPPED_COUNT current, $UPDATED_COUNT updated, $INSTALLED_COUNT installed, $REMOVED_COUNT removed"
 
 # Regenerate the capability map (plugins + pi extensions + skills)
 if python3 "$DOTFILES_DIR/scripts/gen-capabilities.py"; then

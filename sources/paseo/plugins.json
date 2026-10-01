@@ -78,13 +78,6 @@
       "path": "digest",
       "ref": "main",
       "install": "git"
-    },
-    {
-      "id": "skills",
-      "repo": "gpambrozio/paseo-plugins",
-      "path": "skills",
-      "ref": "main",
-      "patch": "v0.8"
     }
   ]
 }
