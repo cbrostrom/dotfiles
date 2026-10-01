@@ -138,8 +138,10 @@ _sync_plugin() {
     # fails to resolve the type-only imports at install time.
     if [[ -f "$dest/package-lock.json" ]] && jq -e '((.dependencies // {}) + (.devDependencies // {})) | length > 0' "$dest/package.json" >/dev/null; then
         log "npm ci $id"
-        if ! (cd "$dest" && npm ci >/dev/null 2>&1); then
-            warn "npm ci failed for $id — plugin may fail to build"
+        # Upstream lockfiles drift from package.json (EUSAGE); the synced copy is
+        # throwaway, so let npm install rewrite the lock instead.
+        if ! (cd "$dest" && { npm ci >/dev/null 2>&1 || npm install >/dev/null 2>&1; }); then
+            warn "npm install failed for $id — plugin may fail to build"
         fi
     fi
 }
