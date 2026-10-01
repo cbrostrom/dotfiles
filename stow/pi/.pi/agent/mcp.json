@@ -10,7 +10,7 @@
         "mcp"
       ],
       "lifecycle": "keep-alive",
-      "disabled": true,
+      "enabled": false,
       "env": {
         "HIGGINS_READ_ONLY": "1"
       }
@@ -22,12 +22,12 @@
       ],
       "lifecycle": "keep-alive",
       "directTools": true,
-      "disabled": true
+      "enabled": false
     },
     "cloudflare-dns-cloudbro": {
       "command": "${HOME}/.pi/agent/scripts/cloudflare-dns-mcp.sh",
       "lifecycle": "keep-alive",
-      "disabled": true,
+      "enabled": false,
       "env": {
         "CLOUDFLARE_ZONE_ID": "1eaa98a8573619ffaed0f8908249a213"
       }
@@ -35,7 +35,7 @@
     "cloudflare-dns-superbro": {
       "command": "${HOME}/.pi/agent/scripts/cloudflare-dns-mcp.sh",
       "lifecycle": "keep-alive",
-      "disabled": true,
+      "enabled": false,
       "env": {
         "CLOUDFLARE_ZONE_ID": "d527e17ef5e6ccbeb3b7e48478624ee0"
       }
