@@ -37,6 +37,9 @@
       "opencode-go/gpt-5.6-luna",
       "opencode-go/grok-4.6"
     ],
+    "local": [
+      "ollama/qwen3:8b"
+    ],
     "blockedTraining": [
       "opencode-go/muse-spark-1.2-contributor",
       "opencode-go/muse-spark-1.3-contributor"
@@ -66,10 +69,10 @@
   "hosts": {
     "workstation": {
       "aliases": ["GY-M-WHKK2PF6N7"],
-      "groups": ["goPrivate", "goConditional", "goRetained", "cursorWork", "copilotWork"],
+      "groups": ["local", "goPrivate", "goConditional", "goRetained", "cursorWork", "copilotWork"],
       "theme": "pi-desktop-github-dark",
-      "defaultProvider": "cursor",
-      "defaultModel": "default",
+      "defaultProvider": "opencode-go",
+      "defaultModel": "glm-5.3-flash",
       "defaultThinkingLevel": "medium"
     },
     "cloudbro": {
