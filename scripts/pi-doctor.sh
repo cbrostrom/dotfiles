@@ -89,7 +89,7 @@ for (const row of rows) {
 NODE
 )"
 if [[ -n "$stale" ]]; then
-    warn "these pi processes predate the installed build and can crash on their next provider switch; restart those Paseo agents:"
+    warn "these pi processes predate the installed build and can crash on their next provider switch; restart them (Paseo: paseo agent reload <id>; Zed/pi-acp: restart the agent thread):"
     printf '%s\n' "$stale" >&2
 else
     log "running agents: all on the installed build"
