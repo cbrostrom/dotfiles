@@ -1,23 +1,30 @@
 #!/usr/bin/env bash
-# PI shim — always resolves pi from the NEWEST fnm node version that has it installed.
-# Never pins to fnm default: a stale default must not shadow a newer install.
-# Update pi: fnm use <newest> && npm i -g @earendil-works/pi-coding-agent
-#   (or run `pi-update`)
+# PI shim — one canonical install under the node-agnostic npm prefix (~/.npm-global),
+# so terminal pi, Paseo agents, and `pi update self` all touch the same copy.
+# Update pi: piup / piups (aliases) or ~/dotfiles/scripts/pi-doctor.sh --fix
 
-_fnm_root="${FNM_DIR:-$HOME/Library/Application Support/fnm}"
-[[ -d "$_fnm_root/node-versions" ]] || _fnm_root="${XDG_DATA_HOME:-$HOME/.local/share}/fnm"
+prefix="${NPM_CONFIG_PREFIX:-$HOME/.npm-global}"
+fnm_root="${FNM_DIR:-$HOME/Library/Application Support/fnm}"
+[[ -d "$fnm_root/node-versions" ]] || fnm_root="${XDG_DATA_HOME:-$HOME/.local/share}/fnm"
 
-_resolved=""
-for _d in "$_fnm_root"/node-versions/v*/installation; do
-    [[ -x "$_d/bin/pi" ]] && _resolved="$_d"   # glob is version-sorted ascending
-done
+# pi is a node script; put the fnm default node first for bare shells
+# (Paseo RPC, cron, ssh one-shots) where fnm never ran.
+default_node="$(readlink "$fnm_root/aliases/default" 2>/dev/null || true)"
+[[ -d "$default_node/bin" ]] && export PATH="$default_node/bin:$PATH"
 
-if [[ -z "$_resolved" ]]; then
-    echo "pi: not found — install with: npm install -g @earendil-works/pi-coding-agent" >&2
-    exit 1
+if [[ -x "$prefix/bin/pi" ]]; then
+    exec "$prefix/bin/pi" "$@"
 fi
 
-# pi is a node script; make sure its own node is first on PATH for bare shells
-# (Paseo RPC, cron, ssh one-shots) where fnm never ran.
-export PATH="$_resolved/bin:$_resolved/installation/bin:$PATH"
-exec "$_resolved/bin/pi" "$@"
+# Legacy hosts that still have pi inside an fnm node version (newest wins).
+resolved=""
+for d in "$fnm_root"/node-versions/v*/installation; do
+    [[ -x "$d/bin/pi" ]] && resolved="$d"
+done
+if [[ -n "$resolved" ]]; then
+    export PATH="$resolved/bin:$PATH"
+    exec "$resolved/bin/pi" "$@"
+fi
+
+echo "pi: not found — run: ~/dotfiles/scripts/pi-doctor.sh --fix" >&2
+exit 127

@@ -28,19 +28,21 @@ if ! command -v npm >/dev/null 2>&1; then
     exit 1
 fi
 
-has() { command -v "$1" >/dev/null 2>&1; }
+# One prefix on every host; ~/.local/bin/{pi,paseo} are stow shims into it, so a
+# binary on PATH proves nothing — check the package directory instead.
+PREFIX="${NPM_CONFIG_PREFIX:-$HOME/.npm-global}"
 
 install_global() {
-    local pkg="$1" bin="$2"
-    if has "$bin"; then
-        log "$bin already installed ($("$bin" --version 2>/dev/null || echo '?'))"
+    local pkg="$1"
+    if [[ -f "$PREFIX/lib/node_modules/$pkg/package.json" ]]; then
+        log "$pkg already installed ($(jq -r .version "$PREFIX/lib/node_modules/$pkg/package.json"))"
         return 0
     fi
-    log "installing $pkg"
-    npm install -g "$pkg"
+    log "installing $pkg into $PREFIX"
+    npm install -g --prefix "$PREFIX" "$pkg"
 }
 
-install_global "@earendil-works/pi-coding-agent" "pi"
-install_global "@getpaseo/cli" "paseo"
+install_global "@earendil-works/pi-coding-agent"
+install_global "@getpaseo/cli"
 
 log "pi=$(pi --version 2>/dev/null || echo missing) paseo=$(paseo --version 2>/dev/null || echo missing)"

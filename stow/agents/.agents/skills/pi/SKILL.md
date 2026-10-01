@@ -50,10 +50,12 @@ env-loader             — loads ~/.pi/agent/configs/.env
 
 Auth: `/login` → API key → Cursor (or `CURSOR_API_KEY`). Does **not** reuse `agent` CLI OAuth.
 
-Upgrade packages: `fnm use default && pi update --all`  
-List installed: `pi list`
+Upgrade packages: `piup` (`pi update --all` + `pi-doctor.sh`)  
+List installed: `pi list`  
+Health: `~/dotfiles/scripts/pi-doctor.sh` (`--fix` reinstall, `--prune` drop duplicate copies)
 
-> Always update PI from fnm default — the `~/.local/bin/pi` shim calls the default version's binary.
+> One install: `~/.npm-global` (`NPM_CONFIG_PREFIX`). The `~/.local/bin/pi` shim and Paseo both run it.
+> Updating rewrites it in place: restart the Paseo agents pi-doctor lists, or they crash on their next provider switch.
 
 ## MCP
 
