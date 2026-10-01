@@ -44,4 +44,7 @@ Tag: `.rigor` / `!deep` / `[rigor]` — or auto-triggers for: security-critical,
 
 # LESSONS
 - When corrected or a mistake is caught: add a one-line rule here before continuing.
+- For Pi Ollama support, keep native `models.json` providers separate from Ollama's redundant extension bundle.
+- Filter large command output at the source; never use `tail` solely to truncate it.
+- Before calling a Node install corrupt, check `npm config get prefix` and process start times vs install mtime (long-running agents keep the old build).
 - Move this section to a separate file if it exceeds 20 lines.
