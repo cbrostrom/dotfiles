@@ -23,7 +23,15 @@ RUNTIME_KEYS = {
 }
 
 # Removed from scripts/install/pi-extensions.txt — strip on every settings merge.
-REMOVED_PACKAGES = frozenset({"npm:pi-tool-display"})
+REMOVED_PACKAGES = frozenset(
+    {
+        "npm:pi-tool-display",
+        "npm:@ollama/pi-web-search",
+        "npm:pi-ollama-cloud",
+        "npm:pi-blackhole",
+        "npm:pi-mcp-adapter",
+    }
+)
 
 
 def read_json(path: Path, default: dict[str, Any]) -> dict[str, Any]:
