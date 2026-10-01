@@ -57,4 +57,6 @@ if ! python3 "$ROOT/scripts/gen-capabilities.py"; then
     warn "capability map generation failed"
 fi
 
+bash "$ROOT/scripts/pi-doctor.sh" || warn "pi install unhealthy — run: $ROOT/scripts/pi-doctor.sh --fix"
+
 ok "Pi runtime settings configured"

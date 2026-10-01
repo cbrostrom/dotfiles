@@ -303,7 +303,7 @@ fi
 # =============================================================================
 # PI CODING AGENT
 # =============================================================================
-# pi binary resolves via ~/.local/bin/pi shim (always uses fnm default node).
+# pi binary resolves via ~/.local/bin/pi shim (newest fnm node that has pi).
 if command -v pi &>/dev/null; then
     # Start
     alias pis='pi'                                   # plain start (current dir)
@@ -314,8 +314,9 @@ if command -v pi &>/dev/null; then
     alias pir='pi -r'                                # resume picker
 
     # Updates
-    alias piup='fnm use default && pi update --all'  # update pi + all extensions
-    alias piups='fnm use default && pi update self'  # update pi CLI only
+    # Running agents keep the old build in memory; pidoc lists the ones to restart.
+    alias piup="pi update --all; $HOME/dotfiles/scripts/pi-doctor.sh"   # pi + all extensions
+    alias piups="pi update self; $HOME/dotfiles/scripts/pi-doctor.sh"   # pi CLI only
 
     # Packages
     alias pil='pi list'                              # list installed extensions
@@ -323,6 +324,8 @@ if command -v pi &>/dev/null; then
 
     # Diagnostics
     alias pistats='pi --version && pi list'          # version + extension list
+    alias pidoc="$HOME/dotfiles/scripts/pi-doctor.sh"        # health check (--prune, --smoke)
+    alias pifix="$HOME/dotfiles/scripts/pi-doctor.sh --fix"  # reinstall + update extensions
 fi
 
 # pi-help: quick reference for PI commands and in-session shortcuts
@@ -343,8 +346,10 @@ PI coding agent — quick reference
   Extensions
     pil                 List installed extensions
     pii npm:<pkg>       Install extension
-    piup                Update pi + all extensions (uses fnm default)
-    piups               Update pi CLI only
+    piup                Update pi + all extensions, then health check
+    piups               Update pi CLI only, then health check
+    pidoc               Health check (lists agents to restart after an update)
+    pifix               Reinstall pi + update extensions
 
   Hooks  (pi-yaml-hooks)
     /hooks-status       Active hooks, config paths, trust level
