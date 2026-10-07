@@ -30,6 +30,7 @@ REMOVED_PACKAGES = frozenset(
         "npm:pi-ollama-cloud",
         "npm:pi-blackhole",
         "npm:pi-mcp-adapter",
+        "git:github.com/v2nic/pi-caveman",
     }
 )
 
