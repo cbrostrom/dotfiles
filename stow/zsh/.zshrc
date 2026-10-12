@@ -112,13 +112,12 @@ if [ -d "$FNM_PATH" ]; then
   eval "$(fnm env --shell zsh)"
 fi
 
-# Added by codebase-memory-mcp install
-export PATH="$HOME/.local/bin:$PATH"
-
-# npm global prefix (node-version-independent installs, e.g. pi). Set here rather
-# than in ~/.npmrc (holds auth tokens, not stowed) so every host uses the same prefix.
+# npm global prefix (node-version-independent installs). Set here rather than in
+# ~/.npmrc (holds auth tokens, not stowed) so every host uses the same prefix.
 export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 export PATH="$HOME/.npm-global/bin:$PATH"
+# Shims (pi → Pi-Bolt, paseo, …) must win over same-named binaries in npm-global.
+export PATH="$HOME/.local/bin:$PATH"
 
 # Drop stale llmtrim CA/proxy env inherited from long-lived parents (Orca, etc.).
 # llmtrim was removed; missing certs make Node print NODE_EXTRA_CA_CERTS warnings.

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Locate the canonical pi install (same rules as the ~/.local/bin/pi shim).
+# Shared resolution for pi (Pi-Bolt) vs pi-npm (@earendil-works/pi-coding-agent).
 
 PI_NPM_PREFIX="${NPM_CONFIG_PREFIX:-$HOME/.npm-global}"
 PI_PACKAGE="@earendil-works/pi-coding-agent"
+PIBOLT_INSTALL="${PIBOLT_INSTALL:-$HOME/.pi-bolt}"
 
 pi_fnm_root() {
     local root="${FNM_DIR:-$HOME/Library/Application Support/fnm}"
@@ -29,4 +30,78 @@ pi_pkg_dir() {
     last="$(pi_fnm_copies | tail -n 1)"
     [[ -n "$last" ]] || return 1
     printf '%s\n' "$last"
+}
+
+pi_npm_prepare_path() {
+    local fnm_root default_node resolved
+    fnm_root="$(pi_fnm_root)"
+    default_node="$(readlink "$fnm_root/aliases/default" 2>/dev/null || true)"
+    [[ -d "$default_node/bin" ]] && export PATH="$default_node/bin:$PATH"
+}
+
+# Pi-Bolt macOS launcher (or installer symlink); empty if not installed.
+pi_bolt_launcher() {
+    local bin d
+    bin="$(command -v pi-bolt 2>/dev/null || true)"
+    if [[ -n "$bin" && -x "$bin" ]]; then
+        printf '%s\n' "$bin"
+        return 0
+    fi
+    for d in "$PIBOLT_INSTALL"/pi-bolt-*/pi; do
+        if [[ -x "$d" ]]; then
+            printf '%s\n' "$d"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# npm | bolt — PI_BACKEND=auto prefers Pi-Bolt when installed.
+pi_backend() {
+    case "${PI_BACKEND:-auto}" in
+        npm) printf 'npm\n' ;;
+        bolt) printf 'bolt\n' ;;
+        auto)
+            if pi_bolt_launcher >/dev/null; then
+                printf 'bolt\n'
+            else
+                printf 'npm\n'
+            fi
+            ;;
+        *)
+            printf 'npm\n'
+            ;;
+    esac
+}
+
+pi_npm_bin() {
+    pi_npm_prepare_path
+    local npm_pi="$PI_NPM_PREFIX/bin/pi"
+    if [[ -e "$npm_pi" ]]; then
+        if [[ ! -L "$npm_pi" ]] || [[ "$(readlink "$npm_pi" 2>/dev/null)" != *"/.local/bin/pi" ]]; then
+            printf '%s\n' "$npm_pi"
+            return 0
+        fi
+    fi
+    local cli="$PI_NPM_PREFIX/lib/node_modules/$PI_PACKAGE/dist/bundle/cli.js"
+    if [[ -f "$cli" ]]; then
+        printf '%s\n' "$cli"
+        return 0
+    fi
+    local d resolved=""
+    for d in "$(pi_fnm_root)"/node-versions/v*/installation; do
+        [[ -x "$d/bin/pi" ]] && resolved="$d/bin/pi"
+    done
+    [[ -n "$resolved" ]] || return 1
+    printf '%s\n' "$resolved"
+}
+
+pi_npm_exec() {
+    local bin
+    pi_npm_prepare_path
+    if bin="$(pi_npm_bin)"; then
+        exec "$bin" "$@"
+    fi
+    printf 'pi-npm: not found — run: ~/dotfiles/scripts/pi-doctor.sh --fix\n' >&2
+    exit 127
 }
