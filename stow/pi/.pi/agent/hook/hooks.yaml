@@ -90,6 +90,23 @@ hooks:
             exit 2
           fi
 
+  # LinuxBro: Docker maintenance goes through Dockhand MCP only (dockhand skill).
+  # Escape hatch: DOCKHAND_GUARD_DISABLE=1.
+  - id: guard-docker-linuxbro
+    event: tool.before.bash
+    actions:
+      - bash: |
+          host="${DOTFILES_FLEET_HOST:-$(hostname -s 2>/dev/null)}"
+          [[ "$(printf '%s' "$host" | tr '[:upper:]' '[:lower:]')" == "linuxbro" ]] || exit 0
+          [[ "${DOCKHAND_GUARD_DISABLE:-}" == "1" ]] && exit 0
+          payload=$(cat)
+          cmd=$(printf '%s' "$payload" | jq -r '.tool_args.command // empty' 2>/dev/null || printf '%s' "$payload")
+          [[ -z "$cmd" ]] && exit 0
+          if printf '%s' "$cmd" | grep -qE '(^|[;&|(`]|\$\(|sudo[[:space:]]+)[[:space:]]*(docker|docker-compose|podman)([[:space:]]|$)'; then
+            echo "[pi-guard] Docker on linuxbro: use the Dockhand MCP (/skill:dockhand), not raw docker." >&2
+            exit 2
+          fi
+
   # Before bash: git push whitelist + release/publish guard
   # The real push enforcement (pi has no built-in permissions engine).
   # `git push` is allowed only when the target repo resolves to an entry in
