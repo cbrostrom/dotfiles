@@ -67,6 +67,9 @@ if [[ -d "$ZSH_MODULES_DIR" ]]; then
     # 10 - Cmux orchestration helpers
     [[ -f "$ZSH_MODULES_DIR/09-cmux.zsh" ]] && source "$ZSH_MODULES_DIR/09-cmux.zsh"
 
+    # 11 - Herdr integration (autostart, pane labels, machine helpers, pi presets)
+    [[ -f "$ZSH_MODULES_DIR/09-herdr.zsh" ]] && source "$ZSH_MODULES_DIR/09-herdr.zsh"
+
     # Per-host overrides BEFORE Zellij auto-attach so a host can opt out
     [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
 else

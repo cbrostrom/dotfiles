@@ -38,6 +38,8 @@ case "$profile" in
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/cursor.sh"
         "$ROOT/setup/zed.sh"
+        "$ROOT/setup/herdr.sh"
+        warn "paseo is opt-in since herdr sync: WITH_PASEO=1 ./install.sh re-enables it"
         ;;
     linux | wsl)
         "$ROOT/scripts/install/higgins.sh"
@@ -47,8 +49,8 @@ case "$profile" in
         "$ROOT/scripts/install/fastfetch.sh"
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/zed.sh"
+        "$ROOT/setup/herdr.sh"
         [[ "$profile" == "wsl" ]] && "$ROOT/setup/cursor.sh"
-        [[ "$profile" == "wsl" ]] && PASEO_RELAY=on "$ROOT/setup/paseo.sh"
         ;;
     cloudbro)
         "$ROOT/scripts/install/higgins.sh"
@@ -58,7 +60,7 @@ case "$profile" in
         "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/scripts/install/fastfetch.sh"
         "$ROOT/setup/pi.sh"
-        PASEO_RELAY=on "$ROOT/setup/paseo.sh"
+        "$ROOT/setup/herdr.sh"
         ;;
     server)
         HIGGINS_ROLE=write-through "$ROOT/scripts/install/higgins.sh"
@@ -68,6 +70,7 @@ case "$profile" in
         "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/scripts/install/fastfetch.sh"
         "$ROOT/setup/pi.sh"
+        "$ROOT/setup/herdr.sh"
         ;;
     *)
         printf 'error: unknown profile: %s\n' "$profile" >&2
