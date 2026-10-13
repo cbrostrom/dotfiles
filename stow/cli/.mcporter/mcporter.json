@@ -34,12 +34,6 @@
     "dockhand-superbro": {
       "baseUrl": "http://100.100.1.50:8080/mcp"
     },
-    "atlassian-fiskars": {
-      "baseUrl": "https://mcp.atlassian.com/v1/sse",
-      "auth": "oauth",
-      "tokenCacheDir": "${HOME}/.mcporter/tokens/atlassian-fiskars",
-      "oauthRedirectUrl": "http://127.0.0.1:65432/callback"
-    },
     "atlassian-akqa": {
       "baseUrl": "https://mcp.atlassian.com/v1/sse",
       "auth": "oauth",
@@ -69,7 +63,18 @@
       ],
       "lifecycle": "keep-alive",
       "description": "Read-only Jira/Confluence (API token, Fiskars profile)",
-      "_note": "5 compact tools via atlassian-agent; prefer over OAuth atlassian-fiskars for Fiskars Cloud."
+      "_note": "5 compact tools via atlassian-agent."
+    },
+    "atlassian-agent-akqa": {
+      "command": "atlassian-agent",
+      "args": [
+        "mcp",
+        "--profile",
+        "akqa"
+      ],
+      "lifecycle": "keep-alive",
+      "description": "Read-only Jira/Confluence (API token, AKQA profile)",
+      "_note": "Needs: atlassian-agent setup --profile akqa. Then remove the OAuth atlassian-akqa server."
     }
   }
 }

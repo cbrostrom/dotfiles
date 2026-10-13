@@ -43,7 +43,7 @@ Direct (tools loaded inline, in `~/.pi/agent/mcp.json`): `higgins` only. Everyth
 - `mcporter({ action: "describe", selector: "server.tool" })` — schema before first call.
 - `mcporter({ action: "call", selector: "server.tool", args: {...} })` — execute.
 
-Use it proactively when a task touches Jira/Confluence (`atlassian-*`), GitHub issues/PRs (`github`), Shopify dev (`shopify-dev-mcp`), the codebase knowledge graph (`codebase-memory-mcp`), the node/browser REPLs (`node_repl`, `cua_repl`), or when hunting for a machine-local tool/plugin/skill (`paseo-steps-viewer` → `list_capabilities`; see `/skill:capabilities`). Server admin (install, OAuth, config) is CLI-only: `mcporter list | call | auth | config`.
+Use it proactively when a task touches Jira/Confluence (`atlassian-agent-*`, read-only, token-capped; see `/skill:atlassian-agent`), GitHub issues/PRs (`github`), Shopify dev (`shopify-dev-mcp`), the codebase knowledge graph (`codebase-memory-mcp`), the node/browser REPLs (`node_repl`, `cua_repl`), or when hunting for a machine-local tool/plugin/skill (`paseo-steps-viewer` → `list_capabilities`; see `/skill:pi`). Server admin (install, OAuth, config) is CLI-only: `mcporter list | call | auth | config`.
 
 Paseo layer: Paseo-launched agents receive Paseo's own tool catalog by injection (`daemon.mcp.injectIntoAgents`) — use those for cross-agent/workspace/browser orchestration there, prefer `pi-peer` only in terminal sessions, and never add `paseo` to mcporter (duplicate surface).
 
@@ -74,17 +74,3 @@ Own plugins are git-installed from `bybrostrom/paseo-plugins` (canonical source;
 - Hooks: `pi-yaml-hooks` installed — `/hooks-status` on first session.
 - Subagents: `subagent_isolated` for narrow parallelisable tasks; main thread otherwise.
 - Token awareness: scoped reads, grep before reading large files. Search with `rg` and list files with `rg --files -g '<glob>'` in bash (RTK-rewritten); avoid `fd` (not rewritten).
-
-<!-- BEGIN COMPOUND PI TOOL MAP -->
-## Compound Engineering (Pi compatibility)
-
-This block is managed by compound-plugin.
-
-Pi extensions used by this plugin:
-- Required: `@gotgenes/pi-subagents` provides the `subagent` tool used by skills that dispatch parallel agents
-- Recommended: `pi-ask-user` (by edlsh) provides the `ask_user` tool; skills fall back to numbered options in chat when it is missing
-
-Install with:
-  pi install npm:@gotgenes/pi-subagents
-  pi install npm:pi-ask-user
-<!-- END COMPOUND PI TOOL MAP -->

@@ -20,7 +20,6 @@
     "atlassian-akqa": {
       "exposure": "index"
     },
-    "atlassian-fiskars": null,
     "dockhand-linuxbro": {
       "exposure": "on-demand"
     },
