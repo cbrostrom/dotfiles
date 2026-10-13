@@ -3,8 +3,8 @@
  * output through context-mode's ctx_* tools instead of raw bash/read.
  *
  * Why this exists (not just the pi-yaml-hooks bash guard): the yaml hook only
- * fires for terminal sessions; this extension enforces the same policy on every
- * tool_call event, for every provider and for Paseo RPC workers.
+ * sees the built-in `bash` tool; this extension enforces the same policy on every
+ * tool_call event (bash, read, ...) for every provider.
  *
  * Fail-open by design: if context-mode's ctx_execute tool isn't active in
  * this session (extension failed to load, disabled, etc.), this guard gets
