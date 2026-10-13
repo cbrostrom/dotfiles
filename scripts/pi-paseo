@@ -85,7 +85,6 @@ while IFS= read -r package; do
 done < <(jq -r '.packages[]? | if type == "string" then . else .source // empty end' "$SETTINGS")
 
 extensions+=(
-    "$DOTFILES_DIR/stow/pi/.pi/agent/extensions/file-search/index.ts"
     "$PI_AGENT_DIR/extensions/model-policy-guard/index.ts"
 )
 # Personal extensions gate themselves (extensions/lib/runtime.ts): terminal-only ones

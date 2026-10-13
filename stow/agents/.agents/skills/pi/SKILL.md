@@ -39,7 +39,7 @@ Auth: `/login` → Anthropic (Claude Pro/Max), GitHub Copilot, OpenCode Go.
 
 - **Harness:** `pi` → Pi-Bolt shim (`PI_BACKEND=auto`). Claude Code CLI is not required; subscription OAuth lives in `auth.json`.
 - **Cache:** `PI_CACHE_RETENTION=long` in `~/.pi/agent/configs/.env` (1h Anthropic prompt cache). Keep `cacheWarming` at default `streaming`; avoid `idle` warming between runs.
-- **Stable system prompt:** No per-turn `systemPrompt` mutations (`style` is session-stable; mode switches only in chat/plan-mode). Prose rules: `/skill:writing` (not an extension).
+- **Stable system prompt:** No per-turn `systemPrompt` mutations (`style` is session-stable; no mode-switch extensions loaded). Prose rules: `/skill:writing` (not an extension).
 - **Thinking ladder:** default `low` on workstation; escalate model tier (Sonnet → Opus → Fable) before cranking thinking.
 - **Background work:** observational-memory and Paseo metadata on OpenCode Go — not Claude/Copilot quota.
 

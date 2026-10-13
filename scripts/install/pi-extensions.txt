@@ -14,25 +14,17 @@ git:github.com/NVlabs/SoL-Pi
 
 # --- npm installs ---
 npm:pi-ask-user
-npm:pi-cmux
 npm:pi-extmgr
-npm:pi-mcp-adapter
 npm:pi-mcporter
 npm:pi-observational-memory
-npm:pi-paster
 npm:pi-permission-system
 npm:pi-rtk-optimizer
 npm:pi-web-access
 npm:pi-yaml-hooks
 npm:context-mode
-npm:@diegopetrucci/pi-notify
 npm:@gotgenes/pi-subagents
 npm:@juanibiapina/pi-extension-settings
-npm:@juanibiapina/pi-powerbar
 npm:@narumitw/pi-caffeinate
-npm:@narumitw/pi-tui-kit
-npm:@nguyenquangthai/pi-todo
 npm:@shift-labs/pi-peer
-npm:@thisux/pi-double-esc-clear
 npm:@juicesharp/rpiv-config
 npm:@juicesharp/rpiv-todo

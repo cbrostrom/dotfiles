@@ -2,17 +2,9 @@
  * context-mode-enforcer — global tool_call guard that forces large/derivable
  * output through context-mode's ctx_* tools instead of raw bash/read.
  *
- * Why this exists (not just the pi-yaml-hooks bash guard):
- * - pi-yaml-hooks' guard-context-mode hook only fires on the built-in `bash`
- *   tool. It never sees Cursor-native tool activity, which bypasses Pi's
- *   extension/tool layer entirely (see cursor-strict-mcp-only patch).
- * - Once Cursor is forced to MCP-only (that patch), every Cursor action —
- *   including bridged `bash`/`read` calls proxied through pi-cursor-sdk's
- *   local MCP bridge — arrives here as a normal Pi `tool_call` event. This
- *   extension is what actually enforces the policy on that traffic; the
- *   patch only removes Cursor's escape hatch.
- * - Runs for every model/provider Pi supports (Copilot, Anthropic, Cursor via
- *   bridge, OpenCode, ...), not just Cursor.
+ * Why this exists (not just the pi-yaml-hooks bash guard): the yaml hook only
+ * fires for terminal sessions; this extension enforces the same policy on every
+ * tool_call event, for every provider and for Paseo RPC workers.
  *
  * Fail-open by design: if context-mode's ctx_execute tool isn't active in
  * this session (extension failed to load, disabled, etc.), this guard gets
@@ -25,7 +17,7 @@ const DISABLE_ENV = "PI_CONTEXT_ENFORCER_DISABLE";
 
 // Commands that always flood context when run raw. Mirrors and extends the
 // pi-yaml-hooks guard-context-mode allow/block lists so the same policy
-// applies uniformly across every tool-call path (native Pi + Cursor bridge).
+// applies uniformly across every tool-call path.
 //
 // Optimization stance: the block reason is the ONLY thing that enters context
 // when a call is rejected — keep it one short line, name the target tool, and
