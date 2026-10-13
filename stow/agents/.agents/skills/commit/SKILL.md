@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Git commits in meaningful chunks, with push and PR variants. Modes by trigger "commit"/"commit this"/"save my changes" (commit only), "commit and push" (commit + push), "commit push PR"/"ship this"/"open a PR" (commit + push + PR). Groups the current diff into logical chunked commits, writes conventional messages following repo conventions, never adds AI attribution trailers.
+description: "Chunked git commits with conventional messages; optional push/PR. Triggers: commit, commit and push, ship this, open a PR. No AI trailers."
 ---
 
 # Git Commit (chunked)

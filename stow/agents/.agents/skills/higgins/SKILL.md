@@ -1,6 +1,6 @@
 ---
 name: higgins
-description: "Vault (Higgins) protocol for all agents. Covers tier map, MCP tool usage (search/load/read/current/next/gotcha/done/save/wrap/pick/path/status/resolve), scope-aware search, on-earn deposit discipline, and INDEX.md navigation. Use when loading context, saving decisions, searching the vault, or at session boundaries. Triggers: load vault, save vault, search vault, .remember, higgins digest."
+description: "Higgins vault protocol: search/load/save, tiers, scope, MCP tools. Triggers: .remember, .note, .gotcha, search vault, session boundaries."
 group: higgins
 ---
 
@@ -91,6 +91,10 @@ Ops/maintenance tools (`digest`, `optimise`, `init`, `setup`, `prune`, `compact`
 ## Never load at session start
 
 **Start-context loads nothing from the vault.** No hook fires `load` automatically. Call `search` with specific terms when a task needs a fact, or read a tier `INDEX.md` for the map. Call `load <slug>` only when the user explicitly asks or a task clearly needs the full project brain — it's ~1,700 tokens of full file contents, not a summary.
+
+## Session handoff vs vault (Paseo)
+
+**Paseo Handover** (`/handover`, Handover pill) is the canonical **session** transfer: bounded transcript, structured summary, receiving agent prompt. Higgins stores **durable** slices only (decisions, gotchas, blockers), optionally from Handover's checkbox or via `/digest` / `.remember`. Do not replace Handover with `load`, `wrap`, or dumping session logs into `current.md`.
 
 ## On-earn deposit — when to write, not just when asked
 

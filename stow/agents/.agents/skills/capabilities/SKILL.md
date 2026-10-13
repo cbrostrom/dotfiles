@@ -1,6 +1,6 @@
 ---
 name: capabilities
-description: Route tasks to the right custom tool. Reads the generated capability map (~/.agents/capabilities.md) covering Paseo plugins, pi extensions, and shared skills. Use when a task touches MCP servers, Paseo plugins, step plans, workspace integrations, or when you wonder "is there a tool for X". Also the safety net for stale inventories.
+description: "Route tasks via ~/.agents/capabilities.md (plugins, pi extensions, skills, MCP). Use when asking if a tool exists for X."
 ---
 
 # Capability Router

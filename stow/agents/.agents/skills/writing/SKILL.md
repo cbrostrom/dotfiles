@@ -1,6 +1,6 @@
 ---
 name: writing
-description: "Drafting and revising prose that readers will see: blog posts, articles, documentation, criticism, long-form, emails, marketing, SEO copy, UI text. Not for code comments, commit messages, or private notes."
+description: "Drafting and revising prose readers will see: blogs, docs, email, marketing, UI copy. Triggers: unslop, humanize, polish, rewrite prose, remove AI tone. Not code, identifiers, code comments, or commit messages."
 license: MIT
 metadata:
   author: Anbeeld
@@ -32,6 +32,19 @@ If the user asks for bullets, use bullets. If accessibility, platform rules, or 
 ## Scope
 
 This document is for drafting and revising text. It is not a reliable method for deciding whether existing text was written by a human or an AI, and it is not an authorship-adjudication tool. In high-stakes settings, provenance beats surface style; see `references/provenance.md`.
+
+**Never apply these rules to code, identifiers, code comments, or commit messages** (commit messages follow the commit skill).
+
+## Prose rules (compact)
+
+When editing or drafting prose output:
+
+- Cut puffery, promotional language, and vague attributions ("experts believe", "pivotal moment").
+- No AI vocab: additionally, crucial, delve, enhance, pivotal, showcase, tapestry, testament, underscore, vibrant. Prefer "is/has" over "serves as/stands as/boasts".
+- No rule-of-three forcing. Active voice. Plain words (use not utilize).
+- No em dashes. Sentence-case headings. No decorative emojis or bold overuse.
+- Cut "in order to" → "to", "due to the fact that" → "because"; trim excessive hedging.
+- Have opinions. Vary rhythm. Be specific. Use "I" when it fits.
 
 ## Core workflow
 

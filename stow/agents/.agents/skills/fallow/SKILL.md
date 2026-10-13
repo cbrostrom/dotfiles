@@ -1,6 +1,6 @@
 ---
 name: fallow
-description: "Static analysis for JS/TS. Reports quality, changed-code risk, unused files/exports/types/deps, duplication, circular deps, complexity hotspots, architecture violations, feature flags, security candidates. Triggers: analyze code health, audit PR risk, find unused code, detect duplicates, check circular deps, run fallow."
+description: "JS/TS static analysis: quality, PR risk, unused code, dupes, cycles, complexity, arch violations. Triggers: fallow, code health audit."
 license: MIT
 metadata:
   author: Bart Waardenburg
