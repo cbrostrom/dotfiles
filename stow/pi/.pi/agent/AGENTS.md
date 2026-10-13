@@ -54,11 +54,11 @@ Disabled servers stay disabled on purpose — tool-restraint; enable per-session
 Auto-discovered from `~/.agents/skills/`. Load on demand: `/skill:<name>`.
 
 - Skills with `disable-model-invocation: true` in frontmatter are hidden from the system prompt but still invocable via `/skill:name` — no startup token cost, full functionality on demand.
-- Capability map (Paseo plugins, pi extensions, skills — what exists, where, when to use): `/skill:capabilities`. Generated manifest: `~/.agents/capabilities.md`.
+- Capability map (Paseo plugins, pi extensions, skills — what exists, where, when to use): `/skill:pi` (Capability map section). Generated manifest: `~/.agents/capabilities.md`.
 
 ## Web fetching
 
-`moli fetch --dump markdown --wait-until done "<url>"` for pages; `web_search` for discovery; `fetch_content` only if moli unavailable. Recipes: `/skill:moli-webfetch`.
+`web_search` for discovery, `fetch_content` for a page (pi-web-access). `ctx_fetch_and_index` when the page should be searched rather than read whole.
 
 ## pi-peer
 
@@ -73,7 +73,7 @@ Own plugins are git-installed from `bybrostrom/paseo-plugins` (canonical source;
 - Project trust: `/trust` once in trusted repos; keep `defaultProjectTrust` at `"ask"`.
 - Hooks: `pi-yaml-hooks` installed — `/hooks-status` on first session.
 - Subagents: `subagent_isolated` for narrow parallelisable tasks; main thread otherwise.
-- Token awareness: scoped reads, grep before reading large files.
+- Token awareness: scoped reads, grep before reading large files. Search with `rg` and list files with `rg --files -g '<glob>'` in bash (RTK-rewritten); avoid `fd` (not rewritten).
 
 <!-- BEGIN COMPOUND PI TOOL MAP -->
 ## Compound Engineering (Pi compatibility)
