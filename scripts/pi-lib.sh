@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# Shared resolution for pi (Pi-Bolt) vs pi-npm (@earendil-works/pi-coding-agent).
+# Shared resolution: Pi-Bolt (default), PiG, managed pi.dev, npm fallback.
 
 PI_NPM_PREFIX="${NPM_CONFIG_PREFIX:-$HOME/.npm-global}"
 PI_PACKAGE="@earendil-works/pi-coding-agent"
 PIBOLT_INSTALL="${PIBOLT_INSTALL:-$HOME/.pi-bolt}"
+PI_MANAGED_MARKER="${PI_MANAGED_MARKER:-$HOME/.pi/agent/install/managed-install.json}"
+PI_MANAGED_BIN="${PI_MANAGED_BIN:-$HOME/.pi/agent/bin/pi}"
+PI_AGENT_DIR="${PI_AGENT_DIR:-$HOME/.pi/agent}"
 
 pi_fnm_root() {
     local root="${FNM_DIR:-$HOME/Library/Application Support/fnm}"
@@ -56,14 +59,48 @@ pi_bolt_launcher() {
     return 1
 }
 
-# npm | bolt — PI_BACKEND=auto prefers Pi-Bolt when installed.
+pi_managed_installed() {
+    [[ -f "$PI_MANAGED_MARKER" && -x "$PI_MANAGED_BIN" ]]
+}
+
+pi_managed_bin() {
+    if pi_managed_installed; then
+        printf '%s\n' "$PI_MANAGED_BIN"
+        return 0
+    fi
+    return 1
+}
+
+pi_pig_bin() {
+    local bin
+    bin="$(command -v pig 2>/dev/null || true)"
+    if [[ -n "$bin" && -x "$bin" ]]; then
+        printf '%s\n' "$bin"
+        return 0
+    fi
+    return 1
+}
+
+pi_pig_env() {
+    export PIG_USE_PI_DIRS=1
+    export PIG_CODING_AGENT_DIR="${PIG_CODING_AGENT_DIR:-$PI_AGENT_DIR}"
+}
+
+# npm | bolt | managed | pig
+# auto: bolt → managed → npm; set PI_USE_PIG=1 to prefer PiG in auto.
 pi_backend() {
     case "${PI_BACKEND:-auto}" in
         npm) printf 'npm\n' ;;
         bolt) printf 'bolt\n' ;;
+        managed) printf 'managed\n' ;;
+        pig) printf 'pig\n' ;;
         auto)
-            if pi_bolt_launcher >/dev/null; then
+            if [[ "${PI_USE_PIG:-0}" == 1 ]] && pi_pig_bin >/dev/null; then
+                printf 'pig\n'
+            elif pi_bolt_launcher >/dev/null; then
                 printf 'bolt\n'
+            elif pi_managed_installed; then
+                printf 'managed\n'
             else
                 printf 'npm\n'
             fi

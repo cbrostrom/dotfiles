@@ -11,7 +11,7 @@
   "enableInstallTelemetry": false,
   "quietStartup": true,
   "collapseChangelog": true,
-  "tuiMode": "regular",
+  "tuiMode": "fullscreen",
   "packages": [
     "npm:@juanibiapina/pi-extension-settings",
     "npm:pi-cursor-sdk",

@@ -54,8 +54,13 @@ Upgrade packages: `piup` (`pi update --all` + `pi-doctor.sh`)
 List installed: `pi list`  
 Health: `~/dotfiles/scripts/pi-doctor.sh` (`--fix` reinstall, `--prune` drop duplicate copies)
 
-> One install: `~/.npm-global` (`NPM_CONFIG_PREFIX`). The `~/.local/bin/pi` shim and Paseo both run it.
-> Updating rewrites it in place: restart the Paseo agents pi-doctor lists, or they crash on their next provider switch.
+> **Stack (one config dir `~/.pi/agent`):**  
+> - `pi` → shim → **Pi-Bolt** by default (`PI_BACKEND=auto`, ~30ms startup).  
+> - **Managed** pi.dev pin: `pi-managed`, `~/.pi/agent/install/releases/*`; `piup` runs `pi-managed update self`.  
+> - **PiG** (faster, lighter): `pipig` / `PI_BACKEND=pig` / `pi-pig` — TS extension gaps (cursor-sdk, yaml-hooks); see `~/.pi/agent/pig-migration/audit.md`.  
+> - npm fallback: `pi-npm` / `PI_BACKEND=npm` at `~/.npm-global`.  
+> `~/bin/pi` must stay on the shim (not managed launcher). `pi-doctor --fix` enforces that.  
+> After updates: restart agents pi-doctor lists.
 
 ## MCP
 

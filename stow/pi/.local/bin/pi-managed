@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Managed Pi (pi.dev installer) — pinned releases under ~/.pi/agent/install.
+# Use for: pi-managed update self, troubleshooting Node pi parity.
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+# shellcheck source=/dev/null
+. "$DOTFILES_DIR/scripts/pi-lib.sh"
+if bin="$(pi_managed_bin)"; then
+    exec "$bin" "$@"
+fi
+printf 'pi-managed: not installed — run: %s/scripts/install/pi-managed.sh\n' "$DOTFILES_DIR" >&2
+exit 127

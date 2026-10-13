@@ -8,11 +8,11 @@ ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
 
 usage() {
     cat <<'EOF'
-pi-doctor — check pi (Pi-Bolt when installed) and npm fallback
+pi-doctor — Pi stack: Pi-Bolt (default pi), managed pi.dev, PiG, npm fallback
 
-  (default)   backend resolution, npm bundle when relevant, stale agents, paseo CLI
+  (default)   backend resolution, managed install, npm bundle, stale agents, paseo CLI
   --smoke     also load the CLI (--help); slow
-  --fix       pi-bolt update (if installed), reinstall npm pi, pi-npm update --all
+  --fix       pi-bolt + managed self + npm fallback; repoint ~/bin/pi to shim
   --prune     delete duplicate npm pi copies (refuses while outdated agents run)
 EOF
 }
@@ -36,12 +36,40 @@ fail() { printf 'pi-doctor: error: %s\n' "$*" >&2; FAIL=1; }
 
 PI_SHIM="$HOME/.local/bin/pi"
 backend="$(pi_backend)"
+MANAGED_PI="$HOME/.pi/agent/bin/pi"
+HOME_PI="$HOME/bin/pi"
+
+_pi_same_file() {
+    local a b
+    a="$(readlink -f "$1" 2>/dev/null || true)"
+    b="$(readlink -f "$2" 2>/dev/null || true)"
+    [[ -n "$a" && "$a" == "$b" ]]
+}
+
+if [[ -x "$MANAGED_PI" && -e "$HOME_PI" ]] && _pi_same_file "$HOME_PI" "$MANAGED_PI"; then
+    warn "~/bin/pi is the managed Pi installer; dotfiles route \`pi\` through Pi-Bolt ($PI_SHIM)"
+    if [[ $FIX -eq 1 ]]; then
+        mkdir -p "$(dirname "$HOME_PI")"
+        ln -sf "$PI_SHIM" "$HOME_PI"
+        log "repointed ~/bin/pi → $PI_SHIM"
+    else
+        log "repoint with: $ROOT/scripts/pi-doctor.sh --fix"
+    fi
+fi
 
 if [[ $FIX -eq 1 ]]; then
     if pi_bolt_launcher >/dev/null 2>&1; then
         log "updating Pi-Bolt"
         pi-bolt update || warn "pi-bolt update failed"
     fi
+    if pi_managed_installed; then
+        log "updating managed Pi (pi.dev)"
+        "$PI_MANAGED_BIN" update self || warn "managed pi update self failed"
+    else
+        warn "managed Pi not installed — run: $ROOT/scripts/install/pi-managed.sh"
+    fi
+    mkdir -p "$(dirname "$HOME_PI")"
+    [[ -x "$PI_SHIM" ]] && ln -sf "$PI_SHIM" "$HOME_PI"
     . "$ROOT/setup/lib.sh"
     activate_fnm
     log "installing $PI_PACKAGE into $PI_NPM_PREFIX (pi-npm fallback)"
@@ -53,14 +81,42 @@ if [[ $FIX -eq 1 ]]; then
     fi
 fi
 
-if [[ "$backend" == bolt ]]; then
-    if launcher="$(pi_bolt_launcher)"; then
-        log "backend: Pi-Bolt ($("$launcher" --version 2>&1 | head -n 1))"
-    else
-        fail "PI_BACKEND=bolt but Pi-Bolt is not installed — run: $ROOT/scripts/install/pi-bolt.sh"
-    fi
+case "$backend" in
+    bolt)
+        if launcher="$(pi_bolt_launcher)"; then
+            log "backend: Pi-Bolt ($("$launcher" --version 2>&1 | head -n 1))"
+        else
+            fail "PI_BACKEND=bolt but Pi-Bolt is not installed — run: $ROOT/scripts/install/pi-bolt.sh"
+        fi
+        ;;
+    pig)
+        if bin="$(pi_pig_bin)"; then
+            log "backend: PiG ($("$bin" --version 2>&1 | head -n 1))"
+        else
+            fail "PI_BACKEND=pig but pig is not installed"
+        fi
+        ;;
+    managed)
+        if bin="$(pi_managed_bin)"; then
+            log "backend: managed Pi ($("$bin" --version 2>&1 | head -n 1))"
+        else
+            fail "PI_BACKEND=managed but managed Pi is not installed"
+        fi
+        ;;
+    npm)
+        log "backend: npm (@earendil-works/pi-coding-agent)"
+        ;;
+esac
+
+if pi_managed_installed; then
+    ver="$(cat "$HOME/.pi/agent/install/current-version" 2>/dev/null || echo '?')"
+    log "managed install: releases-v1 @ $ver ($PI_MANAGED_BIN)"
 else
-    log "backend: npm (@earendil-works/pi-coding-agent)"
+    warn "managed Pi not installed (optional pinned Node release) — run: $ROOT/scripts/install/pi-managed.sh"
+fi
+
+if pig_bin="$(pi_pig_bin 2>/dev/null)"; then
+    log "PiG available: $pig_bin ($("$pig_bin" --version 2>&1 | head -n 1))"
 fi
 
 if pkg="$(pi_pkg_dir)"; then
@@ -115,7 +171,7 @@ for (const row of rows) {
   const m = row.trim().match(/^(\d+)\s+(\w{3} \w{3}\s+\d+ [\d:]+ \d{4})\s+(.*)$/);
   if (!m) continue;
   const [, pid, start, cmd] = m;
-  if (!/^pi(\s|$)|pi-rpc-interpreter|pi-coding-agent\/dist|pi-bolt|\.pi-bolt\//.test(cmd)) continue;
+  if (!/^pi(\s|$)|pi-rpc-interpreter|pi-coding-agent\/dist|pi-bolt|\.pi-bolt\/|\/pig(\s|$)|\.pig\//.test(cmd)) continue;
   if (new Date(start).getTime() < since) console.log(`${pid}  started ${start}  ${cmd.slice(0, 60)}`);
 }
 NODE

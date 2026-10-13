@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# PI shim — Pi-Bolt when installed, else npm @earendil-works/pi-coding-agent.
-# Terminal pi, Paseo (pi-paseo), and package installs should share this entrypoint.
-# Force npm: PI_BACKEND=npm pi …  or use pi-npm.
-# Updates: pi-bolt update (Bolt) · pi-npm update --all (npm fallback) · pi-doctor.sh
+# PI shim — runtime from PI_BACKEND (default auto: Pi-Bolt → managed → npm).
+# Terminal pi, Paseo, and Zed pi-acp should use this entrypoint (~/.local/bin/pi).
+# pi-managed · pi-pig · pi-npm · pi-bolt are explicit backends.
+# Updates: piup (bolt + managed self + extensions) · pi-doctor.sh
 
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
 # shellcheck source=/dev/null
@@ -11,6 +11,13 @@ DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
 case "$(pi_backend)" in
     bolt)
         exec "$(pi_bolt_launcher)" "$@"
+        ;;
+    pig)
+        pi_pig_env
+        exec "$(pi_pig_bin)" "$@"
+        ;;
+    managed)
+        exec "$(pi_managed_bin)" "$@"
         ;;
     npm)
         pi_npm_exec "$@"
