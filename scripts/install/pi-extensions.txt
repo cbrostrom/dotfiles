@@ -8,6 +8,10 @@
 # Run ~/dotfiles/scripts/install/pi-extensions.sh to install missing entries
 # and update existing ones. doctor.sh checks that every entry is on disk.
 
+# Per-host exclusions (e.g. pi-caffeinate off Linux servers): excludePackages in
+# stow/pi/.pi/agent/configs/model-policy.json. Pi-Bolt's own layer (piBolt.packages,
+# adds opensec-pi-fff) is managed by scripts/install/pi-bolt.sh, not this file.
+
 # --- git installs ---
 git:github.com/bybrostrom/pi-extensions
 git:github.com/NVlabs/SoL-Pi

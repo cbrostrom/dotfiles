@@ -145,14 +145,6 @@ native_mcp_args=(
     --extension builtin:tool-search
 )
 
-# --cursor-no-fast is only accepted by pi builds where the cursor provider is
-# registered (Cursor CLI/auth present). On hosts without it (e.g. CloudBro) pi
-# rejects the option wholesale ("Unknown option"), so probe support first.
-cursor_fast_args=()
-if [[ -f "$PI_BIN" ]] && "$PI_BIN" --help 2>&1 | grep -q -- --cursor-no-fast; then
-    cursor_fast_args+=(--cursor-no-fast)
-fi
-
 # RPC interpreter: rate-shapes pi's message_update delta stream into
 # block-complete content so Paseo's timeline provider never closes items on
 # markdown-unsafe boundaries (fragment `**→` cards, partial thinking cards).
@@ -168,7 +160,6 @@ if [[ "${PI_PASEO_NO_INTERPRETER:-}" != "1" && -f "$INTERPRETER" ]] && command -
         --no-extensions \
         --no-skills \
         --exclude-tools powershell,grep,find,ls \
-        "${cursor_fast_args[@]}" \
         "${native_mcp_args[@]}" \
         "${extension_args[@]}" \
         "${skill_args[@]}" \
@@ -180,7 +171,6 @@ exec "$PI_BIN" \
     --no-extensions \
     --no-skills \
     --exclude-tools powershell,grep,find,ls \
-    "${cursor_fast_args[@]}" \
     "${native_mcp_args[@]}" \
     "${extension_args[@]}" \
     "${skill_args[@]}" \

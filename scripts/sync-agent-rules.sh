@@ -4,7 +4,7 @@
 
 DOTFILES="${DOTFILES_DIR:-$HOME/dotfiles}"
 CORE="$DOTFILES/stow/cursor/.cursor/rules/core.mdc"
-AGENTS="$DOTFILES/AGENTS.md"
+AGENTS="$DOTFILES/stow/agents/.agents/AGENTS.md"
 
 fail=0
 

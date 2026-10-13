@@ -9,7 +9,7 @@
       "lifecycle": "keep-alive"
     },
     "codebase-memory-mcp": {
-      "command": "/Users/Christian.Brostrom/.local/bin/codebase-memory-mcp",
+      "command": "${HOME}/.local/bin/codebase-memory-mcp",
       "args": [],
       "lifecycle": "keep-alive"
     },
