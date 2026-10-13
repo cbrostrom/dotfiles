@@ -17,9 +17,15 @@ Act. No preamble, no advisor overhead. For ≤3 files with an obvious fix: execu
 
 **File reads:** Grep first; read `offset`/`limit` ±20 lines for small edits. Never re-read files already in context. Batch parallel reads.
 
-**Approval gate:** Off for obvious ≤3-file fixes. One-line plan if genuinely ambiguous — then execute. (Pi uses stricter default — see `.agents/AGENTS.md`.)
+**Approval gate:** Off for obvious ≤3-file fixes. One-line plan if genuinely ambiguous — then execute.
 
 **No preamble:** Don't restate the question or list what you're about to do.
+
+**Output:** Concise. No emojis. Dates DD-MM-YYYY, timezone CET. English unless Christian writes otherwise. Relay important tool/shell results in text.
+
+**Secrets:** Never read, print, or echo `.env` values, credentials, tokens, or private keys. Never enumerate the environment (`env`, `printenv`, `export -p`).
+
+**Tools:** Use only what the task needs. MCP beyond the hot path goes through the MCPorter bridge (discover → describe → call). Large output goes through context-mode `ctx_*` tools; RTK rewrites shell commands automatically — don't prefix `rtk` by hand.
 
 ---
 
@@ -47,4 +53,6 @@ Tag: `.rigor` / `!deep` / `[rigor]` — or auto-triggers for: security-critical,
 - For Pi Ollama support, keep native `models.json` providers separate from Ollama's redundant extension bundle.
 - Filter large command output at the source; never use `tail` solely to truncate it.
 - Before calling a Node install corrupt, check `npm config get prefix` and process start times vs install mtime (long-running agents keep the old build).
+- NEVER run process/env listings that can expose secrets (`ps aux`, `ps e`, `pgrep -fl/-a`, `lsof` without `-iTCP -sTCP:LISTEN`, `/proc/*/environ`, `launchctl getenv`). To find a dev server, check listening ports only. If a command could possibly touch secrets, STOP and alert the user before running it.
+- Fiskars stellar-shopify: locale changes are allowed, but always flag new or changed translation keys explicitly (they affect all stores); don't burn tokens perfecting translations, they get replaced.
 - Move this section to a separate file if it exceeds 20 lines.

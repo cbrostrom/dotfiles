@@ -6,8 +6,12 @@
 #   sessionStart  → no vault dump (MCP-only: agent uses Higgins on demand)
 #   preToolUse    → rtk hook cursor through run-hook.sh
 #   afterFileEdit → aislop hook cursor through run-hook.sh, if aislop installed
-#   stop          → vault-save.sh through run-hook.sh
-#   cleanup       → remove dead Code Island, legacy lean-ctx/rtk, and vault dump hooks
+#   beforeShellExecution → shell-guard.sh (rm -rf, push whitelist, publish block)
+#   afterAgentResponse / postToolUse → style-gate.py detect / consume
+#   cleanup       → remove dead Code Island, legacy lean-ctx/rtk, vault, and shared-hook entries
+#
+# mcp.json patches (idempotent): mcporter bridge allowlist + context-mode.
+# Cursor config never references ~/.pi; Pi config never references ~/.cursor.
 set -euo pipefail
 
 BLUE='\033[0;34m'
@@ -55,7 +59,7 @@ mkdir -p "$CURSOR_DIR/hooks"
 
 # Stow owns native links. WSL must copy across the Windows filesystem boundary.
 if [[ "$CURSOR_DIR" == /mnt/* ]]; then
-    for hook in run-hook.sh vault-save.sh; do
+    for hook in run-hook.sh shell-guard.sh style-gate.py; do
         src="$CURSOR_SRC/hooks/$hook"
         [[ -f "$src" ]] || {
             warn "Hook source not found: $src"
@@ -67,13 +71,19 @@ if [[ "$CURSOR_DIR" == /mnt/* ]]; then
 fi
 
 # Drop legacy vault-dump sessionStart scripts if present (MCP-only cold start)
-for legacy in brain-load.sh kb-load.sh; do
+for legacy in brain-load.sh kb-load.sh vault-save.sh; do
     dst="$CURSOR_DIR/hooks/$legacy"
     if [[ -e "$dst" || -L "$dst" ]]; then
         rm -f "$dst"
-        success "Removed legacy hooks/$legacy (MCP-only sessionStart)"
+        success "Removed legacy hooks/$legacy"
     fi
 done
+
+# Skills come from ~/.agents/skills (Cursor discovers it natively); drop the old alias.
+if [[ -L "$CURSOR_DIR/skills" ]]; then
+    rm -f "$CURSOR_DIR/skills"
+    success "Removed redundant skills alias"
+fi
 
 if [[ "$CURSOR_DIR" == /mnt/* ]]; then
     RULES_SRC="$CURSOR_SRC/rules"
@@ -128,12 +138,14 @@ def managed_command(command):
         "bash './hooks/run-hook.sh' vault-save -- bash './hooks/vault-save.sh'",
         "bash './hooks/run-hook.sh' brain-save --",
     )
+    retired_tags = ("vault-save", ".agents/hooks/", ".pi/")
     # brain-load / kb-load are retired (MCP-only) — always strip, never re-add
     dump_retired = ("brain-load", "kb-load")
     return (
         any(part in command for part in legacy)
         or command in wrapped
         or any(tag in command for tag in dump_retired)
+        or any(tag in command for tag in retired_tags)
     )
 
 def cleanup_event(name):
@@ -193,31 +205,63 @@ if shutil.which("aislop"):
 else:
     print("\033[1;33m[cursor]\033[0m aislop not found — skipping afterFileEdit patch")
 
-# Shared agent guards (~/.agents/hooks, also wired into Pi's hooks.yaml):
-# push whitelist + release/publish block, and the output style gate.
+# Cursor-owned guards: catastrophic rm, push whitelist, release/publish block,
+# and the output style gate.
 add_entry("beforeShellExecution", {
-    "command": "bash './hooks/run-hook.sh' push-guard -- bash \"$HOME/.agents/hooks/push-guard.sh\" cursor",
+    "command": "bash './hooks/run-hook.sh' shell-guard -- bash './hooks/shell-guard.sh'",
     "timeout": 5,
 })
 add_entry("afterAgentResponse", {
-    "command": "bash './hooks/run-hook.sh' style-gate -- \"$HOME/.agents/hooks/style-gate\" cursor detect",
+    "command": "bash './hooks/run-hook.sh' style-gate -- python3 './hooks/style-gate.py' detect",
     "timeout": 5,
 })
 add_entry("postToolUse", {
-    "command": "bash './hooks/run-hook.sh' style-gate -- \"$HOME/.agents/hooks/style-gate\" cursor consume",
+    "command": "bash './hooks/run-hook.sh' style-gate -- python3 './hooks/style-gate.py' consume",
     "timeout": 5,
 })
-
-# vault-save: stop (lightweight brain nudge after each task)
-add_entry("stop", {
-    "command": "bash './hooks/run-hook.sh' vault-save -- bash './hooks/vault-save.sh'",
-    "timeout": 5,
-})
-
-print("\033[0;34m[cursor]\033[0m preCompact brain-save retired (no .claude)")
 
 if changed:
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
         f.write("\n")
+PYEOF
+
+# --- Patch mcp.json: MCPorter bridge (small allowlist) + context-mode ---
+MCP_JSON="$CURSOR_DIR/mcp.json"
+[[ -f "$MCP_JSON" ]] || printf '{\n  "mcpServers": {}\n}\n' >"$MCP_JSON"
+
+python3 - "$MCP_JSON" <<'PYEOF'
+import json, sys
+
+path = sys.argv[1]
+with open(path) as f:
+    data = json.load(f)
+
+servers = data.setdefault("mcpServers", {})
+managed = {
+    "mcporter": {
+        "command": "mcporter",
+        "args": [
+            "serve",
+            "--stdio",
+            "--servers",
+            "github,codebase-memory-mcp,shopify-dev-mcp,atlassian-akqa",
+        ],
+    },
+    "context-mode": {"command": "context-mode"},
+}
+
+changed = False
+for name, entry in managed.items():
+    if servers.get(name) != entry:
+        servers[name] = entry
+        changed = True
+        print(f"\033[0;32m[cursor]\033[0m Patched mcp.json: {name}")
+
+if changed:
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+else:
+    print("\033[0;34m[cursor]\033[0m mcp.json already up to date")
 PYEOF
