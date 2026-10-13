@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PiG (Go pi) using shared ~/.pi/agent config (PIG_USE_PI_DIRS=1).
-# Some TS extensions (cursor-sdk, yaml-hooks) are not PiG-parity yet — prefer pi / Pi-Bolt.
+# Some TS extensions (yaml-hooks) are not PiG-parity yet — prefer pi / Pi-Bolt.
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
 # shellcheck source=/dev/null
 . "$DOTFILES_DIR/scripts/pi-lib.sh"

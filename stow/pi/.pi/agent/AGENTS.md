@@ -25,7 +25,7 @@ Default response format — answer-first, scan-friendly:
 
 ## Models
 
-Default `cursor/default` (work Auto pool). Presets via `/preset`: `fast` (gpt-5.4-mini, shell/edits), `composer` (Composer pool), `big-pickle` (opencode, off-Cursor). Full list: `pi --list-models` over raw JSON.
+Work: `anthropic/*` via Pi (Claude subscription). Private and misc: `github-copilot/*` and `opencode-go/*`. Background workers (metadata, observational-memory): OpenCode Go only. Policy: `~/.pi/agent/configs/model-policy.json`. Scoped list: `/scoped-models`.
 
 ## Memory
 

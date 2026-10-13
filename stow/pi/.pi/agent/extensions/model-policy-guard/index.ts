@@ -1,7 +1,7 @@
 /**
  * Model Policy Guard
  *
- * Provider-aware, host-aware replacement for the Cursor-only model guard.
+ * Provider-aware, host-aware model guard.
  * Reads the tracked policy at ~/.pi/agent/configs/model-policy.json (symlinked
  * from dotfiles) and enforces it on every model_select, plus a recheck at
  * session_start and before_agent_start (covers Paseo-created agents and
@@ -107,16 +107,9 @@ function resolveHostSlug(policy: Policy): string {
 
 // ─── Classification ─────────────────────────────────────────────────────────
 
-/** Strip @context suffix. Cursor :fast/:slow suffixes are checked separately
- * and are NOT stripped here — the raw id is what the plan calls "before
- * normalizing aliases". */
+/** Strip @context suffix. */
 function stripContext(id: string): string {
 	return id.split("@")[0] ?? id;
-}
-
-function isCursorFastVariant(provider: string, rawId: string): boolean {
-	if (provider !== "cursor") return false;
-	return stripContext(rawId).endsWith(":fast");
 }
 
 class PolicyIndex {
@@ -199,14 +192,6 @@ export default function modelPolicyGuard(pi: ExtensionAPI) {
 		const index = new PolicyIndex(policy);
 		if (reverting) return;
 		if (restoredSession) return;
-
-		if (isCursorFastVariant(provider, rawId)) {
-			ctx.ui.notify(
-				`[model-policy-guard] Blocked ${provider}/${rawId} — Cursor :fast variants are never allowed.`,
-				"error",
-			);
-			return revert(ctx, previousModel);
-		}
 
 		const id = stripContext(rawId);
 		const key = `${provider}/${id}`;

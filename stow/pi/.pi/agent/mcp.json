@@ -1,7 +1,7 @@
 {
   "settings": {
     "toolPrefix": "mcp",
-    "hostConfigDiscovery": "on"
+    "hostConfigDiscovery": "off"
   },
   "mcpServers": {
     "higgins": {

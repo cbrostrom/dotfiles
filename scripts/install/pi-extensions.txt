@@ -15,7 +15,6 @@ git:github.com/NVlabs/SoL-Pi
 # --- npm installs ---
 npm:pi-ask-user
 npm:pi-cmux
-npm:pi-cursor-sdk
 npm:pi-extmgr
 npm:pi-mcp-adapter
 npm:pi-mcporter
