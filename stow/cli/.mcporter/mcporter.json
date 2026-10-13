@@ -34,12 +34,6 @@
     "dockhand-superbro": {
       "baseUrl": "http://100.100.1.50:8080/mcp"
     },
-    "atlassian-akqa": {
-      "baseUrl": "https://mcp.atlassian.com/v1/sse",
-      "auth": "oauth",
-      "tokenCacheDir": "${HOME}/.mcporter/tokens/atlassian-akqa",
-      "lifecycle": "keep-alive"
-    },
     "cloudflare-dns-superbro": {
       "command": "${HOME}/.pi/agent/scripts/cloudflare-dns-mcp.sh",
       "env": {
@@ -74,7 +68,7 @@
       ],
       "lifecycle": "keep-alive",
       "description": "Read-only Jira/Confluence (API token, AKQA profile)",
-      "_note": "Needs: atlassian-agent setup --profile akqa. Then remove the OAuth atlassian-akqa server."
+      "_note": "5 compact tools via atlassian-agent."
     }
   }
 }

@@ -245,7 +245,7 @@ managed = {
             "serve",
             "--stdio",
             "--servers",
-            "github,codebase-memory-mcp,shopify-dev-mcp,atlassian-akqa",
+            "github,codebase-memory-mcp,shopify-dev-mcp,atlassian-agent-fiskars,atlassian-agent-akqa",
         ],
     },
     "context-mode": {"command": "context-mode"},

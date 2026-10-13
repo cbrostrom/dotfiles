@@ -17,9 +17,6 @@
     "shopify-dev-mcp": {
       "exposure": "index"
     },
-    "atlassian-akqa": {
-      "exposure": "index"
-    },
     "dockhand-linuxbro": {
       "exposure": "on-demand"
     },
