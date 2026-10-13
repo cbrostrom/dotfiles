@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>linuxbro · Existing Samba migration guide</title>
+<style>
+:root{--bg:#10151d;--panel:#19212c;--ink:#e8eef5;--muted:#adb9c9;--line:#334155;--accent:#8ac8ff;--ok:#a6dbb8;--warn:#ffd18a;--code:#0b1017}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--accent)}.layout{max-width:1420px;margin:auto;display:grid;grid-template-columns:270px minmax(0,1fr);gap:44px;padding:38px 30px}aside{position:sticky;top:24px;align-self:start;max-height:calc(100vh - 48px);overflow:auto}aside h2{font-size:16px;margin:0 0 12px}nav a{display:block;text-decoration:none;color:var(--muted);padding:6px 0;font-size:14px}nav a:hover{color:var(--accent)}main{max-width:940px;min-width:0}h1{font-size:clamp(32px,5vw,50px);line-height:1.12;letter-spacing:-1.4px;margin:8px 0 18px}h2{font-size:25px;line-height:1.3;margin:0 0 15px}h3{font-size:18px;margin:25px 0 10px}p{margin:12px 0}.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:1.8px;font-size:12px;font-weight:700}.lead{font-size:19px;color:var(--muted)}.tags{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}.tags span{border:1px solid var(--line);border-radius:99px;padding:4px 12px;font-size:13px}.callout{border-left:3px solid var(--accent);background:var(--panel);padding:14px 18px;margin:20px 0;border-radius:0 8px 8px 0}.warning{border-color:var(--warn)}.good{border-color:var(--ok)}section{border-top:1px solid var(--line);padding-top:30px;margin-top:38px}.step-title{display:flex;gap:12px;align-items:flex-start}.step-title input{width:21px;height:21px;margin-top:6px;accent-color:var(--ok);flex:none}.step-title>div{flex:1}.step-title label{cursor:pointer}section.done>.step-title h2{color:var(--ok)}.step-label{font-size:12px;color:var(--accent);display:block;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}.expect{color:var(--ok);font-size:14px}.small{font-size:13px;color:var(--muted)}code{font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}p code,li code,td code{background:var(--panel);padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}.codebox{border:1px solid var(--line);border-radius:9px;overflow:hidden;margin:16px 0;background:var(--code)}.codebar{display:flex;gap:8px;align-items:center;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}.codebar span{flex:1;overflow-wrap:anywhere}button{font:inherit;color:var(--ink);border:1px solid var(--line);background:transparent;padding:5px 10px;border-radius:5px;cursor:pointer}button:hover{border-color:var(--accent)}pre{margin:0;padding:18px;overflow:auto;tab-size:4}pre code{display:block;white-space:pre}ul,ol{padding-left:24px}li{margin:7px 0}table{width:100%;border-collapse:collapse;font-size:14px;margin:18px 0}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted)}.tablewrap{overflow:auto}.progress{font-size:13px;color:var(--ok);margin:16px 0}progress{width:100%;height:7px;accent-color:var(--ok)}details{background:var(--panel);padding:12px 16px;border:1px solid var(--line);border-radius:8px;margin:18px 0}summary{cursor:pointer;font-weight:600}footer{margin:40px 0;color:var(--muted);font-size:13px}.architecture{font-size:13px}.checklist{list-style:none;padding-left:0}.checklist input{accent-color:var(--ok)}@media(max-width:950px){.layout{display:block;padding:24px 18px}aside{position:static;max-height:none;margin-bottom:30px}nav{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}main{max-width:none}}@media(max-width:560px){nav{display:block}pre{padding:12px}table{font-size:12px}.codebar{flex-wrap:wrap}.codebar span{flex-basis:100%}}@media print{:root{--bg:#fff;--panel:#f4f5f7;--ink:#111;--muted:#444;--line:#bbb;--accent:#174f7c;--ok:#185f33;--warn:#985a00;--code:#fff}body{font-size:11px}.layout{display:block;padding:0}aside,button,.step-title input{display:none}main{max-width:none}section{break-before:auto}h2,h3,.codebar{break-after:avoid}pre{white-space:pre-wrap;overflow:visible}pre code{white-space:pre-wrap;overflow-wrap:anywhere;font-size:9px}a{text-decoration:none}.codebox{break-inside:auto}}
+</style>
+</head>
+<body><div class="layout"><aside aria-label="Guide navigation"><h2>linuxbro / Migration</h2><div class="progress" id="progress-text" aria-live="polite">0 of 14 steps checked</div><progress id="progress" max="14" value="0" aria-label="Guide progress"></progress><nav><a href="#overview">Scope & boundaries</a><a href="#step-1">01 · Record the working deployment</a><a href="#step-2">02 · Keep the verified disks and network</a><a href="#step-3">03 · Prepare protected settings</a><a href="#step-4">04 · Create the new share configuration</a><a href="#step-5">05 · Reuse the existing image in Compose</a><a href="#step-6">06 · Install the startup guard</a><a href="#step-7">07 · Prepare the scoped firewall</a><a href="#step-8">08 · Prepare managed startup and cutover</a><a href="#step-9">09 · Stop once and copy consistent state</a><a href="#step-10">10 · Start the replacement</a><a href="#step-11">11 · Provide private Tailscale access</a><a href="#step-12">12 · Test from real clients using the same image</a><a href="#step-13">13 · Rollback and maintenance</a><a href="#step-14">14 · Sign off only after the tests pass</a><a href="#sources">References</a></nav><p class="small">Checkmarks are reminders. Only local completion state is saved; no passwords. This migration revision starts a fresh checklist.</p><button type="button" id="print">Print / save PDF</button> <button type="button" id="reset">Reset checks</button></aside><main><header id="overview"><div class="eyebrow">Existing deployment · No mandatory build · No host installs</div><h1>Harden the Samba you already run.</h1><p class="lead">Reuse linuxbro-samba:bookworm. Preserve the password database. Migrate to 2tb / 4tb / 8tb plus downloads and Dropbox music, with prepared rollback.</p><div class="tags"><span>Existing image</span><span>Existing credentials</span><span>Trusted LAN + personal tailnet</span><span>Controlled cutover</span></div><div class="callout warning"><strong>This HTML runs no installation/server commands.</strong> Copy/download buttons provide text. Steps 1–8 prepare; <strong>Step 9 stops the old server</strong>. No configuration is “unhackable”: a Samba or authorised-client compromise can damage every writable mounted disk. Independent protected backups are required.</div><p>Existing project/container: samba. New project: linuxbro-samba-hardened; container: linuxbro-samba. Original config/state/container are retained for rollback. Host-bound storage/firewall/systemd operations remain on the host using existing tools; all Samba software stays in your image.</p><div class="codebox"><div class="codebar"><span>Target boundaries</span></div><pre><code data-lang="text">Trusted LAN: eno1 / 192.168.1.0/24
+  → 192.168.1.100:445 → scoped firewall → Samba
+
+Personal tailnet:
+  → 100.100.1.100:445 → private Tailscale Serve
+  → 127.0.0.1:1445 → Samba
+
+/shares/2tb           ← /media/2tb                    RW
+/shares/4tb           ← /media/4tb                    RW
+/shares/8tb           ← /media/8tb                    RW
+/shares/dropbox-music ← /home/christian/Dropbox/Musik  RW
+/etc/samba/smb.conf   ← /etc/linuxbro-samba/smb.conf   RO
+/var/lib/samba       ← /var/lib/linuxbro-samba         RW
+
+No full home, Docker socket, guest login or public Funnel.
+No new image/entrypoint or password initialisation.
+No disk chmod/chown. Systemd checks before every start.</code></pre></div></header><section id="step-1" data-step="1"><div class="step-title"><input type="checkbox" id="check-1"><div><span class="step-label">Step 01</span><h2><label for="check-1">Record the working deployment</label></h2></div></div>
+<p><strong>Verified:</strong> Docker 29.4.3; existing container samba healthy; linuxbro-samba:bookworm; host/container UID and GID 1000; packages 2:4.17.12+dfsg-0+deb12u4; standalone/no clustering; NTLMv2-only. Keep a second SSH session open.</p>
+<p><strong>No host package installation, new image, entrypoint, or password is required.</strong> We will preserve the working image and password database. This is a migration, not a fresh setup.</p>
+<div class="codebox"><div class="codebar"><span>Read-only checks needed for backup and image identity</span></div><pre><code data-lang="sh">sudo docker image inspect linuxbro-samba:bookworm --format '{{.Id}}'
+sudo docker inspect samba --format 'Image: {{.Image}}
+Restart: {{.HostConfig.RestartPolicy.Name}}'
+sudo docker exec samba testparm --suppress-prompt --parameter-name='private dir'
+sudo test -f /app/data/stacks/LinuxBro/samba/compose.yaml &amp;&amp; printf 'Compose file exists on host\n'
+sudo ls -ld /home/christian/.config/appdata/samba/state/private \
+    /home/christian/.config/appdata/samba/state/private/passdb.tdb
+sudo tailscale serve status</code></pre></div>
+<div class="callout warning"><strong>Compose labels can refer to the manager's container filesystem.</strong> /app/data/stacks/LinuxBro/samba/compose.yaml is the reported path, not yet proof that it exists on the host. If absent, export the real stack and its required configuration from the manager to a protected host location; use that path in OLD_COMPOSE_FILE. Do not continue without it.</div>
+<p>The private directory must match /var/lib/samba/private and the source database above. If different, stop and adjust the mapping; never initialise a new account to work around missing state.</p>
+<p>Identify manager/scheduled/systemd automation that can recreate the old Samba stack. Pause <strong>only that stack's automation</strong>, not unrelated stacks. Keep its files and container: do not Delete/Down it. If you cannot prevent reconciliation safely, stop before cutover.</p>
+<p class="expect">Checkpoint: existing image ID recorded, real Compose file accessible/exported, password database located, and stack automation understood.</p></section>
+<section id="step-2" data-step="2"><div class="step-title"><input type="checkbox" id="check-2"><div><span class="step-label">Step 02</span><h2><label for="check-2">Keep the verified disks and network</label></h2></div></div>
+<p>All three disks are ext4, rw,relatime, christian:christian, mode 774. Fstab verification passed without warnings. <strong>No disk chmod/chown or fstab edits are required.</strong></p>
+<div class="tablewrap"><table><thead><tr><th>Mount</th><th>Verified UUID</th></tr></thead><tbody><tr><td>/media/2tb</td><td>218a1a59-ac37-41ab-a164-7d29d9a7e0aa</td></tr><tr><td>/media/4tb</td><td>e378436b-4cd6-41c5-953a-857f93056a94</td></tr><tr><td>/media/8tb</td><td>4d4cdb93-471d-428a-98ba-9f141112d333</td></tr></tbody></table></div>
+<p>Keep nofail,x-systemd.device-timeout=30: Debian may boot without a disk; Samba will check mounts/UUIDs and refuse to serve an empty mountpoint.</p>
+<p><strong>LAN:</strong> eno1, 192.168.1.100/24, trusted subnet 192.168.1.0/24. <strong>Tailscale:</strong> 100.100.1.100. Reserve the DHCP LAN address so it remains stable.</p>
+<div class="codebox"><div class="codebar"><span>Read-only folder/backend checks</span></div><pre><code data-lang="sh">sudo ls -ld /media/4tb/Downloads /home/christian/Dropbox/Musik
+readlink -f /home/christian/Dropbox/Musik
+sudo iptables -S DOCKER-USER
+sudo iptables -S FORWARD
+sudo docker info</code></pre></div>
+<p>Check Dropbox resolves to the intended music data, not sensitive directories. Resolve missing folders or symlink requirements before cutover. Root-directory access does not prove every nested file is accessible.</p>
+<div class="callout warning"><strong>Firewall prerequisite:</strong> this guide targets Docker's iptables backend. Debian's iptables (nf_tables) compatibility CLI is fine, but an empty/stale DOCKER-USER chain is not proof. Confirm the running daemon's backend/config/startup flags and that FORWARD reaches DOCKER-USER. Native Docker nftables needs different rules; stop before Step 10 if uncertain.</div>
+<p><strong>zsh:</strong> never use path as a loop variable, because it is tied to PATH. Scripts below use /bin/sh; interactive loops use safe names. Existing iptables/ip/ss/mount tools and Debian shell utilities are sufficient; no host Python, smbclient or ACL installation is required.</p></section>
+<section id="step-3" data-step="3"><div class="step-title"><input type="checkbox" id="check-3"><div><span class="step-label">Step 03</span><h2><label for="check-3">Prepare protected settings</label></h2></div></div>
+<p>Preparation leaves the old server running. Check the new locations do not already belong to another deployment; do not overwrite existing state.</p>
+<div class="codebox"><div class="codebar"><span>Create locations outside exported paths</span></div><pre><code data-lang="sh">sudo install -d -o root -g root -m 0755 /opt/linuxbro-samba /etc/linuxbro-samba
+sudo install -d -o root -g root -m 0700 /var/lib/linuxbro-samba
+sudo install -d -o root -g root -m 0700 /var/lib/linuxbro-samba/private
+sudoedit /opt/linuxbro-samba/.env</code></pre></div>
+<p>Paste below. Replace EXPECTED_IMAGE_ID with the sha256:... from Step 1. Change OLD_COMPOSE_FILE if its label path is only inside the manager. Use plain values without spaces/shell expansions; choose a simple protected host path for an exported Compose file. No password belongs here.</p>
+<div class="codebox"><div class="codebar"><span>/opt/linuxbro-samba/.env</span></div><pre><code data-lang="env" data-file=".env">SAMBA_IMAGE=linuxbro-samba:bookworm
+EXPECTED_IMAGE_ID=REPLACE_ME
+PUID=1000
+PGID=1000
+LAN_IP=192.168.1.100
+LAN_IF=eno1
+LAN_CIDR=192.168.1.0/24
+OLD_COMPOSE_FILE=/app/data/stacks/LinuxBro/samba/compose.yaml
+OLD_APPDATA=/home/christian/.config/appdata/samba
+DISK_2TB_UUID=218a1a59-ac37-41ab-a164-7d29d9a7e0aa
+DISK_4TB_UUID=e378436b-4cd6-41c5-953a-857f93056a94
+DISK_8TB_UUID=4d4cdb93-471d-428a-98ba-9f141112d333</code></pre></div>
+<div class="codebox"><div class="codebar"><span>Protect settings</span></div><pre><code data-lang="sh">sudo chown root:root /opt/linuxbro-samba/.env
+sudo chmod 0600 /opt/linuxbro-samba/.env</code></pre></div>
+<p>Create each subsequent labelled file using sudoedit. Download buttons save text locally; they do not install files or run commands. Use sudo for Compose because its .env is intentionally root-protected.</p></section>
+<section id="step-4" data-step="4"><div class="step-title"><input type="checkbox" id="check-4"><div><span class="step-label">Step 04</span><h2><label for="check-4">Create the new share configuration</label></h2></div></div>
+<p>Create /etc/linuxbro-samba/smb.conf. Do not edit the running old configuration.</p>
+<div class="codebox"><div class="codebar"><span>/etc/linuxbro-samba/smb.conf</span></div><pre><code data-lang="ini" data-file="smb.conf">[global]
+    server role = standalone server
+    workgroup = BRONET
+    netbios name = LINUXBRO
+    security = user
+    passdb backend = tdbsam
+    server min protocol = SMB3_11
+    server smb encrypt = required
+    server signing = mandatory
+    ntlm auth = ntlmv2-only
+    map to guest = Never
+    guest ok = no
+    restrict anonymous = 2
+    valid users = christian
+    smb ports = 445
+    disable netbios = yes
+    load printers = no
+    disable spoolss = yes
+    printing = bsd
+    printcap name = /dev/null
+    state directory = /var/lib/samba
+    private dir = /var/lib/samba/private
+    cache directory = /var/cache/samba
+    lock directory = /run/samba
+    pid directory = /run/samba
+    log level = 1
+    wide links = no
+    follow symlinks = no
+    # Retain existing masks during migration; review local app needs later.
+    create mask = 0775
+    directory mask = 0775
+
+[2tb]
+    path = /shares/2tb
+    browseable = yes
+    read only = no
+
+[4tb]
+    path = /shares/4tb
+    browseable = yes
+    read only = no
+
+[8tb]
+    path = /shares/8tb
+    browseable = yes
+    read only = no
+
+[downloads]
+    path = /shares/4tb/Downloads
+    browseable = yes
+    read only = no
+
+[dropbox]
+    path = /shares/dropbox-music
+    browseable = yes
+    read only = no</code></pre></div>
+<div class="codebox"><div class="codebar"><span>Protect configuration</span></div><pre><code data-lang="sh">sudo chown root:root /etc/linuxbro-samba/smb.conf
+sudo chmod 0644 /etc/linuxbro-samba/smb.conf</code></pre></div>
+<div class="tablewrap"><table><thead><tr><th>Old share</th><th>New share</th></tr></thead><tbody><tr><td>music</td><td>2tb</td></tr><tr><td>storage</td><td>4tb</td></tr><tr><td>movies</td><td>8tb</td></tr><tr><td>downloads</td><td>downloads</td></tr><tr><td>dropbox</td><td>dropbox</td></tr><tr><td>media / christian / automatic homes</td><td>Removed; use a specific disk share</td></tr></tbody></table></div>
+<p>BRONET and existing credentials remain. The broad source-IP lists are replaced by host/Tailscale boundaries. No automatic homes/full-home export or guest fallback remains.</p>
+<div class="callout warning"><strong>Compatibility:</strong> SMB 3.1.1, signing and encryption are required. Symlinks will not be followed. Older clients/symlink workflows may fail. Test these intentional restrictions; do not silently downgrade them.</div>
+<p>Retain the existing 0775 creation masks initially to avoid breaking local media/download applications. Later review 0660/0770 for group sharing or 0600/0700 for private files. Masks are ceilings, not guaranteed final modes. No recursive ownership/permission changes occur here.</p></section>
+<section id="step-5" data-step="5"><div class="step-title"><input type="checkbox" id="check-5"><div><span class="step-label">Step 05</span><h2><label for="check-5">Reuse the existing image in Compose</label></h2></div></div>
+<p>Create /opt/linuxbro-samba/compose.yaml. <strong>No build section, new Dockerfile, entrypoint, or pull.</strong> Your existing tini/smbd command is retained; pull_policy prevents accidentally fetching a different image.</p>
+<div class="codebox"><div class="codebar"><span>/opt/linuxbro-samba/compose.yaml</span></div><pre><code data-lang="yaml" data-file="compose.yaml">name: linuxbro-samba-hardened
+services:
+  samba:
+    image: ${SAMBA_IMAGE:?Set SAMBA_IMAGE in .env}
+    pull_policy: never
+    container_name: linuxbro-samba
+    hostname: linuxbro
+    restart: "no"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - NET_RAW
+      - MKNOD
+      - AUDIT_WRITE
+      - SETFCAP
+    ports:
+      - "127.0.0.1:1445:445"
+      - "${LAN_IP:?Set LAN_IP in .env}:445:445"
+    volumes:
+      - type: bind
+        source: /etc/linuxbro-samba/smb.conf
+        target: /etc/samba/smb.conf
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /var/lib/linuxbro-samba
+        target: /var/lib/samba
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /media/2tb
+        target: /shares/2tb
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /media/4tb
+        target: /shares/4tb
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /media/8tb
+        target: /shares/8tb
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /home/christian/Dropbox/Musik
+        target: /shares/dropbox-music
+        bind:
+          create_host_path: false
+    tmpfs:
+      - /run/samba:size=32m,mode=0755
+      - /var/cache/samba:size=64m,mode=0755
+      - /var/log/samba:size=16m,mode=0755
+      - /tmp:size=32m,mode=1777
+    networks:
+      - samba
+    healthcheck:
+      test: ["CMD-SHELL", "smbcontrol smbd ping 2&gt;/dev/null | grep -q pong"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 256
+    stop_grace_period: 30s
+networks:
+  samba:
+    name: linuxbro-samba-net
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-samba</code></pre></div>
+<p>New project linuxbro-samba-hardened is distinct from existing project samba. New container linuxbro-samba is distinct from retained old container samba. Check the dedicated network/bridge names are not used elsewhere.</p>
+<p>Only /home/christian/Dropbox/Musik is mounted from home. Configuration/state are outside exports. Whole-disk exports remain intentional: sensitive files/backups on those disks are not protected from authorised SMB access or a server compromise.</p>
+<p>Cache/log tmpfs is ephemeral; state is persistent. The existing --debug-stdout command feeds bounded Docker logs. Keep default I/O tuning and initial resource limits until measured otherwise.</p>
+<p><strong>No Docker restart policy:</strong> systemd will check storage/firewall before every start. The local smbd healthcheck does not require guest access. An unhealthy result does not automatically restart the service.</p>
+<div class="codebox"><div class="codebar"><span>Validate structure without starting</span></div><pre><code data-lang="sh">sudo docker compose --project-directory /opt/linuxbro-samba \
+    -f /opt/linuxbro-samba/compose.yaml config --quiet</code></pre></div></section>
+<section id="step-6" data-step="6"><div class="step-title"><input type="checkbox" id="check-6"><div><span class="step-label">Step 06</span><h2><label for="check-6">Install the startup guard</label></h2></div></div>
+<p>Create this executable script. It uses existing shell/awk, not host Python. <strong>Do not run it yet:</strong> the old server is intentionally running and destination state is still empty.</p>
+<div class="codebox"><div class="codebar"><span>/usr/local/sbin/linuxbro-samba-preflight</span></div><pre><code data-lang="sh" data-file="linuxbro-samba-preflight">#!/bin/sh
+set -eu
+. /opt/linuxbro-samba/.env
+
+fail() { printf '%s\n' "Samba preflight: $*" &gt;&amp;2; exit 1; }
+[ "$(id -u)" = 0 ] || fail "Run as root"
+[ "$PUID" = "$(id -u christian)" ] || fail "PUID differs from host christian"
+[ "$PGID" = "$(id -g christian)" ] || fail "PGID differs from host christian"
+[ "$PUID" -gt 0 ] || fail "Never use UID 0 for the share user"
+[ "$PGID" -gt 0 ] || fail "Never use GID 0 for the share user"
+
+# Use existing awk rather than introducing host Python.
+awk -v address="$LAN_IP" -v network="$LAN_CIDR" '
+function ipv4(value, octets, count, i, result) {
+    count = split(value, octets, ".")
+    if (count != 4) return -1
+    result = 0
+    for (i = 1; i &lt;= 4; i++) {
+        if (octets[i] !~ /^[0-9]+$/ || length(octets[i]) &gt; 3 ||
+            octets[i] + 0 &gt; 255 ||
+            (length(octets[i]) &gt; 1 &amp;&amp; substr(octets[i], 1, 1) == "0")) return -1
+        result = result * 256 + octets[i]
+    }
+    return result
+}
+function private_ipv4(value) {
+    return (value &gt;= 167772160 &amp;&amp; value &lt;= 184549375) ||
+           (value &gt;= 2886729728 &amp;&amp; value &lt;= 2887778303) ||
+           (value &gt;= 3232235520 &amp;&amp; value &lt;= 3232301055)
+}
+BEGIN {
+    count = split(network, cidr, "/")
+    if (count != 2 || cidr[2] !~ /^[1-9][0-9]?$/ ||
+        cidr[2] + 0 &lt; 16 || cidr[2] + 0 &gt; 32) exit 1
+    ip_value = ipv4(address)
+    net_value = ipv4(cidr[1])
+    block_size = 2 ^ (32 - cidr[2])
+    if (ip_value &lt; 0 || net_value &lt; 0 || net_value % block_size != 0) exit 1
+    if (!private_ipv4(ip_value) || !private_ipv4(net_value) ||
+        !private_ipv4(net_value + block_size - 1)) exit 1
+    if (int(ip_value / block_size) != int(net_value / block_size)) exit 1
+}' || fail "Use a valid RFC1918 LAN_IP and aligned LAN_CIDR (/16 to /32) containing it"
+ip -4 -o address show dev "$LAN_IF" | awk '{print $4}' | cut -d/ -f1 |
+    grep -Fxq "$LAN_IP" || fail "LAN_IP is not assigned to LAN_IF"
+
+version=$(docker version --format '{{.Server.Version}}' | cut -d- -f1)
+dpkg --compare-versions "$version" ge 28.0.0 || fail "Docker Engine 28+ required"
+iptables -w -S DOCKER-USER &gt;/dev/null || fail "DOCKER-USER unavailable; inspect backend"
+
+actual_image=$(docker image inspect "$SAMBA_IMAGE" --format '{{.Id}}')
+[ "$EXPECTED_IMAGE_ID" != REPLACE_ME ] || fail "Record the existing image ID"
+[ "$actual_image" = "$EXPECTED_IMAGE_ID" ] || fail "Image changed; review before starting"
+if docker inspect samba &gt;/dev/null 2&gt;&amp;1; then
+    [ "$(docker inspect samba --format '{{.State.Running}}')" = false ] ||
+        fail "Old container samba is still running"
+fi
+test -f /etc/linuxbro-samba/smb.conf || fail "smb.conf missing"
+test -d /home/christian/Dropbox/Musik || fail "Dropbox music folder missing"
+test -d /media/4tb/Downloads || fail "Downloads folder missing"
+test -s /var/lib/linuxbro-samba/private/passdb.tdb || fail "Migrated password database missing"
+test -d /var/lib/linuxbro-samba/private || fail "private state directory missing"
+
+check_disk() {
+    mount_dir=$1
+    expected=$2
+    [ -n "$expected" ] &amp;&amp; [ "$expected" != REPLACE_ME ] || fail "Set UUID for $mount_dir"
+    mountpoint -q "$mount_dir" || fail "$mount_dir is not a mountpoint"
+    actual=$(findmnt -rn --mountpoint "$mount_dir" --output UUID)
+    [ "$actual" = "$expected" ] || fail "$mount_dir has wrong UUID: $actual"
+    options=$(findmnt -rn --mountpoint "$mount_dir" --output OPTIONS)
+    case ",$options," in
+        *,rw,*) ;;
+        *) fail "$mount_dir is not mounted read/write" ;;
+    esac
+}
+check_disk /media/2tb "$DISK_2TB_UUID"
+check_disk /media/4tb "$DISK_4TB_UUID"
+check_disk /media/8tb "$DISK_8TB_UUID"
+docker run --rm --network none --read-only \
+    --entrypoint testparm \
+    --mount type=bind,src=/etc/linuxbro-samba/smb.conf,dst=/etc/samba/smb.conf,readonly \
+    "$SAMBA_IMAGE" --suppress-prompt /etc/samba/smb.conf &gt;/dev/null
+printf '%s\n' "Samba preflight passed"
+</code></pre></div>
+<div class="codebox"><div class="codebar"><span>Protect and syntax-check only</span></div><pre><code data-lang="sh">sudo chown root:root /usr/local/sbin/linuxbro-samba-preflight
+sudo chmod 0755 /usr/local/sbin/linuxbro-samba-preflight
+sudo sh -n /usr/local/sbin/linuxbro-samba-preflight</code></pre></div>
+<p>Checks cover UID/GID, image ID, old-container inactivity, required folders/state, correct mounted disks, and configuration syntax. The disposable testparm container has no network or disk/state mounts and never starts smbd. Checks are at startup, not continuous; stop the service before disk maintenance.</p></section>
+<section id="step-7" data-step="7"><div class="step-title"><input type="checkbox" id="check-7"><div><span class="step-label">Step 07</span><h2><label for="check-7">Prepare the scoped firewall</label></h2></div></div>
+<p>Create the script but <strong>do not apply it while the old server is running</strong>. It guards forwarded access to the dedicated bridge, including direct container-IP attempts, plus host input to the LAN-published port.</p>
+<div class="codebox"><div class="codebar"><span>/usr/local/sbin/linuxbro-samba-firewall</span></div><pre><code data-lang="sh" data-file="linuxbro-samba-firewall">#!/bin/sh
+set -eu
+. /opt/linuxbro-samba/.env
+/usr/local/sbin/linuxbro-samba-preflight
+
+iptables -w -S DOCKER-USER &gt;/dev/null
+iptables -w -N LBSMB-FWD 2&gt;/dev/null || iptables -w -S LBSMB-FWD &gt;/dev/null
+iptables -w -N LBSMB-HOST 2&gt;/dev/null || iptables -w -S LBSMB-HOST &gt;/dev/null
+
+# Rebuild only our chains. Apply while Samba is stopped, not during live traffic.
+iptables -w -F LBSMB-FWD
+iptables -w -A LBSMB-FWD -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
+iptables -w -A LBSMB-FWD -i "$LAN_IF" -s "$LAN_CIDR" -p tcp \
+    -m conntrack --ctdir ORIGINAL --ctorigdst "$LAN_IP" --ctorigdstport 445 -j RETURN
+iptables -w -A LBSMB-FWD -j DROP
+
+iptables -w -F LBSMB-HOST
+iptables -w -A LBSMB-HOST -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
+iptables -w -A LBSMB-HOST -i "$LAN_IF" -s "$LAN_CIDR" -j RETURN
+iptables -w -A LBSMB-HOST -j DROP
+
+# Put our checks first. Other services/ports are not matched.
+while iptables -w -C DOCKER-USER -o br-samba -p tcp --dport 445 -j LBSMB-FWD 2&gt;/dev/null; do
+    iptables -w -D DOCKER-USER -o br-samba -p tcp --dport 445 -j LBSMB-FWD
+done
+iptables -w -I DOCKER-USER 1 -o br-samba -p tcp --dport 445 -j LBSMB-FWD
+
+while iptables -w -C INPUT -p tcp -d "$LAN_IP" --dport 445 -j LBSMB-HOST 2&gt;/dev/null; do
+    iptables -w -D INPUT -p tcp -d "$LAN_IP" --dport 445 -j LBSMB-HOST
+done
+iptables -w -I INPUT 1 -p tcp -d "$LAN_IP" --dport 445 -j LBSMB-HOST
+printf '%s\n' "Scoped Samba firewall installed"
+</code></pre></div>
+<div class="codebox"><div class="codebar"><span>Protect and syntax-check only</span></div><pre><code data-lang="sh">sudo chown root:root /usr/local/sbin/linuxbro-samba-firewall
+sudo chmod 0755 /usr/local/sbin/linuxbro-samba-firewall
+sudo sh -n /usr/local/sbin/linuxbro-samba-firewall</code></pre></div>
+<p>Only eno1 sources in 192.168.1.0/24 receive direct LAN SMB access. Other routed/virbr0/Docker networks are not implicitly trusted. Keep guests/IoT on a different subnet. Approved packets return to normal policy rather than bypassing all other rules.</p>
+<div class="callout warning">Verify the active backend first. If these chain names already belong to another configuration, stop rather than reuse them. Existing firewall managers may erase/reorder rules; retest after reload/reboot. No global flush or router/public forwarding is part of this guide.</div></section>
+<section id="step-8" data-step="8"><div class="step-title"><input type="checkbox" id="check-8"><div><span class="step-label">Step 08</span><h2><label for="check-8">Prepare managed startup and cutover</label></h2></div></div>
+<p>Create the unit and migration script. Do not enable/start the unit yet. Confirm Docker is /usr/bin/docker or change both unit paths. Configure your existing network-online implementation to wait for eno1 if needed.</p>
+<div class="codebox"><div class="codebar"><span>/etc/systemd/system/linuxbro-samba.service</span></div><pre><code data-lang="ini" data-file="linuxbro-samba.service">[Unit]
+Description=linuxbro Samba with storage, image and firewall checks
+Requires=docker.service
+Wants=network-online.target
+After=docker.service network-online.target
+RequiresMountsFor=/media/2tb /media/4tb /media/8tb /var/lib/linuxbro-samba /home/christian/Dropbox/Musik
+StartLimitIntervalSec=180
+StartLimitBurst=3
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/linuxbro-samba
+ExecStartPre=/usr/local/sbin/linuxbro-samba-preflight
+ExecStartPre=/usr/local/sbin/linuxbro-samba-firewall
+ExecStart=/usr/bin/docker compose up --no-build --abort-on-container-exit --exit-code-from samba
+ExecStop=/usr/bin/docker compose down --timeout 30
+Restart=always
+RestartSec=15
+TimeoutStartSec=120
+TimeoutStopSec=90
+
+[Install]
+WantedBy=multi-user.target</code></pre></div>
+<div class="codebox"><div class="codebar"><span>/usr/local/sbin/linuxbro-samba-migrate</span></div><pre><code data-lang="sh" data-file="linuxbro-samba-migrate">#!/bin/sh
+set -eu
+umask 077
+. /opt/linuxbro-samba/.env
+fail() { printf '%s\n' "Migration: $*" &gt;&amp;2; exit 1; }
+[ "$(id -u)" = 0 ] || fail "Run as root"
+[ "$#" = 1 ] &amp;&amp; [ "$1" = --stop-and-copy ] || fail "Use --stop-and-copy after reviewing the guide"
+[ -f "$OLD_COMPOSE_FILE" ] || fail "Original Compose file unavailable; export it from the manager first"
+[ -f "$OLD_APPDATA/config/smb.conf" ] || fail "Original configuration missing"
+[ -s "$OLD_APPDATA/state/private/passdb.tdb" ] || fail "Original password database missing"
+[ ! -e /var/lib/linuxbro-samba/private/passdb.tdb ] || fail "Destination database exists; do not overwrite"
+[ "$(docker inspect samba --format '{{.State.Running}}')" = true ] || fail "Original container not running"
+[ "$(docker inspect samba --format '{{.Image}}')" = "$EXPECTED_IMAGE_ID" ] || fail "Original image differs"
+[ "$(docker image inspect "$SAMBA_IMAGE" --format '{{.Id}}')" = "$EXPECTED_IMAGE_ID" ] || fail "Image tag differs"
+
+install -d -o root -g root -m 0700 /var/backups/linuxbro-samba
+BACKUP_DIR=$(mktemp -d /var/backups/linuxbro-samba/migration.XXXXXX)
+OLD_RESTART_POLICY=$(docker inspect samba --format \
+    '{{.HostConfig.RestartPolicy.Name}}{{if eq .HostConfig.RestartPolicy.Name "on-failure"}}:{{.HostConfig.RestartPolicy.MaximumRetryCount}}{{end}}')
+docker inspect samba &gt; "$BACKUP_DIR/container-inspect.json"
+iptables-save &gt; "$BACKUP_DIR/iptables-before.txt"
+tailscale serve status --json &gt; "$BACKUP_DIR/tailscale-serve-before.json"
+cp -a "$OLD_COMPOSE_FILE" "$BACKUP_DIR/original-compose.yaml"
+old_dir=$(dirname "$OLD_COMPOSE_FILE")
+for item in .env Dockerfile entrypoint.sh; do
+    if [ -f "$old_dir/$item" ]; then
+        cp -a "$old_dir/$item" "$BACKUP_DIR/original-$item"
+    fi
+done
+printf 'BACKUP_DIR=%s\nOLD_RESTART_POLICY=%s\n' \
+    "$BACKUP_DIR" "$OLD_RESTART_POLICY" &gt; /etc/linuxbro-samba/migration.env
+chmod 0600 /etc/linuxbro-samba/migration.env
+
+changed=0
+complete=0
+trap '
+    rc=$?
+    trap - 0
+    if [ "$complete" != 1 ] &amp;&amp; [ "$changed" = 1 ]; then
+        printf "%s\n" "Migration failed; attempting to restore the original container" &gt;&amp;2
+        docker update --restart="$OLD_RESTART_POLICY" samba &gt;/dev/null || true
+        docker start samba &gt;/dev/null || true
+    fi
+    exit "$rc"
+' 0
+docker update --restart=no samba &gt;/dev/null
+changed=1
+docker stop --time 30 samba &gt;/dev/null
+[ "$(docker inspect samba --format '{{.State.Running}}')" = false ] || fail "Original container did not stop"
+cp -a "$OLD_APPDATA/config/smb.conf" "$BACKUP_DIR/original-smb.conf"
+cp -a "$OLD_APPDATA/state" "$BACKUP_DIR/state"
+cp -a "$BACKUP_DIR/state/." /var/lib/linuxbro-samba/
+chown root:root /var/lib/linuxbro-samba /var/lib/linuxbro-samba/private
+chmod 0700 /var/lib/linuxbro-samba /var/lib/linuxbro-samba/private
+[ -s /var/lib/linuxbro-samba/private/passdb.tdb ] || fail "Copied database missing"
+complete=1
+printf 'Consistent backup: %s\n' "$BACKUP_DIR"
+printf '%s\n' "Old container retained but stopped. State copied; new server NOT started."
+</code></pre></div>
+<div class="codebox"><div class="codebar"><span>Validate prepared files; no server start</span></div><pre><code data-lang="sh">sudo chown root:root /usr/local/sbin/linuxbro-samba-migrate
+sudo chmod 0755 /usr/local/sbin/linuxbro-samba-migrate
+sudo sh -n /usr/local/sbin/linuxbro-samba-migrate
+sudo systemd-analyze verify /etc/systemd/system/linuxbro-samba.service
+sudo systemctl daemon-reload</code></pre></div>
+<p>The script records restart policy, metadata, Serve state, firewall snapshot and Compose files. Optional local .env/Dockerfile/entrypoint companions are backed up. Export any additional manager-owned overrides/dependencies yourself before proceeding; these cannot all be inferred from a label.</p>
+<p>Backups are root-only because metadata/env/state can contain secrets. The script copies state only after stopping the daemon. On failure after changing restart policy it attempts to restore/start the old container; inspect the result rather than assuming recovery succeeded.</p>
+<p class="expect">Checkpoint: original-stack automation paused; actual Compose accessible; backup/rollback understood; all files validated; new state location unoccupied; no unrelated unit/port/network conflict. Original server still running.</p></section>
+<section id="step-9" data-step="9"><div class="step-title"><input type="checkbox" id="check-9"><div><span class="step-label">Step 09</span><h2><label for="check-9">Stop once and copy consistent state</label></h2></div></div>
+<div class="callout warning"><strong>This is the outage/cutover.</strong> The explicit command disables the old container's automatic restart, stops it, backs up configuration/state and copies state to the protected destination. It does not delete the old container or start the new server.</div>
+<div class="codebox"><div class="codebar"><span>Run only after all preparation checkpoints</span></div><pre><code data-lang="sh">sudo /usr/local/sbin/linuxbro-samba-migrate --stop-and-copy</code></pre></div>
+<p>Record the printed backup path, also saved in /etc/linuxbro-samba/migration.env. Do not rerun over an existing destination database. A failed/partial attempt needs inspection or rollback, not deletion of the old credentials.</p>
+<div class="codebox"><div class="codebar"><span>Validate copied state and permissions before server startup</span></div><pre><code data-lang="sh">sudo /usr/local/sbin/linuxbro-samba-preflight
+sudo docker compose --project-directory /opt/linuxbro-samba \
+    -f /opt/linuxbro-samba/compose.yaml run --rm --no-deps \
+    --entrypoint pdbedit samba --list
+sudo docker compose --project-directory /opt/linuxbro-samba \
+    -f /opt/linuxbro-samba/compose.yaml run --rm --no-deps \
+    --user 1000:1000 --entrypoint sh samba -c '
+for mount_dir in /shares/2tb /shares/4tb /shares/8tb /shares/4tb/Downloads /shares/dropbox-music; do
+    test -r "$mount_dir" &amp;&amp; test -w "$mount_dir" &amp;&amp; test -x "$mount_dir" || exit 1
+    printf "Accessible: %s\n" "$mount_dir"
+done
+'</code></pre></div>
+<p class="expect">Expected: preflight passed, christian listed without hashes, roots/folders accessible. Your password is preserved. Do not run smbpasswd -a or initialise a new database.</p>
+<p>One-off Compose runs publish no ports. If permissions fail, inspect targeted paths/supplementary groups, not recursive disk chmod/chown or root share access. If validation fails, use Step 13 immediate rollback instead of starting an unverified server.</p></section>
+<section id="step-10" data-step="10"><div class="step-title"><input type="checkbox" id="check-10"><div><span class="step-label">Step 10</span><h2><label for="check-10">Start the replacement</label></h2></div></div>
+<div class="codebox"><div class="codebar"><span>Start via systemd; inspect actual status</span></div><pre><code data-lang="sh">sudo systemctl enable --now linuxbro-samba.service
+sudo systemctl status linuxbro-samba.service --no-pager
+sudo docker inspect --format '{{.State.Status}} {{.State.Health.Status}}' linuxbro-samba
+sudo journalctl -u linuxbro-samba.service -n 80 --no-pager
+sudo docker inspect samba --format 'Old container running: {{.State.Running}}'
+sudo iptables -nvL LBSMB-FWD
+sudo iptables -nvL LBSMB-HOST</code></pre></div>
+<p class="expect">Expected: active new unit, running/healthy new container after startup, old container stopped, scoped rules installed. Active/healthy is not proof of remote security.</p>
+<p>Use systemctl for subsequent start/stop/restart. Do not run old-stack Up or independent docker compose up -d, and do not restore unless-stopped on the new container. Failed prerequisites must be fixed, not ignored.</p></section>
+<section id="step-11" data-step="11"><div class="step-title"><input type="checkbox" id="check-11"><div><span class="step-label">Step 11</span><h2><label for="check-11">Provide private Tailscale access</label></h2></div></div>
+<p>Use your confirmed 100.100.1.100 tailnet address. Inspect existing Serve configuration before changing it. If TCP 445 belongs to an unrelated service, stop. If an existing Samba listener is being repointed, record its exact previous target for rollback.</p>
+<div class="codebox"><div class="codebar"><span>Inspect first, then configure the private SMB proxy</span></div><pre><code data-lang="sh">sudo tailscale serve status
+sudo tailscale serve --bg --tcp=445 tcp://127.0.0.1:1445
+sudo tailscale serve status</code></pre></div>
+<p>Raw TCP, private tailnet only; --bg persists across restart. SMB provides required encryption. No tls-terminated-tcp, PROXY protocol or public Funnel.</p>
+<p><strong>Your chosen broad personal-tailnet policy is fine.</strong> Keep an intentional allow-all policy if only your devices belong. If policy is restrictive, merge access for your user/approved devices to TCP 445 on 100.100.1.100. Do not replace the entire policy. Grants/ACLs are additive, and Samba still requires your password.</p>
+<p>The proxy hides original client IPs from Samba. Enforce tailnet membership through Tailscale, not broad source ranges in smb.conf. Protect your identity with MFA, revoke lost devices, and review access when sharing/inviting devices.</p></section>
+<section id="step-12" data-step="12"><div class="step-title"><input type="checkbox" id="check-12"><div><span class="step-label">Step 12</span><h2><label for="check-12">Test from real clients using the same image</label></h2></div></div>
+<p>Test from another LAN device and a Tailscale device outside your LAN. Finder/Explorer needs no linuxbro package installation:</p>
+<div class="codebox"><div class="codebar"><span>macOS / Windows examples</span></div><pre><code data-lang="text">macOS LAN:       smb://192.168.1.100/2tb
+macOS Tailscale: smb://100.100.1.100/2tb
+Windows LAN:       \\192.168.1.100\2tb
+Windows Tailscale: \\100.100.1.100\2tb</code></pre></div>
+<p>Repeat all five shares with christian and the existing password. Update old aliases. Create/read/delete only unique temporary test data and sample nested directories.</p>
+<h3>Optional command-line client, no build or host smbclient</h3>
+<p>Your existing image contains smbclient. For a separate rootful Linux Docker client, transfer/import the same image if absent. Mounted state/config/password files are not included in the image export; never copy them to the client.</p>
+<div class="codebox"><div class="codebar"><span>Optional export/import of the same image</span></div><pre><code data-lang="sh"># On linuxbro, in a directory you own:
+sudo docker image save linuxbro-samba:bookworm | gzip &gt; linuxbro-samba-bookworm.tar.gz
+# Transfer the archive through SSH/SCP.
+# On the separate Linux client:
+gunzip -c linuxbro-samba-bookworm.tar.gz | sudo docker image load</code></pre></div>
+<div class="codebox"><div class="codebar"><span>Define the test wrapper on that Linux client</span></div><pre><code data-lang="sh">smb_test() {
+    sudo docker run --rm -it --network host --read-only \
+        --tmpfs /tmp:size=16m,mode=1777 \
+        --tmpfs /var/cache/samba:size=8m,mode=0755 \
+        --cap-drop ALL --security-opt no-new-privileges:true \
+        --entrypoint smbclient linuxbro-samba:bookworm "$@"
+}
+SMB_SERVER=192.168.1.100
+SMB_PORT=445</code></pre></div>
+<p>The temporary client shares its Linux host network, not files/socket or privileges. Do not apply host networking to the server. Docker Desktop differs; use native clients there. For outside-LAN tailnet testing set SMB_SERVER=100.100.1.100. For local-only linuxbro diagnostics set SMB_SERVER=127.0.0.1 and SMB_PORT=1445; <strong>local tests do not prove remote firewall/Tailscale routing</strong>.</p>
+<div class="codebox"><div class="codebar"><span>Positive tests; same shell as the wrapper</span></div><pre><code data-lang="sh">smb_test -L "//$SMB_SERVER" -p "$SMB_PORT" -U christian --client-protection=encrypt
+for share in 2tb 4tb 8tb downloads dropbox; do
+    smb_test "//$SMB_SERVER/$share" -p "$SMB_PORT" -U christian \
+        --client-protection=encrypt -c 'ls'
+done</code></pre></div>
+<div class="codebox"><div class="codebar"><span>Negative tests; run individually, each must fail</span></div><pre><code data-lang="sh">smb_test "//$SMB_SERVER/2tb" -p "$SMB_PORT" -N -U '%' -c 'ls'
+smb_test "//$SMB_SERVER/2tb" -p "$SMB_PORT" -U nonexistent -c 'ls'
+smb_test "//$SMB_SERVER/2tb" -p "$SMB_PORT" -U christian -m SMB2 \
+    --option='client min protocol=SMB2' -c 'ls'
+smb_test "//$SMB_SERVER/2tb" -p "$SMB_PORT" -U christian \
+    --option='client smb encrypt=off' -c 'ls'</code></pre></div>
+<p>Try a wrong christian password too. An unknown client-option error is not proof of encryption rejection. Passwords are entered interactively, not stored in commands/env/healthchecks.</p>
+<div class="codebox"><div class="codebar"><span>Inspect the actual server</span></div><pre><code data-lang="sh">sudo docker exec linuxbro-samba smbstatus
+sudo docker inspect linuxbro-samba --format '{{json .HostConfig.PortBindings}}'
+sudo docker inspect linuxbro-samba \
+    --format '{{range .Mounts}}{{println .Source "-&gt;" .Destination "rw=" .RW}}{{end}}'
+sudo docker logs --tail 80 linuxbro-samba</code></pre></div>
+<ul><li>Confirm encrypted SMB 3.1.1 sessions, only intended bindings, and no full-home/socket mount.</li><li>A real guest/other routed subnet outside 192.168.1.0/24, with Tailscale off, must not reach LAN 445. Do not fake this by changing an IP on the trusted subnet.</li><li>Other LAN devices must not reach loopback backend 1445.</li><li>Outside LAN, tailnet on must work; off must not provide public SMB.</li><li>Check router forwarding/UPnP and IPv6 exposure; IPv4 NAT alone does not protect IPv6.</li></ul>
+<p>Do a controlled reboot when appropriate, then repeat mount/health/old-container/firewall/tailnet tests. Checkmarks are not evidence that a command passed.</p></section>
+<section id="step-13" data-step="13"><div class="step-title"><input type="checkbox" id="check-13"><div><span class="step-label">Step 13</span><h2><label for="check-13">Rollback and maintenance</label></h2></div></div>
+<div class="callout warning"><strong>Immediate rollback restores the old security posture, including full-home access.</strong> Use only to recover a failed migration. It does not undo shared-file writes. Keep old container/files/network until acceptance; do not prune them.</div>
+<div class="codebox"><div class="codebar"><span>Immediate rollback using retained old state</span></div><pre><code data-lang="sh">sudo systemctl disable --now linuxbro-samba.service
+sudo sh -c '
+set -eu
+. /etc/linuxbro-samba/migration.env
+docker update --restart="$OLD_RESTART_POLICY" samba
+docker start samba
+docker inspect samba --format "{{.State.Status}} {{.State.Health.Status}}"
+'</code></pre></div>
+<p>If Step 11 added a listener, disable only it with <code>sudo tailscale serve --tcp=445 off</code>. If it repointed an existing Samba listener, restore its recorded old target instead. Do not reset unrelated Serve services. Resume only the old stack's automation after verifying the old files/image and that both servers cannot run together.</p>
+<p>New firewall hooks may still restrict the old service. Inspect first; if needed, undo only this guide's hooks while its new unit is disabled/stopped. Do not restore the whole firewall snapshot blindly.</p>
+<div class="codebox"><div class="codebar"><span>Optional removal of only this guide's hooks</span></div><pre><code data-lang="sh">sudo sh -c '
+set -eu
+. /opt/linuxbro-samba/.env
+if iptables -w -C DOCKER-USER -o br-samba -p tcp --dport 445 -j LBSMB-FWD 2&gt;/dev/null; then
+    iptables -w -D DOCKER-USER -o br-samba -p tcp --dport 445 -j LBSMB-FWD
+fi
+if iptables -w -C INPUT -p tcp -d "$LAN_IP" --dport 445 -j LBSMB-HOST 2&gt;/dev/null; then
+    iptables -w -D INPUT -p tcp -d "$LAN_IP" --dport 445 -j LBSMB-HOST
+fi
+'</code></pre></div>
+<p>Original config/state were not modified by the copy. Backup location is in migration.env. Later rollback after account/password/image changes needs new consistency review; do not copy stale credentials onto the active DB.</p>
+<h3>Updates are separate maintenance, not a migration rebuild</h3>
+<p>Use the existing reviewed build/update process only when security updates require it. Do not start the old Compose stack. Preserve an image reference, back up stopped state, validate refreshed packages/configuration, deliberately update EXPECTED_IMAGE_ID and repeat acceptance tests. Never roll back to a known-vulnerable image.</p>
+<p>Debian's tracker currently needs review for Bookworm component issues; standalone/no clustering reduces feature applicability, not all future risk. Check package revisions regularly. The image-ID guard intentionally stops startup after a tag change until you review it.</p>
+<h3>Backups, monitoring and compromise</h3>
+<ul><li>Back up protected project/config/scripts/unit/mount definitions.</li><li>Back up state while stopped or with a proven consistent method. Restrict/encrypt it because it contains credentials.</li><li>Keep offline/immutable data backups outside exported disks and inaccessible to Samba. Valid clients can ransomware writable files without a server exploit.</li><li>Test restoring sample data and state/identity with correct UID/GID/modes.</li><li>Alert through existing monitoring on unhealthy/stopped service, authentication anomalies, disk health/free space. No new monitoring stack required.</li></ul>
+<p>After a device/password compromise, revoke tailnet access, rotate through <code>sudo docker exec -it linuxbro-samba smbpasswd christian</code>, then restart to terminate sessions. Password rotation alone does not guarantee established sessions have ended.</p>
+<p>Do not tune socket buffers/locking or disable security for throughput. Measure disk, LAN, tailnet direct/relay path and CPU limits. After fixing a startup cause, use <code>sudo systemctl reset-failed linuxbro-samba</code> before starting again.</p></section>
+<section id="step-14" data-step="14"><div class="step-title"><input type="checkbox" id="check-14"><div><span class="step-label">Step 14</span><h2><label for="check-14">Sign off only after the tests pass</label></h2></div></div>
+<ul class="checklist"><li>□ Existing image and credentials preserved; no host installs/new database.</li><li>□ Consistent protected backup exists and rollback understood.</li><li>□ All five shares work with the old password; old mappings updated.</li><li>□ No home export/socket; only selected Dropbox folder mounted.</li><li>□ Encrypted/authenticated modern SMB verified; negative tests fail correctly.</li><li>□ Real allowed LAN/remote tailnet tests and rejected-network test completed.</li><li>□ Only intended bindings; no public forwarding/Funnel or IPv6 surprise.</li><li>□ Old container remains stopped and its manager cannot recreate it.</li><li>□ Mount/image checks and firewall survive reboot.</li><li>□ Local application/nested permissions/symlink compatibility checked.</li><li>□ Independent protected data backup and sample restore proven.</li></ul>
+<p>Only after sign-off consider retiring old artifacts. This guide automatically deletes no old deployment or credentials. Preserve backups securely.</p>
+<div class="callout good"><strong>End state:</strong> the Samba image you already have, the same credentials, disk-based read/write shares, narrow Dropbox access, required encryption/authentication, and explicit LAN/tailnet boundaries. This is testable hardening, not a guarantee against future exploits or compromised authorised devices.</div></section><section id="sources"><h2>Official references / validation boundary</h2><ul><li><a href="https://www.samba.org/samba/docs/4.17/man-html/smb.conf.5.html">Samba 4.17 configuration</a></li><li><a href="https://security-tracker.debian.org/tracker/source-package/samba">Debian Samba security tracker</a></li><li><a href="https://docs.docker.com/engine/network/port-publishing/">Docker port publishing / pre-28 localhost caveat</a></li><li><a href="https://docs.docker.com/engine/network/firewall-iptables/">Docker iptables / DOCKER-USER</a></li><li><a href="https://docs.docker.com/engine/network/packet-filtering-firewalls/">Docker firewall integration / UFW caveats</a></li><li><a href="https://tailscale.com/docs/reference/tailscale-cli/serve">Tailscale private TCP Serve</a></li><li><a href="https://tailscale.com/docs/reference/syntax/grants">Additive Tailscale grants</a></li><li><a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html">systemd dependencies</a></li></ul><p>Local guide validation covers markup, syntax and mocked checks. Live Docker backend/firewall, manager, backup, systemd and client tests must be performed on linuxbro. This document does not assert that migration acceptance has already passed.</p></section><footer>Standalone HTML. No external scripts/fonts/analytics, automatic shell execution or secret collection. Downloads are text; checks are local reminders.</footer></main></div><script>
+(() => {
+  'use strict';
+  const key = 'linuxbro-samba-migration-v3';
+  const checks = Array.from(document.querySelectorAll('.step-title input'));
+  const progress = document.getElementById('progress');
+  const progressText = document.getElementById('progress-text');
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (_) {}
+  const refresh = () => {
+    const state = {};
+    checks.forEach(check => {
+      state[check.id] = check.checked;
+      check.closest('section').classList.toggle('done', check.checked);
+    });
+    const count = checks.filter(check => check.checked).length;
+    progress.max = checks.length;
+    progress.value = count;
+    progressText.textContent = `${count} of ${checks.length} steps checked`;
+    try { localStorage.setItem(key, JSON.stringify(state)); } catch (_) {}
+  };
+  checks.forEach(check => {
+    check.checked = saved[check.id] === true;
+    check.addEventListener('change', refresh);
+  });
+  refresh();
+  document.getElementById('print').addEventListener('click', () => window.print());
+  document.getElementById('reset').addEventListener('click', () => {
+    if (!window.confirm('Reset all guide completion checkmarks?')) return;
+    checks.forEach(check => { check.checked = false; });
+    refresh();
+  });
+  document.querySelectorAll('.codebox').forEach(box => {
+    const code = box.querySelector('code[data-lang]');
+    if (!code) return;
+    const bar = box.querySelector('.codebar');
+    const copy = document.createElement('button');
+    copy.type = 'button';
+    copy.textContent = 'Copy';
+    copy.setAttribute('aria-label', `Copy ${bar.querySelector('span').textContent}`);
+    copy.addEventListener('click', async () => {
+      const text = code.textContent.replace(/\n?$/, '\n');
+      try {
+        if (!navigator.clipboard) throw new Error('Clipboard unavailable');
+        await navigator.clipboard.writeText(text);
+        copy.textContent = 'Copied';
+      } catch (_) {
+        const area = document.createElement('textarea');
+        area.value = text;
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        const copied = document.execCommand('copy');
+        area.remove();
+        copy.textContent = copied ? 'Copied' : 'Select text to copy';
+      }
+      window.setTimeout(() => { copy.textContent = 'Copy'; }, 1800);
+    });
+    bar.appendChild(copy);
+    if (code.dataset.file) {
+      const download = document.createElement('button');
+      download.type = 'button';
+      download.textContent = 'Download';
+      download.addEventListener('click', () => {
+        const blob = new Blob([code.textContent.replace(/\n?$/, '\n')], {type:'text/plain;charset=utf-8'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = code.dataset.file;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+      bar.appendChild(download);
+    }
+  });
+})();
+</script></body></html>
