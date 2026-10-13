@@ -52,13 +52,6 @@
       "install": "git"
     },
     {
-      "id": "profile-sync",
-      "repo": "bybrostrom/paseo-plugins",
-      "path": "profile-sync",
-      "ref": "main",
-      "install": "git"
-    },
-    {
       "id": "higgins-panel",
       "repo": "bybrostrom/paseo-plugins",
       "path": "higgins-panel",
