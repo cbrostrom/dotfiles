@@ -4,6 +4,8 @@
 #   inside a herdr pane (HERDR_PANE_ID), an SSH session, or Alacritty is left
 #   alone. Escape hatch: HERDR_NO_AUTOSTART=1.
 # - Keeps the pane label fresh (git branch + cwd) via precmd/preexec hooks.
+#   No-ops (silently, disowned) outside herdr panes so no job-control noise is
+#   printed on shell startup.
 # - Wrappers: hpane / hsplit / hnew for pane and workspace plumbing.
 # - Saved-machine helpers: herdm / herdmadd / herdmls (see also docs/herdr.md).
 # - Pi presets: pigo / piheavy / piarch / pijanitor / pidetective launch pi
@@ -17,9 +19,14 @@
 # --- pane label hooks -------------------------------------------------------
 autoload -Uz add-zsh-hook
 
+typeset -g HERDR_LAST_LABEL=""
+
 __herdr_pane_label() {
     emulate -L zsh
     (( $+commands[herdr] )) || return 0
+    # Only inside herdr panes; outside, HERDR_PANE_ID is unset and the rename
+    # would exit 1 and print "[1] + exit 1 herdr pane rename" on every start.
+    [[ -n "${HERDR_PANE_ID:-}" ]] || return 0
     local label branch
     branch=$(git -C "$PWD" symbolic-ref --short HEAD 2>/dev/null) || branch=""
     if [[ -n "$branch" ]]; then
@@ -27,7 +34,10 @@ __herdr_pane_label() {
     else
         label="${PWD:t}"
     fi
-    herdr pane rename "$HERDR_PANE_ID" "$label" >/dev/null 2>&1 &
+    [[ "$label" == "$HERDR_LAST_LABEL" ]] && return 0
+    HERDR_LAST_LABEL="$label"
+    # &! = background + disown: never pollutes the job table/prompt output.
+    herdr pane rename "$HERDR_PANE_ID" "$label" >/dev/null 2>&1 &!
 }
 add-zsh-hook precmd __herdr_pane_label
 
