@@ -17,13 +17,6 @@
       "install": "git"
     },
     {
-      "id": "peers-and-calls",
-      "repo": "bybrostrom/paseo-plugins",
-      "path": "peers-and-calls",
-      "ref": "main",
-      "install": "git"
-    },
-    {
       "id": "pi-admin",
       "repo": "bybrostrom/paseo-plugins",
       "path": "pi-admin",

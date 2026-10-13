@@ -25,11 +25,13 @@ ORPHAN_PLUGINS=(
     reasoning-display
     subagent-activity
     usage-sidebar
-    # merged into workspace-activity, peers-and-calls, pi-admin and ops (29-09-2026)
+    # merged into workspace-activity, pi-admin and ops (29-09-2026)
     agents-history
     calls-board
     pi-peer-roster
     pi-maintenance
+    # calls console removed from bybrostrom/paseo-plugins (13-10-2026)
+    peers-and-calls
     model-policy
     skills
     mcporter-pill
