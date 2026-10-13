@@ -45,7 +45,7 @@ Commits must communicate meaning. From the full diff (`git status` + `git diff H
 
 - **Subject**: concise, imperative, why-focused, matches convention.
 - **Body** (non-trivial changes only): blank line after subject, explain motivation and trade-offs.
-- **No attribution ever**: no `Made with Cursor`, `Made-with:`, `Co-authored-by:` lines. Verify with `git log -1 --format=%B`; amend if one slipped in (only when safe).
+- **No attribution ever**: no `Made-with:` or `Made with ...` tool lines, no `Co-authored-by:` lines. Verify with `git log -1 --format=%B`; amend if one slipped in (only when safe).
 
 ```bash
 git add file1 file2 && git commit -m "$(cat <<'EOF'

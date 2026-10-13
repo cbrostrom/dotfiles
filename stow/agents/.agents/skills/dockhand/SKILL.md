@@ -1,20 +1,15 @@
 ---
 name: dockhand
-description: >-
-  Operate Docker stacks via Dockhand MCP on LinuxBro or SuperBro. Load when
-  dockhand is mentioned together with linuxbro or superbro — redeploy, restart,
-  compose edits, Traefik/infrastructure, stack env. Triggers: dockhand linuxbro,
-  dockhand superbro, redeploy stack, mcp-dockhand, docker.superbro.dk,
-  docker-lab.
+description: "Any Docker, compose or container task on linuxbro or superbro: use Dockhand MCP only, never raw docker or SSH."
 ---
 
 # Dockhand stack operations (LinuxBro + SuperBro)
 
-**Load this skill when the task involves Dockhand AND a specific host (`linuxbro` or `superbro`).**
+**Load this skill for any Docker, compose or container task on `linuxbro` or `superbro`. Dockhand MCP is the only tool for Docker maintenance there.**
 
 **Default:** use Dockhand MCP via mcporter — not raw SSH `docker compose`.
 
-Do not add dockhand to native Cursor/Pi MCP exposure (tool-restraint). Enable per-host in mcporter only.
+Do not add dockhand to native Pi MCP exposure (see the pi skill, MCP section). Enable per-host in mcporter only.
 
 ## Host routing
 

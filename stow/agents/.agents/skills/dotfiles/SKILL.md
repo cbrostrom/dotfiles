@@ -1,6 +1,7 @@
 ---
 name: dotfiles
 description: "Architecture and implementation knowledge for ~/dotfiles. Use when tracing Stow packages, setup scripts, profile selection, hooks, skill routing, or Higgins integration. Read before editing setup, hooks, skills, or symlink ownership."
+disable-model-invocation: true
 ---
 
 # Dotfiles
