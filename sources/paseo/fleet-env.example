@@ -1,0 +1,5 @@
+# Host-local Paseo daemon auth for dotfiles install and fleet-update.
+# Install: cp fleet-env.example ~/.paseo/fleet-env && chmod 600 ~/.paseo/fleet-env
+# Never commit the real file.
+
+export PASEO_PASSWORD='replace-with-daemon-password'

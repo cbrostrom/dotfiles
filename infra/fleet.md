@@ -10,10 +10,10 @@ _Last updated: 10-09-2026_
 | Host | Role | Profile | Tailscale | SSH / RDP | Paseo | Git push |
 |------|------|---------|-----------|-----------|-------|----------|
 | **Mac** | Control plane, author | `macos` | yes | — | local daemon | allowed |
-| **CloudBro** | Linux development box | `cloudbro` | pending | pending | Pi via Paseo | dotfiles only |
+| **CloudBro** | Linux development box | `cloudbro` | pending | pending | local daemon (`install.sh`) | dotfiles only |
 | **MonsterBro (WSL)** | Work engine | `wsl` | `100.100.1.255` (`monsterbro-wsl`) | `monsterbro` / `monsterbro-wsl` `:27789` | WSL daemon via `ssh://monsterbro` | allowed |
 | **MonsterBro (Win)** | WSL host / desktop | — | `100.100.1.250` (`monsterbro`) | RDP `:3389` | — | — |
-| **LinuxBro** | Homelab / docker / media | `server` | `100.100.1.100` | `linuxbro` | optional | **never** |
+| **LinuxBro** | Homelab / docker / media | `server` | `100.100.1.100` | `linuxbro` | local (light agents) | **never** |
 | **SuperBro** | VPS services / janitor | `server` | `100.100.1.50` | `superbro` | optional | **never** |
 
 Browser view: open [`infra/infra.html`](infra.html) locally.
@@ -91,15 +91,38 @@ Mac agent enables `dockhand-linuxbro` in mcporter → Tailscale to `:8092` → c
 
 ### Agent messaging
 
-`send_agent_prompt` works within one daemon (same host). Cross-host handoffs use CLI dispatch + Higgins vault notes.
+`send_agent_prompt` works within one daemon (same host). Cross-host work uses CLI `--host` dispatch; session continuity uses **Handover** on the host where the agent runs (`/handover`, Handover pill).
 
-### Higgins handoff
+### Session handoff vs Higgins
+
+| Need | Tool |
+|------|------|
+| Fresh agent/tab/worktree on the **same** Paseo daemon | **Handover** (`summary-fork` plugin): scoped transcript → summary → artifact |
+| Durable facts across machines/weeks | Higgins (`current`, `gotchas`, optional Handover checkbox, `/digest`) |
+
+Do not use Higgins vault dumps as a substitute for Handover. For cross-host **task routing** notes:
 
 ```bash
 higgins next "Implement on monsterbro: <task>; search fleet for host context"
 ```
 
 Agents search before acting: `search("monsterbro paseo fleet")`.
+
+### Paseo plugin sync and daemon auth
+
+`install.sh` runs `setup/paseo.sh` on `macos`, `wsl`, `cloudbro`, and `server` (LinuxBro). Fleet update runs `setup/hosts/<name>.sh` on cloudbro, linuxbro, and monsterbro to force plugin sync.
+
+Password-protected daemons need a **host-local** env file (never in git):
+
+```bash
+cp ~/dotfiles/sources/paseo/fleet-env.example ~/.paseo/fleet-env
+chmod 600 ~/.paseo/fleet-env
+# edit PASEO_PASSWORD=...
+```
+
+`setup/paseo.sh` and fleet host hooks source `~/.paseo/fleet-env` before `paseo plugin` operations. Without it, install may skip plugin sync while exiting 0.
+
+Verify after propagate: `~/dotfiles/scripts/doctor.sh <profile>` and `paseo plugin ls`.
 
 ## Paseo agent profiles (suggested)
 

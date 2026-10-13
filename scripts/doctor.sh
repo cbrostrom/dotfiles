@@ -30,15 +30,22 @@ command -v stow >/dev/null 2>&1 || {
     exit 1
 }
 
-python3 - "$ROOT" "$HOME" "$profile_file" <<'PY'
+python3 - "$ROOT" "$HOME" "$profile_file" "$profile" <<'PY'
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-repo, home, profile_path = map(Path, sys.argv[1:])
+repo, home, profile_path, profile_name = (
+    Path(sys.argv[1]),
+    Path(sys.argv[2]),
+    Path(sys.argv[3]),
+    sys.argv[4],
+)
+PASEO_PROFILES = frozenset({"macos", "wsl", "cloudbro", "server"})
 stow_dir = repo / "stow"
 packages = [
     line.strip()
@@ -46,6 +53,7 @@ packages = [
     if line.strip() and not line.lstrip().startswith("#")
 ]
 errors = []
+warnings = []
 checked = 0
 
 
@@ -116,7 +124,104 @@ if writer.is_file() and subprocess.run(
 ).returncode != 0:
     errors.append("higgins-writer unreachable -- canonical writer VM down?")
 
-print(f"profile={profile_path.stem} packages={len(packages)} links={checked} errors={len(errors)}")
+
+def parse_semver_loose(version: str) -> tuple[int, ...]:
+    match = re.search(r"(\d+)\.(\d+)\.(\d+)", version)
+    if not match:
+        return ()
+    return tuple(int(part) for part in match.groups())
+
+
+def semver_at_least(version: str, minimum: str) -> bool:
+    left = parse_semver_loose(version)
+    right = parse_semver_loose(minimum)
+    if not left or not right:
+        return True
+    return left >= right
+
+
+def check_paseo() -> None:
+    if profile_name not in PASEO_PROFILES:
+        return
+    fix = (
+        "fix: install @getpaseo/cli, run ~/dotfiles/setup/paseo.sh, "
+        "set ~/.paseo/fleet-env from sources/paseo/fleet-env.example if the daemon is password-protected"
+    )
+    if not shutil.which("paseo"):
+        errors.append(f"paseo CLI not on PATH ({fix})")
+        return
+
+    version_proc = subprocess.run(
+        ["paseo", "--version"], capture_output=True, text=True, check=False
+    )
+    cli_version = (version_proc.stdout or version_proc.stderr or "").strip()
+    if cli_version and not semver_at_least(cli_version, "0.11.0"):
+        warnings.append(
+            f"paseo CLI {cli_version} is below recommended 0.11.0 — npm install -g @getpaseo/cli"
+        )
+
+    plugin_ls = subprocess.run(
+        ["paseo", "plugin", "ls", "--json"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plugin_ls.returncode != 0:
+        errors.append(
+            "paseo daemon unreachable or auth failed — "
+            f"paseo daemon start; {fix}"
+        )
+        return
+
+    manifest_path = repo / "sources" / "paseo" / "plugins.json"
+    if not manifest_path.is_file():
+        errors.append(f"missing Paseo manifest: {manifest_path}")
+        return
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        errors.append(f"invalid plugins.json: {error}")
+        return
+
+    expected = {
+        entry["id"]
+        for entry in manifest.get("plugins", [])
+        if isinstance(entry, dict) and entry.get("id")
+    }
+    try:
+        installed_raw = json.loads(plugin_ls.stdout or "[]")
+    except json.JSONDecodeError as error:
+        errors.append(f"paseo plugin ls --json parse error: {error}")
+        return
+
+    if isinstance(installed_raw, dict):
+        installed_list = installed_raw.get("plugins") or installed_raw.get("items") or []
+    else:
+        installed_list = installed_raw
+
+    installed = set()
+    for entry in installed_list:
+        if isinstance(entry, str):
+            installed.add(entry)
+        elif isinstance(entry, dict) and entry.get("id"):
+            installed.add(entry["id"])
+
+    missing = sorted(expected - installed)
+    extra = sorted(installed - expected)
+    if missing:
+        errors.append(f"paseo plugins missing: {', '.join(missing)} — run ~/dotfiles/setup/paseo.sh")
+    if extra:
+        warnings.append(f"paseo plugins not in manifest (orphans?): {', '.join(extra)}")
+
+
+check_paseo()
+
+print(
+    f"profile={profile_path.stem} packages={len(packages)} links={checked} "
+    f"errors={len(errors)} warnings={len(warnings)}"
+)
+for warning in warnings:
+    print(f"warning: {warning}")
 for error in errors:
     print(f"error: {error}")
 raise SystemExit(1 if errors else 0)
