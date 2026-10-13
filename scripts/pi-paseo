@@ -32,12 +32,12 @@ PASEO_SKIP_PACKAGES=(pi-extension-settings pi-extmgr rpiv-config pi-permission-s
 
 # Every listed skill costs its description in every worker's system prompt, so
 # shared and package skills are opt-in: new ones stay out until listed here.
-PASEO_SKILLS=(call capabilities codebase codebase-memory commit higgins orchestration
-  paseo systematic-debugging verification-before-completion fallow tool-restraint
+PASEO_SKILLS=(call codebase codebase-memory commit higgins
+  paseo systematic-debugging verification-before-completion fallow
   ask-user context-mode)
 
 extensions=()
-skills=("$PI_AGENT_DIR/skills/moli-webfetch")
+skills=()
 
 add_allowed_skills() {
     local root="$1" dir name
