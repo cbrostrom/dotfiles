@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# mw: mcporter pinned to the work server list. Claude Code uses this; raw `mcporter` is denied.
+exec mcporter --config "$HOME/.claude/mcporter/mcporter.json" "$@"

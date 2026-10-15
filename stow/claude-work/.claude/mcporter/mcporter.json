@@ -1,0 +1,40 @@
+{
+  "imports": [],
+  "mcpServers": {
+    "atlassian-agent-akqa": {
+      "command": "atlassian-agent",
+      "args": [
+        "mcp",
+        "--profile",
+        "akqa"
+      ],
+      "lifecycle": "keep-alive",
+      "description": "Read-only Jira/Confluence (API token, AKQA profile)",
+      "_note": "5 compact tools via atlassian-agent."
+    },
+    "atlassian-agent-fiskars": {
+      "command": "atlassian-agent",
+      "args": [
+        "mcp",
+        "--profile",
+        "fiskars"
+      ],
+      "lifecycle": "keep-alive",
+      "description": "Read-only Jira/Confluence (API token, Fiskars profile)",
+      "_note": "5 compact tools via atlassian-agent."
+    },
+    "shopify-dev-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@shopify/dev-mcp@latest"
+      ],
+      "lifecycle": "keep-alive"
+    },
+    "codebase-memory-mcp": {
+      "command": "${HOME}/.local/bin/codebase-memory-mcp",
+      "args": [],
+      "lifecycle": "keep-alive"
+    }
+  }
+}

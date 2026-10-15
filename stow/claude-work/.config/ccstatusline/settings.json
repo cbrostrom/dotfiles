@@ -1,0 +1,100 @@
+{
+  "version": 4,
+  "lines": [
+    [
+      {
+        "id": "1",
+        "type": "model",
+        "color": "cyan",
+        "rawValue": true
+      },
+      {
+        "id": "68314aad-0101-488f-874d-ffe2225167d4",
+        "type": "context-bar",
+        "rawValue": true
+      },
+      {
+        "id": "3",
+        "type": "context-length",
+        "color": "brightBlack"
+      },
+      {
+        "id": "904c631e-20f3-492b-b086-103683ef8187",
+        "type": "session-cost"
+      },
+      {
+        "id": "e0b365ed-df07-4e5c-9603-6c645d1bfe9e",
+        "type": "flex-separator"
+      },
+      {
+        "id": "5",
+        "type": "git-branch",
+        "color": "magenta"
+      },
+      {
+        "id": "7",
+        "type": "git-changes",
+        "color": "yellow"
+      }
+    ],
+    [
+      {
+        "id": "671cab06-9560-4b30-9cab-5c619e825901",
+        "type": "session-usage",
+        "rawValue": false,
+        "metadata": {
+          "display": "slider"
+        }
+      },
+      {
+        "id": "32f2af41-d2d9-49c1-b9ea-ab6d82aa8ffe",
+        "type": "weekly-usage",
+        "metadata": {
+          "display": "slider"
+        }
+      },
+      {
+        "id": "de413302-8aad-4871-9a5b-1e2af490b6ee",
+        "type": "fable-weekly-usage",
+        "metadata": {
+          "display": "slider"
+        },
+        "rawValue": false
+      }
+    ],
+    []
+  ],
+  "flexMode": "full",
+  "compactThreshold": 60,
+  "colorLevel": 3,
+  "defaultPaddingSide": "both",
+  "inheritSeparatorColors": false,
+  "globalBold": false,
+  "gitCacheTtlSeconds": 5,
+  "terminalWidthCacheTtlSeconds": 5,
+  "customCommandCacheTtlSeconds": 0,
+  "minimalistMode": false,
+  "powerline": {
+    "enabled": true,
+    "separators": [
+      ""
+    ],
+    "separatorInvertBackground": [
+      true
+    ],
+    "startCaps": [
+      ""
+    ],
+    "endCaps": [
+      ""
+    ],
+    "autoAlign": true,
+    "continueThemeAcrossLines": false,
+    "theme": "minimal"
+  },
+  "defaultPadding": " ",
+  "installation": {
+    "method": "pinned",
+    "installedVersion": "2.2.30"
+  }
+}

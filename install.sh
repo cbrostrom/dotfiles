@@ -36,6 +36,7 @@ case "$profile" in
         HIGGINS_ROLE=write-through "$ROOT/scripts/install/higgins.sh"
         "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/setup/pi.sh"
+        "$ROOT/setup/claude-work.sh"
         "$ROOT/setup/cursor.sh"
         "$ROOT/setup/zed.sh"
         "$ROOT/setup/herdr.sh"

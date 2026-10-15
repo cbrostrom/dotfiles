@@ -32,7 +32,7 @@ mode="${1:-pi}"
 payload=$(cat)
 cmd=""
 if command -v jq >/dev/null 2>&1; then
-    cmd=$(printf '%s' "$payload" | jq -r '.tool_args.command // .command // empty' 2>/dev/null)
+    cmd=$(printf '%s' "$payload" | jq -r '.tool_args.command // .tool_input.command // .command // empty' 2>/dev/null)
     if [[ "$mode" == "cursor" ]]; then
         cwd=$(printf '%s' "$payload" | jq -r '.cwd // .workspace_roots[0] // empty' 2>/dev/null)
         [[ -n "$cwd" ]] && cd "$cwd" 2>/dev/null
