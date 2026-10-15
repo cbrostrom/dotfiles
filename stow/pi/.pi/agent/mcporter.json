@@ -9,12 +9,9 @@
       "exposure": "index"
     },
     "github": {
-      "exposure": "index"
+      "exposure": "on-demand"
     },
     "codebase-memory-mcp": {
-      "exposure": "index"
-    },
-    "shopify-dev-mcp": {
       "exposure": "index"
     },
     "dockhand-linuxbro": {

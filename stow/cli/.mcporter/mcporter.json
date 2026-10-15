@@ -20,14 +20,6 @@
       ],
       "lifecycle": "keep-alive"
     },
-    "shopify-dev-mcp": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@shopify/dev-mcp@latest"
-      ],
-      "lifecycle": "keep-alive"
-    },
     "dockhand-linuxbro": {
       "baseUrl": "http://100.100.1.100:8092/mcp"
     },
@@ -47,28 +39,6 @@
         "mcp"
       ],
       "lifecycle": "keep-alive"
-    },
-    "atlassian-agent-fiskars": {
-      "command": "atlassian-agent",
-      "args": [
-        "mcp",
-        "--profile",
-        "fiskars"
-      ],
-      "lifecycle": "keep-alive",
-      "description": "Read-only Jira/Confluence (API token, Fiskars profile)",
-      "_note": "5 compact tools via atlassian-agent."
-    },
-    "atlassian-agent-akqa": {
-      "command": "atlassian-agent",
-      "args": [
-        "mcp",
-        "--profile",
-        "akqa"
-      ],
-      "lifecycle": "keep-alive",
-      "description": "Read-only Jira/Confluence (API token, AKQA profile)",
-      "_note": "5 compact tools via atlassian-agent."
     }
   }
 }

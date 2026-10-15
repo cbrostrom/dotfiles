@@ -15,12 +15,8 @@ Scoped models (`enabledModels` / Ctrl+P / `/scoped-models`) — from `configs/mo
 
 | Model | Use for |
 |-------|---------|
-| `anthropic/claude-sonnet-5-5` (**default**) | Work driver (Claude subscription) |
-| `anthropic/claude-opus-5-5` | Work — planning, hard reviews |
-| `anthropic/claude-haiku-5-5` | Work — cheap/fast, Explore subagent |
-| `anthropic/claude-fable-5-1` | Work — hardest problems, sparingly |
-| `github-copilot/*` | Private ops / misc (Claude, GPT 5.6, Gemini) |
-| `opencode-go/*` | Private ops / misc; default on servers (`glm-5.3-flash`) |
+| `github-copilot/*` | Private ops / misc (GPT 5.6, Gemini, Copilot-billed Claude; pick deliberately) |
+| `opencode-go/*` (**default**) | Private ops and servers (`glm-5.3-flash`) |
 
 Cycle: **Ctrl+P / Shift+Ctrl+P**. List: `/scoped-models`. Full registry: `/model` or `pi --list-models <provider>`.
 
@@ -28,7 +24,7 @@ Cycle: **Ctrl+P / Shift+Ctrl+P**. List: `/scoped-models`. Full registry: `/model
 
 **Rules:**
 
-- Work repos → `anthropic/*`. Private/ops/etc → `github-copilot/*` or `opencode-go/*`.
+- Pi is private/ops only → `opencode-go/*` by default, `github-copilot/*` on purpose. Work repos belong in Claude Code, not Pi.
 - `model-policy-guard` reverts selections outside the host's allowed groups.
 - Decisions: use `ask_user` / `pi__ask_user`.
 - Avoid parallel subagents unless the win is clear.
@@ -79,7 +75,7 @@ Status: `/mcp status` · `/mcporter status` · `mcporter list`
 
 - Use `subagent` with `subagent_type: "Explore"` for fast read-only codebase sweeps.
 - Use `run_in_background: true` for parallel info gathering; poll with `get_subagent_result`.
-- Global `Explore` agent uses `anthropic/claude-haiku-5-5`; main session stays on scoped models.
+- Global `Explore` agent uses `opencode-go/glm-5.3-flash`; main session stays on scoped models.
 - Default to the main thread unless parallelism gives a clear win.
 
 ## Brain and memory
@@ -110,7 +106,7 @@ Validate: `/hooks-validate` · Status: `/hooks-status` · Reload: `/hooks-reload
 
 ```bash
 pi list                         # Installed packages
-pi --list-models anthropic      # Claude catalog
+pi --list-models github-copilot # Copilot catalog
 pi --version                    # PI version
 /scoped-models                  # Pick from enabledModels
 /hooks-validate                 # Hook config validity

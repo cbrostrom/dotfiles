@@ -1,17 +1,11 @@
 {
-  "$comment": "Model policy consumed by setup/pi.sh and extensions/model-policy-guard. hostAllowed groups are the new-selection allowlist; restored sessions are exempt (see guard). Providers: claude-bridge (Claude via Claude Code, work driver; native anthropic is deliberately blocked, it can bill as Extra Usage), github-copilot and opencode-go (private/etc). OpenCode Go is a Pi provider, not a standalone CLI dependency. Classifications verified 11-09-2026; re-verify DeepSeek ZDR before 30-09-2026. hosts[].excludePackages drops entries from merged settings.json packages (e.g. GUI-only extras on servers).",
+  "$comment": "Model policy consumed by setup/pi.sh and extensions/model-policy-guard. hostAllowed groups are the new-selection allowlist; restored sessions are exempt (see guard). Pi is private-only: github-copilot, opencode-go and ollama. Claude (native anthropic and claude-bridge) is deliberately absent; work Claude runs in Claude Code only. OpenCode Go is a Pi provider, not a standalone CLI dependency. Classifications verified 11-09-2026; re-verify DeepSeek ZDR before 30-09-2026. hosts[].excludePackages drops entries from merged settings.json packages (e.g. GUI-only extras on servers).",
   "defaults": {
     "$comment": "Per-host defaults live in hosts[]. Hosts without an explicit default fall back to defaults.fallbackModel.",
     "fallbackModel": "opencode-go/glm-5.3-flash",
     "thinking": "low"
   },
   "groups": {
-    "claudeWork": [
-      "claude-bridge/claude-sonnet-5-5",
-      "claude-bridge/claude-opus-5-5",
-      "claude-bridge/claude-haiku-5-5",
-      "claude-bridge/claude-fable-5-1"
-    ],
     "copilot": [
       "github-copilot/gpt-5.4",
       "github-copilot/claude-sonnet-5",
@@ -70,10 +64,10 @@
   "hosts": {
     "workstation": {
       "aliases": ["GY-M-WHKK2PF6N7"],
-      "groups": ["claudeWork", "copilot", "goPrivate", "goConditional", "goRetained", "local"],
+      "groups": ["copilot", "goPrivate", "goConditional", "goRetained", "local"],
       "theme": "pi-desktop-github-dark",
-      "defaultProvider": "claude-bridge",
-      "defaultModel": "claude-sonnet-5-5",
+      "defaultProvider": "opencode-go",
+      "defaultModel": "glm-5.3-flash",
       "defaultThinkingLevel": "low"
     },
     "cloudbro": {

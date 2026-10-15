@@ -25,7 +25,7 @@ Default response format — answer-first, scan-friendly:
 
 ## Models
 
-Work: `anthropic/*` via Pi (Claude subscription). Private and misc: `github-copilot/*` and `opencode-go/*`. Background workers (metadata, observational-memory): OpenCode Go only. Policy: `~/.pi/agent/configs/model-policy.json`. Scoped list: `/scoped-models`.
+Pi is private and servers only: `opencode-go/*` (default, flat-rate), `github-copilot/*` (choose deliberately via `/model`), `ollama/*` (local). No Claude via Pi: `anthropic/*` and `claude-bridge/*` are blocked. Work is Claude Code. Background workers (metadata, observational-memory): OpenCode Go only. Policy: `~/.pi/agent/configs/model-policy.json`. Scoped list: `/scoped-models`.
 
 ## Memory
 
@@ -43,7 +43,7 @@ Direct (tools loaded inline, in `~/.pi/agent/mcp.json`): `higgins` only. Everyth
 - `mcporter({ action: "describe", selector: "server.tool" })` — schema before first call.
 - `mcporter({ action: "call", selector: "server.tool", args: {...} })` — execute.
 
-Use it proactively when a task touches Jira/Confluence (`atlassian-agent-*`, read-only, token-capped; see `/skill:atlassian-agent`), GitHub issues/PRs (`github`), Shopify dev (`shopify-dev-mcp`), the codebase knowledge graph (`codebase-memory-mcp`), the node/browser REPLs (`node_repl`, `cua_repl`), or when hunting for a machine-local tool/plugin/skill (`paseo-steps-viewer` → `list_capabilities`; see `/skill:pi`). Server admin (install, OAuth, config) is CLI-only: `mcporter list | call | auth | config`.
+Use it proactively when a task touches GitHub issues/PRs (`github`), the codebase knowledge graph (`codebase-memory-mcp`), the node/browser REPLs (`node_repl`, `cua_repl`), homelab services (`dockhand-*`, `cloudflare-dns-*`), or when hunting for a machine-local tool/plugin/skill (`paseo-steps-viewer` → `list_capabilities`; see `/skill:pi`). Server admin (install, OAuth, config) is CLI-only: `mcporter list | call | auth | config`.
 
 Paseo layer: Paseo-launched agents receive Paseo's own tool catalog by injection (`daemon.mcp.injectIntoAgents`) — use those for cross-agent/workspace/browser orchestration there, prefer `pi-peer` only in terminal sessions, and never add `paseo` to mcporter (duplicate surface).
 
