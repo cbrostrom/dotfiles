@@ -25,9 +25,9 @@
 # =============================================================================
 
 # Resolve the repository from the Stow package source.
-ZSHRC_PATH="${(%):-%N}"
-[[ -L "$HOME/.zshrc" ]] && ZSHRC_PATH="$(readlink -f "$HOME/.zshrc")"
-DOTFILES_DIR="$(cd "$(dirname "$ZSHRC_PATH")/../.." && pwd)"
+# :A resolves the ~/.zshrc symlink without forking readlink/cd/pwd
+ZSHRC_PATH="${${(%):-%N}:A}"
+DOTFILES_DIR="${ZSHRC_PATH:h:h:h}"
 ZSH_MODULES_DIR="$DOTFILES_DIR/zsh"
 
 # Load shared platform helpers (is_macos, is_linux, has, cache_eval, profile, …)
@@ -98,39 +98,8 @@ fi
 
 
 
-unset MAILCHECK
-
-# OBSIDIAN_API_KEY and other rbw secrets are loaded by .zshenv.
-export PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"
-
-# Homebrew (linux)
-if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
-fi
-
-# fnm
-FNM_PATH="/home/christian/.local/share/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
-  eval "$(fnm env --shell zsh)"
-fi
-
-# npm global prefix (node-version-independent installs). Set here rather than in
-# ~/.npmrc (holds auth tokens, not stowed) so every host uses the same prefix.
-export NPM_CONFIG_PREFIX="$HOME/.npm-global"
-export PATH="$HOME/.npm-global/bin:$PATH"
-# Shims (pi → Pi-Bolt, paseo, …) must win over same-named binaries in npm-global.
-export PATH="$HOME/.local/bin:$PATH"
-
-# Drop stale llmtrim CA/proxy env inherited from long-lived parents (Orca, etc.).
-# llmtrim was removed; missing certs make Node print NODE_EXTRA_CA_CERTS warnings.
-if [[ ! -f "$HOME/.llmtrim/ca.pem" ]]; then
-  unset NODE_EXTRA_CA_CERTS SSL_CERT_FILE CURL_CA_BUNDLE NODE_USE_ENV_PROXY
-  unset HTTPS_PROXY HTTP_PROXY ALL_PROXY https_proxy http_proxy all_proxy
-  unset NO_PROXY no_proxy
-fi
-
-# Show fastfetch in interactive shells (skip non-interactive and agent sessions)
-if [[ -o interactive && -t 1 && -z "$PI_SESSION" && -z "$AGENT" ]]; then
-  fastfetch
+# Show fastfetch once per terminal: top-level interactive shell with a tty.
+# Skipped in nested shells, tmux/herdr panes (SHLVL > 1) and agent sessions.
+if [[ -o interactive && -t 1 && $SHLVL -eq 1 && -z "$PI_SESSION" && -z "$AGENT" ]]; then
+    fastfetch
 fi

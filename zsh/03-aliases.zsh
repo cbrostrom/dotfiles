@@ -228,7 +228,7 @@ fi
 # =============================================================================
 # SECURITY MONITORING ALIASES
 # =============================================================================
-if [[ "$(uname -s)" == "Linux" ]]; then
+if $IS_LINUX; then
     # SSH monitoring
     alias sshstatus='sudo systemctl status sshd'
     alias sshrestart='sudo systemctl restart sshd'
@@ -270,7 +270,7 @@ fi
 # =============================================================================
 # STREAMING (SUNSHINE) ALIASES
 # =============================================================================
-if [[ "$(uname -s)" == "Linux" ]]; then
+if $IS_LINUX; then
     # Sunshine service management
     alias sunstatus='systemctl --user status sunshine'
     alias sunrestart='systemctl --user restart sunshine'
@@ -389,7 +389,7 @@ EOF
 # =============================================================================
 # SYSTEM UPDATE ALIASES
 # =============================================================================
-if [[ "$(uname -s)" == "Linux" ]]; then
+if $IS_LINUX; then
     # Debian/Ubuntu (apt)
     if command -v apt &>/dev/null; then
         alias systemupdate='echo "🔄 Updating system packages..." && sudo apt update && sudo apt upgrade -y && command -v flatpak &>/dev/null && echo "🔄 Updating Flatpak..." && flatpak update -y'
@@ -405,7 +405,7 @@ fi
 # PLATFORM-SPECIFIC ALIASES
 # =============================================================================
 # Linux-specific aliases
-if [[ "$(uname -s)" == "Linux" ]]; then
+if $IS_LINUX; then
     # Ubuntu bat is 'batcat', alias for 'bat'
     if command -v batcat &>/dev/null; then
         alias bat='batcat'
@@ -417,3 +417,6 @@ if [[ "$(uname -s)" == "Linux" ]]; then
 fi
 
 alias pod='podman'
+
+# Claude Code — cc runs claude
+alias cc='claude'

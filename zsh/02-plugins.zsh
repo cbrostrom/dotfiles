@@ -35,18 +35,20 @@ _plugin_load() {
 # =============================================================================
 # DEJA — ghost-text autosuggestions (replaces zsh-autosuggestions)
 # =============================================================================
-# Deja (brew Giammarco-Ferranti/deja/deja) owns the `deja` binary name.
-# It spawns its own daemon and generates ~/.local/share/deja/init.zsh.
+# Deja (brew Giammarco-Ferranti/deja/deja, macOS only) owns the `deja` binary
+# name on this Mac. On Linux hosts `deja` is usually deja-vu (session recall,
+# scripts/install/dejavu.sh), whose unknown-subcommand fallback is a *search*:
+# `deja init zsh` prints search results, and eval'ing those is the
+# "(eval):N: parse error" seen on MonsterBro. So never run `deja` at startup;
+# only source the pre-generated init script. To enable ghost text on a host
+# that has the autosuggest deja, generate it once:
+#   deja init zsh > ~/.local/share/deja/init.zsh
 export DEJA_HIGHLIGHT_STYLE='fg=#585858'  # dim grey, from Ghostty palette 8
 export DEJA_CYCLE_KEY='^[t'              # Alt+T cycles alternatives (Tab kept for fzf-tab)
 export DEJA_ACCEPT_KEY=''                 # keep the explicit accept keys unbound
 export DEJA_WORD_ACCEPT_KEY=''
 
-if [[ -r "$HOME/.local/share/deja/init.zsh" ]]; then
-    source "$HOME/.local/share/deja/init.zsh"
-else
-    (( $+commands[deja] )) && eval "$(deja init zsh)"
-fi
+[[ -r "$HOME/.local/share/deja/init.zsh" ]] && source "$HOME/.local/share/deja/init.zsh"
 
 # =============================================================================
 # FZF-TAB — must load before syntax highlighting, after compinit
@@ -110,9 +112,19 @@ fi
 # COMPLETIONS
 # =============================================================================
 autoload -Uz compinit
-# -C skips compaudit (security check) every time — saves ~50-100ms
-# compaudit only matters if someone can write to your fpath dirs (unlikely)
-compinit -C -d "${HOME}/.zcompdump"
+# Full compinit (rescans fpath, rewrites the dump) once a day; -C otherwise.
+# -C skips compaudit, which only matters if someone else can write to fpath.
+# _zsh_fresh24 (00-performance) = "dump exists and is younger than 24h", no fork.
+_zcompdump="${HOME}/.zcompdump"
+if typeset -f _zsh_fresh24 >/dev/null && _zsh_fresh24 "$_zcompdump"; then
+    compinit -C -d "$_zcompdump"
+else
+    compinit -d "$_zcompdump"
+    # compinit keeps a still-valid dump untouched; bump mtime so -C runs tomorrow
+    touch "$_zcompdump"
+    zcompile -R "$_zcompdump" 2>/dev/null
+fi
+unset _zcompdump
 
 # Local per-machine aliases (not tracked in git)
 [[ -f "$HOME/.local-aliases" ]] && source "$HOME/.local-aliases"
@@ -188,7 +200,21 @@ if (( $+commands[fnm] )); then
     # Do NOT cache fnm env: it contains a per-shell FNM_MULTISHELL_PATH
     # (PID-stamped), so a cached export points other shells at stale dirs.
     # fnm env is ~5ms, bypass _cached_eval.
-    eval "$(fnm env --use-on-cd)"
+    # Lazy: `fnm env` costs ~50ms and creates a per-shell multishell dir, so
+    # it cannot be cached. Load it on the first node-related command instead.
+    # Until then the --use-on-cd hook is not active; _fnm_load applies the
+    # current directory's .node-version/.nvmrc to close that gap.
+    _fnm_load() {
+        unfunction fnm node npm npx corepack pnpm yarn 2>/dev/null
+        eval "$(command fnm env --use-on-cd --shell zsh)"
+        if [[ -f .node-version || -f .nvmrc ]]; then
+            command fnm use --silent-if-unchanged 2>/dev/null
+        fi
+    }
+    for _fnm_cmd in fnm node npm npx corepack pnpm yarn; do
+        eval "${_fnm_cmd}() { _fnm_load; ${_fnm_cmd} \"\$@\"; }"
+    done
+    unset _fnm_cmd
     alias node16='fnm use 16'
     alias node18='fnm use 18'
     alias node20='fnm use 20'

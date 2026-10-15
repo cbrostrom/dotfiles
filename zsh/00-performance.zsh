@@ -3,66 +3,73 @@
 # =============================================================================
 # This file contains caching and optimization strategies to speed up zsh startup
 # Load this BEFORE other modules for maximum benefit
+#
+# Rule for this file: no forks on the startup path. Age checks use the zsh glob
+# qualifier (Nmh-24) ("exists and modified less than 24h ago") instead of
+# `find -mtime`, and binaries are resolved through $commands instead of `$(…)`.
+
+# True when $1 exists and was modified less than 24h ago. Array assignment is
+# the only place the qualifier is expanded; inside [[ ]] it would be literal.
+_zsh_fresh24() {
+    local -a m
+    m=( $1(Nmh-24) )
+    (( $#m ))
+}
 
 # =============================================================================
 # HOMEBREW SHELLENV CACHING (macOS)
 # =============================================================================
 # Cache Homebrew's shellenv output to avoid running it every time (~50-100ms saved)
-if [[ "$OSTYPE" == "Darwin" ]]; then
+# $OSTYPE is e.g. darwin25.4.0, never the bare "Darwin" uname gives.
+if [[ "$OSTYPE" == darwin* ]]; then
     BREW_CACHE_FILE="$HOME/.cache/zsh/brew-shellenv.zsh"
-    BREW_CACHE_VALID=86400  # 24 hours in seconds
-    
+
     # Create cache directory if it doesn't exist
-    mkdir -p "$(dirname "$BREW_CACHE_FILE")"
-    
+    [[ -d "${BREW_CACHE_FILE:h}" ]] || mkdir -p "${BREW_CACHE_FILE:h}"
+
     # Function to generate brew shellenv cache
     _generate_brew_cache() {
         local brew_path=""
-        if [[ -f "/opt/homebrew/bin/brew" ]]; then
+        if [[ -x "/opt/homebrew/bin/brew" ]]; then
             brew_path="/opt/homebrew/bin/brew"
-        elif [[ -f "/usr/local/bin/brew" ]]; then
+        elif [[ -x "/usr/local/bin/brew" ]]; then
             brew_path="/usr/local/bin/brew"
         fi
-        
+
         if [[ -n "$brew_path" ]]; then
             "$brew_path" shellenv > "$BREW_CACHE_FILE"
             zcompile -R "$BREW_CACHE_FILE" 2>/dev/null
         fi
     }
-    
-    # Check if cache exists and is fresh
-    if [[ ! -f "$BREW_CACHE_FILE" ]] || [[ $(find "$BREW_CACHE_FILE" -mtime +1 2>/dev/null) ]]; then
-        # Cache is old or doesn't exist, regenerate
-        _generate_brew_cache
-    fi
-    
+
+    # Regenerate when the cache is missing or older than 24h
+    _zsh_fresh24 "$BREW_CACHE_FILE" || _generate_brew_cache
+
     # Source cached shellenv (much faster than running brew shellenv)
     if [[ -f "$BREW_CACHE_FILE" ]]; then
         source "$BREW_CACHE_FILE"
     fi
-    
+
     unset -f _generate_brew_cache 2>/dev/null
 fi
 
 # =============================================================================
 # INIT COMMAND CACHING
 # =============================================================================
-# Cache expensive eval commands for tools like starship, zoxide, fnm
-# This can save 100-300ms on startup
+# Cache expensive eval commands for tools like starship and zoxide.
+# Not for fnm: its env output contains a per-shell multishell path.
 
 INIT_CACHE_DIR="$HOME/.cache/zsh/init"
-mkdir -p "$INIT_CACHE_DIR"
+[[ -d "$INIT_CACHE_DIR" ]] || mkdir -p "$INIT_CACHE_DIR"
 
 # Function to cache and source init commands
 _cached_eval() {
     local cache_name="$1"
     local init_command="$2"
     local cache_file="$INIT_CACHE_DIR/${cache_name}.zsh"
-    local cache_valid=86400  # 24 hours
-    
-    # Check if cache exists and is fresh
-    if [[ ! -f "$cache_file" ]] || [[ $(find "$cache_file" -mtime +1 2>/dev/null) ]]; then
-        # Regenerate cache
+
+    # Regenerate when the cache is missing or older than 24h
+    if ! _zsh_fresh24 "$cache_file"; then
         eval "$init_command" > "$cache_file" 2>/dev/null
         zcompile -R "$cache_file" 2>/dev/null
     fi
@@ -84,11 +91,11 @@ _cached_eval() {
 # job gets killed by fast shell exits (~180ms) before it ever finishes.
 # Only stale files are compiled (~5ms each), so this is near-free.
 _zsh_recompile_if_stale() {
-    local f
+    local f repo="${DOTFILES_DIR:-$HOME/dotfiles}"
     for f in \
         ~/.zshenv ~/.zshrc \
-        ~/dotfiles/stow/zsh/.zshenv ~/dotfiles/stow/zsh/.zshrc \
-        ~/dotfiles/zsh/*.zsh(N)
+        "$repo/stow/zsh/.zshenv" "$repo/stow/zsh/.zshrc" \
+        "$repo"/zsh/*.zsh(N)
     do
         [[ -f "$f" ]] || continue
         if [[ ! -f "${f}.zwc" ]] || [[ "$f" -nt "${f}.zwc" ]]; then
@@ -104,6 +111,14 @@ _zsh_recompile_if_stale
 # =============================================================================
 # BINARY PATH CACHING (used by other modules)
 # =============================================================================
-# Cache lookups so other modules don't re-resolve git/timeout each invocation
-export DOTFILES_GIT_BIN="${DOTFILES_GIT_BIN:-$(command -v /opt/homebrew/bin/git 2>/dev/null || command -v git)}"
-export DOTFILES_TIMEOUT_BIN="${DOTFILES_TIMEOUT_BIN:-$(command -v gtimeout 2>/dev/null || command -v timeout 2>/dev/null)}"
+# Cache lookups so other modules don't re-resolve git/timeout each invocation.
+# $commands is zsh's hash table of PATH lookups: no subshell needed.
+if [[ -z "$DOTFILES_GIT_BIN" ]]; then
+    if [[ -x /opt/homebrew/bin/git ]]; then
+        DOTFILES_GIT_BIN=/opt/homebrew/bin/git
+    else
+        DOTFILES_GIT_BIN="${commands[git]:-git}"
+    fi
+fi
+export DOTFILES_GIT_BIN
+export DOTFILES_TIMEOUT_BIN="${DOTFILES_TIMEOUT_BIN:-${commands[gtimeout]:-${commands[timeout]:-}}}"
