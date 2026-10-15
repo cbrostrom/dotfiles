@@ -105,6 +105,14 @@
           { "type": "command", "command": "$HOME/.claude/hooks/guard-agent.sh", "timeout": 10 }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "$HOME/.claude/hooks/higgins-session-capture.sh", "timeout": 90 }
+        ]
+      }
     ]
   }
 }
