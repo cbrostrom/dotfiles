@@ -27,6 +27,14 @@ if ! claude plugin list 2>/dev/null | grep -q "context-mode"; then
     claude plugin install context-mode@context-mode >/dev/null 2>&1 || warn "context-mode plugin install failed"
 fi
 
+# plannotator plugin: plan review on ExitPlanMode. The plugin does not ship the CLI binary;
+# install it with the minimal installer from the plannotator docs (not run here).
+if ! claude plugin list 2>/dev/null | grep -q "plannotator@plannotator"; then
+    claude plugin marketplace add backnotprop/plannotator >/dev/null 2>&1 || warn "plannotator marketplace add failed"
+    claude plugin install plannotator@plannotator >/dev/null 2>&1 || warn "plannotator plugin install failed"
+fi
+command -v plannotator >/dev/null 2>&1 || warn "plannotator CLI missing: run the minimal installer from the plannotator docs"
+
 # rtk: Bash rewrite hook for Claude Code, hook only (no CLAUDE.md edits).
 if command -v rtk >/dev/null 2>&1; then
     rtk init -g --hook-only --auto-patch >/dev/null 2>&1 || warn "rtk init failed"
