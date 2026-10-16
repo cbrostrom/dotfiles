@@ -16,7 +16,7 @@
     "color": "amber",
     "provider": "claude",
     "model": "claude-sonnet-5-5",
-    "thinkingOptionId": "medium",
+    "thinkingOptionId": "low",
     "notes": "Work: AKQA and Fiskars repos, native Claude Code. Default driver for substantial implementation and refactors. Escalate to Lead/Brain only when blocked."
   },
   {
@@ -26,7 +26,7 @@
     "color": "violet",
     "provider": "claude",
     "model": "claude-opus-5-5",
-    "thinkingOptionId": "medium",
+    "thinkingOptionId": "low",
     "notes": "Work: AKQA and Fiskars repos, native Claude Code. Planning and multi-file coordination. Escalate to Brain only when blocked."
   },
   {
