@@ -211,6 +211,7 @@ unset MAILCHECK
 
 # Go toolchain installed outside Homebrew (Linux servers)
 [[ -d /usr/local/go/bin ]] && export PATH="/usr/local/go/bin:$PATH"
+[[ -d "$HOME/sdk/go/bin" ]] && export PATH="$HOME/sdk/go/bin:$PATH"
 
 # npm global prefix (node-version-independent installs). Set here rather than in
 # ~/.npmrc (holds auth tokens, not stowed) so every host uses the same prefix.

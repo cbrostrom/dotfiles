@@ -89,9 +89,14 @@ fi
 # ---------------------------------------------------------------------------
 command -v jq >/dev/null 2>&1 || die "jq is required (debian.sh/brew handle this)"
 
-# herdr plugin list --json is wrapped: {"id":"cli:plugin","result":{"plugins":[…]}}
+# herdr plugin list --json is wrapped: {"id":"cli:plugin","result":{"plugins":[…]}}.
+# Validate: a transient server error can yield non-JSON output; fall back to an
+# empty list so a herdr hiccup never aborts the whole sync.
 refresh_list() {
-    PLUGIN_LIST_JSON="$(herdr plugin list --json 2>/dev/null || echo '{"result":{"plugins":[]}}')"
+    PLUGIN_LIST_JSON="$(herdr plugin list --json 2>/dev/null || true)"
+    if ! jq -e . <<<"$PLUGIN_LIST_JSON" >/dev/null 2>&1; then
+        PLUGIN_LIST_JSON='{"result":{"plugins":[]}}'
+    fi
 }
 refresh_list
 
@@ -108,9 +113,10 @@ _install_plugin() {
 
 _running_revision() {
     # `herdr plugin list` prints `- <id> (<name>) enabled [github:<owner>/<repo>[/subdir]@<rev>]`
+    # The server may be unreachable (exit 5); return empty instead of failing.
     local owner="$1" name="$2"
     herdr plugin list 2>/dev/null | grep -F "github:$owner/$name" | head -1 |
-        sed -E 's/.*@([0-9a-fA-F]{7,40})\].*/\1/'
+        sed -E 's/.*@([0-9a-fA-F]{7,40})\].*/\1/' || true
 }
 
 _sync_plugin() {
@@ -118,12 +124,16 @@ _sync_plugin() {
     local owner name installed_id running_rev
     owner="${repo%%/*}"
     name="${repo#*/}"
+    # Iterate only the plugins array: a plain `.[]?` fallback would walk the
+    # whole envelope object and error on its string values when the list is empty.
     installed_id="$(jq -r --arg owner "$owner" --arg name "$name" \
-        '.result.plugins[]? // .[]? | select((.source.owner? // "") == $owner and (.source.repo? // "") == $name) | .plugin_id' \
-        <<<"$PLUGIN_LIST_JSON" 2>/dev/null | head -1)"
+        '(.result.plugins // [])[] | select((.source.owner? // "") == $owner and (.source.repo? // "") == $name) | .plugin_id' \
+        <<<"$PLUGIN_LIST_JSON" 2>/dev/null | head -1 || true)"
     # Fallback: match on the plain list (ids differ per plugin manifest).
+    # The herdr server may be unreachable (exit 5); that is a normal state, so
+    # treat an empty result as "not installed" and fall through to install.
     if [[ -z "$installed_id" ]]; then
-        installed_id="$(herdr plugin list 2>/dev/null | grep -F "github:$owner/$name@" | head -1 | awk '{print $2}' | tr -d '()')"
+        installed_id="$(herdr plugin list 2>/dev/null | grep -F "github:$owner/$name@" | head -1 | awk '{print $2}' | tr -d '()' || true)"
     fi
 
     if [[ -z "$installed_id" ]]; then
@@ -199,4 +209,6 @@ if [[ -n "$radar_root" && -f "$radar_root/bin/configure.js" ]]; then
 fi
 
 ok "herdr plugins synced for profile=$profile role=$role"
-herdr plugin list 2>/dev/null
+# The herdr server may legitimately not be running yet; a plugin list
+# failure must not fail the whole install.
+herdr plugin list 2>/dev/null || true

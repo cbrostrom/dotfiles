@@ -60,8 +60,12 @@ install_via_deb() {
     ver="$(latest_ver)"
     deb="fastfetch-linux-$(arch_case).deb"
     echo "fastfetch: latest upstream ${ver}, installing ${deb}"
+    # Release tags dropped the "v" prefix in newer releases; try both forms.
     wget -q "https://github.com/fastfetch-cli/fastfetch/releases/download/v${ver}/${deb}" \
-        -O /tmp/fastfetch.deb
+        -O /tmp/fastfetch.deb ||
+    wget -q "https://github.com/fastfetch-cli/fastfetch/releases/download/${ver}/${deb}" \
+        -O /tmp/fastfetch.deb ||
+    { echo "fastfetch: download failed, aborting" >&2; exit 1; }
     sudo dpkg -i /tmp/fastfetch.deb || sudo apt-get install -f -y
     rm -f /tmp/fastfetch.deb
 }

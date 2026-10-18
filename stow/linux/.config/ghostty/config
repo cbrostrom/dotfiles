@@ -64,3 +64,8 @@ keybind = ctrl+v=paste_from_clipboard
 # Run `ghostty +show-config --default --docs` to see all available options
 # Reload config: Ctrl+Shift+, (Linux)
 # =============================================================================
+
+# >>> herdr-radar font block
+font-codepoint-map = U+E1A0-U+E1BA=Herdr Agent Icons Max
+font-codepoint-map = U+E1C0-U+E1C5=Herdr Agent Icons Max
+# <<< herdr-radar font block
