@@ -6,60 +6,73 @@ user-invocable: true
 
 # Handoff Skill
 
-Transfer the current task — context, decisions, failed attempts, constraints — to a fresh agent. The receiving agent starts with **zero context**, so the handoff prompt must be a self-contained briefing.
-
 **User's arguments:** $ARGUMENTS
 
-## Prerequisites
+## Paseo (canonical): use Handover, not a homemade briefing
 
-Read the **paseo** skill. Call `list_profiles` before choosing the receiving agent. Do not create it until you have read the configured profiles and their `notes`.
+In Paseo Desktop / RPC agents, **do not** call `create_agent` with a hand-written wall of context unless Handover is unavailable.
 
-## Parsing arguments
+Direct the user to:
 
-1. **Agent profile** — explicit profile name first; otherwise choose the profile whose `notes` best match the work. Materialize it into `create_agent` as described by the **paseo** skill. If no profile fits, use Paseo's provider discovery fallback.
-2. **Isolation** — "in a worktree" / "worktree" → create a workspace with `isolation: "worktree"`, using a short branch name derived from the task.
+- **Handover pill** on the composer, or
+- **`/handover`** (optional focus text), or
+- Command Center → **Handover**
+
+Handover runs a scoped transcript summarizer, editable preview, artifact attachment, and optional **Save durable decisions to Higgins**. That is the supported session handoff path.
+
+Only if the user cannot use the UI (headless-only session, broken plugins): fall back to **Launch** below and match the **Handover schema** sections.
+
+## Higgins is not session handoff
+
+Use Higgins for **durable** facts (`current`, `gotchas`, project brain), via Handover's optional checkbox, `/digest`, or `.remember`. Do not replace Handover with vault dumps or `higgins load` as a transcript substitute.
+
+## Fallback launch (non-UI or emergency)
+
+Read the **paseo** skill. Call `list_profiles` before choosing the receiving agent.
+
+### Parsing arguments
+
+1. **Agent profile** — explicit profile name first; otherwise choose the profile whose `notes` best match the work. Materialize into `create_agent` per the **paseo** skill.
+2. **Isolation** — "in a worktree" / "worktree" → `create_workspace` with `isolation: "worktree"` and a short branch name from the task.
 3. **Task description** — anything else the user said.
 
-## The handoff prompt
-
-The receiving agent has zero context. Include:
+### Handover-aligned briefing (same fields as summary-fork summarizer JSON)
 
 ```
-## Task
-[Imperative description.]
+# Goal
+[Imperative task description.]
 
-## Context
-[Why this task exists, required context.]
-
-## Relevant files
-- `path/to/file.ts` — [what it is and why it matters]
-
-## Current state
+# Current state
 [What's done, what works, what doesn't.]
 
-## What was tried
-- [Approach] — [why it failed or was abandoned]
+# Decisions and rationale
+- [Decision — why]
 
-## Decisions
-- [Decision — rationale]
+# Files changed
+- `path` — [what changed]
 
-## Acceptance criteria
-- [ ] [Criterion]
+# Evidence and verification
+- [commands run, test output, paths]
 
-## Constraints
+# Failed or rejected approaches
+- [Approach] — [why abandoned]
+
+# Constraints and preferences
 - [Must-not / must-preserve]
+
+# Open questions and blockers
+- [Unknowns]
+
+# Recommended next action
+[Single concrete next step]
 ```
 
-**Preserve task semantics.** Investigate-only → "DO NOT edit files." Fix → "implement the fix." Refactor → "refactor, not rewrite." Carry the user's exact intent.
+**Preserve task semantics.** Investigate-only → "DO NOT edit files." Fix → implement the fix. Refactor → refactor, not rewrite.
 
-## Launch
+### Steps
 
-Prepare the handoff in a dedicated workspace:
+1. Select the current workspace or `create_workspace` with requested isolation.
+2. `create_agent` with `[Handoff] <task>` title, briefing as `initialPrompt`, and `workspaceId` when needed.
+3. Tell the user the agent stays in the subagent track until they detach manually.
 
-1. Select the current workspace or call `create_workspace` with the requested isolation.
-2. Call `create_agent` with a `[Handoff] <task>` title, the briefing as initial prompt, and the selected `workspaceId` when explicit placement is needed.
-3. Return the agent and workspace to the user, explaining that it remains in your subagent track until they detach it manually.
-
-Do not encode independence as a create mode and do not invoke CLI or wire-level detach operations. Detach is a user gesture in the subagents track.
-
-Do not wait or poll for the agent to finish.
+Do not wait or poll for completion. Detach is a user gesture only.

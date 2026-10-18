@@ -22,7 +22,7 @@ DOTFILES_STATE_DIR="$HOME/.cache/dotfiles"
 : "${DOTFILES_THROTTLE_SECONDS:=14400}"
 : "${DOTFILES_FETCH_TIMEOUT:=3}"
 : "${DOTFILES_STALE_DAYS:=7}"
-: "${DOTFILES_GIT_BIN:=$(command -v git 2>/dev/null || echo git)}"
+: "${DOTFILES_GIT_BIN:=${commands[git]:-git}}"
 
 mkdir -p "$DOTFILES_STATE_DIR"
 
@@ -32,14 +32,17 @@ _DF_STATUS="$DOTFILES_STATE_DIR/status"
 _DF_NOTIFIED="$DOTFILES_STATE_DIR/notified-sha"
 _DF_OWN_PUSHES="$DOTFILES_STATE_DIR/own-pushes"
 
+# zstat + EPOCHSECONDS replace the stat/date forks. Only the zstat builtin is
+# loaded (-F b:zstat) so the external `stat` keeps working elsewhere.
+zmodload -F zsh/stat b:zstat 2>/dev/null
+zmodload zsh/datetime 2>/dev/null
 _df_mtime() {
-    local m
-    m=$(stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null)
-    [[ "$m" == <-> ]] && echo "$m" || echo 0
+    local -A st
+    zstat -H st "$1" 2>/dev/null && echo "${st[mtime]}" || echo 0
 }
 _df_age() {
     local m=$(_df_mtime "$1")
-    echo $(( $(date +%s) - m ))
+    echo $(( EPOCHSECONDS - m ))
 }
 
 _df_format_age() {
@@ -51,9 +54,10 @@ _df_format_age() {
 }
 
 _df_should_check() {
-    [[ ! -f "$_DF_LAST_ATTEMPT" ]] && return 0
-    local age=$(_df_age "$_DF_LAST_ATTEMPT")
-    (( ${age:-0} > ${DOTFILES_THROTTLE_SECONDS:-14400} ))
+    # Runs on every startup: inline zstat, no subshell
+    local -A st
+    zstat -H st "$_DF_LAST_ATTEMPT" 2>/dev/null || return 0
+    (( EPOCHSECONDS - ${st[mtime]:-0} > ${DOTFILES_THROTTLE_SECONDS:-14400} ))
 }
 
 _df_with_timeout() {

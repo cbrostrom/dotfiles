@@ -20,7 +20,6 @@
 # =============================================================================
 tap "felixkratz/formulae"            # borders
 tap "muhammadhananasghar/tap"        # wormhole
-tap "tomanthony/brews"               # itermocil
 tap "oven-sh/bun"                    # bun (not yet in homebrew core)
 tap "shopify/shopify"                # shopify-cli
 tap "yoanbernabeu/tap"               # grepai
@@ -57,10 +56,8 @@ brew "actionlint"
 brew "autoconf"
 brew "bash"
 brew "cmake"
-brew "dotnet@6"
 brew "go"
 brew "m4"
-brew "node"                           # kept: some tools need a global node
 brew "openjdk"
 brew "pipx"
 brew "python-setuptools"
@@ -92,9 +89,7 @@ brew "ente-cli"
 brew "fastfetch"
 brew "htop"
 brew "lnav"
-brew "lsd"
 brew "ncdu"
-brew "ranger"
 brew "ripgrep-all"
 brew "switchaudio-osx"
 brew "syncthing"
@@ -117,13 +112,11 @@ brew "Giammarco-Ferranti/deja/deja"
 # =============================================================================
 brew "felixkratz/formulae/borders"
 brew "muhammadhananasghar/tap/wormhole"
-brew "tomanthony/brews/itermocil"
 brew "yoanbernabeu/tap/grepai"
 
 # =============================================================================
 # Casks — Apps
 # =============================================================================
-cask "barrier"
 cask "beeper"
 cask "bitwarden"
 cask "claude"

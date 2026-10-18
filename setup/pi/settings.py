@@ -31,6 +31,13 @@ REMOVED_PACKAGES = frozenset(
         "npm:pi-blackhole",
         "npm:pi-mcp-adapter",
         "git:github.com/v2nic/pi-caveman",
+        "npm:pi-cmux",
+        "npm:pi-paster",
+        "npm:@diegopetrucci/pi-notify",
+        "npm:@juanibiapina/pi-powerbar",
+        "npm:@narumitw/pi-tui-kit",
+        "npm:@nguyenquangthai/pi-todo",
+        "npm:@thisux/pi-double-esc-clear",
     }
 )
 

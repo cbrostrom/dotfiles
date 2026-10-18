@@ -1,6 +1,7 @@
 ---
 name: dotfiles-update
 description: "Update the Stow-based dotfiles locally and propagate an explicit profile to another machine."
+disable-model-invocation: true
 trigger: /dotfiles
 group: productivity
 ---

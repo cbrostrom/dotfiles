@@ -22,26 +22,51 @@ import sys
 path, marker = sys.argv[1], sys.argv[2]
 text = open(path, encoding="utf-8").read()
 
-old = """               Type.Object({
+replacements = [
+    (
+        """   const optionSchema = Type.Object({
+      title: Type.String({ description: "Short title for this option" }),
+      description: Type.Optional(
+         Type.String({ description: "Longer description explaining this option" }),
+      ),
+   });""",
+        f"""   const optionSchema = Type.Object({{
+      // {marker}
+      title: Type.Optional(Type.String({{ description: "Short title for this option" }})),
+      label: Type.Optional(Type.String({{ description: "Alias for title (models often send label instead of title)" }})),
+      description: Type.Optional(
+         Type.String({{ description: "Longer description explaining this option" }}),
+      ),
+   }});""",
+    ),
+    (
+        """               Type.Object({
                   title: Type.String({ description: "Short title for this option" }),
                   description: Type.Optional(
                      Type.String({ description: "Longer description explaining this option" }),
                   ),
-               }),"""
-
-new = f"""               Type.Object({{
+               }),""",
+        f"""               Type.Object({{
                   // {marker}
                   title: Type.Optional(Type.String({{ description: "Short title for this option" }})),
                   label: Type.Optional(Type.String({{ description: "Alias for title (models often send label instead of title)" }})),
                   description: Type.Optional(
                      Type.String({{ description: "Longer description explaining this option" }}),
                   ),
-               }}),"""
+               }}),""",
+    ),
+]
 
-if old not in text:
-    print("[pi-ask-user-patch] ERROR: upstream schema block not found — manual review needed", file=sys.stderr)
-    sys.exit(1)
+for old, new in replacements:
+    if old in text:
+        open(path, "w", encoding="utf-8").write(text.replace(old, new, 1))
+        print("[pi-ask-user-patch] applied label/title schema alias")
+        raise SystemExit(0)
 
-open(path, "w", encoding="utf-8").write(text.replace(old, new, 1))
-print("[pi-ask-user-patch] applied label/title schema alias")
+if "label: Type.Optional" in text and "optionSchema" in text:
+    print("[pi-ask-user-patch] skip — upstream already exposes label on options")
+    raise SystemExit(0)
+
+print("[pi-ask-user-patch] ERROR: upstream schema block not found — manual review needed", file=sys.stderr)
+raise SystemExit(1)
 PY

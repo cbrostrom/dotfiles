@@ -228,7 +228,7 @@ fi
 # =============================================================================
 # SECURITY MONITORING ALIASES
 # =============================================================================
-if [[ "$(uname -s)" == "Linux" ]]; then
+if $IS_LINUX; then
     # SSH monitoring
     alias sshstatus='sudo systemctl status sshd'
     alias sshrestart='sudo systemctl restart sshd'
@@ -270,7 +270,7 @@ fi
 # =============================================================================
 # STREAMING (SUNSHINE) ALIASES
 # =============================================================================
-if [[ "$(uname -s)" == "Linux" ]]; then
+if $IS_LINUX; then
     # Sunshine service management
     alias sunstatus='systemctl --user status sunshine'
     alias sunrestart='systemctl --user restart sunshine'
@@ -303,10 +303,10 @@ fi
 # =============================================================================
 # PI CODING AGENT
 # =============================================================================
-# pi binary resolves via ~/.local/bin/pi shim (newest fnm node that has pi).
-if command -v pi &>/dev/null; then
+# `pi` is a shell function (04-functions.zsh) → ~/.local/bin/pi shim → Pi-Bolt.
+if [[ -x "$HOME/.local/bin/pi" || -x "$HOME/dotfiles/stow/pi/.local/bin/pi" ]]; then
     # Start
-    alias pis='pi'                                   # plain start (current dir)
+    alias pis='pi'                                   # from ~ → ~/Projects (fff); else cwd
     alias piv='cd ~/Vaults && pi'                    # vault session
     alias pid='cd ~/dotfiles && pi'                  # dotfiles session
 
@@ -315,8 +315,9 @@ if command -v pi &>/dev/null; then
 
     # Updates
     # Running agents keep the old build in memory; pidoc lists the ones to restart.
-    alias piup="pi update --all; $HOME/dotfiles/scripts/pi-doctor.sh"   # pi + all extensions
-    alias piups="pi update self; $HOME/dotfiles/scripts/pi-doctor.sh"   # pi CLI only
+    alias piup='(command -v pi-bolt >/dev/null && pi-bolt update); (command -v pi-managed >/dev/null && pi-managed update self); pi update --all; $HOME/dotfiles/scripts/pi-doctor.sh'
+    alias piups='(command -v pi-bolt >/dev/null && pi-bolt update pi); (command -v pi-managed >/dev/null && pi-managed update self); pi update self; $HOME/dotfiles/scripts/pi-doctor.sh'
+    alias pipig='PI_BACKEND=pig pi'
 
     # Packages
     alias pil='pi list'                              # list installed extensions
@@ -346,8 +347,10 @@ PI coding agent — quick reference
   Extensions
     pil                 List installed extensions
     pii npm:<pkg>       Install extension
-    piup                Update pi + all extensions, then health check
-    piups               Update pi CLI only, then health check
+    piup                Pi-Bolt + managed self + extension updates, then doctor
+    piups               Pi-Bolt + managed self + pi self only, then doctor
+    pipig               PiG with ~/.pi/agent (experimental; extension gaps)
+    pi-managed          Pinned Node pi.dev release (parity / update self)
     pidoc               Health check (lists agents to restart after an update)
     pifix               Reinstall pi + update extensions
 
@@ -386,7 +389,7 @@ EOF
 # =============================================================================
 # SYSTEM UPDATE ALIASES
 # =============================================================================
-if [[ "$(uname -s)" == "Linux" ]]; then
+if $IS_LINUX; then
     # Debian/Ubuntu (apt)
     if command -v apt &>/dev/null; then
         alias systemupdate='echo "🔄 Updating system packages..." && sudo apt update && sudo apt upgrade -y && command -v flatpak &>/dev/null && echo "🔄 Updating Flatpak..." && flatpak update -y'
@@ -402,7 +405,7 @@ fi
 # PLATFORM-SPECIFIC ALIASES
 # =============================================================================
 # Linux-specific aliases
-if [[ "$(uname -s)" == "Linux" ]]; then
+if $IS_LINUX; then
     # Ubuntu bat is 'batcat', alias for 'bat'
     if command -v batcat &>/dev/null; then
         alias bat='batcat'
@@ -414,3 +417,6 @@ if [[ "$(uname -s)" == "Linux" ]]; then
 fi
 
 alias pod='podman'
+
+# Claude Code — cc runs claude
+alias cc='claude'

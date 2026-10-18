@@ -29,7 +29,7 @@ OUT_FILE = HOME / ".agents/capabilities.md"
 
 VERIFY_PATHS = [
     str(PLUGINS_DIR / "paseo-steps-viewer"),
-    str(EXTENSIONS_DIR / "file-search"),
+    str(EXTENSIONS_DIR / "model-policy-guard"),
     str(SKILLS_DIR / "higgins"),
 ]
 
@@ -153,7 +153,7 @@ def main() -> None:
         "",
         "## Pi extensions (`~/.pi/agent/extensions`)",
         "",
-        "Enforcement/UI extensions need no agent action. `file-search` provides the `fd`/`rg` tools.",
+        "Enforcement/UI extensions need no agent action. File search: `fffind`/`ffgrep` (opensec-pi-fff, override mode) or bash `rg`.",
         "",
         "| entry | purpose |",
         "|-------|---------|",

@@ -1,6 +1,6 @@
 ---
 name: call
-description: Call another agent — Paseo agent by id, or a terminal pi session via pi-peer. Use when the user says "call", "message", or "tell <some session/agent>", or when handing a finding to a peer session. Routes Paseo-first; terminal pi sessions are the fallback. Also governs when an agent may auto-call a peer unprompted.
+description: "Message a Paseo agent or pi-peer session. Triggers: call, message, tell <agent/session>. Paseo-first; pi-peer fallback."
 ---
 
 # Call a peer

@@ -1,72 +1,71 @@
 ---
 name: pi
-description: "Pi daily-driver reference. Use when checking models, MCP wiring, hook health, pi-cursor-sdk, or Pi usage alongside dotfiles. Triggers: Pi model selection, scoped models, Cursor SDK, MCP setup, hooks, subagents, Pi config."
+description: "Pi setup reference: models, MCP and tool restraint, hooks, capability map. Triggers: scoped models, MCP wiring, is there a tool for X."
+disable-model-invocation: true
 ---
 
 # PI Daily-Driver Skill
 
 Reference for Christian's PI coding agent daily-driver setup. Shares the same
-policy spine, skills, and vault as Cursor (and other agents via `.agents/`).
+policy spine, skills, and vault as other agents via `.agents/`.
 
 ## Quick model reference
 
-Scoped models (`enabledModels` / Ctrl+P / `/scoped-models`) — from `settings.base.json`:
+Scoped models (`enabledModels` / Ctrl+P / `/scoped-models`) — from `configs/model-policy.json`:
 
 | Model | Use for |
 |-------|---------|
-| `default` (cursor Auto, **default**) | Work account — included Auto pool |
-| `composer-2.5` | Work account — included Composer pool |
-| `github-copilot/claude-sonnet-5` | Copilot Sonnet |
-| `github-copilot/claude-opus-5` | Copilot Opus |
-| `github-copilot/gpt-5.6-*` | Copilot GPT 5.6 |
-| `github-copilot/claude-haiku-4.5` | Cheap Copilot Claude |
-| `github-copilot/gpt-5.4-mini` / `gpt-5-mini` | Cheap Copilot GPT |
-| `github-copilot/gemini-3.5-flash` | Copilot Gemini |
-| `opencode-go/*` | Private/retained Pi providers for non-Cursor machines |
-
-Non-allowlisted `cursor/*` models are omitted from `enabledModels` (guard would revert them).
+| `github-copilot/*` | Private ops / misc (GPT 5.6, Gemini, Copilot-billed Claude; pick deliberately) |
+| `opencode-go/*` (**default**) | Private ops and servers (`glm-5.3-flash`) |
 
 Cycle: **Ctrl+P / Shift+Ctrl+P**. List: `/scoped-models`. Full registry: `/model` or `pi --list-models <provider>`.
 
 **Not used:** spark presets, `--preset`, `/preset`, `pif`/`pit`.
 
-**Cost control (hard rules):**
+**Rules:**
 
-- Default driver: `default` (work account Auto). Thinking default from settings.
-- Cursor via `pi-cursor-sdk` + API key (bills to Cursor plan pools).
-- Only Auto / Composer are allowed on Cursor. Extension `cursor-model-guard` **reverts** any other `cursor/*` selection.
-- `PI_CURSOR_RUNTIME=local`, `PI_CURSOR_SETTING_SOURCES=none`, and `PI_CURSOR_ASK_QUESTION=0` in `~/.pi/agent/configs/.env`.
-- Decisions: use `ask_user` / `pi__ask_user` only — never `cursor_ask_question`.
-- Set Cursor dashboard on-demand spend limit to **$0**.
-- Avoid parallel subagents unless the win is clear (Explore uses Opus).
+- Pi is private/ops only → `opencode-go/*` by default, `github-copilot/*` on purpose. Work repos belong in Claude Code, not Pi.
+- `model-policy-guard` reverts selections outside the host's allowed groups.
+- Decisions: use `ask_user` / `pi__ask_user`.
+- Avoid parallel subagents unless the win is clear.
 
-## Installed Cursor stack
+Auth: `/login` → Anthropic (Claude Pro/Max), GitHub Copilot, OpenCode Go.
 
-```
-pi-cursor-sdk          — Cursor models via @cursor/sdk (local agent loop)
-cursor-model-guard     — blocks non-allowlisted cursor/* models
-env-loader             — loads ~/.pi/agent/configs/.env
-```
+## Claude in Pi
 
-Auth: `/login` → API key → Cursor (or `CURSOR_API_KEY`). Does **not** reuse `agent` CLI OAuth.
+- **Harness:** `pi` → Pi-Bolt shim (`PI_BACKEND=auto`). Claude Code CLI is not required; subscription OAuth lives in `auth.json`.
+- **Cache:** `PI_CACHE_RETENTION=long` in `~/.pi/agent/configs/.env` (1h Anthropic prompt cache). Keep `cacheWarming` at default `streaming`; avoid `idle` warming between runs.
+- **Stable system prompt:** No per-turn `systemPrompt` mutations (`style` is session-stable; no mode-switch extensions loaded). Prose rules: `/skill:writing` (not an extension).
+- **Thinking ladder:** default `low` on workstation; escalate model tier (Sonnet → Opus → Fable) before cranking thinking.
+- **Background work:** observational-memory and Paseo metadata on OpenCode Go — not Claude/Copilot quota.
 
 Upgrade packages: `piup` (`pi update --all` + `pi-doctor.sh`)  
 List installed: `pi list`  
 Health: `~/dotfiles/scripts/pi-doctor.sh` (`--fix` reinstall, `--prune` drop duplicate copies)
 
-> One install: `~/.npm-global` (`NPM_CONFIG_PREFIX`). The `~/.local/bin/pi` shim and Paseo both run it.
-> Updating rewrites it in place: restart the Paseo agents pi-doctor lists, or they crash on their next provider switch.
+> **Stack (one config dir `~/.pi/agent`):**  
+> - `pi` → shim → **Pi-Bolt** by default (`PI_BACKEND=auto`, ~30ms startup).  
+> - **Managed** pi.dev pin: `pi-managed`, `~/.pi/agent/install/releases/*`; `piup` runs `pi-managed update self`.  
+> - **PiG** (faster, lighter): `pipig` / `PI_BACKEND=pig` / `pi-pig` — TS extension gaps (yaml-hooks); see `~/.pi/agent/pig-migration/audit.md`.  
+> - npm fallback: `pi-npm` / `PI_BACKEND=npm` at `~/.npm-global`.  
+> `~/bin/pi` must stay on the shim (not managed launcher). `pi-doctor --fix` enforces that.  
+> After updates: restart agents pi-doctor lists.
 
 ## MCP
 
-Two layers (tool-restraint):
+Tool restraint: more tools means more ways to fail and a higher cognitive load. Enable only the servers the
+current work uses, prefer official servers for credentialed tools, and add a call-logging hook before any
+write-scoped server. If the agent picks the wrong tool, fix it with fewer tools and clearer descriptions,
+not a smarter model. Never put mega-servers (dockhand, 300+ tools) in native Pi exposure; use MCPorter per host.
 
-1. **Hot path (classic):** `~/.pi/agent/mcp.json` — `higgins` + `deja` with `directTools: true`.
+Two layers:
+
+1. **Hot path (classic):** `~/.pi/agent/mcp.json` — `higgins` + `deja` with `directTools: true` (currently disabled entries; use MCPorter for hot path in practice).
 2. **Everything else (MCPorter):** `pi-mcporter` + `~/.pi/agent/mcporter.json` (`defaultExposure: index`).
    Discover/call via the `mcporter` tool (`search` → `describe` → `call`), or shell `mcporter call server.tool …`.
    Server defs live in `~/.mcporter/mcporter.json` (dotfiles: `.config/mcporter/mcporter.json`).
 
-Cursor uses a curated `mcporter serve --stdio` bridge (`.cursor/mcp.json`) for a small keep-alive allowlist — not a full schema dump of dockhand.
+`hostConfigDiscovery` is **off** in Pi `mcp.json` — do not import host MCP dumps.
 
 `pi-mcp-adapter` may still discover host configs; keep non-hot servers out of Pi `mcp.json`.
 
@@ -76,7 +75,7 @@ Status: `/mcp status` · `/mcporter status` · `mcporter list`
 
 - Use `subagent` with `subagent_type: "Explore"` for fast read-only codebase sweeps.
 - Use `run_in_background: true` for parallel info gathering; poll with `get_subagent_result`.
-- Global `Explore` agent uses Claude Opus; main session stays on scoped models.
+- Global `Explore` agent uses `opencode-go/glm-5.3-flash`; main session stays on scoped models.
 - Default to the main thread unless parallelism gives a clear win.
 
 ## Brain and memory
@@ -90,6 +89,13 @@ Session summary: `/recap` / `/recap save` (smart-recap extension).
 ## Skills
 
 PI discovers `~/.agents/skills/` automatically. Shared skills via `/skill:<name>`.
+Pi-only skills live under `~/.pi/agent/skills/` (e.g. `lfg`); avoid duplicating names already in `.agents/skills/`.
+
+## Capability map
+
+For "is there a tool for X": read `~/.agents/capabilities.md` (generated by `~/dotfiles/scripts/gen-capabilities.py`,
+never edit by hand). Check the verify paths in its header exist; if any is missing, rerun the generator and re-read.
+Route with one to three entries: `name, why, where it lives, how to invoke`. If nothing matches, say so.
 
 ## Hooks (pi-yaml-hooks)
 
@@ -100,7 +106,7 @@ Validate: `/hooks-validate` · Status: `/hooks-status` · Reload: `/hooks-reload
 
 ```bash
 pi list                         # Installed packages
-pi --list-models cursor         # Cursor catalog
+pi --list-models github-copilot # Copilot catalog
 pi --version                    # PI version
 /scoped-models                  # Pick from enabledModels
 /hooks-validate                 # Hook config validity
@@ -111,7 +117,6 @@ pi --version                    # PI version
 - `~/dotfiles/stow/pi/.pi/agent/AGENTS.md` → `~/.pi/agent/AGENTS.md`
 - `~/dotfiles/setup/pi/settings.base.json` → merged into `~/.pi/agent/settings.json`
 - `~/dotfiles/stow/pi/.pi/agent/hook/hooks.yaml` → `~/.pi/agent/hook/hooks.yaml`
-- Extensions: `cursor-model-guard/`, footer, styled-outputs, …
+- Extensions: `model-policy-guard/`, footer, styled-outputs, …
 
-Local-only (never committed): `auth.json`, `trust.json`, `sessions/`, `npm/`,
-`cursor-sdk.json`, `configs/.env`, `cursor-sdk-model-list.json`.
+Local-only (never committed): `auth.json`, `trust.json`, `sessions/`, `npm/`, `configs/.env`.

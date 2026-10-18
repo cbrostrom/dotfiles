@@ -93,4 +93,8 @@ tui/scripts/
 # Build/cache artifacts
 .build/
 __pycache__/
-.pi
+# Root .pi is a symlink to stow/pi/.pi; anchor so the stow package itself
+# is not ignored (unanchored `.pi` forced `git add -f` for tracked files).
+/.pi
+# Vendored binaries (fd, rg) for Pi tools: never commit
+stow/pi/.pi/agent/bin/

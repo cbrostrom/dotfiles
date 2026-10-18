@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Git commits in meaningful chunks, with push and PR variants. Modes by trigger "commit"/"commit this"/"save my changes" (commit only), "commit and push" (commit + push), "commit push PR"/"ship this"/"open a PR" (commit + push + PR). Groups the current diff into logical chunked commits, writes conventional messages following repo conventions, never adds AI attribution trailers.
+description: "Chunked git commits with conventional messages; optional push/PR. Triggers: commit, commit and push, ship this, open a PR. No AI trailers."
 ---
 
 # Git Commit (chunked)
@@ -45,7 +45,7 @@ Commits must communicate meaning. From the full diff (`git status` + `git diff H
 
 - **Subject**: concise, imperative, why-focused, matches convention.
 - **Body** (non-trivial changes only): blank line after subject, explain motivation and trade-offs.
-- **No attribution ever**: no `Made with Cursor`, `Made-with:`, `Co-authored-by:` lines. Verify with `git log -1 --format=%B`; amend if one slipped in (only when safe).
+- **No attribution ever**: no `Made-with:` or `Made with ...` tool lines, no `Co-authored-by:` lines. Verify with `git log -1 --format=%B`; amend if one slipped in (only when safe).
 
 ```bash
 git add file1 file2 && git commit -m "$(cat <<'EOF'

@@ -1,11 +1,24 @@
 {
-  "$comment": "Model policy consumed by setup/pi.sh and extensions/model-policy-guard. hostAllowed groups are the new-selection allowlist; restored sessions are exempt (see guard). Cursor :fast variants and auto/expanded-context aliases are deliberately absent so any selection is reverted before a request is sent. OpenCode Go is a Pi provider, not a standalone CLI dependency. Classifications verified 11-09-2026; re-verify DeepSeek ZDR before 30-09-2026. hosts[].excludePackages drops entries from merged settings.json packages (e.g. GUI-only extras on servers).",
+  "$comment": "Model policy consumed by setup/pi.sh and extensions/model-policy-guard. hostAllowed groups are the new-selection allowlist; restored sessions are exempt (see guard). Pi is private-only: github-copilot, opencode-go and ollama. Claude (native anthropic and claude-bridge) is deliberately absent; work Claude runs in Claude Code only. OpenCode Go is a Pi provider, not a standalone CLI dependency. Classifications verified 11-09-2026; re-verify DeepSeek ZDR before 30-09-2026. hosts[].excludePackages drops entries from merged settings.json packages (e.g. GUI-only extras on servers).",
   "defaults": {
     "$comment": "Per-host defaults live in hosts[]. Hosts without an explicit default fall back to defaults.fallbackModel.",
     "fallbackModel": "opencode-go/glm-5.3-flash",
     "thinking": "low"
   },
   "groups": {
+    "copilot": [
+      "github-copilot/gpt-5.4",
+      "github-copilot/claude-sonnet-5",
+      "github-copilot/claude-opus-5",
+      "github-copilot/gpt-5.6-sol",
+      "github-copilot/gpt-5.6-terra",
+      "github-copilot/gpt-5.6-luna",
+      "github-copilot/gpt-6.1-sol",
+      "github-copilot/claude-haiku-4.5",
+      "github-copilot/gpt-5.4-mini",
+      "github-copilot/gpt-5-mini",
+      "github-copilot/gemini-3.5-flash"
+    ],
     "goPrivate": [
       "opencode-go/glm-5.1",
       "opencode-go/glm-5.2",
@@ -46,39 +59,21 @@
     ],
     "blockedUnknown": [
       "opencode-go/omen-alpha"
-    ],
-    "cursorWork": [
-      "cursor/composer-2.5",
-      "cursor/composer-2-5",
-      "cursor/gpt-5-6-sol@272k",
-      "cursor/gpt-5.6-sol@272k"
-    ],
-    "copilotWork": [
-      "github-copilot/gpt-5.4",
-      "github-copilot/claude-sonnet-5",
-      "github-copilot/claude-opus-5",
-      "github-copilot/gpt-5.6-sol",
-      "github-copilot/gpt-5.6-terra",
-      "github-copilot/gpt-5.6-luna",
-      "github-copilot/claude-haiku-4.5",
-      "github-copilot/gpt-5.4-mini",
-      "github-copilot/gpt-5-mini",
-      "github-copilot/gemini-3.5-flash"
     ]
   },
   "hosts": {
     "workstation": {
       "aliases": ["GY-M-WHKK2PF6N7"],
-      "groups": ["local", "goPrivate", "goConditional", "goRetained", "cursorWork", "copilotWork"],
+      "groups": ["copilot", "goPrivate", "goConditional", "goRetained", "local"],
       "theme": "pi-desktop-github-dark",
       "defaultProvider": "opencode-go",
       "defaultModel": "glm-5.3-flash",
-      "defaultThinkingLevel": "medium"
+      "defaultThinkingLevel": "low"
     },
     "cloudbro": {
       "aliases": ["cloudbro"],
-      "groups": ["goPrivate", "goConditional", "goRetained", "copilotWork"],
-      "excludePackages": ["npm:@narumitw/pi-caffeinate", "npm:pi-cursor-sdk"],
+      "groups": ["goPrivate", "goConditional", "goRetained", "copilot"],
+      "excludePackages": ["npm:@narumitw/pi-caffeinate"],
       "theme": "dark",
       "defaultProvider": "opencode-go",
       "defaultModel": "glm-5.3-flash",
@@ -102,9 +97,9 @@
     },
     "default-desktop": {
       "aliases": [],
-      "groups": ["goPrivate", "goConditional", "goRetained", "cursorWork", "copilotWork"],
-      "defaultProvider": "cursor",
-      "defaultModel": "default",
+      "groups": ["copilot", "goPrivate", "goConditional", "goRetained"],
+      "defaultProvider": "opencode-go",
+      "defaultModel": "glm-5.3-flash",
       "defaultThinkingLevel": "medium"
     }
   }

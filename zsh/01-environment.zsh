@@ -6,19 +6,22 @@
 # =============================================================================
 # OS DETECTION
 # =============================================================================
-OS_TYPE="$(uname -s)"
+# $OSTYPE is set by zsh itself (darwin25.4.0, linux-gnu): no uname fork.
 IS_MACOS=false
 IS_LINUX=false
 IS_WSL=false
 
-if [[ "$OS_TYPE" == "Darwin" ]]; then
-    IS_MACOS=true
-elif [[ "$OS_TYPE" == "Linux" ]]; then
-    IS_LINUX=true
-    if grep -q Microsoft /proc/version 2>/dev/null; then
-        IS_WSL=true
-    fi
-fi
+case "$OSTYPE" in
+    darwin*)
+        OS_TYPE=Darwin
+        IS_MACOS=true
+        ;;
+    linux*)
+        OS_TYPE=Linux
+        IS_LINUX=true
+        [[ -n "$WSL_DISTRO_NAME" || -r /proc/sys/fs/binfmt_misc/WSLInterop ]] && IS_WSL=true
+        ;;
+esac
 
 # =============================================================================
 # TERMINAL CONFIGURATION
@@ -102,7 +105,7 @@ export HOMEBREW_NO_AUTO_UPDATE=1
 # Skip post-install cleanup of old versions. Run `brew cleanup` weekly.
 export HOMEBREW_NO_INSTALL_CLEANUP=1
 # Let bare `brew bundle` / `brew bundle check` work from any cwd.
-export HOMEBREW_BUNDLE_FILE="$HOME/dotfiles/Brewfile"
+export HOMEBREW_BUNDLE_FILE="${DOTFILES_DIR:-$HOME/dotfiles}/Brewfile"
 
 # =============================================================================
 # NODE / BUN / FNM (cross-platform, $HOME-based)
@@ -199,4 +202,28 @@ if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then
         # Now run the actual gcloud command
         command gcloud "$@"
     }
+fi
+
+# =============================================================================
+# HOST-AGNOSTIC EXTRAS (moved out of .zshrc, which is only a module loader)
+# =============================================================================
+unset MAILCHECK
+
+# Go toolchain installed outside Homebrew (Linux servers)
+[[ -d /usr/local/go/bin ]] && export PATH="/usr/local/go/bin:$PATH"
+
+# npm global prefix (node-version-independent installs). Set here rather than in
+# ~/.npmrc (holds auth tokens, not stowed) so every host uses the same prefix.
+export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+export PATH="$HOME/.npm-global/bin:$PATH"
+# Shims (pi → Pi-Bolt, paseo, …) must win over same-named binaries in npm-global.
+# path is typeset -U in .zshenv, so re-prepending moves the entry to the front.
+export PATH="$HOME/.local/bin:$PATH"
+
+# Drop stale llmtrim CA/proxy env inherited from long-lived parents (Orca, etc.).
+# llmtrim was removed; missing certs make Node print NODE_EXTRA_CA_CERTS warnings.
+if [[ ! -f "$HOME/.llmtrim/ca.pem" ]]; then
+    unset NODE_EXTRA_CA_CERTS SSL_CERT_FILE CURL_CA_BUNDLE NODE_USE_ENV_PROXY
+    unset HTTPS_PROXY HTTP_PROXY ALL_PROXY https_proxy http_proxy all_proxy
+    unset NO_PROXY no_proxy
 fi

@@ -9,18 +9,11 @@
       "exposure": "index"
     },
     "github": {
-      "exposure": "index"
+      "exposure": "on-demand"
     },
     "codebase-memory-mcp": {
       "exposure": "index"
     },
-    "shopify-dev-mcp": {
-      "exposure": "index"
-    },
-    "atlassian-akqa": {
-      "exposure": "index"
-    },
-    "atlassian-fiskars": null,
     "dockhand-linuxbro": {
       "exposure": "on-demand"
     },

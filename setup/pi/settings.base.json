@@ -1,6 +1,6 @@
 {
-  "defaultModel": "default",
-  "defaultProvider": "cursor",
+  "defaultModel": "claude-sonnet-5-5",
+  "defaultProvider": "anthropic",
   "defaultThinkingLevel": "medium",
   "compaction": {
     "enabled": true,
@@ -11,10 +11,9 @@
   "enableInstallTelemetry": false,
   "quietStartup": true,
   "collapseChangelog": true,
-  "tuiMode": "regular",
+  "tuiMode": "fullscreen",
   "packages": [
     "npm:@juanibiapina/pi-extension-settings",
-    "npm:pi-cursor-sdk",
     "npm:pi-yaml-hooks",
     "npm:pi-ask-user",
     "npm:pi-web-access",

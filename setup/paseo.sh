@@ -4,6 +4,8 @@ set -euo pipefail
 
 DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 . "$DOTFILES_DIR/setup/lib.sh"
+# shellcheck source=lib/paseo-fleet-env.sh
+. "$DOTFILES_DIR/setup/lib/paseo-fleet-env.sh"
 activate_fnm
 
 PASEO_CONFIG_SRC="$DOTFILES_DIR/sources/paseo"
@@ -25,11 +27,15 @@ ORPHAN_PLUGINS=(
     reasoning-display
     subagent-activity
     usage-sidebar
-    # merged into workspace-activity, peers-and-calls, pi-admin and ops (29-09-2026)
+    # merged into workspace-activity, pi-admin and ops (29-09-2026)
     agents-history
     calls-board
     pi-peer-roster
     pi-maintenance
+    # calls console removed from bybrostrom/paseo-plugins (13-10-2026)
+    peers-and-calls
+    # replaced by dotfiles-managed daemon.agentProfiles (13-10-2026)
+    profile-sync
     model-policy
     skills
     mcporter-pill
@@ -277,10 +283,11 @@ done < <(jq -c '.plugins[]' "$MANIFEST")
 # Paseo agents use a curated Pi launcher; direct terminal Pi keeps full discovery.
 PASEO_CONFIG="${PASEO_HOME:-$HOME/.paseo}/config.json"
 PI_PASEO_LAUNCHER="$DOTFILES_DIR/scripts/pi-paseo"
-paseo_config_changed="$(python3 - "$PASEO_CONFIG" "$PI_PASEO_LAUNCHER" <<'PYEOF'
+PASEO_PROFILES="$DOTFILES_DIR/sources/paseo/agent-profiles.json"
+paseo_config_changed="$(python3 - "$PASEO_CONFIG" "$PI_PASEO_LAUNCHER" "$PASEO_PROFILES" <<'PYEOF'
 import json, os, sys
 
-config_path, launcher = sys.argv[1], sys.argv[2]
+config_path, launcher, profiles_path = sys.argv[1], sys.argv[2], sys.argv[3]
 config = {}
 if os.path.exists(config_path):
     with open(config_path) as f:
@@ -300,6 +307,11 @@ if relay in ("on", "off"):
     daemon = config.setdefault("daemon", {})
     daemon.setdefault("relay", {})["enabled"] = (relay == "on")
 
+# Dotfiles own agent profiles; app edits are overwritten on next setup run.
+if os.path.exists(profiles_path):
+    with open(profiles_path) as f:
+        config.setdefault("daemon", {})["agentProfiles"] = json.load(f)
+
 if json.dumps(config, sort_keys=True) == before:
     print("0")
 else:
@@ -312,7 +324,7 @@ PYEOF
 )"
 if [[ "$paseo_config_changed" == "1" ]]; then
     paseo reload --json >/dev/null
-    ok "Paseo Pi provider → lean launcher"
+    ok "Paseo config → Pi launcher, relay, agent profiles"
 fi
 
 ok "paseo plugins: $SKIPPED_COUNT current, $UPDATED_COUNT updated, $INSTALLED_COUNT installed, $REMOVED_COUNT removed"

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Always the Bun/Node @earendil-works/pi-coding-agent CLI (npm prefix ~/.npm-global).
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+# shellcheck source=/dev/null
+. "$DOTFILES_DIR/scripts/pi-lib.sh"
+pi_npm_exec "$@"

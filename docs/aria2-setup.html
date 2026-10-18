@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>linuxbro · aria2-ariang behind gluetun setup</title>
+<style>
+:root{--bg:#10151d;--panel:#19212c;--ink:#e8eef5;--muted:#adb9c9;--line:#334155;--accent:#8ac8ff;--ok:#a6dbb8;--warn:#ffd18a;--code:#0b1017}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--accent)}.layout{max-width:1420px;margin:auto;display:grid;grid-template-columns:270px minmax(0,1fr);gap:44px;padding:38px 30px}aside{position:sticky;top:24px;align-self:start;max-height:calc(100vh - 48px);overflow:auto}aside h2{font-size:16px;margin:0 0 12px}nav a{display:block;text-decoration:none;color:var(--muted);padding:6px 0;font-size:14px}nav a:hover{color:var(--accent)}main{max-width:940px;min-width:0}h1{font-size:clamp(32px,5vw,50px);line-height:1.12;letter-spacing:-1.4px;margin:8px 0 18px}h2{font-size:25px;line-height:1.3;margin:0 0 15px}h3{font-size:18px;margin:25px 0 10px}p{margin:12px 0}.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:1.8px;font-size:12px;font-weight:700}.lead{font-size:19px;color:var(--muted)}.tags{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}.tags span{border:1px solid var(--line);border-radius:99px;padding:4px 12px;font-size:13px}.callout{border-left:3px solid var(--accent);background:var(--panel);padding:14px 18px;margin:20px 0;border-radius:0 8px 8px 0}.warning{border-color:var(--warn)}.good{border-color:var(--ok)}section{border-top:1px solid var(--line);padding-top:30px;margin-top:38px}.step-title{display:flex;gap:12px;align-items:flex-start}.step-title input{width:21px;height:21px;margin-top:6px;accent-color:var(--ok);flex:none}.step-title>div{flex:1}.step-title label{cursor:pointer}section.done>.step-title h2{color:var(--ok)}.step-label{font-size:12px;color:var(--accent);display:block;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}.expect{color:var(--ok);font-size:14px}.small{font-size:13px;color:var(--muted)}code{font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}p code,li code,td code{background:var(--panel);padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}.codebox{border:1px solid var(--line);border-radius:9px;overflow:hidden;margin:16px 0;background:var(--code)}.codebar{display:flex;gap:8px;align-items:center;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}.codebar span{flex:1;overflow-wrap:anywhere}button{font:inherit;color:var(--ink);border:1px solid var(--line);background:transparent;padding:5px 10px;border-radius:5px;cursor:pointer}button:hover{border-color:var(--accent)}pre{margin:0;padding:18px;overflow:auto;tab-size:4}pre code{display:block;white-space:pre}ul,ol{padding-left:24px}li{margin:7px 0}table{width:100%;border-collapse:collapse;font-size:14px;margin:18px 0}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted)}.tablewrap{overflow:auto}.progress{font-size:13px;color:var(--ok);margin:16px 0}progress{width:100%;height:7px;accent-color:var(--ok)}details{background:var(--panel);padding:12px 16px;border:1px solid var(--line);border-radius:8px;margin:18px 0}summary{cursor:pointer;font-weight:600}footer{margin:40px 0;color:var(--muted);font-size:13px}.checklist{list-style:none;padding-left:0}.checklist input{accent-color:var(--ok)}@media(max-width:950px){.layout{display:block;padding:24px 18px}aside{position:static;max-height:none;margin-bottom:30px}nav{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}main{max-width:none}}@media(max-width:560px){nav{display:block}pre{padding:12px}table{font-size:12px}.codebar{flex-wrap:wrap}.codebar span{flex-basis:100%}}@media print{:root{--bg:#fff;--panel:#f4f5f7;--ink:#111;--muted:#444;--line:#bbb;--accent:#174f7c;--ok:#185f33;--warn:#985a00;--code:#fff}body{font-size:11px}.layout{display:block;padding:0}aside,button,.step-title input{display:none}main{max-width:none}section{break-before:auto}h2,h3,.codebar{break-after:avoid}pre{white-space:pre-wrap;overflow:visible}pre code{white-space:pre-wrap;overflow-wrap:anywhere;font-size:9px}a{text-decoration:none}.codebox{break-inside:auto}}
+</style>
+</head>
+<body><div class="layout"><aside aria-label="Guide navigation"><h2>linuxbro / aria2</h2><div class="progress" id="progress-text" aria-live="polite">0 of 10 steps checked</div><progress id="progress" max="10" value="0" aria-label="Guide progress"></progress><nav><a href="#overview">Scope &amp; boundaries</a><a href="#step-1">01 · Record the current stack</a><a href="#step-2">02 · Generate the RPC secret</a><a href="#step-3">03 · Add the secret to stack env</a><a href="#step-4">04 · Create host directories</a><a href="#step-5">05 · Edit the compose file</a><a href="#step-6">06 · Push to the repo</a><a href="#step-7">07 · Watch repo-sync deploy</a><a href="#step-8">08 · Verify LAN, tailnet, VPN</a><a href="#step-9">09 · Pin the image</a><a href="#step-10">10 · Rollback and sign off</a><a href="#sources">References</a></nav><p class="small">Checkmarks are local reminders only; no passwords are stored. Follow on linuxbro via SSH plus the Dockhand UI.</p><button type="button" id="print">Print / save PDF</button> <button type="button" id="reset">Reset checks</button></aside><main><header id="overview"><div class="eyebrow">Existing stack extension · No new volumes beyond two folders</div><h1>Add aria2/AriaNg to the downloaders stack, behind gluetun.</h1><p class="lead">Run <code>hurlenko/aria2-ariang</code> inside the existing <code>downloaders</code> project, sharing gluetun&rsquo;s network namespace so all BT/HTTP traffic exits the NordVPN tunnel. UI on LAN, tailnet, and Traefik at <code>dl.superbro.dk</code>.</p><div class="tags"><span>Gluetun v3.41.3 (NordVPN, Sweden)</span><span>network_mode: service:gluetun</span><span>LAN + tailnet ports</span><span>Traefik internal-only</span></div><div class="callout warning"><strong>This HTML runs no server commands.</strong> Copy buttons give text. All traffic from aria2 rides gluetun; if gluetun&rsquo;s healthcheck fails, aria2 is unreachable and downloads pause. Recreating gluetun restarts every downloader (qbit, sabnzbd, slskd, metube) in the stack; active connections re-establish on their own.</div><p>Target state:</p><div class="codebox"><div class="codebar"><span>Target boundaries</span></div><pre><code data-lang="text">Stack: downloaders  (project dir stays put, one service added)
+
+aria2 container
+  network_mode: "service:gluetun"     ← shares gluetun netns, zero own ports
+  /aria2/conf ← $DOCKER_VOLUME_CONFIG/aria2        RW (config, session, dht)
+  /aria2/data ← $CLOUDBRO_VOLUME_MEDIA/4tb/Downloads/aria2  RW (downloads)
+  UI + JSON-RPC on container port 8080, RPC_SECRET protected
+
+Published on gluetun:
+  192.168.1.100:8980 → 8080   (LAN)
+  100.100.1.100:8980 → 8080   (tailnet)
+
+Traefik (internal-only@docker, like qbit/sab):
+  dl.superbro.dk → gluetun:8080</code></pre></div></header><section id="step-1" data-step="1"><div class="step-title"><input type="checkbox" id="check-1"><div><span class="step-label">Step 01</span><h2><label for="check-1">Record the current stack</label></h2></div></div>
+<p>Keep a working copy so rollback is trivial. Work from SSH on linuxbro (alias <code>linuxbro</code>, port 27789).</p>
+<div class="codebox"><div class="codebar"><span>Back up the live compose before touching anything</span><code>cd ~ &amp;&amp; bash</code></div><pre><code data-lang="sh">cp ~/.config/appdata/dockhand/compose-repo/linuxbro/downloaders/docker-compose.yml \
+   ~/.config/appdata/dockhand/compose-repo/linuxbro/downloaders/docker-compose.yml.pre-aria2
+
+# Confirm gluetun is healthy before starting
+docker inspect gluetun --format '{{.State.Status}} {{.State.Health.Status}}'
+docker inspect qbittorrent sabnzbd slskd metube --format '{{.Name}} {{.State.Status}}'
+
+# Read the variable values the compose uses (paths, not secrets)
+grep -E 'DOCKER_VOLUME_CONFIG|CLOUDBRO_VOLUME_MEDIA|LAN_NETWORK|TZ' \
+   ~/.config/appdata/dockhand/compose-repo/linuxbro/downloaders/.env</code></pre></div>
+<p class="expect">Checkpoint: backup file exists, gluetun healthy, note the values of <code>DOCKER_VOLUME_CONFIG</code> and <code>CLOUDBRO_VOLUME_MEDIA</code> — you need them in steps 4 and 5.</p></section>
+<section id="step-2" data-step="2"><div class="step-title"><input type="checkbox" id="check-2"><div><span class="step-label">Step 02</span><h2><label for="check-2">Generate the RPC secret</label></h2></div></div>
+<div class="codebox"><div class="codebar"><span>Generate once, keep private</span></div><pre><code data-lang="sh">openssl rand -base64 24</code></pre></div>
+<p>Store the value only as a Dockhand stack variable (step 3). The RPC secret gates the aria2 JSON-RPC interface; without it anyone who can reach port 8980 can control aria2, including downloading into any mapped directory.</p>
+<p class="expect">Checkpoint: one random secret in your clipboard/ssh session, not pasted into chat or git.</p></section>
+<section id="step-3" data-step="3"><div class="step-title"><input type="checkbox" id="check-3"><div><span class="step-label">Step 03</span><h2><label for="check-3">Add the secret as a Dockhand stack variable</label></h2></div></div>
+<p>This stack keeps secrets in Dockhand&rsquo;s built-in stack variables, not in <code>.env</code> files. Dockhand injects them into the container environment at deploy time.</p>
+<ol>
+<li>Open Dockhand (<code>docker-lab.superbro.dk</code>) &rarr; stacks &rarr; <code>downloaders</code>.</li>
+<li>Open the stack&rsquo;s <strong>variables / stack variables</strong> editor (not the compose YAML, not the env file).</li>
+<li>Add one variable:</li>
+</ol>
+<div class="codebox"><div class="codebar"><span>New stack variable &mdash; value is your generated secret</span></div><pre><code data-lang="text">ARIA2_RPC_SECRET=paste-the-generated-secret-here</code></pre></div>
+<p>Save. Dockhand redeploys picks it up; the compose file still only references <code>${ARIA2_RPC_SECRET}</code>, so nothing secret is ever committed to the mirror.</p>
+<p class="expect">Checkpoint: variable saved in Dockhand; value exists in no file, no chat history and no git repo.</p></section>
+<section id="step-4" data-step="4"><div class="step-title"><input type="checkbox" id="check-4"><div><span class="step-label">Step 04</span><h2><label for="check-4">Create host directories</label></h2></div></div>
+<p>Docker creates missing bind-mount source dirs as root-only when a container starts, which produces confusing permission errors. Create them explicitly with your normal UID/GID 1000, matching the rest of the stack.</p>
+<div class="codebox"><div class="codebar"><span>Substitute the two values you recorded in step 1</span></div><pre><code data-lang="sh"># Replace /home/christian/.config and /media with the actual values from .env
+install -d -o 1000 -g 1000 -m 0755 /home/christian/.config/appdata/aria2
+install -d -o 1000 -g 1000 -m 0755 /media/4tb/Downloads/aria2</code></pre></div>
+<p class="expect">Checkpoint: both directories exist, owned by 1000:1000.</p></section>
+<section id="step-5" data-step="5"><div class="step-title"><input type="checkbox" id="check-5"><div><span class="step-label">Step 05</span><h2><label for="check-5">Edit the compose in the repo</label></h2></div></div>
+<p>The system of record is the git repo <code>cbrostrom/superbro-compose</code> — clone on the Mac at <code>~/.config/superbro-compose/</code>; the linuxbro host checkout (<code>~/.config/appdata/dockhand/compose-repo/linuxbro/</code>) is kept in sync by the <code>repo-sync</code> container. Make three edits to <code>~/.config/superbro-compose/linuxbro/downloaders/docker-compose.yml</code> on the Mac.</p>
+<h3>Edit A — gluetun <code>ports:</code>, add two lines</h3>
+<div class="codebox"><div class="codebar"><span>Target end state of gluetun ports (existing lines stay)</span></div><pre><code data-lang="yaml">    ports:
+      - "192.168.1.100:8090:8090"
+      - "192.168.1.100:8000:8000"
+      - "127.0.0.1:8081:8081"
+      - "100.100.1.100:8090:8090"
+      - "100.100.1.100:5030:5030"
+      - "192.168.1.100:8980:8080"
+      - "100.100.1.100:8980:8080"</code></pre></div>
+<h3>Edit B — gluetun <code>labels:</code>, add the Traefik route (six lines, same style as slskd)</h3>
+<div class="codebox"><div class="codebar"><span>Append inside gluetun labels, before the ports section ends</span></div><pre><code data-lang="yaml">      - traefik.http.routers.dl-lab.rule=Host(`dl.superbro.dk`)
+      - traefik.http.routers.dl-lab.entrypoints=websecure
+      - traefik.http.routers.dl-lab.tls.certresolver=letsencrypt
+      - traefik.http.routers.dl-lab.middlewares=internal-only@docker
+      - traefik.http.routers.dl-lab.service=dl-lab
+      - traefik.http.services.dl-lab.loadbalancer.server.port=8080</code></pre></div>
+<h3>Edit C — new <code>aria2</code> service</h3>
+<div class="codebox"><div class="codebar"><span>Add as a new top-level service next to metube</span></div><pre><code data-lang="yaml">  aria2:
+    image: hurlenko/aria2-ariang:latest
+    container_name: aria2
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    environment:
+      - RPC_SECRET=${ARIA2_RPC_SECRET}
+      - UPDATE_TRACKERS=yes
+    volumes:
+      - /home/christian/.config/appdata/aria2:/aria2/conf
+      - /media/4tb/Downloads/aria2:/aria2/data
+    mem_limit: 512m
+    cpus: 0.50</code></pre></div>
+<div class="callout warning"><strong>Use the real values from step 1</strong> for both volume sources — the snippet placeholders must be replaced if <code>DOCKER_VOLUME_CONFIG</code> or <code>CLOUDBRO_VOLUME_MEDIA</code> differ. Do not give the aria2 service a <code>networks:</code> or <code>ports:</code> key: it inherits gluetun&rsquo;s netns, and composing both fails validation.</div>
+<p>Structural syntax check without deploying (on the Mac clone; unset-variable warnings are expected and fine):</p>
+<div class="codebox"><div class="codebar"><span>Syntax check only</span></div><pre><code data-lang="sh">cd ~/.config/superbro-compose/linuxbro/downloaders
+docker compose config --quiet &amp;&amp; echo OK</code></pre></div>
+<p class="expect">Checkpoint: exits with OK despite unset-variable warnings; <code>git diff</code> shows only the three edits above.</p></section>
+<section id="step-6" data-step="6"><div class="step-title"><input type="checkbox" id="check-6"><div><span class="step-label">Step 06</span><h2><label for="check-6">Commit and push — repo-sync deploys it</label></h2></div></div>
+<p>The <code>repo-sync</code> container on linuxbro runs hourly: it pulls <code>master</code>, detects that <code>linuxbro/downloaders/</code> changed, and redeploys exactly that stack (<code>docker compose up -d --remove-orphans</code>). The RPC secret is a Dockhand stack variable (step 3), injected at deploy time regardless of what triggers the deploy.</p>
+<div class="codebox"><div class="codebar"><span>On the Mac clone</span></div><pre><code data-lang="sh">cd ~/.config/superbro-compose
+git pull --rebase
+git add linuxbro/downloaders/docker-compose.yml
+git commit -m "linuxbro/downloaders: add aria2-ariang behind gluetun (dl.superbro.dk)"
+git push origin master
+# then watch what repo-sync does on linuxbro:
+ssh linuxbro 'docker logs -f --tail 10 repo-sync'   # ctrl-c to stop watching</code></pre></div>
+<div class="callout warning"><strong>Do not race repo-sync.</strong> The cycle is ≤ 60 min; a host-side <code>docker compose up</code> or a premature Dockhand UI Deploy can conflict with the hourly pull. Only if repo-sync reports a conflict or error, fall back to a manual Dockhand UI deploy of the corrected file.</div>
+<p class="expect">Checkpoint: push accepted; repo-sync log shows pull + a deploy of <code>downloaders</code> without conflict.</p></section><section id="step-7" data-step="7"><div class="step-title"><input type="checkbox" id="check-7"><div><span class="step-label">Step 07</span><h2><label for="check-7">Watch the stack come up</label></h2></div></div>
+<p>Recreating gluetun restarts the other members of the project; that is expected. Verify through SSH on linuxbro:</p>
+<div class="codebox"><div class="codebar"><span>Verify the recreated stack and the RPC</span></div><pre><code data-lang="sh">docker inspect gluetun --format '{{.State.Health.Status}}'
+docker logs --tail 40 aria2
+docker inspect aria2 --format 'Status: {{.State.Status}}'</code></pre></div>
+<p>aria2 logs should show aria2 RPC listening on port 6800 and the AriaNg web server on 8080. If gluetun logs repeat blocked-inbound warnings for 8980, gluetun&rsquo;s firewall needs the port allowed; check its actual log line before changing anything.</p>
+<p class="expect">Checkpoint: gluetun healthy again, aria2 running, RPC line in logs.</p></section>
+<section id="step-8" data-step="8"><div class="step-title"><input type="checkbox" id="check-8"><div><span class="step-label">Step 08</span><h2><label for="check-8">Verify LAN, tailnet, VPN</label></h2></div></div>
+<ul class="checklist">
+<li>□ From a LAN device: <code>http://192.168.1.100:8980</code> opens AriaNg.</li>
+<li>□ From a non-LAN tailnet device: <code>http://100.100.1.100:8980</code> opens AriaNg.</li>
+<li>□ <code>http://dl.superbro.dk</code> opens AriaNg from both, and is refused (403/timeouts) from public networks.</li>
+<li>□ AriaNg connects to the RPC with your secret (it prompts; check &ldquo;referencing&rdquo; shows connected).</li>
+<li>□ Drop a small HTTP file or magnet via AriaNg and see the download land in <code>/media/4tb/Downloads/aria2</code>.</li>
+<li>□ Confirm aria2&rsquo;s own exit IP inside gluetun (container log or <code>docker exec aria2 sh -c 'nc -w3 ifconfig.me 80'; echo</code>); if inconclusive, gluetun&rsquo;s log shows the NordVPN handshake carrying traffic for the whole netns.</li>
+</ul>
+<p>Negative tests done with care: RPC without the secret must fail (HTTP 401/403 from AriaNg log or aria2 RPC error), and traefik access to <code>dl.superbro.dk</code> from a non-whitelisted IP must not serve content.</p>
+<p class="expect">Checkpoint: all boxes above ticked before considering the install done.</p></section>
+<section id="step-9" data-step="9"><div class="step-title"><input type="checkbox" id="check-9"><div><span class="step-label">Step 09</span><h2><label for="check-9">Pin the image</label></h2></div></div>
+<p>The rest of the stack is pinned by digest; match that once the container has pulled its first copy, since <code>:latest</code> can shift under you in the update cycle.</p>
+<div class="codebox"><div class="codebar"><span>Read the digest Docker actually pulled, commit it to the repo, let repo-sync redeploy</span></div><pre><code data-lang="sh">docker inspect hurlenko/aria2-ariang:latest --format '{{index .RepoDigests 0}}'
+# on the Mac clone: replace hurlenko/aria2-ariang:latest with that digest
+# in linuxbro/downloaders/docker-compose.yml, commit, push (step 6 command)</code></pre></div>
+<p class="expect">Checkpoint: committed compose references an immutable digest; repo-sync report shows the aria2-only redeploy.</p></section>
+<section id="step-10" data-step="10"><div class="step-title"><input type="checkbox" id="check-10"><div><span class="step-label">Step 10</span><h2><label for="check-10">Rollback and sign off</label></h2></div></div>
+<p>Primary rollback is a git revert — repo-sync then redeploys the pre-change state within the cycle:</p>
+<div class="codebox"><div class="codebar"><span>Revert on the Mac clone; repo-sync deploys the restored file</span></div><pre><code data-lang="sh">cd ~/.config/superbro-compose
+git revert &lt;commit-from-step-6&gt;
+git push origin master
+ssh linuxbro 'docker logs -f --tail 10 repo-sync'</code></pre></div>
+<p>Emergency-only alternative (if the repo is broken): the host backup prepared in step 1, restored on linuxbro with <code>docker compose --project-directory . -f docker-compose.yml.pre-aria2 --env-file .env up -d</code> — the stack variable is not injected there, which does not matter in rollback since the aria2 service no longer exists in that file. Delete the <code>ARIA2_RPC_SECRET</code> stack variable in Dockhand after any rollback succeeds.</p>
+<ul class="checklist"><li>□ Commit hash from step 6 recorded for the revert.</li>
+<li>□ Secret only in Dockhand stack variables and nowhere else (no files, no mirror).</li>
+<li>□ Both host directories exist with owner 1000:1000.</li>
+<li>□ Gluetun healthy; every other downloader container also running.</li>
+<li>□ AriaNg reachable via LAN, tailnet, and <code>dl.superbro.dk</code>.</li>
+<li>□ RPC rejects wrong/missing secret; <code>dl.superbro.dk</code> rejected off-tailnet.</li>
+<li>□ Sample download landed in <code>4tb/Downloads/aria2</code> and exited through the VPN.</li>
+<li>□ Repo (not a stray local edit) is the only source of the change; working tree clean after push.</li>
+<li>□ Image pinned by digest (step 9) in the committed compose.</li></ul>
+<div class="callout good"><strong>End state:</strong> one extra service in <code>downloaders</code>, no ports of its own, all traffic behind the existing NordVPN/NordVPN WireGuard tunnel, three access paths (LAN, tailnet, Traefik internal-only), git mirror in agreement with the live file, and a one-command rollback.</div></section><section id="sources"><h2>References</h2><ul>
+<li><a href="https://hub.docker.com/r/hurlenko/aria2-ariang">hurlenko/aria2-ariang image docs</a></li>
+<li><a href="https://github.com/qdm12/gluetun/wiki">Gluetun documentation (firewall, port forwarding, sharing netns)</a></li>
+<li><a href="https://docs.docker.com/engine/network/network-tutorial-standalone/">Docker compose: containers sharing a network namespace</a></li>
+<li><a href="https://docs.docker.com/engine/network/port-publishing/">Docker port publishing</a></li>
+<li><a href="https://doc.traefik.io/traefik/routing/providers/docker/">Traefik Docker provider labels</a></li>
+</ul><p>Live verification on linuxbro is required; this guide asserts configuration, not that it has already been applied or tested.</p></section><footer>Standalone HTML. No external scripts/fonts/analytics. Copy buttons provide text only; nothing executes.</footer></main></div><script>
+(() => {
+  'use strict';
+  const key = 'linuxbro-aria2-setup-v1';
+  const checks = Array.from(document.querySelectorAll('.step-title input'));
+  const progress = document.getElementById('progress');
+  const progressText = document.getElementById('progress-text');
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (_) {}
+  const refresh = () => {
+    const state = {};
+    checks.forEach(check => {
+      state[check.id] = check.checked;
+      check.closest('section').classList.toggle('done', check.checked);
+    });
+    const count = checks.filter(check => check.checked).length;
+    progress.max = checks.length;
+    progress.value = count;
+    progressText.textContent = `${count} of ${checks.length} steps checked`;
+    try { localStorage.setItem(key, JSON.stringify(state)); } catch (_) {}
+  };
+  checks.forEach(check => {
+    check.checked = saved[check.id] === true;
+    check.addEventListener('change', refresh);
+  });
+  refresh();
+  document.getElementById('print').addEventListener('click', () => window.print());
+  document.getElementById('reset').addEventListener('click', () => {
+    if (!window.confirm('Reset all guide completion checkmarks?')) return;
+    checks.forEach(check => { check.checked = false; });
+    refresh();
+  });
+  document.querySelectorAll('.codebox').forEach(box => {
+    const code = box.querySelector('code[data-lang]');
+    if (!code) return;
+    const bar = box.querySelector('.codebar');
+    const copy = document.createElement('button');
+    copy.type = 'button';
+    copy.textContent = 'Copy';
+    copy.addEventListener('click', async () => {
+      const text = code.textContent.replace(/\n?$/, '\n');
+      try {
+        if (!navigator.clipboard) throw new Error('Clipboard unavailable');
+        await navigator.clipboard.writeText(text);
+        copy.textContent = 'Copied';
+      } catch (_) {
+        const area = document.createElement('textarea');
+        area.value = text;
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        const copied = document.execCommand('copy');
+        area.remove();
+        copy.textContent = copied ? 'Copied' : 'Select text to copy';
+      }
+      window.setTimeout(() => { copy.textContent = 'Copy'; }, 1800);
+    });
+    bar.appendChild(copy);
+  });
+})();
+</script></body></html>

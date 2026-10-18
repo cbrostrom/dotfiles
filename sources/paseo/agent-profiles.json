@@ -1,0 +1,122 @@
+[
+  {
+    "id": "agent_profile_sync_claude_daily",
+    "name": "Work · Claude Daily",
+    "icon": "code",
+    "color": "orange",
+    "provider": "claude",
+    "model": "claude-haiku-5-5",
+    "thinkingOptionId": "low",
+    "notes": "Work: AKQA and Fiskars repos, native Claude Code. Routine implementation; keep context narrow. Escalate to Coder only when blocked."
+  },
+  {
+    "id": "agent_profile_sync_claude_coder",
+    "name": "Work · Claude Coder",
+    "icon": "hammer",
+    "color": "amber",
+    "provider": "claude",
+    "model": "claude-sonnet-5-5",
+    "thinkingOptionId": "medium",
+    "notes": "Work: AKQA and Fiskars repos, native Claude Code. Default driver for substantial implementation and refactors. Escalate to Lead/Brain only when blocked."
+  },
+  {
+    "id": "agent_profile_sync_claude_lead",
+    "name": "Work · Claude Lead",
+    "icon": "microscope",
+    "color": "violet",
+    "provider": "claude",
+    "model": "claude-opus-5-5",
+    "thinkingOptionId": "medium",
+    "notes": "Work: AKQA and Fiskars repos, native Claude Code. Planning and multi-file coordination. Escalate to Brain only when blocked."
+  },
+  {
+    "id": "agent_profile_sync_claude_brain",
+    "name": "Work · Claude Brain",
+    "icon": "brain",
+    "color": "indigo",
+    "provider": "claude",
+    "model": "claude-fable-5-1",
+    "thinkingOptionId": "high",
+    "notes": "Work: AKQA and Fiskars repos, native Claude Code. Hardest architecture and root-cause work. Use sparingly; drop back to Coder when unblocked."
+  },
+  {
+    "id": "agent_profile_mtw08xvb_stqju49u3k",
+    "name": "Private · Go Daily",
+    "icon": "code",
+    "color": "orange",
+    "provider": "pi",
+    "model": "opencode-go/glm-5.3-flash",
+    "thinkingOptionId": "low",
+    "notes": "Private: personal and pi projects. Default for ordinary coding, plugin work, and small-medium refactors. Prefer Higgins and structural lookup before file reads. Keep context narrow. Escalate to Go Heavy only when the change spans many files or repeated implementation attempts fail."
+  },
+  {
+    "id": "agent_profile_mtw0350n_kc9ncbwp2pe",
+    "name": "Private · Go Heavy",
+    "icon": "hammer",
+    "color": "amber",
+    "provider": "pi",
+    "model": "opencode-go/kimi-k2.7-code",
+    "thinkingOptionId": "medium",
+    "notes": "Private: personal and pi projects. Use for large refactors, broad multi-file implementation, and long coding loops. Build a plan first, use targeted repository structure, verify incrementally, and checkpoint durable state. Do not use for routine edits."
+  },
+  {
+    "id": "agent_profile_mtw0r69t_3dh06qmkt5f",
+    "name": "Private · Go Architect",
+    "icon": "microscope",
+    "color": "emerald",
+    "provider": "pi",
+    "model": "opencode-go/glm-5.3",
+    "thinkingOptionId": "high",
+    "notes": "Private: personal and pi projects. Reserve for ADRs, system design, architecture review, and consequential tradeoff analysis. Read existing decisions first, challenge assumptions, and optimize for long-term maintainability. Hand implementation to another profile."
+  },
+  {
+    "id": "agent_profile_mtw0sp9l_lvs8qc9lse8",
+    "name": "Private · Go Janitor",
+    "icon": "sparkles",
+    "color": "teal",
+    "provider": "pi",
+    "model": "opencode-go/deepseek-v4-flash",
+    "thinkingOptionId": "minimal",
+    "notes": "Private: personal and pi projects. Use for maintenance, log analysis, repository cleanup, and repetitive operational work. Prefer commands and structured summaries over source reading. Never inspect secrets or container environment values. Stop before destructive actions and escalate unclear failures to Go Detective."
+  },
+  {
+    "id": "agent_profile_mtw0tmtd_j9lckyk5tp",
+    "name": "Private · Go Detective",
+    "icon": "search",
+    "color": "violet",
+    "provider": "pi",
+    "model": "opencode-go/deepseek-v4-pro",
+    "thinkingOptionId": "medium",
+    "notes": "Private: personal and pi projects. Use for difficult debugging, root-cause analysis, dependency tracing, and unexplained behavior. Gather evidence before proposing fixes, test competing hypotheses, and avoid unrelated context. Never inspect secrets, environment values, or credential stores."
+  },
+  {
+    "id": "agent_profile_mu1548ue_ej2fzw9ptb8",
+    "name": "Private · Go Memory",
+    "icon": "brain",
+    "color": "indigo",
+    "provider": "pi",
+    "model": "opencode-go/qwen3.8-flash",
+    "thinkingOptionId": "low",
+    "notes": "Private: personal and pi projects. Use for project summaries, Higgins maintenance, ADR updates, architectural indexes, and context compression. Preserve decisions, rationale, constraints, gotchas, and next actions. Remove noise and never copy secrets, environment values, or raw credentials into memory."
+  },
+  {
+    "id": "agent_profile_sync_copilot_daily",
+    "name": "Private · Copilot · Daily",
+    "icon": "code",
+    "color": "teal",
+    "provider": "pi",
+    "model": "github-copilot/claude-sonnet-5",
+    "thinkingOptionId": "low",
+    "notes": "Private: personal and pi projects. Default profile for routine implementation and review. Keep tasks bounded and context targeted. Escalate to Copilot Developer for broad or consequential work."
+  },
+  {
+    "id": "agent_profile_sync_copilot_developer",
+    "name": "Private · Copilot · Developer",
+    "icon": "hammer",
+    "color": "emerald",
+    "provider": "pi",
+    "model": "github-copilot/gpt-5.6-sol",
+    "thinkingOptionId": "medium",
+    "notes": "Private: personal and pi projects. Use for larger implementation, architectural changes, and difficult debugging on the Copilot subscription. No separate Brain profile is created because Astra and Fable 5.1 are not currently available through Copilot."
+  }
+]

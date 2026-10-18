@@ -534,6 +534,22 @@ allow-app() {
 # =============================================================================
 # AI / VAULT FUNCTIONS
 # =============================================================================
+# Pi coding agent — stowed shim (PI_BACKEND: bolt default, pig/managed/npm overrides).
+# FFF (pi-fff) refuses to index $HOME when enableHomeDirScanning is false and spams a
+# warning every session. Start from ~/Projects instead unless PI_ALLOW_HOME=1.
+pi() {
+    local shim="$HOME/.local/bin/pi"
+    [[ -x "$shim" ]] || shim="$HOME/dotfiles/stow/pi/.local/bin/pi"
+    if [[ -z "${PI_ALLOW_HOME:-}" && "$PWD" == "$HOME" && -d "$HOME/Projects" ]]; then
+        builtin cd "$HOME/Projects" || return 1
+    fi
+    if [[ -x "$shim" ]]; then
+        "$shim" "$@"
+        return $?
+    fi
+    command pi "$@"
+}
+
 # Higgins memory pipeline — extract PI session history into vault markdown
 # Usage: extract-sessions          # extract today's sessions (default)
 #        extract-sessions --reindex # re-extract all sessions

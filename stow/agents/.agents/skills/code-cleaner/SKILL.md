@@ -1,6 +1,6 @@
 ---
 name: code-cleaner
-description: "Audit code quality using aislop and fallow. Reads findings, estimates fix complexity per tier, recommends a model for each. Never fixes without permission. Triggers: audit code health, detect AI slop, find duplication, unused code, complexity."
+description: "AI-slop and code-health audit with a fix plan and model recommendation. Never edits without permission."
 disable-model-invocation: true
 ---
 
@@ -21,7 +21,7 @@ aislop scan || true
 
 **JS/TS projects (has package.json):**
 ```bash
-FALLOW_AGENT_SOURCE=cursor fallow audit --format json --quiet --explain 2>/dev/null || true
+FALLOW_AGENT_SOURCE=pi fallow audit --format json --quiet --explain 2>/dev/null || true
 ```
 
 If `fallow` is not on PATH: `npx --yes fallow audit --format json --quiet --explain 2>/dev/null || true`
@@ -95,7 +95,7 @@ Shall I proceed with [specific subset]?
 - fallow: always `--format json --quiet 2>/dev/null || true`. Exit 1 = issues found (normal). Exit 2 = real error.
 - Never run `fallow watch` (interactive, never exits).
 - Never enable fallow telemetry.
-- Set `FALLOW_AGENT_SOURCE=cursor` for cursor sessions.
+- Set `FALLOW_AGENT_SOURCE=pi` for Pi sessions.
 
 ## Hard Constraints
 

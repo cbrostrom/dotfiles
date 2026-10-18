@@ -136,7 +136,7 @@ except Exception:
 ' "$mcp_json" 2>/dev/null || echo 0)
     label="${mcp_json/#$HOME/~}"
     if [[ "$mcp_count" -gt 15 ]]; then
-        _review "$mcp_count MCP servers in $label — trim with tool-restraint"
+        _review "$mcp_count MCP servers in $label — trim (see pi skill, MCP section)"
     else
         _info "$mcp_count MCP servers in $label"
     fi

@@ -8,32 +8,27 @@
 # Run ~/dotfiles/scripts/install/pi-extensions.sh to install missing entries
 # and update existing ones. doctor.sh checks that every entry is on disk.
 
+# Per-host exclusions (e.g. pi-caffeinate off Linux servers): excludePackages in
+# stow/pi/.pi/agent/configs/model-policy.json. Pi-Bolt's own layer (piBolt.packages,
+# adds opensec-pi-fff) is managed by scripts/install/pi-bolt.sh, not this file.
+
 # --- git installs ---
 git:github.com/bybrostrom/pi-extensions
 git:github.com/NVlabs/SoL-Pi
 
 # --- npm installs ---
 npm:pi-ask-user
-npm:pi-cmux
-npm:pi-cursor-sdk
 npm:pi-extmgr
-npm:pi-mcp-adapter
 npm:pi-mcporter
 npm:pi-observational-memory
-npm:pi-paster
 npm:pi-permission-system
 npm:pi-rtk-optimizer
 npm:pi-web-access
 npm:pi-yaml-hooks
 npm:context-mode
-npm:@diegopetrucci/pi-notify
 npm:@gotgenes/pi-subagents
 npm:@juanibiapina/pi-extension-settings
-npm:@juanibiapina/pi-powerbar
 npm:@narumitw/pi-caffeinate
-npm:@narumitw/pi-tui-kit
-npm:@nguyenquangthai/pi-todo
 npm:@shift-labs/pi-peer
-npm:@thisux/pi-double-esc-clear
 npm:@juicesharp/rpiv-config
 npm:@juicesharp/rpiv-todo

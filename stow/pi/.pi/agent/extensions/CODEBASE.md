@@ -19,15 +19,13 @@ Runtime `~/.pi/agent/extensions/` mixes Stow-managed extensions with machine-loc
 | `context-mode-enforcer/` | tool_call guard forcing large output through ctx_* tools |
 | `env-loader/` | Injects `~/.pi/agent/configs/.env` into process.env at startup |
 | `file-search/` | First-class `fd` and `rg` tools for pi |
-| `footer/` | Status footer bar: git, model, tokens, powerbar segments |
+| `sleek-ui/` | Terminal TUI theme, status bar, tools, side panel (`/sleek`). Terminal only; not in Paseo RPC. |
 | `llmtrim-guard/` | LLM trim guard |
 | `model-policy-guard/` | Model policy enforcement |
 | `plan-mode/` | `/plan` toggle: read-only plan mode with plan_complete signal |
 | `protected-paths/` | Path protection guards |
 | `secret-redaction/` | Last-line secret redaction defence |
 | `rtk.ts` | Rewrites bash commands to `rtk` for token savings |
-| `startup/` | Startup keybinding/config handling |
-| `styled-outputs/` | Themed TUI renderers; built-in tool overrides (replaces `npm:pi-tool-display`) |
 
 ## Machine-local (not in dotfiles)
 

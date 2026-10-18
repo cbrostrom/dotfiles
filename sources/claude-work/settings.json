@@ -1,0 +1,118 @@
+{
+  "model": "sonnet",
+  "modelSettings": { "claude-fable-5-1": { "effortLevel": "medium" } },
+  "theme": "dark",
+  "enabledPlugins": { "context-mode@context-mode": true },
+  "extraKnownMarketplaces": { "context-mode": { "source": { "source": "github", "repo": "mksglu/context-mode" } } },
+  "statusLine": { "type": "command", "command": "ccstatusline", "padding": 0, "refreshInterval": 10 },
+  "env": {
+    "CLAUDE_CODE_DISABLE_1M_CONTEXT": "0",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "haiku",
+    "CLAUDE_CODE_SUBAGENT_MODEL_FORCE": "1",
+    "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS": "4",
+    "BASH_MAX_OUTPUT_LENGTH": "20000",
+    "MAX_MCP_OUTPUT_TOKENS": "15000",
+    "CONTEXT_MODE_DATA_DIR": "${HOME}/.claude/context-mode"
+  },
+  "disableWorkflows": true,
+  "disableClaudeAiConnectors": true,
+  "cleanupPeriodDays": 30,
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(npm run:*)",
+      "Bash(shopify:*)",
+      "Bash(mw list:*)",
+      "Bash(mw call atlassian-agent-akqa.*)",
+      "Bash(mw call atlassian-agent-fiskars.*)",
+      "Bash(mw call shopify-dev-mcp.*)",
+      "Bash(mw call codebase-memory-mcp.*)"
+    ],
+    "deny": [
+      "Edit(~/.pi/**)",
+      "Edit(~/Vaults/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.config/infra-map.md)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.p12)",
+      "Read(**/.netrc)",
+      "Read(**/.npmrc)",
+      "Read(**/.git-credentials)",
+      "Read(**/id_rsa)",
+      "Read(**/id_ed25519)",
+      "Read(~/.pi/agent/auth.json)",
+      "Read(~/.pi/agent/configs/.env)",
+      "Read(~/.mcporter/tokens/**)",
+      "Read(~/.mcporter/credentials.json)",
+      "Read(~/.aws/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.kube/config)",
+      "Read(~/.docker/config.json)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)",
+      "Edit(**/*.pem)",
+      "Edit(**/*.key)",
+      "Edit(**/.netrc)",
+      "Edit(**/.npmrc)",
+      "Edit(~/.aws/**)",
+      "Edit(~/.ssh/**)",
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(tailscale *)",
+      "Bash(git push --force*)",
+      "Bash(mcporter)",
+      "Bash(mcporter *)",
+      "Bash(mw config*)",
+      "Bash(mw auth*)",
+      "Agent(model:*opus*)",
+      "Agent(model:*fable*)",
+      "Agent(model:*sonnet*)"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "$HOME/.claude/hooks/work-scope-guard.sh", "timeout": 10 },
+          { "type": "command", "command": "$HOME/.claude/hooks/cc-billing-guard.sh", "timeout": 20 }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"$HOME/.claude/hooks/context-mode-cache-heal.mjs\"" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "$HOME/.claude/hooks/guard-destructive.sh", "timeout": 10 },
+          { "type": "command", "command": "$HOME/.agents/hooks/push-guard.sh pi", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          { "type": "command", "command": "$HOME/.claude/hooks/guard-agent.sh", "timeout": 10 }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "$HOME/.claude/hooks/higgins-session-capture.sh", "timeout": 90 }
+        ]
+      }
+    ]
+  }
+}

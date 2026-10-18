@@ -42,7 +42,10 @@ require an OpenCode home directory.
 Paseo is not a Stow package. Its home directory mixes stable configuration
 with runtime state, plugin checkouts, sockets, logs, keys, and other machine
 data. Tracked inputs live under `sources/paseo/`; `setup/paseo.sh` manages the
-runtime directory explicitly.
+runtime directory explicitly (opt-in via `WITH_PASEO=1`; herdr is the default
+agent workspace — see `docs/herdr.md` and `sources/herdr/`). Herdr follows the
+same split: `sources/herdr/` holds the plugin registry and base config;
+`setup/herdr.sh` provisions the runtime per host profile.
 
 Stow owns links only. Package installation, generated settings, OS defaults,
 and cross-filesystem copies remain explicit setup tasks outside this directory.

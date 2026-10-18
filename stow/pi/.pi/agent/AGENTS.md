@@ -25,7 +25,7 @@ Default response format — answer-first, scan-friendly:
 
 ## Models
 
-Default `cursor/default` (work Auto pool). Presets via `/preset`: `fast` (gpt-5.4-mini, shell/edits), `composer` (Composer pool), `big-pickle` (opencode, off-Cursor). Full list: `pi --list-models` over raw JSON.
+Pi is private and servers only: `opencode-go/*` (default, flat-rate), `github-copilot/*` (choose deliberately via `/model`), `ollama/*` (local). No Claude via Pi: `anthropic/*` and `claude-bridge/*` are blocked. Work is Claude Code. Background workers (metadata, observational-memory): OpenCode Go only. Policy: `~/.pi/agent/configs/model-policy.json`. Scoped list: `/scoped-models`.
 
 ## Memory
 
@@ -43,7 +43,7 @@ Direct (tools loaded inline, in `~/.pi/agent/mcp.json`): `higgins` only. Everyth
 - `mcporter({ action: "describe", selector: "server.tool" })` — schema before first call.
 - `mcporter({ action: "call", selector: "server.tool", args: {...} })` — execute.
 
-Use it proactively when a task touches Jira/Confluence (`atlassian-*`), GitHub issues/PRs (`github`), Shopify dev (`shopify-dev-mcp`), the codebase knowledge graph (`codebase-memory-mcp`), the node/browser REPLs (`node_repl`, `cua_repl`), or when hunting for a machine-local tool/plugin/skill (`paseo-steps-viewer` → `list_capabilities`; see `/skill:capabilities`). Server admin (install, OAuth, config) is CLI-only: `mcporter list | call | auth | config`.
+Use it proactively when a task touches GitHub issues/PRs (`github`), the codebase knowledge graph (`codebase-memory-mcp`), the node/browser REPLs (`node_repl`, `cua_repl`), homelab services (`dockhand-*`, `cloudflare-dns-*`), or when hunting for a machine-local tool/plugin/skill (`paseo-steps-viewer` → `list_capabilities`; see `/skill:pi`). Server admin (install, OAuth, config) is CLI-only: `mcporter list | call | auth | config`.
 
 Paseo layer: Paseo-launched agents receive Paseo's own tool catalog by injection (`daemon.mcp.injectIntoAgents`) — use those for cross-agent/workspace/browser orchestration there, prefer `pi-peer` only in terminal sessions, and never add `paseo` to mcporter (duplicate surface).
 
@@ -54,11 +54,11 @@ Disabled servers stay disabled on purpose — tool-restraint; enable per-session
 Auto-discovered from `~/.agents/skills/`. Load on demand: `/skill:<name>`.
 
 - Skills with `disable-model-invocation: true` in frontmatter are hidden from the system prompt but still invocable via `/skill:name` — no startup token cost, full functionality on demand.
-- Capability map (Paseo plugins, pi extensions, skills — what exists, where, when to use): `/skill:capabilities`. Generated manifest: `~/.agents/capabilities.md`.
+- Capability map (Paseo plugins, pi extensions, skills — what exists, where, when to use): `/skill:pi` (Capability map section). Generated manifest: `~/.agents/capabilities.md`.
 
 ## Web fetching
 
-`moli fetch --dump markdown --wait-until done "<url>"` for pages; `web_search` for discovery; `fetch_content` only if moli unavailable. Recipes: `/skill:moli-webfetch`.
+`web_search` for discovery, `fetch_content` for a page (pi-web-access). `ctx_fetch_and_index` when the page should be searched rather than read whole.
 
 ## pi-peer
 
@@ -73,18 +73,4 @@ Own plugins are git-installed from `bybrostrom/paseo-plugins` (canonical source;
 - Project trust: `/trust` once in trusted repos; keep `defaultProjectTrust` at `"ask"`.
 - Hooks: `pi-yaml-hooks` installed — `/hooks-status` on first session.
 - Subagents: `subagent_isolated` for narrow parallelisable tasks; main thread otherwise.
-- Token awareness: scoped reads, grep before reading large files.
-
-<!-- BEGIN COMPOUND PI TOOL MAP -->
-## Compound Engineering (Pi compatibility)
-
-This block is managed by compound-plugin.
-
-Pi extensions used by this plugin:
-- Required: `@gotgenes/pi-subagents` provides the `subagent` tool used by skills that dispatch parallel agents
-- Recommended: `pi-ask-user` (by edlsh) provides the `ask_user` tool; skills fall back to numbered options in chat when it is missing
-
-Install with:
-  pi install npm:@gotgenes/pi-subagents
-  pi install npm:pi-ask-user
-<!-- END COMPOUND PI TOOL MAP -->
+- Token awareness: scoped reads, grep before reading large files. Search with `rg` and list files with `rg --files -g '<glob>'` in bash (RTK-rewritten); avoid `fd` (not rewritten).

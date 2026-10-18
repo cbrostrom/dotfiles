@@ -1,0 +1,2 @@
+Upstream: https://github.com/pr83-glitch/Pr83-glitch-Pi-Extensions/tree/main/sleek-ui
+Pinned: 0.58.0 (vendor copy in dotfiles; not loaded by pi-paseo / Paseo RPC)
