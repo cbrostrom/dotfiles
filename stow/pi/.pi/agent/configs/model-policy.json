@@ -80,7 +80,7 @@
       "defaultThinkingLevel": "low"
     },
     "linuxbro": {
-      "aliases": [],
+      "aliases": ["LinuxBro", "linuxbro"],
       "groups": ["goPrivate", "goConditional"],
       "excludePackages": ["npm:@narumitw/pi-caffeinate"],
       "defaultProvider": "opencode-go",
@@ -88,7 +88,7 @@
       "defaultThinkingLevel": "low"
     },
     "superbro": {
-      "aliases": [],
+      "aliases": ["SuperBro", "superbro"],
       "groups": ["goPrivate", "goConditional"],
       "excludePackages": ["npm:@narumitw/pi-caffeinate"],
       "defaultProvider": "opencode-go",
