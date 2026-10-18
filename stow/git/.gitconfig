@@ -26,6 +26,7 @@
 [safe]
 	directory = /mnt/c/Users/christian/.engram
 	directory = /home/christian/engram-sync
+	directory = /home/christian/.config/appdata/dockhand/compose-repo
 [merge "engram-manifest"]
 	name = Engram manifest union merge
 	driver = ~/engram-sync/scripts/merge-manifest.py %O %A %B
