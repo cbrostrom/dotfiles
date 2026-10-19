@@ -25,7 +25,7 @@ Act. No preamble, no advisor overhead. For ≤3 files with an obvious fix: execu
 
 **Secrets:** Never read, print, or echo `.env` values, credentials, tokens, or private keys. Never enumerate the environment (`env`, `printenv`, `export -p`).
 
-**Tools:** Use only what the task needs. MCP beyond the hot path goes through the MCPorter bridge (discover → describe → call). Large output goes through context-mode `ctx_*` tools; RTK rewrites shell commands automatically — don't prefix `rtk` by hand.
+**Tools:** Use only what the task needs. MCP beyond the hot path goes through the MCPorter bridge (discover → describe → call). RTK rewrites shell commands automatically — don't prefix `rtk` by hand. Filter large output at the source (`rg -l`, `--json` + `jq`, `offset`/`limit`) instead of reading it whole.
 
 ---
 

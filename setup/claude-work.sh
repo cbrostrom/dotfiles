@@ -31,6 +31,12 @@ command -v plannotator >/dev/null 2>&1 || warn "plannotator CLI missing: run the
 
 # rtk: no `rtk init`; ~/.agents/hooks/bash-guard runs `rtk hook claude` after its checks.
 command -v rtk >/dev/null 2>&1 || warn "rtk missing: Bash commands run without rtk rewrites"
+# macOS reads the RTK config from Application Support; point it at the stowed copy.
+if [[ "$(uname -s)" == Darwin ]]; then
+    rtk_dir="$HOME/Library/Application Support/rtk"
+    mkdir -p "$rtk_dir"
+    ln -sfn "$HOME/.config/rtk/config.toml" "$rtk_dir/config.toml" && ok "rtk config linked"
+fi
 
 # mw (mcporter pinned to the work servers) must be on PATH for Claude Bash calls.
 mkdir -p "$HOME/.local/bin"

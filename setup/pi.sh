@@ -42,7 +42,7 @@ while IFS= read -r -d '' pkg; do
     fi
 done < <(find "$ROOT/stow/pi/.pi/agent/extensions" -name package.json -not -path '*/node_modules/*' -print0 2>/dev/null)
 
-PRUNED_NPM=(pi-tool-display)
+PRUNED_NPM=(pi-tool-display context-mode)
 for pkg in "${PRUNED_NPM[@]}"; do
     if [[ -d "$PI_HOME/npm/node_modules/$pkg" ]] && command -v pi >/dev/null 2>&1; then
         info "pruning removed Pi package: npm:$pkg"

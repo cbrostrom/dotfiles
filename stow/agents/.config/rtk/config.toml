@@ -1,0 +1,50 @@
+# RTK config shared by every harness (Claude Code, Cursor, Pi).
+# Linux reads ~/.config/rtk/config.toml (stowed); macOS reads
+# ~/Library/Application Support/rtk/config.toml, linked here by setup/claude-work.sh.
+
+[tracking]
+enabled = true
+history_days = 90
+
+[display]
+colors = true
+emoji = false
+max_width = 120
+
+[filters]
+ignore_dirs = [
+    ".git",
+    "node_modules",
+    "target",
+    "__pycache__",
+    ".venv",
+    "vendor",
+]
+ignore_files = [
+    "*.lock",
+    "*.min.js",
+    "*.min.css",
+]
+
+[tee]
+enabled = true
+mode = "failures"
+max_files = 20
+max_file_size = 1048576
+
+[hooks]
+# Truncated JSON and filtered listings forced follow-up calls; these pass through raw.
+exclude_commands = ["jq", "ls"]
+# bash-guard calls `rtk hook claude` itself, so `rtk init` is never run.
+suppress_hook_warning = true
+
+[limits]
+grep_max_results = 200
+grep_max_per_file = 25
+status_max_files = 40
+status_max_untracked = 25
+passthrough_max_chars = 4000
+
+[telemetry]
+enabled = false
+consent_given = false
