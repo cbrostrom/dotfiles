@@ -4,7 +4,8 @@
 [[ "${CC_SCOPE_GUARD_DISABLE:-}" == "1" ]] && exit 0
 payload=$(cat)
 sid=$(printf '%s' "$payload" | jq -r '.session_id // "nosession"' 2>/dev/null)
-stamp="${TMPDIR:-/tmp}/cc-scope-note-$sid"
+mkdir -p "${TMPDIR:-/tmp}/agent-hooks"
+stamp="${TMPDIR:-/tmp}/agent-hooks/cc-scope-note-$sid"
 [[ -f "$stamp" ]] && exit 0
 : >"$stamp"
 cwd=$(printf '%s' "$payload" | jq -r '.cwd // empty' 2>/dev/null)

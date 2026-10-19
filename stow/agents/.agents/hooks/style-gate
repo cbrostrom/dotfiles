@@ -9,6 +9,9 @@ Never blocks: detect writes a one-shot flag, consume injects a correction.
   style-gate pi consume       pi-yaml-hooks user.prompt.submit
   style-gate cursor detect    Cursor afterAgentResponse (stdin: text, conversation_id)
   style-gate cursor consume   Cursor postToolUse -> additional_context
+  style-gate claude detect    Claude Stop (stdin: session_id, transcript_path)
+  style-gate claude consume   Claude UserPromptSubmit -> additionalContext
+Claude mode ignores Cursor payloads (cursor_version): Cursor runs its own entries.
 
 Source of truth for the rules: ~/.agents/AGENTS.md. All failures are no-ops.
 """
@@ -114,6 +117,28 @@ def last_pi_assistant_text(session_id: str) -> str:
     return ""
 
 
+def last_claude_assistant_text(transcript_path: str) -> str:
+    try:
+        with open(transcript_path, "rb") as f:
+            f.seek(0, os.SEEK_END)
+            f.seek(max(0, f.tell() - 2_000_000))
+            lines = f.read().decode("utf-8", "replace").splitlines()
+    except OSError:
+        return ""
+    for line in reversed(lines):
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        message = entry.get("message") or {}
+        if entry.get("type") != "assistant" or not isinstance(message.get("content"), list):
+            continue
+        text = "\n".join(b.get("text", "") for b in message["content"] if b.get("type") == "text")
+        if text.strip():
+            return text
+    return ""
+
+
 def read_stdin_json() -> dict:
     try:
         return json.loads(sys.stdin.read() or "{}")
@@ -139,6 +164,20 @@ def main() -> None:
         elif action == "consume":
             note = take_flag("cursor", conversation)
             print(json.dumps({"additional_context": note} if note else {}))
+    elif harness == "claude":
+        payload = read_stdin_json()
+        if "cursor_version" in payload:
+            return
+        session_id = str(payload.get("session_id") or "")
+        if action == "detect":
+            text = payload.get("last_assistant_message") or last_claude_assistant_text(
+                str(payload.get("transcript_path") or "")
+            )
+            write_flag("claude", session_id, violations(str(text)))
+        elif action == "consume":
+            note = take_flag("claude", session_id)
+            if note:
+                print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": note}}))
 
 
 if __name__ == "__main__":

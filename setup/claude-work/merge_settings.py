@@ -4,7 +4,7 @@
 Usage: merge_settings.py <tracked.json> <settings.json> [--pull|--force|--check]
 
 Tracked top-level keys replace the live values. Untracked live keys are kept (and listed).
-Hooks owned by other installers (Paseo, rtk) are preserved from the live file; all other
+Hooks owned by other installers (Paseo, aislop) are preserved from the live file; all other
 hooks come from the tracked file. A snapshot of the last applied state (settings.json
 sibling .settings.applied.json) detects live edits to tracked keys:
   default  stop and print the diff when drift is found
@@ -26,7 +26,7 @@ snap = json.load(open(snap_path)) if os.path.exists(snap_path) else None
 
 
 def foreign(cmd):
-    return "PASEO_TERMINAL_ID" in cmd or "paseo hooks" in cmd or "rtk hook" in cmd or "aislop hook" in cmd
+    return "PASEO_TERMINAL_ID" in cmd or "paseo hooks" in cmd or "aislop hook" in cmd
 
 
 def split_hooks(h):

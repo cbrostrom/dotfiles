@@ -6,8 +6,8 @@
 #   sessionStart  → no vault dump (MCP-only: agent uses Higgins on demand)
 #   preToolUse    → rtk hook cursor through run-hook.sh
 #   afterFileEdit → aislop hook cursor through run-hook.sh, if aislop installed
-#   beforeShellExecution → shell-guard.sh (rm -rf, push whitelist, publish block)
-#   afterAgentResponse / postToolUse → style-gate.py detect / consume
+#   beforeShellExecution → bash-guard cursor (rm, docker, push whitelist, publish, ssh)
+#   afterAgentResponse / postToolUse → style-gate cursor detect / consume
 #   cleanup       → remove dead Code Island, legacy lean-ctx/rtk, vault, and shared-hook entries
 #
 # mcp.json patches (idempotent): mcporter bridge allowlist + context-mode.
@@ -59,7 +59,7 @@ mkdir -p "$CURSOR_DIR/hooks"
 
 # Stow owns native links. WSL must copy across the Windows filesystem boundary.
 if [[ "$CURSOR_DIR" == /mnt/* ]]; then
-    for hook in run-hook.sh shell-guard.sh style-gate.py; do
+    for hook in run-hook.sh bash-guard push-guard.sh ssh-guard.sh style-gate; do
         src="$CURSOR_SRC/hooks/$hook"
         [[ -f "$src" ]] || {
             warn "Hook source not found: $src"
@@ -68,6 +68,12 @@ if [[ "$CURSOR_DIR" == /mnt/* ]]; then
         cp "$src" "$CURSOR_DIR/hooks/$hook"
         success "Copied hooks/$hook to Windows host"
     done
+fi
+
+# context-mode's installer writes this rule; context-mode is retired in Cursor.
+if [[ -f "$CURSOR_DIR/rules/context-mode.mdc" ]]; then
+    rm -f "$CURSOR_DIR/rules/context-mode.mdc"
+    success "Removed retired rules/context-mode.mdc"
 fi
 
 # Drop legacy vault-dump sessionStart scripts if present (MCP-only cold start)
@@ -129,6 +135,10 @@ def managed_command(command):
         "bash './hooks/brain-load.sh'",
         "bash './hooks/kb-load.sh'",
         "bash './hooks/vault-save.sh'",
+        "'./hooks/shell-guard.sh'",
+        "'./hooks/style-gate.py'",
+        "pixtuoid-hook",
+        "context-mode hook cursor",
     )
     wrapped = (
         "bash './hooks/run-hook.sh' rtk -- rtk hook cursor",
@@ -208,15 +218,15 @@ else:
 # Cursor-owned guards: catastrophic rm, push whitelist, release/publish block,
 # and the output style gate.
 add_entry("beforeShellExecution", {
-    "command": "bash './hooks/run-hook.sh' shell-guard -- bash './hooks/shell-guard.sh'",
-    "timeout": 5,
+    "command": "bash './hooks/run-hook.sh' bash-guard -- python3 './hooks/bash-guard' cursor",
+    "timeout": 10,
 })
 add_entry("afterAgentResponse", {
-    "command": "bash './hooks/run-hook.sh' style-gate -- python3 './hooks/style-gate.py' detect",
+    "command": "bash './hooks/run-hook.sh' style-gate -- python3 './hooks/style-gate' cursor detect",
     "timeout": 5,
 })
 add_entry("postToolUse", {
-    "command": "bash './hooks/run-hook.sh' style-gate -- python3 './hooks/style-gate.py' consume",
+    "command": "bash './hooks/run-hook.sh' style-gate -- python3 './hooks/style-gate' cursor consume",
     "timeout": 5,
 })
 
@@ -248,8 +258,9 @@ managed = {
             "github,codebase-memory-mcp,shopify-dev-mcp,atlassian-agent-fiskars,atlassian-agent-akqa",
         ],
     },
-    "context-mode": {"command": "context-mode"},
 }
+# context-mode overlaps RTK; retired in Cursor like in Claude and Pi.
+retired = ("context-mode",)
 
 changed = False
 for name, entry in managed.items():
@@ -257,6 +268,10 @@ for name, entry in managed.items():
         servers[name] = entry
         changed = True
         print(f"\033[0;32m[cursor]\033[0m Patched mcp.json: {name}")
+for name in retired:
+    if servers.pop(name, None) is not None:
+        changed = True
+        print(f"\033[0;32m[cursor]\033[0m Removed retired MCP server: {name}")
 
 if changed:
     with open(path, "w") as f:

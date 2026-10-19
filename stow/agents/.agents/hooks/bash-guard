@@ -1,0 +1,193 @@
+#!/usr/bin/env python3
+"""bash-guard — one pre-shell guard for Pi, Claude Code and Cursor.
+
+  bash-guard pi       pi-yaml-hooks tool.before.bash   exit 2 + stderr blocks
+  bash-guard claude   Claude PreToolUse(Bash)          exit 2 + stderr blocks; on allow,
+                                                       hands stdin to `rtk hook claude`
+  bash-guard cursor   Cursor beforeShellExecution      {"permission": "allow"|"deny"}
+
+Checks, cheapest first; the common command costs one process:
+  1. catastrophic recursive rm (below)
+  2. raw docker on linuxbro (Dockhand MCP only; DOCKHAND_GUARD_DISABLE=1 skips)
+  3. push/publish -> push-guard.sh, only when the command mentions push/publish/...
+  4. unbounded ssh/wsl -> ssh-guard.sh, only when the command mentions ssh/wsl
+
+Cursor also runs the Claude hooks; its payload carries `cursor_version`, and Claude
+mode then exits early so Cursor's own entry is the only one that runs.
+
+rm targets blocked for -r/-R/--recursive (any flag order):
+  /, top-level directories, anything outside $HOME and temp roots, $HOME and its
+  direct children, bare . .. * .*
+Allowed: anything under /tmp, /private/tmp, /var/folders, $TMPDIR; paths two or
+more levels below $HOME; relative paths; unresolvable variables ($dir).
+"""
+
+import json
+import os
+import re
+import shlex
+import shutil
+import socket
+import subprocess
+import sys
+
+HOOKS = os.path.dirname(os.path.realpath(__file__))
+HOME = os.path.realpath(os.path.expanduser("~"))
+TEMP_ROOTS = ["/tmp", "/private/tmp", "/var/folders", "/private/var/folders"]
+if os.environ.get("TMPDIR"):
+    TEMP_ROOTS.append(os.path.realpath(os.environ["TMPDIR"]))
+SEPARATORS = {";", "&&", "||", "|", "&", "\n", "(", ")"}
+PREFIXES = {"sudo", "command", "builtin", "env", "nice", "nohup", "time"}
+PUSH_WORDS = re.compile(r"push|publish|release|merge|upload")
+SSH_WORDS = re.compile(r"\b(ssh|wsl|wsl\.exe)\b")
+DOCKER_RE = re.compile(r"(^|[;&|(`]|\$\(|sudo\s+)\s*(docker|docker-compose|podman)(\s|$)")
+
+
+class Blocked(Exception):
+    pass
+
+
+def segments(command):
+    lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|()")
+    lexer.whitespace_split = True
+    lexer.commenters = ""
+    current = []
+    try:
+        for token in lexer:
+            if token in SEPARATORS:
+                if current:
+                    yield current
+                current = []
+            else:
+                current.append(token)
+    except ValueError:
+        pass
+    if current:
+        yield current
+
+
+def rm_targets(words):
+    while words and (words[0] in PREFIXES or "=" in words[0].split("/")[0]):
+        words = words[1:]
+    if not words or os.path.basename(words[0]) != "rm":
+        return None
+    recursive, targets, end_of_flags = False, [], False
+    for word in words[1:]:
+        if not end_of_flags and word == "--":
+            end_of_flags = True
+        elif not end_of_flags and word.startswith("--"):
+            recursive = recursive or word == "--recursive"
+        elif not end_of_flags and word.startswith("-") and len(word) > 1:
+            recursive = recursive or "r" in word or "R" in word
+        else:
+            targets.append(word)
+    return targets if recursive else None
+
+
+def resolve(target):
+    for var in ("${HOME}", "$HOME"):
+        if target == var or target.startswith(var + "/"):
+            target = HOME + target[len(var):]
+    tmpdir = os.environ.get("TMPDIR", "").rstrip("/")
+    for var in ("${TMPDIR}", "$TMPDIR"):
+        if tmpdir and (target == var or target.startswith(var + "/")):
+            target = tmpdir + target[len(var):]
+    target = os.path.expanduser(target)
+    while target.endswith("/*") or (target.endswith("/") and len(target) > 1):
+        target = target[:-2] if target.endswith("/*") else target[:-1]
+    return target or "/"
+
+
+def under(path, root):
+    return path == root or path.startswith(root.rstrip("/") + "/")
+
+
+def catastrophic(target):
+    if target in {".", "..", "*", ".*", "./*", "../*"}:
+        return True
+    path = resolve(target)
+    if "$" in path or not path.startswith("/"):
+        return False
+    path = os.path.normpath(path)
+    real = os.path.realpath(path)
+    if real not in TEMP_ROOTS and path not in TEMP_ROOTS:
+        if any(under(path, root) or under(real, root) for root in TEMP_ROOTS):
+            return False
+    if under(real, HOME):
+        return real == HOME or len(os.path.relpath(real, HOME).split(os.sep)) < 2
+    return True
+
+
+def check_rm(command):
+    for words in segments(command):
+        for target in rm_targets(words) or []:
+            if catastrophic(target):
+                raise Blocked(f"[bash-guard] Blocked catastrophic rm of {target}.")
+
+
+def check_docker(command):
+    if os.environ.get("DOCKHAND_GUARD_DISABLE") == "1":
+        return
+    host = os.environ.get("DOTFILES_FLEET_HOST") or socket.gethostname().split(".")[0]
+    if host.lower() == "linuxbro" and DOCKER_RE.search(command):
+        raise Blocked("[bash-guard] Docker on linuxbro: use the Dockhand MCP (/skill:dockhand), not raw docker.")
+
+
+def delegate(script, args, command, cwd):
+    path = os.path.join(HOOKS, script)
+    if not os.access(path, os.X_OK):
+        return
+    payload = json.dumps({"tool_args": {"command": command}})
+    result = subprocess.run(
+        [path, *args], input=payload, capture_output=True, text=True, cwd=cwd or None, timeout=8
+    )
+    if result.returncode == 2:
+        raise Blocked(result.stderr.strip() or f"[bash-guard] Blocked by {script}.")
+
+
+def check(command, cwd):
+    check_rm(command)
+    check_docker(command)
+    if PUSH_WORDS.search(command):
+        delegate("push-guard.sh", ["pi"], command, cwd)
+    if SSH_WORDS.search(command):
+        delegate("ssh-guard.sh", ["bash"], command, cwd)
+
+
+def main():
+    mode = sys.argv[1] if len(sys.argv) > 1 else "pi"
+    raw = sys.stdin.read()
+    try:
+        payload = json.loads(raw or "{}")
+    except ValueError:
+        payload = {}
+    if mode == "claude" and "cursor_version" in payload:
+        return 0
+    command = (
+        (payload.get("tool_input") or {}).get("command")
+        or (payload.get("tool_args") or {}).get("command")
+        or payload.get("command")
+        or ""
+    )
+    cwd = payload.get("cwd") or next(iter(payload.get("workspace_roots") or []), None)
+    try:
+        if command:
+            check(command, cwd if cwd and os.path.isdir(cwd) else None)
+    except Blocked as blocked:
+        message = str(blocked)
+        if mode == "cursor":
+            print(json.dumps({"permission": "deny", "user_message": message, "agent_message": message}))
+            return 0
+        print(message, file=sys.stderr)
+        return 2
+    except Exception:
+        pass
+    if mode == "cursor":
+        print(json.dumps({"permission": "allow"}))
+    elif mode == "claude" and shutil.which("rtk"):
+        return subprocess.run(["rtk", "hook", "claude"], input=raw, text=True).returncode
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

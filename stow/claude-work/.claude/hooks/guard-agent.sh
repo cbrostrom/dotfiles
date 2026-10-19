@@ -4,7 +4,8 @@
 # `guard-agent.sh release` (PostToolUse) clears the in-flight marker.
 payload=$(cat)
 sid=$(printf '%s' "$payload" | jq -r '.session_id // "nosession"')
-tmp="${TMPDIR:-/tmp}"
+tmp="${TMPDIR:-/tmp}/agent-hooks"
+mkdir -p "$tmp"
 busy="$tmp/cc-agent-busy-$sid"
 if [[ "${1:-}" == "release" ]]; then rm -f "$busy"; exit 0; fi
 

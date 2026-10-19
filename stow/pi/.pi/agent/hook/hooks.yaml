@@ -11,40 +11,13 @@ hooks:
   # Session-start readiness notify → pane-notify extension (pi-extensions).
   # Re-enable here only if pane-notify is removed.
 
-  # Idle: auto-prune + compact (daily)
-  # Same hook but throttled to once per day per project slug via a state-file
-  # timestamp; keeps Higgins maintenance automatic without running git/DuckDB
-  # work after every idle agent turn. Silently runs higgins prune + compact.
+  # Idle: daily Higgins digest/prune/compact per project slug, detached.
+  # Shared with Claude/Cursor SessionEnd (~/.agents/hooks/higgins-tidy, same stamps).
   # Does NOT auto-save narrative context — that requires agent judgement (.remember).
   - id: idle-kb-tidy
     event: session.idle
     actions:
-      - bash: |
-          # Determine slug from cwd (mirrors higgins slug resolution)
-          if git rev-parse --git-dir >/dev/null 2>&1; then
-            SLUG="$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")"
-          else
-            SLUG="$(basename "$PWD")"
-          fi
-          # Daily throttle: skip when this slug ran within the last 24h.
-          STAMP_DIR="${TMPDIR:-/tmp}/higgins-tidy"
-          STAMP="$STAMP_DIR/$SLUG.stamp"
-          mkdir -p "$STAMP_DIR" 2>/dev/null || true
-          if [[ -f "$STAMP" ]]; then
-            LAST=$(cat "$STAMP" 2>/dev/null || echo 0)
-            NOW=$(date +%s)
-            AGE=$((NOW - LAST))
-            [[ "$LAST" =~ ^[0-9]+$ ]] && [[ $AGE -lt 86400 ]] && exit 0
-          fi
-          printf '%s\n' "$(date +%s)" > "$STAMP" 2>/dev/null || true
-          higgins prune "$SLUG" 2>/dev/null || true
-          higgins compact "$SLUG" 2>/dev/null || true
-          # DuckDB projection freshness (go higgins): rebuild if the projection is
-          # stale vs its ledger shards. Rebuild is cheap-ish; guard with () || true
-          # so a missing binary/CLI never blocks the hook.
-          if higgins duckdb status 2>/dev/null | grep -q '"stale": true'; then
-            higgins duckdb rebuild >/dev/null 2>&1 || true
-          fi
+      - bash: "$HOME/.agents/hooks/higgins-tidy"
 
   # Policy gate: mechanical output-style rules (time estimates, em-dashes,
   # filler openers, filler words). detect scans the last assistant text at idle;
@@ -60,126 +33,13 @@ hooks:
     actions:
       - bash: "$HOME/.agents/hooks/style-gate pi consume"
 
-  # File changed: aislop quality check
-  # Runs after PI writes/edits code files. aislop --pi checks score regression.
-  # Exit code 2 would block (aislop hook pi uses PI hook protocol).
-  - id: aislop-after-edit
-    event: file.changed
-    conditions:
-      - matchesCodeFiles
-    actions:
-      - bash: "aislop hook pi"
-
-  # Before bash: catastrophic filesystem guard
-  # Blocks rm -rf on root/home — defence-in-depth beside pi-permissions.jsonc.
-  # Push: guard-git-push below (pi-permissions.jsonc is documentation only — no
-  # installed pi component reads it).
-  - id: guard-destructive
+  # Before bash: one guard process for every bash call (shared with Claude and Cursor).
+  # Catastrophic rm, raw docker on linuxbro (Dockhand MCP only), git push whitelist +
+  # release/publish block (push-guard.sh), unbounded ssh/wsl (ssh-guard.sh). The
+  # push and ssh checks only start when the command mentions them.
+  # pi has no built-in permissions engine; this is the real enforcement.
+  - id: bash-guard
     event: tool.before.bash
     actions:
-      - bash: |
-          payload=$(cat)
-          if command -v jq >/dev/null 2>&1; then
-            cmd=$(printf '%s' "$payload" | jq -r '.tool_args.command // empty' 2>/dev/null)
-          else
-            cmd="$payload"
-          fi
-          [[ -z "$cmd" ]] && exit 0
-          if echo "$cmd" | grep -qE 'rm -rf (/[^/]|~|/home|/Users)'; then
-            echo "[pi-guard] Blocked catastrophic rm: $cmd" >&2
-            exit 2
-          fi
+      - bash: "$HOME/.agents/hooks/bash-guard pi"
 
-  # LinuxBro: Docker maintenance goes through Dockhand MCP only (dockhand skill).
-  # Escape hatch: DOCKHAND_GUARD_DISABLE=1.
-  - id: guard-docker-linuxbro
-    event: tool.before.bash
-    actions:
-      - bash: |
-          host="${DOTFILES_FLEET_HOST:-$(hostname -s 2>/dev/null)}"
-          [[ "$(printf '%s' "$host" | tr '[:upper:]' '[:lower:]')" == "linuxbro" ]] || exit 0
-          [[ "${DOCKHAND_GUARD_DISABLE:-}" == "1" ]] && exit 0
-          payload=$(cat)
-          cmd=$(printf '%s' "$payload" | jq -r '.tool_args.command // empty' 2>/dev/null || printf '%s' "$payload")
-          [[ -z "$cmd" ]] && exit 0
-          if printf '%s' "$cmd" | grep -qE '(^|[;&|(`]|\$\(|sudo[[:space:]]+)[[:space:]]*(docker|docker-compose|podman)([[:space:]]|$)'; then
-            echo "[pi-guard] Docker on linuxbro: use the Dockhand MCP (/skill:dockhand), not raw docker." >&2
-            exit 2
-          fi
-
-  # Before bash: git push whitelist + release/publish guard
-  # The real push enforcement (pi has no built-in permissions engine).
-  # `git push` is allowed only when the target repo resolves to an entry in
-  # ~/.claude/push-whitelist.txt; publish commands (npm publish, gh release
-  # create, gh pr merge, docker push, ...) are always blocked. Shared with
-  # Cursor's beforeShellExecution (~/.agents/hooks).
-  - id: guard-git-push
-    event: tool.before.bash
-    actions:
-      - bash: "$HOME/.agents/hooks/push-guard.sh pi"
-
-  # Before bash: context-mode tool-preference guard
-  # RPC-children-only: terminal pi sessions already get the same enforcement from
-  # the context-mode-enforcer extension; running both double-prompts the agent.
-  # pi-paseo exports PI_RPC_CHILD=1; without it (terminal session) this guard no-ops.
-  - id: guard-context-mode
-    event: tool.before.bash
-    actions:
-      - bash: |
-          [[ "${PI_RPC_CHILD:-}" == "1" ]] || exit 0
-          payload=$(cat)
-          cmd=$(printf '%s' "$payload" | jq -r '.tool_args.command // empty' 2>/dev/null)
-          [[ -z "$cmd" ]] && exit 0
-
-          # Allow-list: trivial, known-short, no-derivation commands pass straight through
-          echo "$cmd" | grep -qE '^\s*(git (status|branch|diff --stat|log -1)|pwd|whoami|echo |which |ls( -la?)?\s*$)' && exit 0
-
-          # Fast/bounded lookups pass straight through (no context-mode redirect):
-          # mdfind is indexed (seconds); chains whose output is line-capped by
-          # head/tail/wc cannot flood context. NOTE: a recursive scan (find,
-          # grep -r/-R, ls -R) is NOT made safe by piping into head — those cap
-          # bytes written, not run time — so recursive scans never hit this escape.
-          echo "$cmd" | grep -q '\bmdfind\b' && exit 0
-          if ! echo "$cmd" | grep -qE '\b(find|ls -R|tree|du)\b|\bgrep +-[rR]' \
-             && echo "$cmd" | grep -qE '\|\s*(head|tail|wc)\b'; then
-            exit 0
-          fi
-          reason=""
-          chained=$(echo "$cmd" | grep -oE '&&|;|\|' | wc -l | tr -d ' ')
-          [[ "$chained" -ge 3 ]] && reason="3+ chained commands — use ctx_batch_execute"
-          echo "$cmd" | grep -qE '\b(cat|head|tail|ls -R|find|grep -r|grep -R)\b' && [[ -z "$reason" ]] && reason="file/dir inspection command — use ctx_execute_file or ctx_batch_execute"
-          echo "$cmd" | grep -qE '\b(curl|docker (ps|logs|inspect)|kubectl get|npm (ls|outdated)|git log -p|git diff)\b' && [[ -z "$reason" ]] && reason="likely-large output — use ctx_execute or ctx_batch_execute"
-
-          if [[ -n "$reason" ]]; then
-            echo "[context-mode-guard] $reason: $cmd" >&2
-            exit 2
-          fi
-
-  # Before ctx tools: runaway-scan guard (reciprocal of guard-context-mode).
-  # The bash-side guards push the model into context-mode's ctx tools, but nothing
-  # inspected what enters them: a grep -rl over ~/.paseo or ~/Library/Application
-  # Support inside ctx_batch_execute with no `timeout` sat silent for 15+ minutes
-  # (context-mode intentionally fires no default timer off-antigravity, Issue #406 —
-  # it trusts an MCP host RPC timeout that Paseo does not enforce). Rule: any
-  # recursive filesystem scan (grep -r/-R, find, fd as walker, rg without a
-  # --max-time cap) inside an RPC-child ctx tool REQUIRES an explicit `timeout`.
-  # pi-paseo exports PI_RPC_CHILD=1; terminal sessions exit here (the
-  # context-mode-enforcer extension covers them) so we never double-prompt.
-  # Before bash/ctx tools: unbounded-ssh guard.
-  # Motivation: `ssh monsterbro 'wscript.exe ...'` (and `sleep infinity`) inside
-  # ctx/bash tools without any timeout hung the tool call forever; the Paseo
-  # cancel path could NOT recover ("cancellation was not acknowledged" —
-  # hard-delete was the only kill). Rule: ssh/wsl in a tool call (a) must never
-  # start a never-exiting remote program, and (b) must carry -o ConnectTimeout
-  # when the tool arg has no timeout. runs on ALL sessions incl. terminal
-  # (idempotent, cheap: only fires when 'ssh|wsl' appears in the command).
-  - id: guard-ssh-unbounded-bash
-    event: tool.before.bash
-    actions:
-      - bash: "$HOME/.pi/agent/scripts/ssh-guard.sh bash"
-
-  # NOTE: hooks moved out of YAML into the context-mode-enforcer extension
-  # (its tool_call handler): ssh inside ctx_execute/ctx_batch_execute (same
-  # rules as ssh-guard.sh) and recursive-scan-without-timeout protection.
-  # Rationale: tool.before.<custom-tool> hooks produce load advisories every
-  # session and fire outside the Pi tool layer; bash keeps its YAML guards.
