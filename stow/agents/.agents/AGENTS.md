@@ -43,7 +43,7 @@ English. Code, commits, comments, config, AI rules always English. Caveman mode 
 | Harness | How policy applies |
 |---|---|
 | **Cursor** | `core.mdc` + `context-mode.mdc` (`alwaysApply`); does **not** load this file directly |
-| **Claude Code** | `@../AGENTS.md` from `.claude/CLAUDE.md` |
+| **Claude Code** | Does **not** load this file; `~/.claude/CLAUDE.md` (stow `claude-work`) carries its own policy |
 | **Pi** | `~/.pi/agent/AGENTS.md` adapter + this file as spine |
 | **Codex / Zed** | Symlinked or copied root `AGENTS.md`; use Higgins MCP on demand |
 
@@ -116,13 +116,13 @@ No subagents for search, orientation, or single-file edits.
 OK when the user explicitly asks, signals (e.g. `.review`), or Pi needs isolated parallel narrow work (`subagent_isolated`).
 Cursor: forbidden unless user asks. Full routing: `AGENT_SKILLS.md`.
 
-Delegation ladder, token-cheapest first: single greps/lookups → context-mode tools (bytes stay out of context, ~0 tokens) — never a subagent. Multi-step reasoning with dead ends, or parallel narrow work → subagent. Paseo-spawned agents delegate via Paseo `create_agent` (full spawn, notify-on-finish); pi-subagents is terminal-only by design — the launcher deliberately does not load it in RPC children.
+Delegation ladder, token-cheapest first: single greps/lookups → native tools with rtk-compressed output (Cursor: context-mode) — never a subagent. Multi-step reasoning with dead ends, or parallel narrow work → subagent. Paseo-spawned agents delegate via Paseo `create_agent` (full spawn, notify-on-finish); pi-subagents is terminal-only by design — the launcher deliberately does not load it in RPC children.
 
 Every subagent or delegation prompt carries a result contract: ≤10 lines / ≤300 tokens, answer only, no narrative or process talk. Children never `higgins load` — scoped `higgins search`, or `higgins brief <slug> <task>` once it ships.
 
 ## Tool routing (harness-specific)
 
-**Pi:** Higgins MCP for vault; native Read/Grep/Shell for code. context-mode tools for large output (see Pi adapter + `context-mode` skill). codebase-memory-mcp disabled by default (tool-restraint).
+**Pi:** Higgins MCP for vault; native Read/Grep/Shell for code; rtk and output-trim compress large output. codebase-memory-mcp disabled by default (tool-restraint).
 
 **Cursor:** Higgins MCP on demand; context-mode via `context-mode.mdc`; Read/Grep/Shell for edits and small reads.
 
@@ -206,7 +206,7 @@ Start cheapest that can safely handle the task. Escalate only for deeper reasoni
 
 ## Code quality
 
-aislop quality-gate hook active on CC + Cursor + Pi — follow feedback when it fires.
+aislop is manual on Claude Code and Pi (no hook): suggest `aislop scan --changes` at the end of big features; never run it unasked. Cursor keeps its hook — follow feedback when it fires.
 Other agents: `aislop scan --changes` after edits, `aislop fix` to repair.
 fallow for JS/TS dead code + complexity: `~/.agents/skills/fallow/`.
 

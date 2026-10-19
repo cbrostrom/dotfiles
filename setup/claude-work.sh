@@ -10,22 +10,16 @@ activate_fnm
 command -v claude >/dev/null 2>&1 || { skip "claude not installed"; exit 0; }
 command -v jq >/dev/null 2>&1 || die "jq is required for the Claude Code guard hooks"
 CLAUDE_HOME="$HOME/.claude"
-mkdir -p "$CLAUDE_HOME/skills" "$CLAUDE_HOME/context-mode"
+mkdir -p "$CLAUDE_HOME/skills"
 
 # Shared skills (no higgins/dockhand/dotfiles). Links point at the shared skill store.
-SKILLS=(writing commit shopify atlassian-agent systematic-debugging verification-before-completion code-cleaner paseo paseo-handoff call codebase scout)
+SKILLS=(writing commit shopify atlassian-agent systematic-debugging verification-before-completion code-cleaner paseo paseo-handoff call codebase aislop)
 for s in "${SKILLS[@]}"; do
     src="$HOME/.agents/skills/$s"
     dst="$CLAUDE_HOME/skills/$s"
     [[ -e "$src" ]] || { warn "work skill missing: $s"; continue; }
     [[ -L "$dst" || ! -e "$dst" ]] && ln -sfn "$src" "$dst" && ok "skill $s" || warn "skip $s: $dst exists and is not a link"
 done
-
-# context-mode plugin: same engine as Pi, hook-enforced routing. Data dir is set in settings (CONTEXT_MODE_DATA_DIR).
-if ! claude plugin list 2>/dev/null | grep -q "context-mode"; then
-    claude plugin marketplace add mksglu/context-mode >/dev/null 2>&1 || warn "marketplace add failed"
-    claude plugin install context-mode@context-mode >/dev/null 2>&1 || warn "context-mode plugin install failed"
-fi
 
 # plannotator plugin: plan review on ExitPlanMode. The plugin does not ship the CLI binary;
 # install it with the minimal installer from the plannotator docs (not run here).
@@ -35,19 +29,14 @@ if ! claude plugin list 2>/dev/null | grep -q "plannotator@plannotator"; then
 fi
 command -v plannotator >/dev/null 2>&1 || warn "plannotator CLI missing: run the minimal installer from the plannotator docs"
 
-# rtk: Bash rewrite hook for Claude Code, hook only (no CLAUDE.md edits).
-if command -v rtk >/dev/null 2>&1; then
-    rtk init -g --hook-only --auto-patch >/dev/null 2>&1 || warn "rtk init failed"
-fi
+# rtk: no `rtk init`; ~/.agents/hooks/bash-guard runs `rtk hook claude` after its checks.
+command -v rtk >/dev/null 2>&1 || warn "rtk missing: Bash commands run without rtk rewrites"
 
 # mw (mcporter pinned to the work servers) must be on PATH for Claude Bash calls.
 mkdir -p "$HOME/.local/bin"
 ln -sfn "$CLAUDE_HOME/bin/mw" "$HOME/.local/bin/mw" && ok "mw on PATH"
 
-# aislop post-edit check (parity with pi)
-if command -v aislop >/dev/null 2>&1; then
-    aislop hook install claude >/dev/null 2>&1 || warn "aislop hook install claude failed"
-fi
+# aislop is run by hand (aislop scan --changes); no post-edit hook.
 
 # Settings apply last. Flags: --pull | --force | --check (see merge_settings.py).
 python3 "$ROOT/setup/claude-work/merge_settings.py" \

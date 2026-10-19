@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PreToolUse(Agent): deny forks; team and repo agents keep their model, one in flight.
+# PreToolUse(Agent): deny forks; team (incl. ce-* reviewers) and repo agents keep their model, one in flight.
 # Everything else is pinned to haiku and capped (CC_MAX_AGENTS, default 6 per session).
 # `guard-agent.sh release` (PostToolUse) clears the in-flight marker.
 payload=$(cat)
@@ -18,7 +18,7 @@ deny() {
 [[ "$type" == "fork" ]] && deny "Forked subagents run on the main model; use a named subagent."
 
 team=0
-case "$type" in planner|coder|coder-plus|grunt) team=1 ;; esac
+case "$type" in planner|coder|coder-lite|coder-plus|grunt|reviewer|ce-*|shopify-expert) team=1 ;; esac
 if (( ! team )) && [[ -n "$type" && -n "$cwd" ]]; then
   root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)
   [[ -n "$root" && -f "$root/.claude/agents/$type.md" ]] && team=1

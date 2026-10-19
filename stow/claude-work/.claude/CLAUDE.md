@@ -11,7 +11,7 @@ Claude and pi share this machine. Claude works in any directory. Pi owns `~/.pi`
 
 ## Token mantra
 - Every token must change the outcome. Do the cheapest step that answers the question.
-- Grep or Glob before Read, read with offset/limit, never re-read a file. Large or analytic output goes through `ctx_*` tools.
+- Grep or Glob before Read, read with offset/limit, never re-read a file. rtk compresses shell output; don't pipe through extra filters to save tokens.
 - Stop once there is enough evidence to act. If two attempts fail, report instead of looping.
 - Answers are short: no preamble, no restating the task, no recap of the obvious.
 
@@ -20,13 +20,17 @@ Claude and pi share this machine. Claude works in any directory. Pi owns `~/.pi`
 - Put work that would bloat the context on a subagent rather than doing it inline.
 
 ## Team protocol
-- The main session orchestrates: lookups, logs and tests go to `grunt`; implementation to `coder` (`coder-plus` for non-trivial logic or several files); only hard design or root-cause work to `planner`.
-- One task in flight at a time. Each delegation states goal, files and done criteria, and expects at most ~15 lines back.
-- Do a single small edit inline; delegating costs more.
+- Feature and ticket work runs through `/feature`. The main session orchestrates and never reads code or plan content it can pass by path.
+- Triage first. Trivial work (one file, obvious change) is done inline or by `coder`. Anything multi-file or unclear goes to `planner` (Fable), which writes `.claude/plans/<KEY>.md` with phases and a model tag per task.
+- Build per phase, one call per phase: `coder-lite` (Haiku) for tasks the plan spells out exactly, `coder` (Sonnet) for normal tasks, `coder-plus` for non-trivial logic. Pass the plan path and task IDs.
+- Lookups, logs, tests and builds go to `grunt`.
+- One task in flight at a time. Each delegation expects at most ~15 lines back.
 - Repo override: if the repo defines `.claude/agents/` or a `Team protocol` in AGENTS.md, that takes precedence there. Any other agent runs on Haiku and is capped.
 
 ## Tools
 - Jira, Confluence, Shopify docs: use the `mcporter` skill (`mw` wrapper). No MCP servers are registered.
+- context-mode is deliberately off in Claude and pi; rtk and Higgins cover output compression and session memory.
+- Review and quality passes are manual: `/review-diff`, `/aislop`, `/simplify` and `code-cleaner`. Suggest them at the end of big features; never run them unasked.
 
 ## Guards you will meet
 Hooks and settings enforce billing, subagent model, secrets and push policy. If one blocks you, report it and stop; do not look for a way around it.

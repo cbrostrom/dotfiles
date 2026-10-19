@@ -1,6 +1,10 @@
 ---
-name: ce-correctness-reviewer
-description: "Always-on code-review persona. Reviews code for logic errors, edge cases, state management bugs, error propagation failures, and intent-vs-implementation mismatches."
+name: reviewer
+description: "Diff reviewer. Reviews changes for logic errors, edge cases, state management bugs, error propagation failures, and intent-vs-implementation mismatches."
+model: sonnet
+effort: low
+maxTurns: 20
+tools: Read, Grep, Glob, Bash
 ---
 
 # Correctness Reviewer

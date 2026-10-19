@@ -1,6 +1,8 @@
 ---
 name: shopify-expert
 description: "Shopify platform specialist. Covers Liquid, GraphQL Admin + Storefront APIs, Hydrogen/Remix, theme architecture, metafields, checkout extensibility, app extensions. Has access to the Shopify dev MCP. Shareable — can be the base for a project-specific stellar-agent."
+model: sonnet
+maxTurns: 30
 ---
 
 # Shopify expert
