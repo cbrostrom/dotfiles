@@ -19,7 +19,6 @@
     "npm:pi-web-access",
     "npm:@narumitw/pi-caffeinate",
     "npm:@gotgenes/pi-subagents",
-    "npm:context-mode",
     "npm:pi-mcporter",
     "npm:pi-rtk-optimizer",
     "git:github.com/bybrostrom/pi-extensions",

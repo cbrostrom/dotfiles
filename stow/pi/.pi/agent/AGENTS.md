@@ -29,7 +29,7 @@ Pi is private and servers only: `opencode-go/*` (default, flat-rate), `github-co
 
 ## Memory
 
-Two accelerators, one brain. context-mode (`~/.pi/context-mode/`) and pi-rtk-optimizer are accelerators; the Higgins vault is the durable brain. For very long sessions: periodic `/handover` + fresh session beats one marathon.
+One accelerator, one brain. pi-rtk-optimizer and the output-trim extension compress tool output; the Higgins vault is the durable brain. For very long sessions: periodic `/handover` + fresh session beats one marathon.
 
 - Facts: `higgins search("<3-5 specific terms>")` — scope `ai` default, `me` personal. Never auto-load the vault; `load <slug>` only on explicit ask or clear need. Full reference: `/skill:higgins`.
 - Signals: `.remember` → `higgins digest`; `.note <text>` → `higgins current`; `.gotcha <text>` → `higgins gotcha`.
@@ -58,15 +58,11 @@ Auto-discovered from `~/.agents/skills/`. Load on demand: `/skill:<name>`.
 
 ## Web fetching
 
-`web_search` for discovery, `fetch_content` for a page (pi-web-access). `ctx_fetch_and_index` when the page should be searched rather than read whole.
+`web_search` for discovery, `fetch_content` for a page (pi-web-access).
 
 ## pi-peer
 
 `list_peers` + `message_peer` in every session; ask in words, model picks the tool. Inbound: `PI_PEER_INBOUND=accept` local, `PI_PEER_INBOUND_REMOTE=ask` (prompts before model sees remote messages). Cross-machine setup: `~/Vaults/Higgins/AI/infra/superbro/redis-setup.md` or `/peer-remote`.
-
-## Paseo plugins
-
-Own plugins are git-installed from `bybrostrom/paseo-plugins` (canonical source; no dotfiles copies). After editing that repo: commit, push, then `paseo plugin update <id>` per touched plugin — a push alone does NOT update running plugins. When a Paseo plugin misbehaves, first check `paseo plugin ls` for a stale revision (installed revision < pushed main) or a failed status; update or reload before deeper debugging. If you cannot run the update, flag it to the user instead of hand-editing `~/.paseo/plugins/` checkouts (daemon-managed; hand edits are lost on update).
 
 ## Misc
 

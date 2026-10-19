@@ -16,16 +16,14 @@ Runtime `~/.pi/agent/extensions/` mixes Stow-managed extensions with machine-loc
 |-------|---------|
 | `chat-input/` | Custom TUI input editor with companion animation |
 | `chat-mode/` | `/chat` toggle: read-only conversational mode (mutually exclusive with plan mode) |
-| `context-mode-enforcer/` | tool_call guard forcing large output through ctx_* tools |
 | `env-loader/` | Injects `~/.pi/agent/configs/.env` into process.env at startup |
 | `file-search/` | First-class `fd` and `rg` tools for pi |
 | `sleek-ui/` | Terminal TUI theme, status bar, tools, side panel (`/sleek`). Terminal only; not in Paseo RPC. |
-| `llmtrim-guard/` | LLM trim guard |
 | `model-policy-guard/` | Model policy enforcement |
+| `output-trim/` | Compacts oversized tool results (head+tail) for every tool |
 | `plan-mode/` | `/plan` toggle: read-only plan mode with plan_complete signal |
 | `protected-paths/` | Path protection guards |
 | `secret-redaction/` | Last-line secret redaction defence |
-| `rtk.ts` | Rewrites bash commands to `rtk` for token savings |
 
 ## Machine-local (not in dotfiles)
 
