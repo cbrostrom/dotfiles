@@ -58,6 +58,12 @@ block() {
 
 [[ -z "$cmd" ]] && allow
 
+# Fast path: every blocked pattern below contains one of these words.
+case "$cmd" in
+    *push* | *publish* | *release* | *merge* | *upload*) ;;
+    *) allow ;;
+esac
+
 scan=$(printf '%s' "$cmd" | perl -0pe '
     s/<<-?\s*([\x27"]?)(\w+)\1.*?^\s*\2\s*$//gms;
     s/\x27[^\x27]*\x27/Q/g;
