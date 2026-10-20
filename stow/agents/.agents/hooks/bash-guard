@@ -9,8 +9,9 @@
 Checks, cheapest first; the common command costs one process:
   1. catastrophic recursive rm (below)
   2. raw docker on linuxbro (Dockhand MCP only; DOCKHAND_GUARD_DISABLE=1 skips)
-  3. push/publish -> push-guard.sh, only when the command mentions push/publish/...
-  4. unbounded ssh/wsl -> ssh-guard.sh, only when the command mentions ssh/wsl
+  3. inside a Paseo agent: paseo run/import/agent create/schedule create (no orchestrating)
+  4. push/publish -> push-guard.sh, only when the command mentions push/publish/...
+  5. unbounded ssh/wsl -> ssh-guard.sh, only when the command mentions ssh/wsl
 
 Cursor also runs the Claude hooks; its payload carries `cursor_version`, and Claude
 mode then exits early so Cursor's own entry is the only one that runs.
@@ -133,6 +134,27 @@ def check_docker(command):
         raise Blocked("[bash-guard] Docker on linuxbro: use the Dockhand MCP (/skill:dockhand), not raw docker.")
 
 
+def check_paseo_spawn(command):
+    if not os.environ.get("PASEO_AGENT_ID") or "paseo" not in command:
+        return
+    for words in segments(command):
+        while words and (words[0] in PREFIXES or "=" in words[0].split("/")[0]):
+            words = words[1:]
+        if not words or os.path.basename(words[0]) != "paseo":
+            continue
+        args, rest = [], iter(words[1:])
+        for word in rest:
+            if word in {"-o", "--format", "--host", "--home"}:
+                next(rest, None)
+            elif not word.startswith("-"):
+                args.append(word)
+        if args[:1] in (["run"], ["import"]) or args[:2] in (["agent", "create"], ["schedule", "create"]):
+            raise Blocked(
+                "[bash-guard] Paseo agents don't launch other agents or pick their models. "
+                "Do the work yourself, message an existing agent with `paseo send`, or ask the user."
+            )
+
+
 def delegate(script, args, command, cwd):
     path = os.path.join(HOOKS, script)
     if not os.access(path, os.X_OK):
@@ -148,6 +170,7 @@ def delegate(script, args, command, cwd):
 def check(command, cwd):
     check_rm(command)
     check_docker(command)
+    check_paseo_spawn(command)
     if PUSH_WORDS.search(command):
         delegate("push-guard.sh", ["pi"], command, cwd)
     if SSH_WORDS.search(command):
