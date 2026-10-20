@@ -9,9 +9,10 @@ mkdir -p "$PI_HOME"
 
 python3 "$ROOT/setup/pi/settings.py" \
     "$ROOT/setup/pi/settings.base.json" \
-    "$PI_HOME/configs/model-policy.json" \
-    "$PI_HOME/settings.json" \
-    "$PI_HOME/host.json"
+    "$PI_HOME/settings.json"
+rm -f "$PI_HOME/host.json"
+[[ -L "$PI_HOME/configs/model-policy.json" ]] && rm -f "$PI_HOME/configs/model-policy.json"
+rm -rf "$PI_HOME/extensions/model-policy-guard"
 
 for patch in "$ROOT/setup/pi/patches/"*.sh; do
     [[ -f "$patch" ]] || continue

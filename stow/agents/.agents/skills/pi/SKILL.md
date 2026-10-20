@@ -11,7 +11,7 @@ policy spine, skills, and vault as other agents via `.agents/`.
 
 ## Quick model reference
 
-Scoped models (`enabledModels` / Ctrl+P / `/scoped-models`) — from `configs/model-policy.json`:
+Models in use (Ctrl+P / Shift+Ctrl+P, list via `/scoped-models` — no allowlist is seeded, so it shows every reachable model):
 
 | Model | Use for |
 |-------|---------|
@@ -25,7 +25,7 @@ Cycle: **Ctrl+P / Shift+Ctrl+P**. List: `/scoped-models`. Full registry: `/model
 **Rules:**
 
 - Pi is private/ops only → `opencode-go/*` by default, `github-copilot/*` on purpose. Work repos belong in Claude Code, not Pi.
-- `model-policy-guard` reverts selections outside the host's allowed groups.
+- Model restrictions are policy-by-convention: no extension enforces the allowlist any more.
 - Decisions: use `ask_user` / `pi__ask_user`.
 - Avoid parallel subagents unless the win is clear.
 
@@ -117,6 +117,6 @@ pi --version                    # PI version
 - `~/dotfiles/stow/pi/.pi/agent/AGENTS.md` → `~/.pi/agent/AGENTS.md`
 - `~/dotfiles/setup/pi/settings.base.json` → merged into `~/.pi/agent/settings.json`
 - `~/dotfiles/stow/pi/.pi/agent/hook/hooks.yaml` → `~/.pi/agent/hook/hooks.yaml`
-- Extensions: `model-policy-guard/`, footer, styled-outputs, …
+- Extensions: footer, styled-outputs, …
 
 Local-only (never committed): `auth.json`, `trust.json`, `sessions/`, `npm/`, `configs/.env`.

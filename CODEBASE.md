@@ -25,7 +25,7 @@
 
 ## Imperative setup
 
-- `setup/pi.sh` and `setup/pi/settings.py`: merge runtime settings and model policy
+- `setup/pi.sh` and `setup/pi/settings.py`: merge runtime settings and seed the default model
 - `setup/cursor.sh`: patch mutable hooks and copy files across WSL boundaries
 - `setup/zed.sh`: merge mutable settings and copy files across WSL boundaries
 - `setup/paseo.sh`: synchronize and register plugins without linking `~/.paseo`

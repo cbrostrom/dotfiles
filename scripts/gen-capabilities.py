@@ -29,7 +29,6 @@ OUT_FILE = HOME / ".agents/capabilities.md"
 
 VERIFY_PATHS = [
     str(PLUGINS_DIR / "paseo-steps-viewer"),
-    str(EXTENSIONS_DIR / "model-policy-guard"),
     str(SKILLS_DIR / "higgins"),
 ]
 

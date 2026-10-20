@@ -19,7 +19,6 @@ Runtime `~/.pi/agent/extensions/` mixes Stow-managed extensions with machine-loc
 | `env-loader/` | Injects `~/.pi/agent/configs/.env` into process.env at startup |
 | `file-search/` | First-class `fd` and `rg` tools for pi |
 | `sleek-ui/` | Terminal TUI theme, status bar, tools, side panel (`/sleek`). Terminal only; not in Paseo RPC. |
-| `model-policy-guard/` | Model policy enforcement |
 | `output-trim/` | Compacts oversized tool results (head+tail) for every tool |
 | `plan-mode/` | `/plan` toggle: read-only plan mode with plan_complete signal |
 | `protected-paths/` | Path protection guards |

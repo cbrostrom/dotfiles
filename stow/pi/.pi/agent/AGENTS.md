@@ -25,7 +25,7 @@ Default response format — answer-first, scan-friendly:
 
 ## Models
 
-Pi is private and servers only: `opencode-go/*` (default, flat-rate), `github-copilot/*` (choose deliberately via `/model`), `ollama/*` (local). No Claude via Pi: `anthropic/*` and `claude-bridge/*` are blocked. Work is Claude Code. Background workers (metadata, observational-memory): OpenCode Go only. Policy: `~/.pi/agent/configs/model-policy.json`. Scoped list: `/scoped-models`.
+Pi is private and servers only: `opencode-go/*` (default, flat-rate), `github-copilot/*` (choose deliberately via `/model`), `ollama/*` (local). No Claude via Pi: `anthropic/*` and `claude-bridge/*` are out of bounds by policy, not by a code-enforced allowlist. Work is Claude Code. Background workers (metadata, observational-memory): OpenCode Go only. Model list: `/model` or `/scoped-models` (no allowlist is seeded, so it shows everything Pi can reach).
 
 ## Memory
 
