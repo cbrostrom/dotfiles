@@ -98,3 +98,4 @@ __pycache__/
 /.pi
 # Vendored binaries (fd, rg) for Pi tools: never commit
 stow/pi/.pi/agent/bin/
+.ruff_cache/
