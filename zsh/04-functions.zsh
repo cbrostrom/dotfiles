@@ -11,6 +11,10 @@ dotfiles() {
         dotfiles-update
         return
     fi
+    if [[ "${1:-}" == "sync" ]]; then
+        "$repo/stow/cli/.local/bin/dotfiles" "$@"
+        return
+    fi
     [[ $# -eq 0 ]] && set -- plan
     "$repo/stow.sh" "$@"
 }
