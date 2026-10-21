@@ -51,6 +51,7 @@ delegate() { # script arg
 if [[ -n "$cmd" ]]; then
   # possible rm (allows quotes/backslashes between r and m); python does the tokenizing
   [[ "$cmd" =~ (^|[^[:alnum:]_])r[\'\"\\]*m($|[^[:alnum:]_]) ]] && fallback
+  [[ "$cmd" == *find* && "$cmd" == *-delete* ]] && fallback
   [[ -n "${PASEO_AGENT_ID:-}" && "$cmd" == *paseo* ]] && fallback
 
   if [[ "${DOCKHAND_GUARD_DISABLE:-}" != 1 ]] \

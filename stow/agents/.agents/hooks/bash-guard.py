@@ -34,7 +34,9 @@ TEMP_ROOTS = ["/tmp", "/private/tmp", "/var/folders", "/private/var/folders"]
 if os.environ.get("TMPDIR"):
     TEMP_ROOTS.append(os.path.realpath(os.environ["TMPDIR"]))
 SEPARATORS = {";", "&&", "||", "|", "&", "\n", "(", ")"}
-PREFIXES = {"sudo", "command", "builtin", "env", "nice", "nohup", "time"}
+PREFIXES = {"sudo", "command", "builtin", "env", "nice", "nohup", "time", "timeout"}
+XARGS_ARG_OPTS = {"-I", "-n", "-P", "-L", "-s", "-d", "-E", "-a", "-J"}
+FIND_EXEC = {"-exec", "-execdir", "-ok", "-okdir"}
 PUSH_WORDS = re.compile(r"push|publish|release|merge|upload")
 SSH_WORDS = re.compile(r"\b(ssh|wsl|wsl\.exe)\b")
 DOCKER_RE = re.compile(r"(^|[;&|(`]|\$\(|sudo\s+)\s*(docker|docker-compose|podman)(\s|$)")
@@ -63,9 +65,25 @@ def segments(command):
         yield current
 
 
+def strip_wrappers(words):
+    """Drop leading sudo/env/nice/timeout/... with their options and env assignments."""
+    while words:
+        head = os.path.basename(words[0])
+        if head in PREFIXES:
+            words = words[1:]
+            while words and (
+                words[0].startswith("-") or re.fullmatch(r"[0-9.]+[smhd]?", words[0]) or "=" in words[0].split("/")[0]
+            ):
+                words = words[1:]
+        elif "=" in words[0].split("/")[0]:
+            words = words[1:]
+        else:
+            break
+    return words
+
+
 def rm_targets(words):
-    while words and (words[0] in PREFIXES or "=" in words[0].split("/")[0]):
-        words = words[1:]
+    words = strip_wrappers(words)
     if not words or os.path.basename(words[0]) != "rm":
         return None
     recursive, targets, end_of_flags = False, [], False
@@ -115,11 +133,50 @@ def catastrophic(target):
     return True
 
 
+def dynamic_rm(words, depth=0):
+    """rm reached through xargs / find -exec: targets are unknown, so recursive rm is blocked
+    (find: unless every start path is safe by the catastrophic() rules)."""
+    words = strip_wrappers(words)
+    if not words or depth > 4:
+        return
+    name = os.path.basename(words[0])
+    if name == "xargs":
+        rest, args = iter(words[1:]), []
+        for word in rest:
+            if word in XARGS_ARG_OPTS:
+                next(rest, None)
+            elif not word.startswith("-"):
+                args = [word, *rest]
+        if rm_targets(args) is not None:
+            raise Blocked("[bash-guard] Blocked recursive rm via xargs (targets are dynamic).")
+        dynamic_rm(args, depth + 1)
+    elif name == "find":
+        starts = []
+        for word in words[1:]:
+            if word.startswith("-") or word in {"(", "!"}:
+                break
+            starts.append(word)
+        dangerous = any(catastrophic(t) for t in starts or ["."])
+        for i, word in enumerate(words):
+            if word == "-delete" and dangerous:
+                raise Blocked("[bash-guard] Blocked find -delete from a dangerous start path.")
+            if word in FIND_EXEC:
+                cmd = []
+                for w in words[i + 1:]:
+                    if w in {";", "+"}:
+                        break
+                    cmd.append(w)
+                if dangerous and rm_targets(cmd) is not None:
+                    raise Blocked("[bash-guard] Blocked recursive rm via find -exec.")
+                dynamic_rm(cmd, depth + 1)
+
+
 def check_rm(command):
     for words in segments(command):
         for target in rm_targets(words) or []:
             if catastrophic(target):
                 raise Blocked(f"[bash-guard] Blocked catastrophic rm of {target}.")
+        dynamic_rm(words)
 
 
 def check_docker(command):
