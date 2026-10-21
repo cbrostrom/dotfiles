@@ -16,4 +16,14 @@ if [[ -f "$own_pushes" ]] && (( $(wc -l < "$own_pushes") > 100 )); then
     tail -100 "$own_pushes" > "$own_pushes.tmp" && mv "$own_pushes.tmp" "$own_pushes"
 fi
 
+repo="$(git rev-parse --show-toplevel)"
+if [[ -x "$repo/stow.sh" ]]; then
+    plan_out="$(cd "$repo" && ./stow.sh plan 2>&1)" || true
+    if conflicts="$(grep -iE "conflict|not owned by stow" <<<"$plan_out")"; then
+        echo "pre-push: stow plan reports conflicts; push aborted:" >&2
+        printf '%s\n' "$conflicts" >&2
+        exit 1
+    fi
+fi
+
 exit 0

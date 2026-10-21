@@ -12,6 +12,7 @@ alias ..='cd ..'
 if command -v zoxide &>/dev/null; then
     alias .='z'
 fi
+alias dfs='dotfiles sync'                           # converge: pull, plan, apply, setup
 
 # =============================================================================
 # MODERN TOOL ALIASES

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dotfiles <plan|apply|remove> [profile] | dotfiles --update
+# dotfiles <plan|apply|remove> [profile] | dotfiles --update | dotfiles sync [--full] [profile]
 # Thin wrapper around stow.sh, plus updater via --update.
 # --update: pull dotfiles (--ff-only), syntax-check the new .zshrc, clear the
 # auto-update notification state. Reloading the shell is the caller's job
@@ -30,6 +30,72 @@ if [[ "${1:-}" == "--update" ]]; then
     rm -f "$HOME/.cache/dotfiles/status" "$HOME/.cache/dotfiles/notified-sha"
     echo "dotfiles updated — restart your shell (exec zsh) to load changes"
     exit 0
+fi
+
+if [[ "${1:-}" == "sync" ]]; then
+    shift
+    full=0
+    profile_args=()
+    for a in "$@"; do
+        case "$a" in
+            --full) full=1 ;;
+            *) profile_args+=("$a") ;;
+        esac
+    done
+    cd "$DOTFILES_DIR"
+    git_bin="${DOTFILES_GIT_BIN:-git}"
+
+    if [[ -n "$("$git_bin" status --porcelain --untracked-files=no)" ]]; then
+        echo "sync: working tree is dirty; commit or stash first" >&2
+        exit 1
+    fi
+    if [[ -n "$("$git_bin" rev-list '@{u}..HEAD' 2>/dev/null)" ]]; then
+        echo "sync: local branch is ahead of upstream; push or reset first" >&2
+        exit 1
+    fi
+    echo "==> pull"
+    "$git_bin" pull --ff-only --quiet || { echo "sync: pull failed" >&2; exit 1; }
+
+    echo "==> zsh syntax"
+    if command -v zsh >/dev/null 2>&1; then
+        zsh -n stow/zsh/.zshrc || { echo "sync: .zshrc has syntax errors" >&2; exit 1; }
+    fi
+
+    echo "==> stow plan"
+    plan_out="$(./stow.sh plan ${profile_args[@]+"${profile_args[@]}"} 2>&1)" || {
+        printf '%s\n' "$plan_out" >&2
+        exit 1
+    }
+    if grep -qiE "conflict|not owned by stow" <<<"$plan_out"; then
+        printf '%s\n' "$plan_out" >&2
+        echo "sync: stow conflicts; resolve manually (never adopted or forced)" >&2
+        exit 1
+    fi
+
+    echo "==> stow apply"
+    ./stow.sh apply ${profile_args[@]+"${profile_args[@]}"}
+
+    if [[ "$full" == 1 ]]; then
+        echo "==> install.sh (--full)"
+        ./install.sh ${profile_args[@]+"${profile_args[@]}"}
+    fi
+
+    echo "==> settings"
+    bash setup/claude-work.sh
+    bash setup/pi.sh
+    [[ "$(uname -s)" == Darwin ]] && bash macos/defaults.sh
+
+    if [[ "$(uname -s)" == Darwin ]] && command -v brew >/dev/null 2>&1; then
+        echo "==> brew bundle check (report only)"
+        brew bundle check --file="$DOTFILES_DIR/Brewfile" || true
+    fi
+
+    echo "==> doctors"
+    rc=0
+    bash scripts/doctor.sh || rc=1
+    bash scripts/pi-doctor.sh || rc=1
+    [[ -x "$HOME/.claude/bin/cc-doctor.sh" ]] && { "$HOME/.claude/bin/cc-doctor.sh" || rc=1; }
+    exit "$rc"
 fi
 
 exec "$DOTFILES_DIR/stow.sh" "$@"

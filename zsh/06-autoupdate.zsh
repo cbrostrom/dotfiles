@@ -133,19 +133,19 @@ _df_notify() {
 
     if [[ -n "$dirty" ]]; then
         color=yellow; icon='!'
-        suffix=" + dirty tree — commit/stash, then dotfiles-update"
+        suffix=" + dirty tree — commit/stash, then dfs"
     elif [[ "$conflicts" == "1" ]]; then
         color=yellow; icon='!'
-        suffix=" — merge conflicts expected, run dotfiles-update carefully"
+        suffix=" — merge conflicts expected, run dfs carefully"
     elif (( commit_age > 7 * 86400 )); then
         color=red; icon='!!'
-        suffix=" ($(_df_format_age $commit_age) old) — run dotfiles-update"
+        suffix=" ($(_df_format_age $commit_age) old) — run dfs"
     elif (( commit_age > 86400 )); then
         color=yellow; icon='*'
-        suffix=" ($(_df_format_age $commit_age) old) — consider dotfiles-update"
+        suffix=" ($(_df_format_age $commit_age) old) — consider dfs"
     else
         color=cyan; icon='v'
-        suffix=" — run dotfiles-update to sync"
+        suffix=" — run dfs to sync"
     fi
 
     print -P "%F{$color}$icon dotfiles: $behind commit(s) behind$suffix%f"
