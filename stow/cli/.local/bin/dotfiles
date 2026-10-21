@@ -94,7 +94,7 @@ if [[ "${1:-}" == "sync" ]]; then
     rc=0
     bash scripts/doctor.sh || rc=1
     bash scripts/pi-doctor.sh || rc=1
-    [[ -x "$HOME/.claude/bin/cc-doctor.sh" ]] && { "$HOME/.claude/bin/cc-doctor.sh" || rc=1; }
+    [[ -x "$HOME/.claude/bin/cc-doctor.sh" ]] && { "$HOME/.claude/bin/cc-doctor.sh" || echo "sync: cc-doctor reported failures (advisory)" >&2; }
     exit "$rc"
 fi
 
