@@ -15,6 +15,12 @@
 # Bail early if rbw is not installed — keeps non-rbw machines silent.
 command -v rbw >/dev/null 2>&1 || return 0
 
+# `rbw unlock` clears the locked-probe stamp so the next shell re-probes.
+rbw() {
+    [[ "$1" == unlock ]] && rm -f "${XDG_RUNTIME_DIR:-/tmp}/rbw-probe-$UID.stamp"
+    command rbw "$@"
+}
+
 _RBW_ENV_CACHE="${XDG_RUNTIME_DIR:-/tmp}/rbw-env-$UID.zsh"
 _RBW_ENV_LOCK="${XDG_RUNTIME_DIR:-/tmp}/rbw-env-$UID.lock"
 
@@ -62,6 +68,7 @@ if ! command ${=_dotfiles_bw_timeout} rbw unlocked >/dev/null 2>&1; then
     unset _dotfiles_bw_timeout _RBW_ENV_CACHE _RBW_ENV_LOCK _RBW_PROBE_STAMP
     return 0
 fi
+rm -f "$_RBW_PROBE_STAMP" 2>/dev/null
 
 # Another shell is already populating the cache.
 if ! mkdir "$_RBW_ENV_LOCK" 2>/dev/null; then

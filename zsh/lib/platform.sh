@@ -4,9 +4,6 @@
 # Source this file early. Provides:
 #   is_macos / is_linux / is_wsl / is_debian        — boolean OS predicates
 #   has <cmd>                                        — silent command-existence check
-#   cache_eval <name> <init-cmd>                     — cached `eval` for slow init
-#   profile                                          — desktop-full | server-headless | wsl
-#   hostname_short                                   — `hostname -s` with sane fallback
 # =============================================================================
 
 is_macos() { [[ "$(uname -s)" == "Darwin" ]]; }

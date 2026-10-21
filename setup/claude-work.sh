@@ -23,7 +23,7 @@ done
 
 # plannotator plugin: plan review on ExitPlanMode. The plugin does not ship the CLI binary;
 # install it with the minimal installer from the plannotator docs (not run here).
-if ! claude plugin list 2>/dev/null | grep -q "plannotator@plannotator"; then
+if command -v claude >/dev/null 2>&1 && ! claude plugin list 2>/dev/null | grep -q "plannotator@plannotator"; then
     claude plugin marketplace add backnotprop/plannotator >/dev/null 2>&1 || warn "plannotator marketplace add failed"
     claude plugin install plannotator@plannotator >/dev/null 2>&1 || warn "plannotator plugin install failed"
 fi

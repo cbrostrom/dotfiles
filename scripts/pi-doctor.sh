@@ -225,5 +225,13 @@ if [[ $SMOKE -eq 1 ]]; then
     fi
 fi
 
+MCPORTER_DAEMON="$HOME/.mcporter/daemon/user.json"
+if [[ -f "$MCPORTER_DAEMON" ]] && command -v jq >/dev/null 2>&1; then
+    mc_pid="$(jq -r '.pid // empty' "$MCPORTER_DAEMON" 2>/dev/null || true)"
+    if [[ -n "$mc_pid" ]] && ! kill -0 "$mc_pid" 2>/dev/null; then
+        warn "mcporter daemon pid $mc_pid is not alive; fix: mv ~/.mcporter/daemon/user.json{,.stale} && mcporter daemon start"
+    fi
+fi
+
 [[ $FAIL -eq 0 ]] || { log "try: $ROOT/scripts/pi-doctor.sh --fix"; exit 1; }
 log "ok"
