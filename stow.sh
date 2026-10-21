@@ -10,9 +10,9 @@ usage() {
 Usage: ./stow.sh <plan|apply|remove> [profile]
 
 Profiles:
-  macos    Zsh, Git, CLI, agents, Cursor, Pi, Zed, Ghostty
+  macos    Zsh, Git, CLI, agents, Pi, Zed, Ghostty
   linux    Zsh, Git, CLI, agents, Pi, Zed, Ghostty
-  wsl      Zsh, Git, CLI, agents, Cursor, Pi, Zed
+  wsl      Zsh, Git, CLI, agents, Pi, Zed
   server   Minimal shell, Git, CLI, and agent policy
   cloudbro Linux development box with Paseo and Pi, without GUI or OpenCode CLI
 

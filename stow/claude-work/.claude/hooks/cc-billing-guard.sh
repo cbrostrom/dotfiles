@@ -3,8 +3,6 @@
 # Checked once per session. Escape hatch: CC_BILLING_GUARD_DISABLE=1
 [[ "${CC_BILLING_GUARD_DISABLE:-}" == "1" ]] && exit 0
 payload=$(cat)
-# Cursor runs Claude hooks too; its billing is not a Claude seat.
-printf '%s' "$payload" | jq -e 'has("cursor_version")' >/dev/null 2>&1 && exit 0
 sid=$(printf '%s' "$payload" | jq -r '.session_id // "nosession"' 2>/dev/null)
 mkdir -p "${TMPDIR:-/tmp}/agent-hooks"
 stamp="${TMPDIR:-/tmp}/agent-hooks/cc-billing-ok-$sid"

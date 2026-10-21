@@ -1,4 +1,4 @@
-# RTK config shared by every harness (Claude Code, Cursor, Pi).
+# RTK config shared by every harness (Claude Code, Pi).
 # Linux reads ~/.config/rtk/config.toml (stowed); macOS reads
 # ~/Library/Application Support/rtk/config.toml, linked here by setup/claude-work.sh.
 

@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 # push-guard — blocks release/publish commands, and `git push` unless the
-# target repo is push-whitelisted. Shared by Pi and Cursor:
+# target repo is push-whitelisted. Used by Pi and Claude:
 #
 #   pi      (default) pi-yaml-hooks tool.before.bash: reads .tool_args.command,
 #           exit 2 + stderr blocks, exit 0 allows.
-#   cursor  beforeShellExecution: reads .command/.cwd, answers with
-#           {"permission": "allow"|"deny", ...} JSON.
 #
 # Publish commands (npm/pnpm/yarn/bun/cargo publish, gh release create, gh pr
 # merge, docker push, ...) are always blocked: the user runs them by hand.
@@ -33,25 +31,16 @@ payload=$(cat)
 cmd=""
 if command -v jq >/dev/null 2>&1; then
     cmd=$(printf '%s' "$payload" | jq -r '.tool_args.command // .tool_input.command // .command // empty' 2>/dev/null)
-    if [[ "$mode" == "cursor" ]]; then
-        cwd=$(printf '%s' "$payload" | jq -r '.cwd // .workspace_roots[0] // empty' 2>/dev/null)
-        [[ -n "$cwd" ]] && cd "$cwd" 2>/dev/null
-    fi
 fi
 # Fallback when jq is absent or returns nothing.
-[[ -z "${cmd:-}" && "$mode" != "cursor" ]] && cmd="$payload"
+[[ -z "${cmd:-}" ]] && cmd="$payload"
 
 allow() {
-    [[ "$mode" == "cursor" ]] && printf '{"permission":"allow"}\n'
     exit 0
 }
 
 block() {
     local msg="[agent-guard] $1"
-    if [[ "$mode" == "cursor" ]]; then
-        jq -cn --arg m "$msg" '{permission: "deny", user_message: $m, agent_message: $m}'
-        exit 0
-    fi
     echo "$msg" >&2
     exit 2
 }

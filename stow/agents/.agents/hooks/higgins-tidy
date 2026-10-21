@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # higgins-tidy — daily Higgins maintenance per project slug, shared by Pi (session.idle)
-# and Claude/Cursor (SessionEnd). Reads .cwd from the hook payload, else $PWD.
+# and Claude (SessionEnd). Reads .cwd from the hook payload, else $PWD.
 # Work runs detached and never blocks the session. Also prunes hook state files
 # older than 7 days ($TMPDIR/agent-hooks, $TMPDIR/agent-style-gate).
 payload=$(cat 2>/dev/null)

@@ -18,7 +18,6 @@
 - `stow/git/`: Git configuration and hooks
 - `stow/cli/`: small CLI configuration and commands
 - `stow/agents/`: shared policies and skills
-- `stow/cursor/`: stable Cursor agents, hooks, and rules
 - `stow/pi/`: stable Pi config, extensions, hooks, prompts, and shim
 - `stow/zed/`: stable Zed files
 - `stow/desktop/`, `stow/macos/`, `stow/linux/`: environment overlays
@@ -26,7 +25,6 @@
 ## Imperative setup
 
 - `setup/pi.sh` and `setup/pi/settings.py`: merge runtime settings and seed the default model
-- `setup/cursor.sh`: patch mutable hooks and copy files across WSL boundaries
 - `setup/zed.sh`: merge mutable settings and copy files across WSL boundaries
 - `setup/paseo.sh`: synchronize and register plugins without linking `~/.paseo`
 - `scripts/install/`: focused package and machine setup scripts

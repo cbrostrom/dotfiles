@@ -12,7 +12,7 @@ hooks:
   # Re-enable here only if pane-notify is removed.
 
   # Idle: daily Higgins digest/prune/compact per project slug, detached.
-  # Shared with Claude/Cursor SessionEnd (~/.agents/hooks/higgins-tidy, same stamps).
+  # Shared with Claude SessionEnd (~/.agents/hooks/higgins-tidy, same stamps).
   # Does NOT auto-save narrative context — that requires agent judgement (.remember).
   - id: idle-kb-tidy
     event: session.idle
@@ -22,7 +22,7 @@ hooks:
   # Policy gate: mechanical output-style rules (time estimates, em-dashes,
   # filler openers, filler words). detect scans the last assistant text at idle;
   # consume injects a correction note as system context on the next submission
-  # (one-shot). Shared with Cursor (~/.agents/hooks). All failures no-op.
+  # (one-shot). Shared hook (~/.agents/hooks). All failures no-op.
   - id: style-gate-detect
     event: session.idle
     actions:
@@ -33,7 +33,7 @@ hooks:
     actions:
       - bash: "$HOME/.agents/hooks/style-gate pi consume"
 
-  # Before bash: one guard process for every bash call (shared with Claude and Cursor).
+  # Before bash: one guard process for every bash call (shared with Claude).
   # Catastrophic rm, raw docker on linuxbro (Dockhand MCP only), git push whitelist +
   # release/publish block (push-guard.sh), unbounded ssh/wsl (ssh-guard.sh). The
   # push and ssh checks only start when the command mentions them.

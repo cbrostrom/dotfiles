@@ -112,7 +112,6 @@ brew "yoanbernabeu/tap/grepai"
 # =============================================================================
 # Casks — Apps
 # =============================================================================
-cask "cursor"
 cask "dropbox"
 cask "elgato-stream-deck"
 cask "ghostty"

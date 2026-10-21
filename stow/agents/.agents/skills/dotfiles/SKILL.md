@@ -31,14 +31,13 @@ The repository separates declarative home files from imperative machine setup.
 
 - `macos`: full local workstation.
 - `linux`: interactive Linux desktop.
-- `wsl`: WSL with Windows-side Cursor/Zed copies handled by setup scripts.
+- `wsl`: WSL with Windows-side Zed copies handled by setup scripts.
 - `server`: minimal shell and agent policy.
 - `cloudbro`: Linux development box with Pi, without GUI or standalone OpenCode.
 
 ## Special setup
 
 - `setup/pi.sh` merges tracked defaults into mutable `~/.pi/agent/settings.json` and resolves host model policy.
-- `setup/cursor.sh` patches mutable Cursor hooks and performs WSL copies.
 - `setup/zed.sh` merges mutable Zed settings and performs WSL copies.
 - `setup/paseo.sh` installs tracked plugins without linking `~/.paseo` runtime state.
 - `scripts/install/rbw.sh` configures rbw and its local secret loader.
@@ -46,7 +45,6 @@ The repository separates declarative home files from imperative machine setup.
 ## Agent paths
 
 - Shared skills: `stow/agents/.agents/skills/` → `~/.agents/skills/`
-- Cursor config: `stow/cursor/.cursor/`
 - Pi config: `stow/pi/.pi/`
 - Pi runtime settings baseline: `setup/pi/settings.base.json`
 

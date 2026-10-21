@@ -1,7 +1,7 @@
 # Agent Skills Inventory
 
 One shared layer. GNU Stow deploys `stow/agents/.agents/skills/` to `~/.agents/skills/`.
-Cursor reads via `~/.cursor/skills`. Paseo runs Pi only; workers see the allowlist in `scripts/pi-paseo` (`PASEO_SKILLS`).
+Paseo runs Pi only; workers see the allowlist in `scripts/pi-paseo` (`PASEO_SKILLS`).
 
 ## Auto-invocable
 
@@ -32,11 +32,7 @@ Cursor reads via `~/.cursor/skills`. Paseo runs Pi only; workers see the allowli
 
 Pi-only (`~/.pi/agent/skills/`): `creatorskill`, `lfg`, `rundown`, `paseo/`.
 
-## Cursor Built-Ins (`~/.cursor/skills-cursor/`)
-
-Do not edit — Cursor owns and re-syncs this directory.
-
 ## Promotion Rule
 
 Cross-agent workflows go in `stow/agents/.agents/skills/<name>/SKILL.md`.
-Harness glue stays in `stow/cursor/`, `stow/pi/`, and focused `setup/` scripts.
+Harness glue stays in `stow/pi/`, and focused `setup/` scripts.

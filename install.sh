@@ -46,7 +46,6 @@ case "$profile" in
         "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/claude-work.sh"
-        "$ROOT/setup/cursor.sh"
         "$ROOT/setup/zed.sh"
         "$ROOT/setup/herdr.sh"
         "$ROOT/setup/paseo.sh"
@@ -61,7 +60,6 @@ case "$profile" in
         "$ROOT/setup/zed.sh"
         "$ROOT/setup/herdr.sh"
         "$ROOT/setup/paseo.sh"
-        [[ "$profile" == "wsl" ]] && "$ROOT/setup/cursor.sh"
         ;;
     cloudbro)
         "$ROOT/scripts/install/higgins.sh"

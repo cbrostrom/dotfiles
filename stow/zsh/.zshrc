@@ -10,7 +10,7 @@
 #   02-plugins.zsh      - FZF, completions, zoxide, starship, fnm
 #   03-aliases.zsh      - Modern tool replacements and shortcuts
 #   04-functions.zsh    - Custom functions and utilities
-#   05-integrations.zsh - Editor integrations (Cursor, VS Code)
+#   05-integrations.zsh - Editor integrations (VS Code)
 #
 # Performance Features:
 #   - Homebrew shellenv caching (saves ~50-100ms)

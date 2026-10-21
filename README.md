@@ -12,7 +12,6 @@ stateful operations that cannot be symlinked safely.
 │   ├── git/
 │   ├── cli/
 │   ├── agents/
-│   ├── cursor/
 │   ├── pi/
 │   ├── zed/
 │   ├── desktop/

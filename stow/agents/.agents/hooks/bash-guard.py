@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""bash-guard — one pre-shell guard for Pi, Claude Code and Cursor.
+"""bash-guard — one pre-shell guard for Pi and Claude Code.
 
   bash-guard pi       pi-yaml-hooks tool.before.bash   exit 2 + stderr blocks
   bash-guard claude   Claude PreToolUse(Bash)          exit 2 + stderr blocks; on allow,
                                                        hands stdin to `rtk hook claude`
-  bash-guard cursor   Cursor beforeShellExecution      {"permission": "allow"|"deny"}
 
 Checks, cheapest first; the common command costs one process:
   1. catastrophic recursive rm (below)
@@ -12,9 +11,6 @@ Checks, cheapest first; the common command costs one process:
   3. inside a Paseo agent: paseo run/import/agent create/schedule create (no orchestrating)
   4. push/publish -> push-guard.sh, only when the command mentions push/publish/...
   5. unbounded ssh/wsl -> ssh-guard.sh, only when the command mentions ssh/wsl
-
-Cursor also runs the Claude hooks; its payload carries `cursor_version`, and Claude
-mode then exits early so Cursor's own entry is the only one that runs.
 
 rm targets blocked for -r/-R/--recursive (any flag order):
   /, top-level directories, anything outside $HOME and temp roots, $HOME and its
@@ -184,8 +180,6 @@ def main():
         payload = json.loads(raw or "{}")
     except ValueError:
         payload = {}
-    if mode == "claude" and "cursor_version" in payload:
-        return 0
     command = (
         (payload.get("tool_input") or {}).get("command")
         or (payload.get("tool_args") or {}).get("command")
@@ -198,16 +192,11 @@ def main():
             check(command, cwd if cwd and os.path.isdir(cwd) else None)
     except Blocked as blocked:
         message = str(blocked)
-        if mode == "cursor":
-            print(json.dumps({"permission": "deny", "user_message": message, "agent_message": message}))
-            return 0
         print(message, file=sys.stderr)
         return 2
     except Exception:
         pass
-    if mode == "cursor":
-        print(json.dumps({"permission": "allow"}))
-    elif mode == "claude" and shutil.which("rtk"):
+    if mode == "claude" and shutil.which("rtk"):
         return subprocess.run(["rtk", "hook", "claude"], input=raw, text=True).returncode
     return 0
 

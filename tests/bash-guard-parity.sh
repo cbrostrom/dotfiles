@@ -15,7 +15,7 @@ decide() { # script mode json -> "exit|stdout"
   out="$(printf "%s" "$3" | "$1" "$2" 2>/dev/null)"; rc=$?; [[ -n "$out" ]] && out="$(jq -c . <<<"$out")"
   printf '%s|%s' "$rc" "$out"
 }
-for mode in pi cursor; do
+for mode in pi claude; do
   for c in "${cmds[@]}"; do
     json="$(jq -nc --arg c "$c" '{tool_input:{command:$c},cwd:"/tmp"}')"
     a="$(decide "$H/bash-guard.py" "$mode" "$json")"

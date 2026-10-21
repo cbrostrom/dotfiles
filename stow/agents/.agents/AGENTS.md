@@ -1,14 +1,13 @@
 # Agent policy — dotfiles
 
-Shared source of truth for AI agents used in this setup: Pi, Cursor, Codex, Zed, and Gemini.
-Tool-specific adapters: `stow/cursor/.cursor/rules/core.mdc` (Cursor) and `stow/pi/.pi/agent/AGENTS.md` (Pi).
+Shared source of truth for AI agents used in this setup: Pi, Codex, Zed, and Gemini.
+Tool-specific adapter: `stow/pi/.pi/agent/AGENTS.md` (Pi).
 Skill inventory: `AGENT_SKILLS.md`. Codebase map: `CODEBASE.md` — read before any Glob/file search.
 
 ## Cross-harness defaults
 
 | Harness | Default stance on edits |
 |---|---|
-| **Cursor** | Lean — execute obvious ≤3-file fixes; approval gate off unless `.rigor` or high-risk |
 | **Pi** | Rigorous — outline + wait before edits/mutating commands unless user says auto/proceed/full go |
 | **Others** | Follow this file's approval gate |
 
@@ -42,7 +41,6 @@ English. Code, commits, comments, config, AI rules always English. Caveman mode 
 
 | Harness | How policy applies |
 |---|---|
-| **Cursor** | `core.mdc` + `context-mode.mdc` (`alwaysApply`); does **not** load this file directly |
 | **Claude Code** | Does **not** load this file; `~/.claude/CLAUDE.md` (stow `claude-work`) carries its own policy |
 | **Pi** | `~/.pi/agent/AGENTS.md` adapter + this file as spine |
 | **Codex / Zed** | Symlinked or copied root `AGENTS.md`; use Higgins MCP on demand |
@@ -114,9 +112,8 @@ dotfiles copies were deleted). The repo remote is the only source of truth.
 
 No subagents for search, orientation, or single-file edits.
 OK when the user explicitly asks, signals (e.g. `.review`), or Pi needs isolated parallel narrow work (`subagent_isolated`).
-Cursor: forbidden unless user asks. Full routing: `AGENT_SKILLS.md`.
 
-Delegation ladder, token-cheapest first: single greps/lookups → native tools with rtk-compressed output (Cursor: context-mode) — never a subagent. Multi-step reasoning with dead ends, or parallel narrow work → subagent. Paseo-spawned agents delegate via Paseo `create_agent` (full spawn, notify-on-finish); pi-subagents is terminal-only by design — the launcher deliberately does not load it in RPC children.
+Delegation ladder, token-cheapest first: single greps/lookups → native tools with rtk-compressed output — never a subagent. Multi-step reasoning with dead ends, or parallel narrow work → subagent. Paseo-spawned agents delegate via Paseo `create_agent` (full spawn, notify-on-finish); pi-subagents is terminal-only by design — the launcher deliberately does not load it in RPC children.
 
 Every subagent or delegation prompt carries a result contract: ≤10 lines / ≤300 tokens, answer only, no narrative or process talk. Children never `higgins load` — scoped `higgins search`, or `higgins brief <slug> <task>` once it ships.
 
@@ -124,19 +121,18 @@ Every subagent or delegation prompt carries a result contract: ≤10 lines / ≤
 
 **Pi:** Higgins MCP for vault; native Read/Grep/Shell for code; rtk and output-trim compress large output. codebase-memory-mcp disabled by default (tool-restraint).
 
-**Cursor:** Higgins MCP on demand; context-mode via `context-mode.mdc`; Read/Grep/Shell for edits and small reads.
 
 **General:** Prefer structured MCP/search over raw file dumps. Large files: Read with limit/offset. Search: Grep with head_limit. RTK compresses shell output where hooks are wired.
 
 ## Skills
 
-Shared: `stow/agents/.agents/skills/` → `~/.agents/skills/`. Cursor uses `~/.cursor/skills`; Pi discovers the shared path directly.
+Shared: `stow/agents/.agents/skills/` → `~/.agents/skills/`. Pi discovers the shared path directly.
 Codex-specific: `.codex/skills/`. Full inventory: `AGENT_SKILLS.md`.
 
 ## Token awareness
 
 Prefer scoped output. Say context risk before likely-large reads (>200 lines or >10k chars).
-RTK handles compression for CC + Cursor automatically. Token heuristic: 1k tokens ≈ 750 words.
+RTK handles compression for CC automatically. Token heuristic: 1k tokens ≈ 750 words.
 
 ## Planning and new-system guard
 
@@ -164,7 +160,7 @@ Never append AI attribution trailers (`Co-Authored-By`, `Signed-off-by`, etc.) t
 
 Enforcement on Pi: `guard-git-push` hook (`guard-git-push` in `hooks.yaml` — real
 mechanism). `pi-permissions.jsonc` is documentation only until pi ships a
-permissions engine that reads it. Cursor/CC: policy + hooks.
+permissions engine that reads it. CC: policy + hooks.
 
 ## Planning thresholds
 
@@ -206,7 +202,7 @@ Start cheapest that can safely handle the task. Escalate only for deeper reasoni
 
 ## Code quality
 
-aislop is manual on Claude Code and Pi (no hook): suggest `aislop scan --changes` at the end of big features; never run it unasked. Cursor keeps its hook — follow feedback when it fires.
+aislop is manual on Claude Code and Pi (no hook): suggest `aislop scan --changes` at the end of big features; never run it unasked.
 Other agents: `aislop scan --changes` after edits, `aislop fix` to repair.
 fallow for JS/TS dead code + complexity: `~/.agents/skills/fallow/`.
 

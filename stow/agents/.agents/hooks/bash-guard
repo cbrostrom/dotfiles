@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# bash-guard — one pre-shell guard for Pi, Claude Code and Cursor (bash port).
+# bash-guard — one pre-shell guard for Pi and Claude Code (bash port).
 #
 #   bash-guard pi       pi-yaml-hooks tool.before.bash   exit 2 + stderr blocks
 #   bash-guard claude   Claude PreToolUse(Bash)          exit 2 + stderr blocks; on allow,
 #                                                        hands stdin to `rtk hook claude`
-#   bash-guard cursor   Cursor beforeShellExecution      {"permission": "allow"|"deny"}
 #
 # Fast path is pure bash plus one jq call. Anything needing real shell tokenizing
 # (a possible `rm`, or `paseo` inside a Paseo agent) and a missing jq are handed to
@@ -21,24 +20,17 @@ fallback() { exec python3 "$(hooks_dir)/bash-guard.py" "$mode" <<<"$raw"; }
 
 command -v jq >/dev/null 2>&1 || fallback
 
-cursor="" cwd="" cmd=""
-{ IFS= read -r -d '' cursor; IFS= read -r -d '' cwd; IFS= read -r -d '' cmd; } < <(
+cwd="" cmd=""
+{ IFS= read -r -d '' cwd; IFS= read -r -d '' cmd; } < <(
   printf '%s' "$raw" | jq -j '
     (if type == "object" then . else {} end) as $p
     | def first_str(a): [a | select(. != null and . != "") | tostring] | first // "";
-    ($p | has("cursor_version") | tostring) + "\u0000"
-    + first_str($p.cwd, ($p.workspace_roots // [])[0]) + "\u0000"
+    first_str($p.cwd, ($p.workspace_roots // [])[0]) + "\u0000"
     + first_str(($p.tool_input // {}).command, ($p.tool_args // {}).command, $p.command) + "\u0000"
   ' 2>/dev/null
 )
 
-[[ "$mode" == claude && "$cursor" == true ]] && exit 0
-
 block() {
-  if [[ "$mode" == cursor ]]; then
-    jq -nc --arg m "$1" '{permission: "deny", user_message: $m, agent_message: $m}'
-    exit 0
-  fi
   printf '%s\n' "$1" >&2
   exit 2
 }
@@ -71,9 +63,7 @@ if [[ -n "$cmd" ]]; then
   [[ "$cmd" =~ (^|[^[:alnum:]_])(ssh|wsl|wsl\.exe)($|[^[:alnum:]_]) ]] && delegate ssh-guard.sh bash
 fi
 
-if [[ "$mode" == cursor ]]; then
-  printf '%s\n' '{"permission": "allow"}'
-elif [[ "$mode" == claude ]] && command -v rtk >/dev/null 2>&1; then
+if [[ "$mode" == claude ]] && command -v rtk >/dev/null 2>&1; then
   printf '%s' "$raw" | rtk hook claude
   exit $?
 fi

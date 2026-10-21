@@ -7,11 +7,8 @@ Never blocks: detect writes a one-shot flag, consume injects a correction.
 
   style-gate pi detect        pi-yaml-hooks session.idle (PI_SESSION_ID env)
   style-gate pi consume       pi-yaml-hooks user.prompt.submit
-  style-gate cursor detect    Cursor afterAgentResponse (stdin: text, conversation_id)
-  style-gate cursor consume   Cursor postToolUse -> additional_context
   style-gate claude detect    Claude Stop (stdin: session_id, transcript_path)
   style-gate claude consume   Claude UserPromptSubmit -> additionalContext
-Claude mode ignores Cursor payloads (cursor_version): Cursor runs its own entries.
 
 Source of truth for the rules: ~/.agents/AGENTS.md. All failures are no-ops.
 """
@@ -156,18 +153,8 @@ def main() -> None:
             note = take_flag("pi", session_id)
             if note:
                 print(f"status: success\n{note}")
-    elif harness == "cursor":
-        payload = read_stdin_json()
-        conversation = str(payload.get("conversation_id") or "")
-        if action == "detect":
-            write_flag("cursor", conversation, violations(str(payload.get("text") or "")))
-        elif action == "consume":
-            note = take_flag("cursor", conversation)
-            print(json.dumps({"additional_context": note} if note else {}))
     elif harness == "claude":
         payload = read_stdin_json()
-        if "cursor_version" in payload:
-            return
         session_id = str(payload.get("session_id") or "")
         if action == "detect":
             text = payload.get("last_assistant_message") or last_claude_assistant_text(

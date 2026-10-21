@@ -9,7 +9,6 @@ This directory contains only files that GNU Stow can deploy declaratively into
 | `git` | Git config, global ignores, and hooks |
 | `cli` | Small CLI configs and commands |
 | `agents` | Shared agent policy and skills |
-| `cursor` | Cursor agents, hooks, and rules |
 | `pi` | Pi config, extensions, hooks, prompts, and shim |
 | `desktop` | Cross-platform desktop config |
 | `zed` | Zed keymap, tasks, rules, snippets, and themes |

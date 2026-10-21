@@ -22,7 +22,7 @@ Browser view: open [`infra/infra.html`](infra.html) locally.
 
 ### Mac (control plane)
 
-- **Purpose:** Author dotfiles, Cursor/Pi daily driver, Paseo orchestration UI.
+- **Purpose:** Author dotfiles, Pi daily driver, Paseo orchestration UI.
 - **Paseo:** Local daemon; dispatch remote work with `paseo --host ssh://<host>`.
 - **MCP:** Full mcporter catalog; enable dockhand servers on-demand only.
 - **Agents:** Enable Paseo tools for delegation; cross-host via CLI `--host`, not injected MCP.
