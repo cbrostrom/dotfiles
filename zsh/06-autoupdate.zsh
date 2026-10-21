@@ -24,7 +24,7 @@ DOTFILES_STATE_DIR="$HOME/.cache/dotfiles"
 : "${DOTFILES_STALE_DAYS:=7}"
 : "${DOTFILES_GIT_BIN:=${commands[git]:-git}}"
 
-mkdir -p "$DOTFILES_STATE_DIR"
+[[ -d "$DOTFILES_STATE_DIR" ]] || mkdir -p "$DOTFILES_STATE_DIR"
 
 _DF_LAST_ATTEMPT="$DOTFILES_STATE_DIR/last-attempt"
 _DF_LAST_FETCH="$DOTFILES_STATE_DIR/last-fetch"

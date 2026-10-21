@@ -24,13 +24,21 @@ if [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" || -n "${OBSIDIAN_API_KEY:-}" ]]; t
 fi
 
 # Fast path 2: source from cache file written on last unlock (survives new terminal windows)
-if [[ -f "$_RBW_ENV_CACHE" ]] && [[ -n "$(find "$_RBW_ENV_CACHE" -mmin -480 2>/dev/null)" ]]; then
+if [[ -f "$_RBW_ENV_CACHE" ]] && [[ -n "$(print -rl -- ${_RBW_ENV_CACHE}(N.mm-480))" ]]; then
     # shellcheck disable=SC1090
     source "$_RBW_ENV_CACHE"
     if [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" || -n "${OBSIDIAN_API_KEY:-}" ]]; then
         unset _RBW_ENV_CACHE _RBW_ENV_LOCK
         return 0
     fi
+fi
+
+# Probe stamp: if a probe failed (vault locked) within the last hour, skip the
+# slow `rbw unlocked` call on every new shell.
+_RBW_PROBE_STAMP="${XDG_RUNTIME_DIR:-/tmp}/rbw-probe-$UID.stamp"
+if [[ -n "$(print -rl -- ${_RBW_PROBE_STAMP}(N.mm-60))" ]]; then
+    unset _RBW_ENV_CACHE _RBW_ENV_LOCK _RBW_PROBE_STAMP
+    return 0
 fi
 
 # Pick a timeout impl. macOS has no `timeout` by default; coreutils brings
@@ -49,8 +57,9 @@ fi
 # when the caller has no TTY the timeout kills the caller but orphans pinentry,
 # causing a CPU storm. Check first, bail if not locked.
 if ! command ${=_dotfiles_bw_timeout} rbw unlocked >/dev/null 2>&1; then
+    : > "$_RBW_PROBE_STAMP" 2>/dev/null
     [[ -o interactive ]] && printf '[rbw] vault locked — run: rbw unlock\n' >&2
-    unset _dotfiles_bw_timeout _RBW_ENV_CACHE _RBW_ENV_LOCK
+    unset _dotfiles_bw_timeout _RBW_ENV_CACHE _RBW_ENV_LOCK _RBW_PROBE_STAMP
     return 0
 fi
 
@@ -125,4 +134,4 @@ chmod 600 "$_RBW_ENV_CACHE"
 rmdir "$_RBW_ENV_LOCK" 2>/dev/null || true
 
 unset -f _dotfiles_bw_get _dotfiles_bw_get_field
-unset _dotfiles_bw_timeout _RBW_ENV_CACHE _RBW_ENV_LOCK
+unset _dotfiles_bw_timeout _RBW_ENV_CACHE _RBW_ENV_LOCK _RBW_PROBE_STAMP
