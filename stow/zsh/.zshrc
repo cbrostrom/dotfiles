@@ -7,7 +7,7 @@
 # Structure:
 #   00-performance.zsh  - Caching & lazy loading for fast startup (~50-75% faster)
 #   01-environment.zsh  - OS detection, terminal setup, PATH, environment vars
-#   02-plugins.zsh      - zinit, FZF, completions, zoxide, starship, fnm
+#   02-plugins.zsh      - FZF, completions, zoxide, starship, fnm
 #   03-aliases.zsh      - Modern tool replacements and shortcuts
 #   04-functions.zsh    - Custom functions and utilities
 #   05-integrations.zsh - Editor integrations (Cursor, VS Code)
@@ -30,7 +30,7 @@ ZSHRC_PATH="${${(%):-%N}:A}"
 DOTFILES_DIR="${ZSHRC_PATH:h:h:h}"
 ZSH_MODULES_DIR="$DOTFILES_DIR/zsh"
 
-# Load shared platform helpers (is_macos, is_linux, has, cache_eval, profile, …)
+# Load shared platform helpers (is_macos, is_linux, has, …)
 [[ -f "$ZSH_MODULES_DIR/lib/platform.sh" ]] && source "$ZSH_MODULES_DIR/lib/platform.sh"
 
 # =============================================================================
@@ -46,7 +46,7 @@ if [[ -d "$ZSH_MODULES_DIR" ]]; then
     # 01 - Environment (OS detection, PATH, terminal)
     [[ -f "$ZSH_MODULES_DIR/01-environment.zsh" ]] && source "$ZSH_MODULES_DIR/01-environment.zsh"
     
-    # 02 - Plugins (zinit, FZF, completions, zoxide, starship, fnm)
+    # 02 - Plugins (FZF, completions, zoxide, starship, fnm)
     [[ -f "$ZSH_MODULES_DIR/02-plugins.zsh" ]] && source "$ZSH_MODULES_DIR/02-plugins.zsh"
     
     # 03 - Aliases (modern tool replacements)
@@ -63,9 +63,6 @@ if [[ -d "$ZSH_MODULES_DIR" ]]; then
 
     # 08 - Workflow plugins (zsh-abbr + optional TUI aliases) — guarded
     [[ -f "$ZSH_MODULES_DIR/08-workflow.zsh" ]] && source "$ZSH_MODULES_DIR/08-workflow.zsh"
-
-    # 10 - Cmux orchestration helpers
-    [[ -f "$ZSH_MODULES_DIR/09-cmux.zsh" ]] && source "$ZSH_MODULES_DIR/09-cmux.zsh"
 
     # 11 - Herdr integration (autostart, pane labels, machine helpers, pi presets)
     [[ -f "$ZSH_MODULES_DIR/09-herdr.zsh" ]] && source "$ZSH_MODULES_DIR/09-herdr.zsh"
@@ -98,8 +95,3 @@ fi
 
 
 
-# Show fastfetch once per terminal: top-level interactive shell with a tty.
-# Skipped in nested shells, tmux/herdr panes (SHLVL > 1) and agent sessions.
-if [[ -o interactive && -t 1 && $SHLVL -eq 1 && -z "$PI_SESSION" && -z "$AGENT" ]]; then
-    fastfetch
-fi

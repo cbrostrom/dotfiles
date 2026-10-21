@@ -8,10 +8,6 @@
 # =============================================================================
 alias ..='cd ..'
 
-# Zoxide aliases - use both 'z' and ',' for directory jumping
-if command -v zoxide &>/dev/null; then
-    alias .='z'
-fi
 alias dfs='dotfiles sync'                           # converge: pull, plan, apply, setup
 
 # =============================================================================
@@ -172,7 +168,6 @@ if command -v htop &>/dev/null; then
 fi
 
 if command -v btm &>/dev/null; then
-    alias btm='btm'
     alias bottom='btm'
 fi
 
@@ -417,7 +412,6 @@ if $IS_LINUX; then
     fi
 fi
 
-alias pod='podman'
 
 # Claude Code — cc runs claude
 alias cc='claude'

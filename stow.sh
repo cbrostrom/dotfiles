@@ -10,7 +10,7 @@ usage() {
 Usage: ./stow.sh <plan|apply|remove> [profile]
 
 Profiles:
-  macos    Zsh, Git, CLI, agents, Cursor, Pi, desktop, Zed, Ghostty
+  macos    Zsh, Git, CLI, agents, Cursor, Pi, Zed, Ghostty
   linux    Zsh, Git, CLI, agents, Pi, Zed, Ghostty
   wsl      Zsh, Git, CLI, agents, Cursor, Pi, Zed
   server   Minimal shell, Git, CLI, and agent policy
