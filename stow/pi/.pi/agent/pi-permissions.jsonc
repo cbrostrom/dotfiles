@@ -7,7 +7,7 @@
   // grepping pi core + all packages, 16-09-2026). Treat as documentation.
   // Live enforcement:
   //   - rm -rf guard:   guard-destructive hook (hooks.yaml)
-  //   - git push guard: guard-git-push hook (hooks.yaml) + ~/.claude/push-whitelist.txt
+  //   - git push guard: bash-guard hook (hooks.yaml) + ~/.claude/push-whitelist.txt
 
   "defaultPolicy": {
     "tools":   "allow",
@@ -34,7 +34,7 @@
 
     // ── Push / publish guard (mirrors AGENTS.md policy) ───────────────────
     // NOTE: documentation only — the real git push enforcement is the
-    // guard-git-push hook (hooks.yaml) reading ~/.claude/push-whitelist.txt.
+    // bash-guard hook (hooks.yaml) reading ~/.claude/push-whitelist.txt.
     // "git push*":                       "deny",
     // "git push --force*":               "deny",
     // "git push --force-with-lease*":    "deny",

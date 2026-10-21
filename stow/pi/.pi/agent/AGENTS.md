@@ -21,7 +21,7 @@ Default response format — answer-first, scan-friendly:
 - **Suspend brevity when asked to go deep** ("really explain", "walk me through") — give it all in scannable blocks, don't defer.
 - **Number multi-step work.** More than one step = numbered list, one bounded action per step, fewest steps that work.
 - **Restate state every turn.** "Step N of M done: <what>. Next: <action>." Never assume it is remembered across messages.
-- **Estimates in tokens and complexity, never time.** For plans, next-steps, roadmap blocks, any effort framing: token counts (context size, read volume, write volume) + LoC/files/branches + risk surface. NEVER minutes/hours unless the user explicitly asks for hours. Estimate tokens even when imprecise ("≈ <5k tok read"). Violations caught by the time-estimate-gate hook — fix in the next turn. Source of truth: `~/.agents/AGENTS.md` → Estimates and sparring.
+- **Estimates in tokens and complexity, never time.** For plans, next-steps, roadmap blocks, any effort framing: token counts (context size, read volume, write volume) + LoC/files/branches + risk surface. NEVER minutes/hours unless the user explicitly asks for hours. Estimate tokens even when imprecise ("≈ <5k tok read"). Fix violations in the next turn. Source of truth: `~/.agents/AGENTS.md` → Estimates and sparring.
 
 ## Models
 
@@ -37,13 +37,13 @@ One accelerator, one brain. pi-rtk-optimizer and the output-trim extension compr
 
 ## MCP
 
-Direct (tools loaded inline, in `~/.pi/agent/mcp.json`): `higgins` only. Everything else through the `mcporter` proxy tool — one stable surface, no tool-schema bloat:
+No tools loaded inline (`higgins` is disabled in `~/.pi/agent/mcp.json`; use the Higgins CLI). Everything else through the `mcporter` proxy tool — one stable surface, no tool-schema bloat:
 
 - `mcporter({ search: "jira" })` — discover servers/tools. Unknown selector? Always search first.
 - `mcporter({ action: "describe", selector: "server.tool" })` — schema before first call.
 - `mcporter({ action: "call", selector: "server.tool", args: {...} })` — execute.
 
-Use it proactively when a task touches GitHub issues/PRs (`github`), the codebase knowledge graph (`codebase-memory-mcp`), the node/browser REPLs (`node_repl`, `cua_repl`), homelab services (`dockhand-*`, `cloudflare-dns-*`), or when hunting for a machine-local tool/plugin/skill (`paseo-steps-viewer` → `list_capabilities`; see `/skill:pi`). Server admin (install, OAuth, config) is CLI-only: `mcporter list | call | auth | config`.
+Use it proactively when a task touches GitHub issues/PRs (`github`), the node/browser REPLs (`node_repl`, `cua_repl`), homelab services (`dockhand-*`, `cloudflare-dns-*`), or when hunting for a machine-local tool/plugin/skill (`paseo-steps-viewer` → `list_capabilities`; see `/skill:pi`). Server admin (install, OAuth, config) is CLI-only: `mcporter list | call | auth | config`.
 
 Paseo layer: Paseo-launched agents receive Paseo's own tool catalog by injection (`daemon.mcp.injectIntoAgents`) — use those for cross-agent/workspace/browser orchestration there, prefer `pi-peer` only in terminal sessions, and never add `paseo` to mcporter (duplicate surface).
 
@@ -68,5 +68,5 @@ Auto-discovered from `~/.agents/skills/`. Load on demand: `/skill:<name>`.
 
 - Project trust: `/trust` once in trusted repos; keep `defaultProjectTrust` at `"ask"`.
 - Hooks: `pi-yaml-hooks` installed — `/hooks-status` on first session.
-- Subagents: `subagent_isolated` for narrow parallelisable tasks; main thread otherwise.
+- Subagents: never spawn unless explicitly asked (then `subagent_isolated`); main thread otherwise.
 - Token awareness: scoped reads, grep before reading large files. Search with `rg` and list files with `rg --files -g '<glob>'` in bash (RTK-rewritten); avoid `fd` (not rewritten).

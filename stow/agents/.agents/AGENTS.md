@@ -69,8 +69,7 @@ Full MCP reference: `~/.agents/skills/higgins/SKILL.md`.
 
 Available everywhere: auto-injected into every Paseo agent (`server.before("agent.create")`) and
 registered in mcporter (`~/.pi/agent/mcp.json`) for Pi and other harnesses. Plugin source:
-`~/Projects/personal/paseo-steps-viewer`. Full reference: `/skill:stepwise` (Pi terminal) —
-the rules below are harness-independent.
+`~/Projects/personal/paseo-steps-viewer`. The rules below are harness-independent.
 
 **The document is a live step ledger, not a static write-up.** Trigger: when the user says
 "step by step", or when work has 6+ steps / non-trivial detail / multiple phases. In that mode:
@@ -98,7 +97,7 @@ a new session resumes with `next_step`.
 Own plugins are git-installed from private `bybrostrom/paseo-plugins` (canonical; the old
 dotfiles copies were deleted). The repo remote is the only source of truth.
 
-- After editing that repo: commit, push, then `paseo plugin update <id>` per touched plugin
+- After editing that repo: commit, ask the user to push, then `paseo plugin update <id>` per touched plugin
   (or `--all --yes`). **A push alone does NOT update running plugins.** If you cannot run the
   update, flag the stale revision to the user instead of hand-editing `~/.paseo/plugins/`
   checkouts (daemon-managed; hand edits are lost on update).
@@ -111,7 +110,7 @@ dotfiles copies were deleted). The repo remote is the only source of truth.
 ## Subagents
 
 No subagents for search, orientation, or single-file edits.
-OK when the user explicitly asks, signals (e.g. `.review`), or Pi needs isolated parallel narrow work (`subagent_isolated`).
+OK when the user explicitly asks, signals (e.g. `.review`), or the task needs isolated parallel narrow work. Pi: never spawn unless explicitly asked.
 
 Delegation ladder, token-cheapest first: single greps/lookups → native tools with rtk-compressed output — never a subagent. Multi-step reasoning with dead ends, or parallel narrow work → subagent. Paseo-spawned agents delegate via Paseo `create_agent` (full spawn, notify-on-finish); pi-subagents is terminal-only by design — the launcher deliberately does not load it in RPC children.
 
@@ -154,12 +153,11 @@ compare options, recommend. Wait for approval.
 
 ## Push / publish guard
 
-Never run `git push`, `gh release create`, `gh pr merge`, `npm publish`, `cargo publish`
-unless cwd is in `~/.claude/push-whitelist.txt`. Client repos never whitelisted.
+Never run `git push`, `gh release create`, `gh pr merge`, `npm publish`, `cargo publish`;
+the user runs them (whitelist `~/.claude/push-whitelist.txt` is a hook-level exception only). Client repos never whitelisted.
 Never append AI attribution trailers (`Co-Authored-By`, `Signed-off-by`, etc.) to commit messages.
 
-Enforcement on Pi: `guard-git-push` hook (`guard-git-push` in `hooks.yaml` — real
-mechanism). `pi-permissions.jsonc` is documentation only until pi ships a
+Enforcement: `bash-guard` hook (shared Claude/Pi). `pi-permissions.jsonc` is documentation only until pi ships a
 permissions engine that reads it. CC: policy + hooks.
 
 ## Planning thresholds
@@ -197,7 +195,7 @@ Prefer the smallest authoritative source that can answer the question:
 
 ## Model selection
 
-Full map: `~/Vaults/Higgins/AI/personal/`. Escalation: Haiku/Flash → Sonnet 4.6 → Opus 4.8.
+Full map: `~/Vaults/Higgins/AI/personal/`. Escalation: Haiku/Flash → Sonnet → Opus (current ids: see harness model list).
 Start cheapest that can safely handle the task. Escalate only for deeper reasoning or reliability.
 
 ## Code quality

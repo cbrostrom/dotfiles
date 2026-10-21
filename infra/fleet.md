@@ -70,7 +70,7 @@ One physical machine, two Tailscale identities:
 | SSH | Key auth, ControlMaster, `StrictHostKeyChecking accept-new` via `scripts/install/ssh-superbro.sh` |
 | Credentials | Never sync API keys in dotfiles; each host uses local provider auth |
 | MCP | mcporter on-demand; dockhand per-host, not global native exposure |
-| Git | Push allowed: Mac, MonsterBro; CloudBro dotfiles repo only (`~/.claude/push-whitelist.txt`, `guard-git-push` hook) |
+| Git | Push allowed: Mac, MonsterBro; CloudBro dotfiles repo only (`~/.claude/push-whitelist.txt`, `bash-guard` hook) |
 | Relay QR | Treat like a password |
 
 ## Cross-host collaboration
