@@ -33,6 +33,15 @@ fi
 
 case "$profile" in
     macos)
+        if ! command -v brew >/dev/null 2>&1; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            for b in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+                [[ -x "$b" ]] && eval "$("$b" shellenv)" && break
+            done
+        fi
+        brew bundle install --no-upgrade --file="$ROOT/Brewfile"
+        "$ROOT/macos/defaults.sh"
+        "$ROOT/scripts/install/launchd.sh"
         HIGGINS_ROLE=write-through "$ROOT/scripts/install/higgins.sh"
         "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/setup/pi.sh"
