@@ -50,11 +50,11 @@ if [[ "${1:-}" == "sync" ]]; then
         exit 1
     fi
     if [[ -n "$("$git_bin" rev-list '@{u}..HEAD' 2>/dev/null)" ]]; then
-        echo "sync: local branch is ahead of upstream; push or reset first" >&2
-        exit 1
+        echo "==> pull skipped: local branch is ahead of upstream"
+    else
+        echo "==> pull"
+        "$git_bin" pull --ff-only --quiet || { echo "sync: pull failed" >&2; exit 1; }
     fi
-    echo "==> pull"
-    "$git_bin" pull --ff-only --quiet || { echo "sync: pull failed" >&2; exit 1; }
 
     echo "==> zsh syntax"
     if command -v zsh >/dev/null 2>&1; then
