@@ -1,6 +1,6 @@
 # Brewfile — macOS only (mac / Macbook = AKQABro)
-# Source of truth for `brew bundle install` AND `brew bundle cleanup`.
-# WARNING: anything NOT listed here will be removed by `brew bundle cleanup --force`.
+# Install-only. NEVER run `brew bundle cleanup`: the machine has more installed
+# than is listed here by design, and cleanup would uninstall it.
 #
 # Trim policy:
 #   - Removed 13 unused taps (no formula referenced).
@@ -18,10 +18,8 @@
 # =============================================================================
 # Taps
 # =============================================================================
-tap "felixkratz/formulae"            # borders
 tap "muhammadhananasghar/tap"        # wormhole
 tap "oven-sh/bun"                    # bun (not yet in homebrew core)
-tap "shopify/shopify"                # shopify-cli
 tap "yoanbernabeu/tap"               # grepai
 
 # =============================================================================
@@ -47,6 +45,12 @@ brew "lazygit"
 brew "gh"
 brew "fnm"
 brew "bun"
+brew "rtk"
+brew "rbw"
+brew "uv"
+brew "gitleaks"
+brew "shfmt"
+brew "zsh-syntax-highlighting"
 brew "pinentry-mac"
 
 # =============================================================================
@@ -64,18 +68,12 @@ brew "python-setuptools"
 brew "python@3.14"
 brew "ruby"
 brew "shellcheck"
-brew "shopify/shopify/shopify-cli"
-brew "vercel-cli"
 
 # =============================================================================
 # Containers / Virtualization / Network
 # =============================================================================
 brew "caddy"
 brew "cloudflared"
-brew "docker"
-brew "docker-buildx"
-brew "docker-compose"
-brew "docker-credential-helper"
 brew "mtr"
 brew "socat"
 brew "unbound"
@@ -97,9 +95,7 @@ brew "syncthing"
 # =============================================================================
 # Media / Imaging / Local ML
 # =============================================================================
-brew "ggml"
 brew "imagemagick"
-brew "llama.cpp"
 
 # =============================================================================
 # ZSH plugins
@@ -110,31 +106,20 @@ brew "Giammarco-Ferranti/deja/deja"
 # =============================================================================
 # Tap-scoped formulae
 # =============================================================================
-brew "felixkratz/formulae/borders"
 brew "muhammadhananasghar/tap/wormhole"
 brew "yoanbernabeu/tap/grepai"
 
 # =============================================================================
 # Casks — Apps
 # =============================================================================
-cask "beeper"
-cask "bitwarden"
-cask "claude"
 cask "cursor"
 cask "dropbox"
 cask "elgato-stream-deck"
-cask "figma"
-cask "gcloud-cli"
 cask "ghostty"
 cask "localsend"
-cask "logi-options+"
 cask "microsoft-teams"
-cask "miro"
 cask "moonlight"
-cask "music-decoy"
 cask "nvidia-geforce-now"
-cask "pearcleaner"
-cask "pronotes"
 cask "readdle-spark"
 cask "royal-tsx"
 cask "setapp"
@@ -142,7 +127,6 @@ cask "slack"
 cask "spotify"
 cask "steam"
 cask "the-unarchiver"
-cask "vivaldi"
 cask "zoom"
 
 # =============================================================================
