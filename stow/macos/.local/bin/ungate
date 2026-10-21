@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# ungate - strip the Gatekeeper quarantine flag from an app or file.
+# Usage: ungate <app-name | path> [...]
+#   ungate Foo                -> /Applications/Foo.app
+#   ungate ~/Downloads/Foo.app
+#   ungate ./tool-binary
+
+set -euo pipefail
+
+if [[ $# -eq 0 ]]; then
+    echo "usage: ungate <app-name | path> [...]" >&2
+    exit 2
+fi
+
+resolve() {
+    local arg="$1"
+    if [[ -e "$arg" ]]; then
+        printf '%s\n' "$arg"
+    elif [[ -e "/Applications/$arg.app" ]]; then
+        printf '%s\n' "/Applications/$arg.app"
+    elif [[ -e "/Applications/$arg" ]]; then
+        printf '%s\n' "/Applications/$arg"
+    elif [[ -e "$HOME/Applications/$arg.app" ]]; then
+        printf '%s\n' "$HOME/Applications/$arg.app"
+    else
+        return 1
+    fi
+}
+
+status=0
+for arg in "$@"; do
+    if ! target="$(resolve "$arg")"; then
+        echo "ungate: not found: $arg" >&2
+        status=1
+        continue
+    fi
+
+    if ! xattr -p com.apple.quarantine "$target" >/dev/null 2>&1 \
+        && ! xattr -rl "$target" 2>/dev/null | grep -q com.apple.quarantine; then
+        echo "ungate: already clean: $target"
+        continue
+    fi
+
+    if xattr -dr com.apple.quarantine "$target" 2>/dev/null; then
+        echo "ungate: cleared: $target"
+    else
+        echo "ungate: permission denied, retrying with sudo: $target"
+        sudo xattr -dr com.apple.quarantine "$target"
+        echo "ungate: cleared: $target"
+    fi
+done
+
+exit "$status"

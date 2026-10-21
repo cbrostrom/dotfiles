@@ -67,6 +67,8 @@ gaming/config/launch.log
 !stow/pi/.local/**
 !stow/cli/.local/
 !stow/cli/.local/**
+!stow/macos/.local/
+!stow/macos/.local/**
 
 # Codex (not used)
 .codex/
