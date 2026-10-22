@@ -1,6 +1,6 @@
 {
-  "defaultModel": "claude-sonnet-5-5",
-  "defaultProvider": "anthropic",
+  "defaultModel": "glm-5.3-flash",
+  "defaultProvider": "opencode-go",
   "defaultThinkingLevel": "medium",
   "compaction": {
     "enabled": true,
