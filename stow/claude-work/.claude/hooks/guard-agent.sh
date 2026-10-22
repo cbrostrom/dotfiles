@@ -1,16 +1,24 @@
 #!/usr/bin/env bash
-# PreToolUse(Agent): deny forks; team (incl. ce-* reviewers) and repo agents keep their model, one in flight.
+# PreToolUse(Agent): deny forks; team (incl. ce-* reviewers) and repo agents keep their model,
+# foreground or background, at most CC_MAX_TEAM_AGENTS (default 2) running at once.
 # Everything else is pinned to haiku and capped (CC_MAX_AGENTS, default 6 per session).
-# `guard-agent.sh release` (PostToolUse) clears the in-flight marker.
+# `guard-agent.sh release` (SubagentStop) frees the oldest slot of that agent type; slots
+# older than 120 minutes count as crashed and are dropped.
 payload=$(cat)
 sid=$(printf '%s' "$payload" | jq -r '.session_id // "nosession"')
 tmp="${TMPDIR:-/tmp}/agent-hooks"
 mkdir -p "$tmp"
-busy="$tmp/cc-agent-busy-$sid"
-if [[ "${1:-}" == "release" ]]; then rm -f "$busy"; exit 0; fi
+slots="$tmp/cc-team-$sid"
+mkdir -p "$slots"
+find "$slots" -type f -mmin +120 -delete 2>/dev/null
+if [[ "${1:-}" == "release" ]]; then
+  atype=$(printf '%s' "$payload" | jq -r '.agent_type // empty')
+  oldest=$(ls -tr "$slots" 2>/dev/null | grep -m1 -- "^${atype:-.}" || ls -tr "$slots" 2>/dev/null | head -1)
+  [[ -n "$oldest" ]] && rm -f "$slots/$oldest"
+  exit 0
+fi
 
 type=$(printf '%s' "$payload" | jq -r '.tool_input.subagent_type // empty')
-bg=$(printf '%s' "$payload" | jq -r '.tool_input.run_in_background // false')
 cwd=$(printf '%s' "$payload" | jq -r '.cwd // empty')
 deny() {
   jq -cn --arg r "$1" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'
@@ -26,9 +34,9 @@ if (( ! team )) && [[ -n "$type" && -n "$cwd" ]]; then
 fi
 
 if (( team )); then
-  [[ "$bg" == "true" ]] && deny "Background team agents are not allowed; run them in the foreground."
-  [[ -f "$busy" ]] && deny "One task in flight: wait for the running team agent to finish."
-  : >"$busy"
+  running=$(ls "$slots" | wc -l | tr -d ' ')
+  (( running >= ${CC_MAX_TEAM_AGENTS:-2} )) && deny "$running team agents running (cap ${CC_MAX_TEAM_AGENTS:-2}); wait for one to finish."
+  : >"$slots/$type.$(date +%s).$RANDOM"
   # Strip any call-time model so the agent's own frontmatter model applies.
   jq -cn --argjson i "$(printf '%s' "$payload" | jq -c '.tool_input | del(.model)')" \
     '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"allow",updatedInput:$i}}'
