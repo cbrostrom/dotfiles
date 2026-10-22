@@ -50,7 +50,18 @@ fi
 eval "$(fnm env --shell bash)"
 
 if has node; then
-    printf '[fnm] node already present: %s\n' "$(node --version)"
+    # Track the newest patch of the current major so fleet updates pick up
+    # Node security releases; `fnm install <major>` is a no-op when current.
+    major="$(node --version | sed -E 's/^v([0-9]+).*/\1/')"
+    before="$(node --version)"
+    fnm install "$major" >/dev/null
+    fnm default "$major"
+    eval "$(fnm env --shell bash)"
+    if [[ "$(node --version)" == "$before" ]]; then
+        printf '[fnm] node already current: %s\n' "$before"
+    else
+        printf '[fnm] node upgraded: %s -> %s (globals: rerun npm-globals.sh)\n' "$before" "$(node --version)"
+    fi
 else
     printf '[fnm] installing latest Node.js\n'
     latest="$(fnm ls-remote | tail -1)"

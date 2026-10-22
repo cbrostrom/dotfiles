@@ -15,13 +15,11 @@ activate_fnm() {
     export PATH="$HOME/.local/bin:${XDG_DATA_HOME:-$HOME/.local/share}/fnm:$PATH"
 }
 
-if ! command -v npm >/dev/null 2>&1; then
-    printf '[npm-globals] npm not found; bootstrapping fnm + Node.js
-'
-    activate_fnm
-    "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/fnm.sh"
-    activate_fnm
-fi
+# Always run fnm.sh: it bootstraps Node when missing and moves the default to
+# the newest patch of its major, so fleet updates pick up Node security fixes.
+activate_fnm
+"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/fnm.sh"
+activate_fnm
 
 if ! command -v npm >/dev/null 2>&1; then
     printf '[npm-globals] error: npm still not found; run scripts/install/fnm.sh and check output\n' >&2
