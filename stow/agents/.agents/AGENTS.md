@@ -65,6 +65,15 @@ MCP server `higgins` (stdio): tools appear as `mcp__higgins_<name>` in Pi (e.g. 
 
 Full MCP reference: `~/.agents/skills/higgins/SKILL.md`.
 
+## Past sessions (session-lookup)
+
+Old Paseo sessions and Cursor chats are archived as markdown in `~/.local/share/session-archive/` (`index.tsv`: source, id, date, cwd, title). When the user asks "what did we do about X" or names an old session or a T3 `[Cursor] … · <id8>` thread:
+
+1. `session-lookup grep <term>`: one index row per matching session.
+2. `session-lookup show <id-prefix> | grep -n -i <term>` to find the relevant part; read the full transcript only if needed.
+
+Refresh with `session-lookup archive --all` (Paseo) or `session-lookup --source cursor archive --all --since YYYY-MM-DD`.
+
 ## Steps viewer (paseo-steps-viewer)
 
 Available everywhere: auto-injected into every Paseo agent (`server.before("agent.create")`) and

@@ -33,6 +33,7 @@ One accelerator, one brain. pi-rtk-optimizer and the output-trim extension compr
 
 - Facts: `higgins search("<3-5 specific terms>")` — scope `ai` default, `me` personal. Never auto-load the vault; `load <slug>` only on explicit ask or clear need. Full reference: `/skill:higgins`.
 - Signals: `.remember` → `higgins digest`; `.note <text>` → `higgins current`; `.gotcha <text>` → `higgins gotcha`.
+- Past Paseo/Cursor sessions ("what did we do about X", `[Cursor] … · <id8>` threads): `session-lookup grep <term>`, then `session-lookup show <id-prefix>`.
 - Audit/optimization sessions and "do I already have this?" checks: search `scout-rejections` in the vault (`~/Vaults/Higgins/AI/_ops/scout-rejections.md`) before proposing new systems.
 
 ## MCP
