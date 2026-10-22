@@ -22,11 +22,13 @@ activate_fnm
 T3_HOME="${T3CODE_HOME:-$HOME/.t3}"
 T3_PORT="${T3_PORT:-3773}"
 
-if ! command -v t3 >/dev/null 2>&1 && [[ ! -x "$T3_HOME/bin/t3" ]]; then
-    log "install t3 CLI (npm)"
-    npm install -g t3 >/dev/null
+# Same prefix as zsh/01-environment.zsh so `t3` is on PATH in interactive shells.
+npm_prefix="${NPM_CONFIG_PREFIX:-$HOME/.npm-global}"
+export PATH="$npm_prefix/bin:$T3_HOME/bin:$PATH"
+if [[ ! -x "$npm_prefix/bin/t3" ]]; then
+    log "install t3 CLI (npm, $npm_prefix)"
+    npm install -g --prefix "$npm_prefix" t3 >/dev/null
 fi
-export PATH="$T3_HOME/bin:$PATH"
 command -v t3 >/dev/null 2>&1 || die "t3-server: t3 not on PATH after install"
 
 mkdir -p "$T3_HOME"
