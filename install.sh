@@ -49,6 +49,7 @@ case "$profile" in
         "$ROOT/setup/zed.sh"
         "$ROOT/setup/herdr.sh"
         "$ROOT/setup/paseo.sh"
+        "$ROOT/setup/t3.sh"
         ;;
     linux | wsl)
         "$ROOT/scripts/install/higgins.sh"
