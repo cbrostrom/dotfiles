@@ -64,9 +64,6 @@ if [[ -d "$ZSH_MODULES_DIR" ]]; then
     # 08 - Workflow plugins (zsh-abbr + optional TUI aliases) — guarded
     [[ -f "$ZSH_MODULES_DIR/08-workflow.zsh" ]] && source "$ZSH_MODULES_DIR/08-workflow.zsh"
 
-    # 11 - Herdr integration (autostart, pane labels, machine helpers, pi presets)
-    [[ -f "$ZSH_MODULES_DIR/09-herdr.zsh" ]] && source "$ZSH_MODULES_DIR/09-herdr.zsh"
-
     # Per-host overrides BEFORE Zellij auto-attach so a host can opt out
     [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
 else

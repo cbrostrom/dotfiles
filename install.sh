@@ -47,7 +47,6 @@ case "$profile" in
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/claude-work.sh"
         "$ROOT/setup/zed.sh"
-        "$ROOT/setup/herdr.sh"
         "$ROOT/setup/paseo.sh"
         "$ROOT/setup/t3.sh"
         ;;
@@ -59,7 +58,6 @@ case "$profile" in
         "$ROOT/scripts/install/fastfetch.sh"
         "$ROOT/setup/pi.sh"
         "$ROOT/setup/zed.sh"
-        "$ROOT/setup/herdr.sh"
         "$ROOT/setup/paseo.sh"
         ;;
     cloudbro)
@@ -70,7 +68,6 @@ case "$profile" in
         "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/scripts/install/fastfetch.sh"
         "$ROOT/setup/pi.sh"
-        "$ROOT/setup/herdr.sh"
         "$ROOT/setup/paseo.sh"
         ;;
     server)
@@ -81,7 +78,6 @@ case "$profile" in
         "$ROOT/scripts/install/npm-globals.sh"
         "$ROOT/scripts/install/fastfetch.sh"
         "$ROOT/setup/pi.sh"
-        "$ROOT/setup/herdr.sh"
         "$ROOT/setup/paseo.sh"
         ;;
     *)
