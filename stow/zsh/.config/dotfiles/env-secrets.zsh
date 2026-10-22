@@ -12,8 +12,31 @@
 # the vault item title.
 # =============================================================================
 
+# age-secrets fallback for headless hosts without rbw: decrypt blobs from
+# ~/.config/dotfiles/age-secrets/*.age with the host key and export the values.
+# Never writes plaintext to disk. Runs before any rbw work; on rbw machines,
+# the age path is skipped (rbw is the Tier-2 source of truth).
+if ! command -v rbw >/dev/null 2>&1; then
+    if [[ -r "$HOME/.config/age/key.txt" && -x "$HOME/.local/bin/age" ]]; then
+        local _age_blob _age_val _age_name
+        for _age_blob in "$HOME/.config/dotfiles/age-secrets/"*.age(N); do
+            _age_name="${_age_blob:t:r}"
+            _age_val="$("${HOME}/.local/bin/age" -d -i "$HOME/.config/age/key.txt" < "$_age_blob")"
+            if [[ $_age_name == typesafe ]]; then
+                export TYPESAFE_API_KEY="${_age_val%%\n*}"
+            fi
+            unset _age_val
+        done
+        unset _age_blob _age_name
+    fi
+    [[ -o interactive ]] \
+        && [[ -z "${TYPESAFE_API_KEY:-}" ]] \
+        && printf '[age-secrets] TYPESAFE_API_KEY unavailable — missing ~/.config/age/key.txt or ~/.local/bin/age\n' >&2
+    return 0
+fi
 # Bail early if rbw is not installed — keeps non-rbw machines silent.
 command -v rbw >/dev/null 2>&1 || return 0
+
 
 # `rbw unlock` clears the locked-probe stamp so the next shell re-probes.
 rbw() {
@@ -28,6 +51,7 @@ _RBW_ENV_LOCK="${XDG_RUNTIME_DIR:-/tmp}/rbw-env-$UID.lock"
 if [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" || -n "${OBSIDIAN_API_KEY:-}" ]]; then
     return 0
 fi
+
 
 # Fast path 2: source from cache file written on last unlock (survives new terminal windows)
 if [[ -f "$_RBW_ENV_CACHE" ]] && [[ -n "$(print -rl -- ${_RBW_ENV_CACHE}(N.mm-480))" ]]; then
@@ -105,6 +129,9 @@ _dotfiles_bw_get_field() {
 
 export GITHUB_PERSONAL_ACCESS_TOKEN="$(_dotfiles_bw_get 'GitHub PAT')"
 
+# Typesafe (Jev judge) — consumed by the pi effort-judge (il) extension.
+export TYPESAFE_API_KEY="$(_dotfiles_bw_get_field 'API KEY' 'Typesafe - JEV')"
+
 # Atlassian — shared across AKQA and Fiskars (same Atlassian account & token).
 # Consumed by MCP wrappers / agent env (Atlassian, etc.).
 # URLs and username are non-secret, inlined. Token lives in Bitwarden item
@@ -129,6 +156,7 @@ fi
 # Write cache for next terminal window (8h TTL, /tmp cleared on reboot)
 {
     printf 'export GITHUB_PERSONAL_ACCESS_TOKEN=%q\n' "$GITHUB_PERSONAL_ACCESS_TOKEN"
+    printf 'export TYPESAFE_API_KEY=%q\n' "$TYPESAFE_API_KEY"
     printf 'export ATLASSIAN_USERNAME=%q\n' "$ATLASSIAN_USERNAME"
     printf 'export ATLASSIAN_API_TOKEN=%q\n' "$ATLASSIAN_API_TOKEN"
     printf 'export ATLASSIAN_FISKARS_JIRA_URL=%q\n' "$ATLASSIAN_FISKARS_JIRA_URL"
