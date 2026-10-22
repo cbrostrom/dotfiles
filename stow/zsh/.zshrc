@@ -95,3 +95,9 @@ fi
 
 
 
+
+# Tizen SDK
+export TIZEN_SDK_PATH="/Users/Christian.Brostrom/tizen-sdk"
+# tools = sdb, tools/tizen-core = tz (so both are callable by name)
+export PATH="$TIZEN_SDK_PATH/bin:$TIZEN_SDK_PATH/tools:$TIZEN_SDK_PATH/tools/tizen-core:$PATH"
+
