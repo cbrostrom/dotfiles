@@ -33,8 +33,16 @@ esac
 
 if [[ "$VERSION" == "latest" ]]; then
     VERSION="$(curl -fsSL https://api.github.com/repos/vshulcz/deja-vu/releases/latest |
-        grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
-    [[ -n "$VERSION" ]] || { err "could not resolve latest deja-vu release"; exit 1; }
+        grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)" || VERSION=""
+    # GitHub API rate limit (403): keep an installed binary rather than fail.
+    if [[ -z "$VERSION" ]]; then
+        if [[ -x "$TARGET" ]]; then
+            log "could not resolve latest deja-vu release; keeping installed $TARGET"
+            exit 0
+        fi
+        err "could not resolve latest deja-vu release"
+        exit 1
+    fi
 fi
 
 # Tags are vX.Y.Z, assets are dejavu_X.Y.Z_<plat>.tar.gz (no leading v).
