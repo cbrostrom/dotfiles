@@ -68,7 +68,7 @@ command on PATH wraps `stow.sh` for any clone path:
 | `linux` | Interactive Linux workstation |
 | `wsl` | WSL with Windows-side editor copies |
 | `server` | Minimal shell and shared agent policy |
-| `cloudbro` | Lean Linux development box with Paseo and Pi |
+| `cloudbro` | Lean Linux development box with T3 Code server and Pi |
 
 Profile files are plain package lists under `profiles/`. There is no dependency
 resolver or module registry.
@@ -80,7 +80,7 @@ resolver or module registry.
 ./stow.sh apply macos      # apply or refresh links
 ./stow.sh remove macos     # remove links owned by the profile
 ./install.sh macos         # apply links and configure mutable app settings
-./install.sh cloudbro      # apply links and configure local Paseo + Pi
+./install.sh cloudbro      # apply links and configure Pi (T3 Code via setup/hosts/cloudbro.sh)
 ./setup/paseo.sh           # explicitly sync/register Paseo plugins
 ```
 
