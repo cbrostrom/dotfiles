@@ -24,7 +24,7 @@ Claude and pi share this machine. Claude works in any directory. Pi owns `~/.pi`
 - Triage first. Trivial work (one file, obvious change) is done inline or by `coder`. Anything multi-file or unclear goes to `planner` (Fable), which writes `.claude/plans/<KEY>.md` with phases and a model tag per task.
 - Build per phase, one call per phase: `coder-lite` (Haiku) for tasks the plan spells out exactly, `coder` (Sonnet) for normal tasks, `coder-plus` for non-trivial logic. Pass the plan path and task IDs.
 - Lookups, logs, tests and builds go to `grunt`.
-- One task in flight at a time. Each delegation expects at most ~15 lines back.
+- At most two team agents at once (background allowed, only when the user asked for the work). Each delegation expects at most ~15 lines back.
 - Repo override: if the repo defines `.claude/agents/` or a `Team protocol` in AGENTS.md, that takes precedence there. Any other agent runs on Haiku and is capped.
 
 ## Tools
