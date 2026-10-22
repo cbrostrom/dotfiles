@@ -1,0 +1,252 @@
+#!/usr/bin/env zsh
+# paseo-export: list Paseo agents or Cursor agent chats and write handoff files for T3 threads.
+# Read-only on ~/.paseo, ~/.claude, ~/.pi and ~/.cursor. Output goes to $OUT.
+set -euo pipefail
+
+AGENTS=${PASEO_HOME:-$HOME/.paseo}/agents
+OUT=${PASEO_EXPORT_DIR:-$HOME/.t3/scratch/paseo-export}
+TAIL_TURNS=${TAIL_TURNS:-10}
+TURN_CHARS=${TURN_CHARS:-1500}
+MAX_BYTES=${MAX_BYTES:-8000}
+CURSOR_PROJECTS=$HOME/.cursor/projects
+SOURCE=paseo
+
+usage() {
+  cat <<'EOF'
+Usage: paseo-export [--source paseo|cursor] <command> [args]
+
+  list [--archived|--all]        Sessions, newest first (default: active only)
+  find <text>                    Search titles, cwd and transcripts (archived included)
+  export <id...>                 Write handoffs + manifest.json for these ids (prefix ok)
+  export --active|--archived|--all [--since YYYY-MM-DD]
+
+Cursor chats are never archived: --active and --all both mean every chat.
+Env: PASEO_EXPORT_DIR (default ~/.t3/scratch/paseo-export), TAIL_TURNS, MAX_BYTES
+EOF
+}
+
+# records <active|archived|all>: one compact JSON object per session, newest first.
+records() {
+  if [[ $SOURCE == cursor ]]; then
+    [[ $1 == archived ]] || cursor_records
+    return 0
+  fi
+  jq -sc --arg scope "$1" '
+    map(select(.internal != true)
+      | select($scope == "all" or (($scope == "archived") == (.archivedAt != null)))
+      | {id, cwd, title,
+         provider: (.persistence.provider // .provider),
+         model: (.config.model // .runtimeInfo.model),
+         sessionId: .persistence.sessionId,
+         handle: .persistence.nativeHandle,
+         archived: (.archivedAt != null),
+         last: (.lastActivityAt // .updatedAt)})
+    | sort_by(.last) | reverse | .[]' "$AGENTS"/*/*.json
+}
+
+# decode_cwd <dir>: resolve Cursor's dash-encoded project dir to an existing path.
+decode_cwd() {
+  local -a t=("${(@s:-:)1}")
+  walk "" 1 "${t[@]}" || true
+}
+
+walk() {
+  local base=$1 i=$2 j sep name
+  shift 2
+  local -a t=("$@")
+  (( i > ${#t} )) && { print -r -- "$base"; return 0 }
+  for (( j = ${#t}; j >= i; j-- )); do
+    for sep in - . _ ' '; do
+      name=${(pj:$sep:)t[i,j]}
+      [[ -n $name && -d $base/$name ]] && walk "$base/$name" $((j + 1)) "$@" && return 0
+      (( j == i )) && break
+    done
+  done
+  return 1
+}
+
+# relocate <dir>: find a moved project under ~/Projects by its longest unique path suffix.
+relocate() {
+  local -a t=("${(@s:-:)1}") hits
+  local i d suffix
+  if (( ! ${#PROJECT_DIRS} )); then
+    PROJECT_DIRS=($HOME/Projects/*(/N) $HOME/Projects/*/*(/N) $HOME/Projects/*/*/*(/N))
+  fi
+  for (( i = 2; i <= ${#t}; i++ )); do
+    suffix=${(j:-:)t[i,-1]}
+    hits=()
+    for d in $PROJECT_DIRS; do
+      [[ ${d//[\/._ ]/-} == *-$suffix && $suffix == (*-|)${${d:t}//[._ ]/-} ]] && hits+=$d
+    done
+    (( ${#hits} == 1 )) && { print -r -- $hits[1]; return 0 }
+    (( ${#hits} > 1 )) && return 0
+  done
+  return 0
+}
+
+typeset -ga PROJECT_DIRS
+
+cursor_records() {
+  zmodload -F zsh/stat b:zstat
+  local f proj
+  local -A cwds
+  local -a st files=($CURSOR_PROJECTS/*/agent-transcripts/*/*.jsonl(N.L+0))
+  (( ${#files} )) || return 0
+  # First lines can be huge, so titles come from one awk + jq pass, aligned by line.
+  paste \
+    <(for f in $files; do
+        proj=${${f#$CURSOR_PROJECTS/}%%/*}
+        if (( ! ${+cwds[$proj]} )); then
+          cwds[$proj]=$(decode_cwd "$proj")
+          [[ -z ${cwds[$proj]} && $proj != <-> ]] && cwds[$proj]=$(relocate "$proj")
+        fi
+        zstat -A st +mtime "$f"
+        print -r -- "$f"$'\t'"${cwds[$proj]}"$'\t'"${st[1]}"
+      done) \
+    <(awk 'FNR == 1 { print; nextfile }' $files | jq -Rc 'fromjson? // {}
+        | [.message.content[]? | select(.type == "text") | .text] | join(" ")
+        | .[0:4000] | (capture("<user_query>(?<q>[\\s\\S]*?)(</user_query>|$)").q // .)
+        | gsub("<[^>]+>"; " ") | gsub("\\s+"; " ") | ltrimstr(" ") | .[0:80]') \
+  | jq -Rsc '
+    split("\n") | map(select(length > 0) | split("\t") as [$f, $cwd, $mt, $title]
+      | {id: ($f | split("/") | last | rtrimstr(".jsonl")),
+         cwd: (if $cwd == "" then null else $cwd end),
+         title: ($title | fromjson? // ""),
+         provider: "cursor", model: null, sessionId: null, handle: $f, archived: false,
+         last: ($mt | tonumber | todate)})
+    | sort_by(.last) | reverse | .[]'
+}
+
+# transcript <record>: path to the native transcript, empty if unknown.
+transcript() {
+  local provider sid handle
+  provider=$(jq -r .provider <<<"$1")
+  sid=$(jq -r '.sessionId // empty' <<<"$1")
+  handle=$(jq -r '.handle // empty' <<<"$1")
+  case $provider in
+    pi|cursor) [[ -f $handle ]] && print -r -- "$handle" ;;
+    claude) print -rl -- $HOME/.claude/projects/*/"$sid".jsonl(N) | head -1 ;;
+  esac
+  return 0
+}
+
+# turns <file>: user/assistant text turns as JSON lines (claude, pi and cursor formats).
+turns() {
+  jq -c --argjson n "$TURN_CHARS" '
+    select(.type == null or .type == "user" or .type == "assistant" or .type == "message")
+    | (.message.role // .role) as $role
+    | select(.isMeta != true and ($role == "user" or $role == "assistant"))
+    | {role: $role,
+       text: (.message.content
+         | if type == "string" then . else map(select(.type == "text") | .text) | join("\n") end
+         | .[0:($n + 40)] | gsub("</?user_query>"; "") | ltrimstr("\n")
+         | if length > $n then .[0:$n] + " …" else . end)}
+    | select(.text | test("\\S"))' "$1" 2>/dev/null
+}
+
+render() { jq -r '"### \(.role)\n\n\(.text)\n"'; }
+
+table() {
+  jq -r '[.id[0:8], .provider, (if .archived then "arch" else "" end), .last[0:10],
+          (.cwd // "?" | sub(env.HOME; "~")), (.title // "" | .[0:60])] | @tsv' \
+    | column -t -s $'\t'
+}
+
+cmd_list() {
+  local scope=active
+  case ${1:-} in --archived) scope=archived ;; --all) scope=all ;; esac
+  records $scope | table
+}
+
+cmd_find() {
+  local q=${1:?find needs text} rec file
+  records all | while IFS= read -r rec; do
+    if jq -e --arg q "$q" '[.title, .cwd] | map(. // "" | ascii_downcase) | any(contains($q | ascii_downcase))' <<<"$rec" >/dev/null; then
+      print -r -- "$rec"; continue
+    fi
+    file=$(transcript "$rec")
+    if [[ -n $file ]] && grep -qiF -- "$q" "$file"; then print -r -- "$rec"; fi
+  done | table
+}
+
+# handoff <record>: write <id>.md, print manifest entry.
+handoff() {
+  local rec=$1 id file md first tail_md
+  id=$(jq -r .id <<<"$rec")
+  file=$(transcript "$rec")
+  md=$OUT/$id.md
+  {
+    jq -r '"# Handoff from \(env.SOURCE): \(.title // "untitled")\n",
+           "- Source session: `\(.id)` (archived: \(.archived))",
+           "- Provider: \(.provider), model: \(.model // "unknown")",
+           "- Working dir: `\(.cwd // "unresolved")`",
+           "- Last activity: \(.last)",
+           "- Native session: `\(.sessionId // "?")`"' <<<"$rec"
+    print -r -- "- Full transcript: \`${file:-not available for this provider}\`"
+    print
+    if [[ -n $file ]]; then
+      first=$(turns "$file" | jq -sc 'map(select(.role == "user")) | first // empty')
+      if [[ -n $first ]]; then
+        print "## First request\n"
+        render <<<"$first"
+      fi
+      tail_md=$(turns "$file" | tail -n "$TAIL_TURNS" | render)
+      print "## Last $TAIL_TURNS turns\n"
+      if (( ${#tail_md} > MAX_BYTES )); then
+        print "(truncated to the last $MAX_BYTES characters)\n"
+        print -r -- "${tail_md[-$MAX_BYTES,-1]}"
+      else
+        print -r -- "$tail_md"
+      fi
+    else
+      print "No transcript parser for this provider. Ask the user for context."
+    fi
+  } >"$md"
+  jq -c --arg md "$md" --arg file "$file" '
+    {id, title, cwd, provider, model, archived, handoff: $md,
+     transcript: (if $file == "" then null else $file end),
+     t3Provider: ({claude: "claudeAgent", pi: "pi", cursor: "cursor", opencode: "opencode"}[.provider])}' <<<"$rec"
+}
+
+cmd_export() {
+  local scope= since= rec all
+  local -a ids
+  while (( $# )); do
+    case $1 in
+      --active) scope=active ;; --archived) scope=archived ;; --all) scope=all ;;
+      --since) since=${2:?--since needs YYYY-MM-DD}; shift ;;
+      *) ids+=$1 ;;
+    esac
+    shift
+  done
+  [[ -z $scope && ${#ids} -eq 0 ]] && { usage; return 1; }
+  mkdir -p "$OUT"
+  {
+    if (( ${#ids} )); then
+      all=$(records all)
+      for id in $ids; do
+        rec=$(jq -c --arg id "$id" 'select(.id | startswith($id))' <<<"$all" | head -1)
+        [[ -z $rec ]] && { print -u2 "no $SOURCE session matches $id"; continue; }
+        handoff "$rec"
+      done
+    else
+      records $scope | jq -c --arg since "$since" 'select(.last >= $since)' \
+        | while IFS= read -r rec; do handoff "$rec"; done
+    fi
+  } | jq -s . >"$OUT/manifest.json"
+  print "$(jq length "$OUT/manifest.json") handoffs -> $OUT/manifest.json"
+}
+
+if [[ ${1:-} == --source ]]; then
+  SOURCE=${2:?--source needs paseo or cursor}
+  shift 2
+fi
+[[ $SOURCE == (paseo|cursor) ]] || { usage; exit 1; }
+export SOURCE
+
+case ${1:-} in
+  list) shift; cmd_list "$@" ;;
+  find) shift; cmd_find "$@" ;;
+  export) shift; cmd_export "$@" ;;
+  *) usage ;;
+esac
