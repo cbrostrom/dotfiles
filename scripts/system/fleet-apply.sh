@@ -123,7 +123,7 @@ fi
 
 stage="doctor"
 printf '[fleet] %s: running doctor\n' "$host_name"
-"$repo/scripts/doctor.sh" "$profile"
+DOTFILES_FLEET_HOST="$host_name" "$repo/scripts/doctor.sh" "$profile"
 
 stage="repository-postcheck"
 if [[ -n "$(git -C "$repo" status --porcelain)" ]]; then

@@ -30,7 +30,14 @@ command -v stow >/dev/null 2>&1 || {
     exit 1
 }
 
-python3 - "$ROOT" "$HOME" "$profile_file" "$profile" <<'PY'
+# Hosts marked paseo=none in config/fleet-hosts.conf run T3 Code instead.
+paseo_mode="$(
+    DOTFILES_DIR="$ROOT"
+    . "$ROOT/setup/lib.sh"
+    fleet_field "$(fleet_host_name)" 7 || true
+)"
+
+python3 - "$ROOT" "$HOME" "$profile_file" "$profile" "$paseo_mode" <<'PY'
 import json
 import os
 import re
@@ -39,11 +46,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-repo, home, profile_path, profile_name = (
+repo, home, profile_path, profile_name, paseo_mode = (
     Path(sys.argv[1]),
     Path(sys.argv[2]),
     Path(sys.argv[3]),
     sys.argv[4],
+    sys.argv[5],
 )
 PASEO_PROFILES = frozenset({"macos", "wsl", "cloudbro", "server"})
 stow_dir = repo / "stow"
@@ -141,7 +149,7 @@ def semver_at_least(version: str, minimum: str) -> bool:
 
 
 def check_paseo() -> None:
-    if profile_name not in PASEO_PROFILES:
+    if profile_name not in PASEO_PROFILES or paseo_mode == "none":
         return
     fix = (
         "fix: install @getpaseo/cli, run ~/dotfiles/setup/paseo.sh, "
