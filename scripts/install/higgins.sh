@@ -57,6 +57,12 @@ err() { printf '[higgins-install] error: %s\n' "$*" >&2; }
 
 mkdir -p "$BIN_DIR"
 
+# Same Go lookup as zsh/01-environment.zsh: fleet runs are non-interactive and
+# would otherwise pick the distro /usr/bin/go, which is too old for go.mod.
+for go_bin in /usr/local/go/bin "$HOME/sdk/go/bin"; do
+    if [[ -d "$go_bin" ]]; then export PATH="$go_bin:$PATH"; fi
+done
+
 # ── Primary: Go binary build ──────────────────────────────────────
 if command -v go >/dev/null 2>&1 && [[ -d "$GO_SRC" ]]; then
     log "building Go higgins from $GO_SRC"
