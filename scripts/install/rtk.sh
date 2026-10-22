@@ -42,10 +42,12 @@ case "$(uname -s)-$(uname -m)" in
 esac
 
 if [[ "$VERSION" == "latest" ]]; then
-    # The GitHub API rate-limits unauthenticated calls (403); an installed rtk
-    # is good enough then, so fleet runs do not fail on a version check.
-    VERSION="$(curl -fsSL https://api.github.com/repos/rtk-ai/rtk/releases/latest |
-        grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)" || VERSION=""
+    # Resolve the tag from the releases/latest redirect: the GitHub API
+    # rate-limits unauthenticated calls (403). Keep an installed rtk if both fail.
+    VERSION="$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
+        https://github.com/rtk-ai/rtk/releases/latest)" || VERSION=""
+    VERSION="${VERSION##*/tag/}"
+    [[ "$VERSION" == http* ]] && VERSION=""
     if [[ -z "$VERSION" ]]; then
         if [[ -x "$TARGET" ]]; then
             log "could not resolve latest rtk release; keeping $("$TARGET" --version 2>/dev/null)"

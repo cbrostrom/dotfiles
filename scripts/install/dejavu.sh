@@ -32,9 +32,12 @@ case "$(uname -s)-$(uname -m)" in
 esac
 
 if [[ "$VERSION" == "latest" ]]; then
-    VERSION="$(curl -fsSL https://api.github.com/repos/vshulcz/deja-vu/releases/latest |
-        grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)" || VERSION=""
-    # GitHub API rate limit (403): keep an installed binary rather than fail.
+    VERSION="$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
+        https://github.com/vshulcz/deja-vu/releases/latest)" || VERSION=""
+    VERSION="${VERSION##*/tag/}"
+    [[ "$VERSION" == http* ]] && VERSION=""
+    # Tag from the releases/latest redirect (no API rate limit); keep an
+    # installed binary if resolution still fails.
     if [[ -z "$VERSION" ]]; then
         if [[ -x "$TARGET" ]]; then
             log "could not resolve latest deja-vu release; keeping installed $TARGET"
