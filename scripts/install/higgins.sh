@@ -60,7 +60,16 @@ mkdir -p "$BIN_DIR"
 # ── Primary: Go binary build ──────────────────────────────────────
 if command -v go >/dev/null 2>&1 && [[ -d "$GO_SRC" ]]; then
     log "building Go higgins from $GO_SRC"
-    (cd "$GO_SRC" && go build -o "$WRAPPER")
+    if ! (cd "$GO_SRC" && go build -o "$WRAPPER"); then
+        # Distro Go (e.g. Debian's 1.19) cannot parse go.mod; keep a working binary.
+        if [[ -x "$WRAPPER" ]]; then
+            log "warning: go build failed ($(go version)); keeping installed $WRAPPER"
+            install_writer_wrapper
+            exit 0
+        fi
+        err "go build failed ($(go version)); install Go >= the go.mod version"
+        exit 1
+    fi
     chmod +x "$WRAPPER"
     # macOS: ad-hoc re-sign so Gatekeeper does not SIGKILL on exec after copy.
     if command -v codesign >/dev/null 2>&1; then
