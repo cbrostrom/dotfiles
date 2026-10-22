@@ -1,27 +1,32 @@
 #!/usr/bin/env zsh
-# paseo-export: list Paseo agents or Cursor agent chats and write handoff files for T3 threads.
+# session-lookup: search and archive past Paseo sessions and Cursor agent chats; write T3 handoffs.
 # Read-only on ~/.paseo, ~/.claude, ~/.pi and ~/.cursor. Output goes to $OUT.
 set -euo pipefail
 
 AGENTS=${PASEO_HOME:-$HOME/.paseo}/agents
-OUT=${PASEO_EXPORT_DIR:-$HOME/.t3/scratch/paseo-export}
+OUT=${SESSION_HANDOFF_DIR:-$HOME/.t3/scratch/paseo-export}
 TAIL_TURNS=${TAIL_TURNS:-10}
 TURN_CHARS=${TURN_CHARS:-1500}
 MAX_BYTES=${MAX_BYTES:-8000}
 CURSOR_PROJECTS=$HOME/.cursor/projects
+ARCHIVE=${SESSION_ARCHIVE:-$HOME/.local/share/session-archive}
 SOURCE=paseo
 
 usage() {
   cat <<'EOF'
-Usage: paseo-export [--source paseo|cursor] <command> [args]
+Usage: session-lookup [--source paseo|cursor] <command> [args]
 
   list [--archived|--all]        Sessions, newest first (default: active only)
   find <text>                    Search titles, cwd and transcripts (archived included)
   export <id...>                 Write handoffs + manifest.json for these ids (prefix ok)
   export --active|--archived|--all [--since YYYY-MM-DD]
+  archive [same args as export]  Write full transcripts to the archive + index.tsv
+  show <id>                      Print an archived session (prefix ok, any source)
+  grep <text>                    Index rows of archived sessions containing text
 
 Cursor chats are never archived: --active and --all both mean every chat.
-Env: PASEO_EXPORT_DIR (default ~/.t3/scratch/paseo-export), TAIL_TURNS, MAX_BYTES
+Env: SESSION_HANDOFF_DIR (default ~/.t3/scratch/paseo-export), TAIL_TURNS, MAX_BYTES,
+     SESSION_ARCHIVE (default ~/.local/share/session-archive)
 EOF
 }
 
@@ -132,8 +137,8 @@ transcript() {
 
 # turns <file>: user/assistant text turns as JSON lines (claude, pi and cursor formats).
 turns() {
-  jq -c --argjson n "$TURN_CHARS" '
-    select(.type == null or .type == "user" or .type == "assistant" or .type == "message")
+  jq -Rc --argjson n "$TURN_CHARS" '
+    fromjson? | select(.type == null or .type == "user" or .type == "assistant" or .type == "message")
     | (.message.role // .role) as $role
     | select(.isMeta != true and ($role == "user" or $role == "assistant"))
     | {role: $role,
@@ -208,8 +213,9 @@ handoff() {
      t3Provider: ({claude: "claudeAgent", pi: "pi", cursor: "cursor", opencode: "opencode"}[.provider])}' <<<"$rec"
 }
 
-cmd_export() {
-  local scope= since= rec all
+# cmd_export_records <export args>: matching records, one per line.
+cmd_export_records() {
+  local scope= since= rec all id
   local -a ids
   while (( $# )); do
     case $1 in
@@ -219,22 +225,71 @@ cmd_export() {
     esac
     shift
   done
-  [[ -z $scope && ${#ids} -eq 0 ]] && { usage; return 1; }
+  [[ -z $scope && ${#ids} -eq 0 ]] && return 1
+  if (( ${#ids} )); then
+    all=$(records all)
+    for id in $ids; do
+      rec=$(jq -c --arg id "$id" 'select(.id | startswith($id))' <<<"$all" | head -1)
+      [[ -z $rec ]] && { print -u2 "no $SOURCE session matches $id"; continue; }
+      print -r -- "$rec"
+    done
+  else
+    records $scope | jq -c --arg since "$since" 'select(.last >= $since)'
+  fi
+}
+
+cmd_export() {
+  local all rec
+  all=$(cmd_export_records "$@") || { usage; return 1; }
   mkdir -p "$OUT"
-  {
-    if (( ${#ids} )); then
-      all=$(records all)
-      for id in $ids; do
-        rec=$(jq -c --arg id "$id" 'select(.id | startswith($id))' <<<"$all" | head -1)
-        [[ -z $rec ]] && { print -u2 "no $SOURCE session matches $id"; continue; }
-        handoff "$rec"
-      done
-    else
-      records $scope | jq -c --arg since "$since" 'select(.last >= $since)' \
-        | while IFS= read -r rec; do handoff "$rec"; done
-    fi
-  } | jq -s . >"$OUT/manifest.json"
+  while IFS= read -r rec; do [[ -n $rec ]] && handoff "$rec"; done <<<"$all" \
+    | jq -s . >"$OUT/manifest.json"
   print "$(jq length "$OUT/manifest.json") handoffs -> $OUT/manifest.json"
+}
+
+# archive_one <record>: write the full transcript, print an index row.
+archive_one() {
+  local rec=$1 id file md
+  id=$(jq -r .id <<<"$rec")
+  file=$(transcript "$rec")
+  md=$ARCHIVE/$SOURCE/$id.md
+  {
+    jq -r '"# \(.title // "untitled")\n",
+           "- Source: \(env.SOURCE) session `\(.id)` (archived: \(.archived))",
+           "- Provider: \(.provider), model: \(.model // "unknown")",
+           "- Working dir: `\(.cwd // "unresolved")`",
+           "- Last activity: \(.last)",
+           "- Native session: `\(.sessionId // "?")`"' <<<"$rec"
+    print -r -- "- Transcript: \`${file:-none}\`"
+    print
+    [[ -n $file ]] && TURN_CHARS=100000 turns "$file" | render
+  } >"$md"
+  jq -r '[env.SOURCE, .id, .last[0:10], (.cwd // "?" | sub(env.HOME; "~")), (.title // "")] | @tsv' <<<"$rec"
+}
+
+cmd_archive() {
+  local all rec index=$ARCHIVE/index.tsv
+  mkdir -p "$ARCHIVE/$SOURCE"
+  touch "$index"
+  all=$(cmd_export_records "$@") || { usage; return 1; }
+  { grep -v "^$SOURCE"$'\t' "$index" || true
+    while IFS= read -r rec; do [[ -n $rec ]] && archive_one "$rec"; done <<<"$all"
+  } | awk -F'\t' '!seen[$1 FS $2]++' | sort -t$'\t' -k3,3r >"$index.tmp"
+  mv "$index.tmp" "$index"
+  print "$(grep -c "^$SOURCE"$'\t' "$index") $SOURCE sessions -> $ARCHIVE"
+}
+
+cmd_show() {
+  local -a f=($ARCHIVE/*/${1:?show needs an id}*.md(N))
+  (( ${#f} == 1 )) || { print -u2 "${#f} matches for $1"; return 1; }
+  cat "$f[1]"
+}
+
+cmd_grep() {
+  local id
+  for id in $(grep -rliF --include='*.md' -- "${1:?grep needs text}" "$ARCHIVE" | sed 's:.*/::; s:\.md$::'); do
+    grep -F $'\t'"$id"$'\t' "$ARCHIVE/index.tsv"
+  done | cut -c1-160
 }
 
 if [[ ${1:-} == --source ]]; then
@@ -248,5 +303,8 @@ case ${1:-} in
   list) shift; cmd_list "$@" ;;
   find) shift; cmd_find "$@" ;;
   export) shift; cmd_export "$@" ;;
+  archive) shift; cmd_archive "$@" ;;
+  show) shift; cmd_show "$@" ;;
+  grep) shift; cmd_grep "$@" ;;
   *) usage ;;
 esac
