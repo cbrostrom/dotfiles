@@ -43,6 +43,16 @@ install_global() {
 }
 
 install_global "@earendil-works/pi-coding-agent"
-install_global "@getpaseo/cli"
+# Hosts marked paseo=none in config/fleet-hosts.conf run T3 Code instead.
+paseo_mode="$(
+    DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+    . "$DOTFILES_DIR/setup/lib.sh"
+    fleet_field "$(fleet_host_name)" 7 || true
+)"
+if [[ "$paseo_mode" == "none" ]]; then
+    log "skip @getpaseo/cli (paseo=none for this host)"
+else
+    install_global "@getpaseo/cli"
+fi
 
 log "pi=$(pi --version 2>/dev/null || echo missing) paseo=$(paseo --version 2>/dev/null || echo missing)"

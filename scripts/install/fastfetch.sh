@@ -82,6 +82,11 @@ case "$MODE" in
         fi
         ;;
     install)
+        # Unattended runs (fleet-update) have no TTY for a sudo password.
+        if ! sudo -n true 2>/dev/null; then
+            echo "fastfetch: sudo needs a password; skipped (run $(basename "$0") in a terminal)"
+            exit 0
+        fi
         if apt_has_fastfetch; then
             echo "fastfetch: available in apt, installing via apt"
             install_via_apt
