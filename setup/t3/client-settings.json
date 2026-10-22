@@ -1,0 +1,123 @@
+{
+  "notificationMode": "notifications",
+  "inAppNotificationsEnabled": true,
+  "diffColorScheme": "red-green",
+  "chatWidth": "full",
+  "loadBalancingEnabled": false,
+  "appearanceContrast": 100,
+  "panelAnimationDurationMs": 200,
+  "browserDefaultViewport": {
+    "_tag": "fill"
+  },
+  "browserDefaultZoomFactor": 1,
+  "browserDefaultAppearance": "system",
+  "browserRecordingFrameRate": 30,
+  "browserRecordingShowKeyPresses": false,
+  "browserRecordingShowMousePresses": false,
+  "browserLinkTarget": "system",
+  "browserSearchEngine": "google",
+  "browserCustomSearchUrl": "",
+  "browserAutoShowFloatingPreview": true,
+  "confirmQuit": "hold",
+  "confirmThreadArchive": false,
+  "confirmThreadDelete": true,
+  "confirmThreadUnpin": false,
+  "diffFilesCollapsed": true,
+  "diffIgnoreWhitespace": true,
+  "diffLayout": "split",
+  "environmentIdentificationMode": "artwork",
+  "glassOpacity": 40,
+  "fontSizeInterface": 16,
+  "fontSizePrompt": 14,
+  "fontSizeCode": 13,
+  "fontSizeTerminal": 12,
+  "fontFamilyCode": "JetBrainsMono Nerd Font Mono",
+  "fontFamilyComposer": "",
+  "fontFamilySans": "JetBrainsMonoNL Nerd Font",
+  "fontFamilyTerminal": "JetBrainsMono Nerd Font Mono",
+  "fontSmoothing": true,
+  "persistComposerContextStrip": false,
+  "favorites": [
+    {
+      "provider": "opencode",
+      "model": "opencode/big-pickle"
+    },
+    {
+      "provider": "opencode",
+      "model": "github-copilot/claude-sonnet-5"
+    },
+    {
+      "provider": "opencode",
+      "model": "github-copilot/gpt-5.6-sol"
+    },
+    {
+      "provider": "opencode",
+      "model": "github-copilot/gpt-5.6-terra"
+    },
+    {
+      "provider": "opencode",
+      "model": "github-copilot/gpt-5.6-luna"
+    },
+    {
+      "provider": "cursor",
+      "model": "composer-2.5"
+    },
+    {
+      "provider": "cursor",
+      "model": "gpt-5.6-sol"
+    },
+    {
+      "provider": "cursor",
+      "model": "claude-opus-4-8"
+    },
+    {
+      "provider": "cursor",
+      "model": "gpt-5.6-terra"
+    },
+    {
+      "provider": "cursor",
+      "model": "claude-sonnet-5"
+    },
+    {
+      "provider": "cursor",
+      "model": "glm-5.2"
+    },
+    {
+      "provider": "cursor",
+      "model": "gpt-5.6-luna"
+    }
+  ],
+  "providerModelPreferences": {},
+  "pullRequestLinksOpenInApp": true,
+  "planModeEnabled": false,
+  "contextWindowMeterEnabled": false,
+  "composerCollapseOnScroll": true,
+  "composerRichTextEnabled": true,
+  "sendShortcut": "enter",
+  "followUpBehavior": "queue",
+  "proactivePanelsEnabled": false,
+  "showSkillsInSlashMenu": true,
+  "legacySidebarEnabled": false,
+  "sidebarWorkingShelfEnabled": false,
+  "sidebarProjectGroupingMode": "repository",
+  "sidebarProjectSortOrder": "updated_at",
+  "sidebarThreadSortOrder": "updated_at",
+  "sidebarThreadPreviewCount": 6,
+  "timestampFormat": "24-hour",
+  "snapShotEnabled": true,
+  "snapShotIncludeAccessibility": true,
+  "snapShotShortcut": {
+    "key": "w",
+    "metaKey": false,
+    "ctrlKey": false,
+    "shiftKey": true,
+    "altKey": false,
+    "modKey": true
+  },
+  "snapShotPlaySound": false,
+  "snapShotSound": "soft-pop",
+  "snapShotFlash": false,
+  "snapShotAnimations": false,
+  "wordWrap": true,
+  "mathRenderingEnabled": false
+}
