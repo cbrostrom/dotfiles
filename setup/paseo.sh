@@ -8,6 +8,13 @@ DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 . "$DOTFILES_DIR/setup/lib/paseo-fleet-env.sh"
 activate_fnm
 
+# Hosts marked paseo=none in config/fleet-hosts.conf run T3 Code instead.
+if [[ "$(fleet_field "$(fleet_host_name)" 7 || true)" == "none" ]]; then
+    command -v paseo >/dev/null 2>&1 && paseo daemon stop >/dev/null 2>&1 || true
+    skip "Paseo disabled for $(fleet_host_name) (paseo=none); daemon stopped"
+    exit 0
+fi
+
 PASEO_CONFIG_SRC="$DOTFILES_DIR/sources/paseo"
 # Plugins are runtime state, not dotfiles: keep them outside the git tree so
 # plugin syncs never dirty the checkout the fleet updater guards.

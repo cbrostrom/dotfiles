@@ -21,3 +21,24 @@ activate_fnm() {
     fi
     export PATH="$HOME/.local/bin:${XDG_DATA_HOME:-$HOME/.local/share}/fnm:$PATH"
 }
+
+# Fleet host name for this machine: DOTFILES_FLEET_HOST, else short hostname.
+fleet_host_name() {
+    local name="${DOTFILES_FLEET_HOST:-$(hostname -s)}"
+    printf '%s\n' "$name" | tr '[:upper:]' '[:lower:]'
+}
+
+# fleet_field <host> <index>: print a FLEET_SSH column (0=name, 1=address, 7=paseo).
+fleet_field() {
+    local entry fields
+    # shellcheck source=../config/fleet-hosts.conf
+    . "${DOTFILES_DIR:?}/config/fleet-hosts.conf"
+    for entry in "${FLEET_SSH[@]}"; do
+        IFS='|' read -r -a fields <<<"$entry"
+        if [[ "${fields[0]}" == "$1" ]]; then
+            printf '%s\n' "${fields[$2]}"
+            return 0
+        fi
+    done
+    return 1
+}

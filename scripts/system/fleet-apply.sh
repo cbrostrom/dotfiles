@@ -110,7 +110,7 @@ printf '[fleet] %s: validating Stow profile %s\n' "$host_name" "$profile"
 
 stage="install"
 printf '[fleet] %s: applying profile %s\n' "$host_name" "$profile"
-"$repo/install.sh" "$profile"
+DOTFILES_FLEET_HOST="$host_name" "$repo/install.sh" "$profile"
 
 stage="host-config"
 host_setup="$repo/setup/hosts/$host_name.sh"
