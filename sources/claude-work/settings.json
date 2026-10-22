@@ -39,6 +39,10 @@
       "Bash(mw call shopify-dev-mcp.*)",
       "Bash(mw call codebase-memory-mcp.*)"
     ],
+    "ask": [
+      "Bash(ssh *)",
+      "Bash(scp *)"
+    ],
     "deny": [
       "Edit(~/.pi/**)",
       "Edit(~/Vaults/**)",
@@ -70,8 +74,6 @@
       "Edit(**/.npmrc)",
       "Edit(~/.aws/**)",
       "Edit(~/.ssh/**)",
-      "Bash(ssh *)",
-      "Bash(scp *)",
       "Bash(tailscale *)",
       "Bash(git push --force*)",
       "Bash(mcporter)",
